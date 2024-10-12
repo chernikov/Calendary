@@ -7,15 +7,15 @@ using System.Text;
 namespace Calendary.Core;
 public interface IUserService
 {
-    Task RegisterUserAsync(User user, string password);
+    Task<User> RegisterUserAsync(User user, string password);
     Task<User?> GetUserByEmailAsync(string email);
 }
 
-public class UserService(IUserRepository userRepository, IRoleRepository roleRepository) : IUserService
+public class UserService(IUserRepository userRepository) : IUserService
 {
     
 
-    public async Task RegisterUserAsync(User user, string password)
+    public async Task<User> RegisterUserAsync(User user, string password)
     {
         var entity = await userRepository.GetUserByEmailAsync(user.Email);
         if (entity is not null)
@@ -37,6 +37,7 @@ public class UserService(IUserRepository userRepository, IRoleRepository roleRep
 
         await userRepository.AddAsync(user);
         await userRepository.AddRole(user.Id, Role.UserRole.Id);
+        return user;
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)
