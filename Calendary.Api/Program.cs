@@ -1,15 +1,17 @@
 using Calendary.Repos;
+using Calendary.Core;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Retrieve the connection string from appsettings.json
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? throw new Exception("Can't find connection string with name DefaultConnection");
 
-// Configure Entity Framework Core with SQL Server and inject the DbContext
-builder.Services.AddDbContext<CalendaryDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddCalendaryRepositories(connectionString);
+builder.Services.AddServices();
 
 // Add services to the container.
 builder.Services.AddControllers();
