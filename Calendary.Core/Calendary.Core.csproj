@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Calendary.Model\Calendary.Model.csproj" />
+    <ProjectReference Include="..\Calendary.Repos\Calendary.Repos.csproj" />
+  </ItemGroup>
+
 </Project>
