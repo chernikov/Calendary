@@ -1,0 +1,28 @@
+<div class="register-container">
+    <h2>Реєстрація</h2>
+  
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" formControlName="email" class="form-control" />
+        <div *ngIf="submitted && registerForm.controls['email'].errors" class="error-message">
+            <span *ngIf="registerForm.controls['email'].errors['required']">Email є обов'язковим</span>
+            <span *ngIf="registerForm.controls['email'].errors['email']">Email не є валідним</span>
+          </div>
+      </div>
+  
+      <div class="form-group">
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" formControlName="password" class="form-control" />
+        <div *ngIf="submitted && registerForm.controls['password'].errors" class="error-message">
+          <span *ngIf="registerForm.controls['password'].errors['required']">Пароль не може бути порожнім</span>
+        </div>
+      </div>
+  
+      <button type="submit" class="btn btn-primary">Зареєструватися</button>
+  
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+    </form>
+  </div>
