@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Repos;
-public class CalendaryDbContext : DbContext
+public class CalendaryDbContext : DbContext, ICalendaryDbContext
 {
     public CalendaryDbContext(DbContextOptions<CalendaryDbContext> options) : base(options)
     {
@@ -80,8 +80,8 @@ public class CalendaryDbContext : DbContext
 
         // Seed дані для ролей
         modelBuilder.Entity<Role>().HasData(
-            new Role { Id = 1, Name = "Admin" },
-            new Role { Id = 2, Name = "User" }
+            Role.AdminRole,
+            Role.UserRole
         );
 
         // Seed дані для мов
