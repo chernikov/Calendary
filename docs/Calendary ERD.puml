@@ -1,0 +1,95 @@
+@startuml Calendary ERD
+entity Countries {
+    + Id : int
+    + Name : nvarchar(max)
+    + Code : nvarchar(max)
+}
+
+entity Languages {
+    + Id : int
+    + Name : nvarchar(max)
+}
+
+entity Roles {
+    + Id : int
+    + Name : nvarchar(max)
+}
+
+entity Users {
+    + Id : int
+    + UserName : nvarchar(max)
+    + Email : nvarchar(max)
+    + IsEmailConfirmed : bit
+    + PhoneNumber : nvarchar(max)
+    + IsPhoneNumberConfirmed : bit
+    + PasswordHash : nvarchar(max)
+}
+
+entity Orders {
+    + Id : int
+    + OrderDate : datetime2
+    + IsPaid : bit
+    + Status : nvarchar(max)
+    + DeliveryAddress : nvarchar(max)
+    + UserId : int
+}
+
+entity UserSettings {
+    + Id : int
+    + FirstDayOfWeek : int
+    + LanguageId : int
+    + CountryId : int
+    + UserId : int
+}
+
+entity Calendars {
+    + Id : int
+    + Year : int
+    + FirstDayOfWeek : nvarchar(max)
+    + LanguageId : int
+    + OrderId : int
+}
+
+entity PaymentInfos {
+    + Id : int
+    + PaymentMethod : nvarchar(max)
+    + IsPaid : bit
+    + PaymentDate : datetime2
+    + OrderId : int
+}
+
+entity EventDates {
+    + Id : int
+    + Date : datetime2
+    + Description : nvarchar(max)
+    + UserSettingId : int
+    + CalendarId : int
+}
+
+entity Holidays {
+    + Id : int
+    + Date : datetime2
+    + Name : nvarchar(max)
+    + CountryId : int
+}
+
+entity Images {
+    + Id : int
+    + ImageUrl : nvarchar(max)
+    + CalendarId : int
+}
+
+Countries ||--o{ UserSettings : "in"
+Languages ||--o{ UserSettings : "uses"
+Languages ||--o{ Calendars : "uses"
+Users ||--o{ Orders : "places"
+Users }o--o{ Roles : "has"
+Users ||--|| UserSettings : "has"
+Orders ||--o{ Calendars : "includes"
+Orders ||--o{ PaymentInfos : "has"
+Calendars ||--o{ EventDates : "has"
+Holidays }o--o{ Calendars : "celebrates"
+Calendars ||--o{ Images : "includes"
+EventDates ||--o{ UserSettings : "uses"
+Holidays ||--o{ Countries : "in"
+@enduml
