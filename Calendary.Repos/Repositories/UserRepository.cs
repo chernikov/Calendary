@@ -8,6 +8,7 @@ public interface IUserRepository : IRepository<User>
     Task<User?> GetUserByEmailAsync(string email);
 
     Task AddRole(int userId, int roleId);
+
 }
 
 public class UserRepository : IUserRepository

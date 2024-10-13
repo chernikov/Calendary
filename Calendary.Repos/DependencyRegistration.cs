@@ -16,15 +16,15 @@ namespace Calendary.Repos
             // Реєстрація репозиторіїв
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<IUserSettingRepository, UserSettingRepository>();
+            services.AddScoped<ICountryRepository, CountryRepository>();
+            services.AddScoped<ILanguageRepository, LanguageRepository>();
             services.AddScoped<IRepository<Order>, OrderRepository>();
             services.AddScoped<IRepository<Calendar>, CalendarRepository>();
             services.AddScoped<IRepository<Image>, ImageRepository>();
             services.AddScoped<IRepository<EventDate>, EventDateRepository>();
             services.AddScoped<IRepository<Holiday>, HolidayRepository>();
-            services.AddScoped<IRepository<Country>, CountryRepository>();
-            services.AddScoped<IRepository<UserSetting>, UserSettingRepository>();
             services.AddScoped<IRepository<PaymentInfo>, PaymentInfoRepository>();
-            services.AddScoped<IRepository<Language>, LanguageRepository>();
 
             services.ApplyMigrationDb();
 

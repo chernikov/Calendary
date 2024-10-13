@@ -1,20 +1,18 @@
 ﻿using Calendary.Model;
 using Calendary.Repos.Repositories;
-using Org.BouncyCastle.Crypto.Generators;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Calendary.Core;
+namespace Calendary.Core.Services;
 public interface IUserService
 {
     Task<User> RegisterUserAsync(User user, string password);
     Task<User?> GetUserByEmailAsync(string email);
+    Task<User?> LoginAsync(string email, string password);
 }
 
-public class UserService(IUserRepository userRepository) : IUserService
+public class UserService(IUserRepository userRepository, IUserSettingRepository userSettingRepository) : IUserService
 {
-    
-
     public async Task<User> RegisterUserAsync(User user, string password)
     {
         var entity = await userRepository.GetUserByEmailAsync(user.Email);
@@ -37,6 +35,23 @@ public class UserService(IUserRepository userRepository) : IUserService
 
         await userRepository.AddAsync(user);
         await userRepository.AddRole(user.Id, Role.UserRole.Id);
+        await userSettingRepository.AddAsync(new UserSetting { UserId = user.Id });
+        return user;
+    }
+
+    public async Task<User?> LoginAsync(string email, string password)
+    {
+        var user = await userRepository.GetUserByEmailAsync(email);
+        if (user is null)
+        {
+            return null;
+        }
+
+        var hashPassword = GetMd5Hash(password);
+        if (user.PasswordHash != hashPassword)
+        {
+            return null;
+        }
         return user;
     }
 
@@ -56,4 +71,6 @@ public class UserService(IUserRepository userRepository) : IUserService
         }
         return sb.ToString();
     }
+
+   
 }
