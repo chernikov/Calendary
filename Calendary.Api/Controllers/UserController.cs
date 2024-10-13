@@ -20,6 +20,9 @@ namespace Calendary.Api.Controllers
         }
 
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(UserDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
         public async Task<IActionResult> Register([FromBody] UserLoginDto userLoginDto)
         {
             if (!ModelState.IsValid)
@@ -28,8 +31,9 @@ namespace Calendary.Api.Controllers
             }
 
             var user = _mapper.Map<User>(userLoginDto);
-            await _userService.RegisterUserAsync(user, userLoginDto.Password);
-            return Ok("User registered successfully.");
+            var newUser = await _userService.RegisterUserAsync(user, userLoginDto.Password);
+            var result = _mapper.Map<UserDto>(newUser);
+            return Created("", result);
         }
     }
 }
