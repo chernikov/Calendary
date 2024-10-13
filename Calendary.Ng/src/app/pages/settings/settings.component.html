@@ -1,0 +1,42 @@
+<div class="settings-container">
+    <h2>Налаштування користувача</h2>
+    <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
+        
+      <!-- Перший день тижня -->
+      <div class="form-group">
+        <label for="firstDayOfWeek">Перший день тижня</label>
+        <div class="custom-select">
+          <select formControlName="firstDayOfWeek" class="form-control">
+            <option *ngFor="let day of daysOfWeek; let i = index" [ngValue]="i">{{ day }}</option>
+          </select>
+        </div>
+      </div>
+  
+      <!-- Вибір мови -->
+      <div formGroupName="language" class="form-group">
+        <label for="language">Мова</label>
+        <div class="custom-select">
+          <select formControlName="id" class="form-control">
+            <option *ngFor="let language of languages" [ngValue]="language.id">
+              {{ language.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+  
+      <!-- Вибір країни -->
+      <div formGroupName="country" class="form-group">
+        <label for="country">Країна</label>
+        <div class="custom-select">
+          <select formControlName="id" class="form-control">
+            <option *ngFor="let country of countries" [ngValue]="country.id">
+              {{ country.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+  
+      <button type="submit" class="btn btn-primary btn-save">Зберегти</button>
+    </form>
+  </div>
+  

@@ -1,6 +1,7 @@
 using Calendary.Repos;
 using Calendary.Core;
 using Microsoft.EntityFrameworkCore;
+using Calendary.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,10 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Retrieve the connection string from appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? throw new Exception("Can't find connection string with name DefaultConnection");
-
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddCalendaryRepositories(connectionString);
-builder.Services.AddServices();
+
+builder.Services.RegisterJwtAuthentication(builder.Configuration);
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddCoreServices();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -26,6 +28,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();

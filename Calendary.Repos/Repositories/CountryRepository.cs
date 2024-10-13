@@ -3,7 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Repos.Repositories;
 
-public class CountryRepository : IRepository<Country>
+public interface ICountryRepository : IRepository<Country>
+{
+
+}
+public class CountryRepository : ICountryRepository
 {
     private readonly ICalendaryDbContext _context;
 

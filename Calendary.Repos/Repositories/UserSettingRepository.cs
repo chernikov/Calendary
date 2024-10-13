@@ -3,7 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Repos.Repositories;
 
-public class UserSettingRepository : IRepository<UserSetting>
+public interface IUserSettingRepository : IRepository<UserSetting>
+{
+    Task<UserSetting?> GetFullByUserIdAsync(int userId);
+}
+
+public class UserSettingRepository : IUserSettingRepository
 {
     private readonly ICalendaryDbContext _context;
 
@@ -20,6 +25,16 @@ public class UserSettingRepository : IRepository<UserSetting>
     public async Task<UserSetting?> GetByIdAsync(int id)
     {
         return await _context.UserSettings.FindAsync(id);
+    }
+
+    public async Task<UserSetting?> GetFullByUserIdAsync(int userId)
+    {
+
+        return await _context.UserSettings
+                .Include(p => p.Language)
+                .Include(p => p.Country)
+                .Include(p => p.EventDates)
+                .FirstOrDefaultAsync(p => p.UserId == userId);
     }
 
     public async Task AddAsync(UserSetting entity)
@@ -43,4 +58,6 @@ public class UserSettingRepository : IRepository<UserSetting>
             await _context.SaveChangesAsync();
         }
     }
+
+    
 }
