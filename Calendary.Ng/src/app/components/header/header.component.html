@@ -17,6 +17,8 @@
         <div *ngIf="isLoggedIn">
           <span>Привіт, {{ email }}</span>
           <button (click)="router.navigate(['/settings'])" class="btn btn-secondary">Налаштування</button>
+
+          <button (click)="router.navigate(['/event-dates'])" class="btn btn-secondary">Мої дати</button>
           <button (click)="logout()" class="btn btn-danger">Вийти</button>
         </div>
       </div>

@@ -5,6 +5,8 @@ namespace Calendary.Repos.Repositories;
 
 public interface IUserSettingRepository : IRepository<UserSetting>
 {
+
+    Task<UserSetting?> GetByUserIdAsync(int userId);
     Task<UserSetting?> GetFullByUserIdAsync(int userId);
 }
 
@@ -27,15 +29,16 @@ public class UserSettingRepository : IUserSettingRepository
         return await _context.UserSettings.FindAsync(id);
     }
 
-    public async Task<UserSetting?> GetFullByUserIdAsync(int userId)
-    {
+    public Task<UserSetting?> GetByUserIdAsync(int userId)
+        => _context.UserSettings.FirstOrDefaultAsync(p => p.UserId == userId);
 
-        return await _context.UserSettings
+    public Task<UserSetting?> GetFullByUserIdAsync(int userId)
+        => _context.UserSettings
                 .Include(p => p.Language)
                 .Include(p => p.Country)
                 .Include(p => p.EventDates)
                 .FirstOrDefaultAsync(p => p.UserId == userId);
-    }
+    
 
     public async Task AddAsync(UserSetting entity)
     {
