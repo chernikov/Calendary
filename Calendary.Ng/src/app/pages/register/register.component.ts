@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UserService } from '../../services/user.service';
-import { User } from '../../models/user';
+import { UserService } from '../../../services/user.service';
+import { User } from '../../../models/user';
+import { TokenService } from '../../../services/token.service';
 
 @Component({
   selector: 'app-register',
@@ -20,7 +21,8 @@ export class RegisterComponent {
   constructor(
     private formBuilder: FormBuilder,
     private userService: UserService, 
-    private router: Router
+    private tokenService : TokenService,
+    private router : Router
   ) {
     this.registerForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -52,7 +54,10 @@ export class RegisterComponent {
       .subscribe({
         next: (response) => {
           console.log('User registered successfully!', response);
-          this.router.navigate(['/']);
+          this.tokenService.saveToken(response.token);
+          this.router.navigate(['/']).then(() => {
+            window.location.reload();
+          });
         },
         error: (error) => {
           console.error('Error registering user:', error);

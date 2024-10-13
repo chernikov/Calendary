@@ -8,6 +8,8 @@ namespace Calendary.Model;
 
 public class Country
 {
+    public static Country Ukraine = new Country { Id = 1, Name = "Україна", Code = "UA" };
+
     public int Id { get; set; }
     public string Name { get; set; } // Наприклад, "Україна", "США"
     public string Code { get; set; } // Наприклад, "UA", "US"
