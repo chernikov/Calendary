@@ -17,6 +17,7 @@ public static class DependencyRegistration
         services.AddScoped<IUserSettingService, UserSettingService>();
         services.AddScoped<ICountryService, CountryService>();
         services.AddScoped<ILanguageService, LanguageService>();
+        services.AddScoped<IEventDateService, EventDateService>();
 
         return services;
     }
