@@ -9,6 +9,7 @@ public class EventDateProfile : Profile
     public EventDateProfile()
     {
         CreateMap<EventDate, EventDateDto>();
+        CreateMap<EventDateDto, EventDate>();
     }
 }
 

@@ -7,7 +7,6 @@ using System.Security.Claims;
 
 namespace Calendary.Api.Controllers;
 
-
 public abstract class BaseUserController : Controller
 {
     private readonly IUserService _userService;
