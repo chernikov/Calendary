@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Calendary.Api.Dtos;
-using Calendary.Core;
+using Calendary.Core.Services;
 using Calendary.Model;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,11 +11,13 @@ namespace Calendary.Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IAuthService _authService;
         private readonly IMapper _mapper;
 
-        public UsersController(IUserService userService, IMapper mapper)
+        public UsersController(IUserService userService, IAuthService authService, IMapper mapper)
         {
             _userService = userService;
+            _authService = authService;
             _mapper = mapper;
         }
 
@@ -33,7 +35,31 @@ namespace Calendary.Api.Controllers
             var user = _mapper.Map<User>(userLoginDto);
             var newUser = await _userService.RegisterUserAsync(user, userLoginDto.Password);
             var result = _mapper.Map<UserDto>(newUser);
+            result.Token = await _authService.GenerateJwtTokenAsync(user);
             return Created("", result);
+        }
+
+
+        [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await _userService.LoginAsync(userLoginDto.Email, userLoginDto.Password);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var userDto = _mapper.Map<UserDto>(user);
+            userDto.Token = await _authService.GenerateJwtTokenAsync(user);
+            return Ok(userDto);
         }
     }
 }

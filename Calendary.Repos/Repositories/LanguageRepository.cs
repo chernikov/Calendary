@@ -3,7 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Repos.Repositories;
 
-public class LanguageRepository : IRepository<Language>
+public interface ILanguageRepository : IRepository<Language>
+{
+
+}
+public class LanguageRepository : ILanguageRepository
 {
     private readonly ICalendaryDbContext _context;
 

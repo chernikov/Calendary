@@ -86,13 +86,13 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
         // Seed дані для мов
         modelBuilder.Entity<Language>().HasData(
-            new Language { Id = 1, Name = "Українська" },
-            new Language { Id = 2, Name = "English" }
+            Language.Ukrainian,
+            Language.English
         );
 
         // Seed дані для країн
         modelBuilder.Entity<Country>().HasData(
-            new Country { Id = 1, Code = "UA", Name = "Україна" }
+            Country.Ukraine
         );
     }
 }
