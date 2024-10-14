@@ -1,0 +1,27 @@
+<div *ngIf="!calendarId">
+    <h3>Create a new Calendar</h3>
+    <button (click)="onCreateCalendar()">Create Calendar</button>
+  </div>
+  
+  <div *ngIf="calendarId">
+    <h3>Calendar Created: ID {{ calendarId }}</h3>
+  
+    <form>
+      <div>
+        <label for="firstDayOfWeek">First Day of the Week:</label>
+        <select id="firstDayOfWeek" [(ngModel)]="calendar.firstDayOfWeek" name="firstDayOfWeek">
+          <option value="Monday">Monday</option>
+          <option value="Sunday">Sunday</option>
+        </select>
+      </div>
+  
+      <div>
+        <label for="language">Language:</label>
+        <option *ngFor="let language of languages" [ngValue]="calendar.languageId">
+            {{ language.name }}
+        </option>
+      </div>
+  
+      <button type="submit">Save Calendar Settings</button>
+    </form>
+  </div>

@@ -4,6 +4,7 @@ using Calendary.Repos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calendary.Repos.Migrations
 {
     [DbContext(typeof(CalendaryDbContext))]
-    partial class CalendaryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241014155748_fixCalendar")]
+    partial class fixCalendar
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,9 +35,6 @@ namespace Calendary.Repos.Migrations
 
                     b.Property<int>("FirstDayOfWeek")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsCurrent")
-                        .HasColumnType("bit");
 
                     b.Property<int>("LanguageId")
                         .HasColumnType("int");
@@ -535,7 +535,8 @@ namespace Calendary.Repos.Migrations
                 {
                     b.Navigation("Calendars");
 
-                    b.Navigation("PaymentInfo");
+                    b.Navigation("PaymentInfo")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Calendary.Model.User", b =>
