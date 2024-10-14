@@ -3,7 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Repos.Repositories;
 
-public class OrderRepository : IRepository<Order>
+public interface IOrderRepository : IRepository<Order>
+{
+    Task<Order?> GetOrderByStatusAsync(int userId, string status);
+}
+
+public class OrderRepository : IOrderRepository
 {
     private readonly CalendaryDbContext _context;
 
@@ -43,4 +48,7 @@ public class OrderRepository : IRepository<Order>
             await _context.SaveChangesAsync();
         }
     }
+
+    public Task<Order?> GetOrderByStatusAsync(int userId, string status) 
+        => _context.Orders.FirstOrDefaultAsync(o => o.UserId == userId && o.Status == status);
 }
