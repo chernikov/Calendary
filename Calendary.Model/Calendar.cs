@@ -1,26 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
-
-namespace Calendary.Model;
+﻿namespace Calendary.Model;
 
 public class Calendar
 {
     public int Id { get; set; }
+
+    public bool IsCurrent { get; set; }
+
     public int Year { get; set; }
-    public string FirstDayOfWeek { get; set; } // "Monday", "Sunday"
+
+    public DayOfWeek FirstDayOfWeek { get; set; } = DayOfWeek.Sunday;
 
     public int LanguageId { get; set; }
-    public Language Language { get; set; } 
+    public Language Language { get; set; } = null!;
 
     public int OrderId { get; set; }
-    public Order Order { get; set; }
 
-    public ICollection<Image> Images { get; set; }
-    public ICollection<EventDate> EventDates { get; set; }
+    public Order Order { get; set; } = null!;
 
+    public ICollection<Image> Images { get; set; } = [];
+    public ICollection<EventDate> EventDates { get; set; } = [];
     public ICollection<CalendarHoliday> CalendarHolidays { get; set; } = [];
 }

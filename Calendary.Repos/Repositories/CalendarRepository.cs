@@ -3,7 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Repos.Repositories;
 
-public class CalendarRepository : IRepository<Calendar>
+
+public interface ICalendarRepository : IRepository<Calendar>
+{
+    Task<IEnumerable<Calendar>> GetCalendarsByOrderAsync(int orderId);
+}
+
+public class CalendarRepository : ICalendarRepository
 {
     private readonly ICalendaryDbContext _context;
 
@@ -42,5 +48,10 @@ public class CalendarRepository : IRepository<Calendar>
             _context.Calendars.Remove(entity);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<IEnumerable<Calendar>> GetCalendarsByOrderAsync(int orderId)
+    {
+        return await _context.Calendars.Where(p => p.OrderId == orderId).ToListAsync();
     }
 }

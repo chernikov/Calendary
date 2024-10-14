@@ -20,9 +20,9 @@ namespace Calendary.Repos
             services.AddScoped<ICountryRepository, CountryRepository>();
             services.AddScoped<ILanguageRepository, LanguageRepository>();
             services.AddScoped<IEventDateRepository, EventDateRepository>();
-            services.AddScoped<IRepository<Order>, OrderRepository>();
-            services.AddScoped<IRepository<Calendar>, CalendarRepository>();
-            services.AddScoped<IRepository<Image>, ImageRepository>();
+            services.AddScoped<ICalendarRepository, CalendarRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IImageRepository, ImageRepository>();
             services.AddScoped<IRepository<Holiday>, HolidayRepository>();
             services.AddScoped<IRepository<PaymentInfo>, PaymentInfoRepository>();
 
