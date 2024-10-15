@@ -17,12 +17,12 @@ export class CalendarService {
   }
 
   // Отримання календаря за ID
-  getCalendar(id: number): Observable<Calendar> {
-    return this.http.get<Calendar>(`${this.apiUrl}/${id}`);
+  getCalendar(): Observable<Calendar> {
+    return this.http.get<Calendar>(`${this.apiUrl}`);
   }
 
   // Оновлення календаря
   updateCalendar(calendar: Calendar): Observable<Calendar> {
-    return this.http.put<Calendar>(`${this.apiUrl}/${calendar.id}`, calendar);
+    return this.http.put<Calendar>(`${this.apiUrl}`, calendar);
   }
 }

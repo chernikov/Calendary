@@ -48,6 +48,32 @@ namespace Calendary.Api.Controllers
         }
 
 
+        [HttpPut]
+        public async Task<IActionResult> UpdateCalendar([FromBody] CalendarDto calendar)
+        {
+            var user = await CurrentUser.Value;
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var entity = mapper.Map<Calendar>(calendar);
+
+
+            var result = await calendarService.UpdateCalendarAsync(user.Id, entity);
+            if (!result)
+            {
+                return StatusCode(500, "Failed to update calendar");
+            }
+
+            return Ok();
+        }
+
 
         private async Task FillSettingsAsync(Calendar calendar, User user)
         {
