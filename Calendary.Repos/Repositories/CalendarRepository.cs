@@ -7,6 +7,8 @@ namespace Calendary.Repos.Repositories;
 public interface ICalendarRepository : IRepository<Calendar>
 {
     Task<IEnumerable<Calendar>> GetCalendarsByOrderAsync(int orderId);
+
+    Task<Calendar?> GetFullCalendarAsync(int id);
 }
 
 public class CalendarRepository : ICalendarRepository
@@ -53,5 +55,14 @@ public class CalendarRepository : ICalendarRepository
     public async Task<IEnumerable<Calendar>> GetCalendarsByOrderAsync(int orderId)
     {
         return await _context.Calendars.Where(p => p.OrderId == orderId).ToListAsync();
+    }
+
+    public async Task<Calendar?> GetFullCalendarAsync(int id)
+    {
+        return await _context.Calendars
+            .Include(p => p.Order)
+            .Include(p => p.CalendarHolidays)
+            .Include(p => p.EventDates)
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 }

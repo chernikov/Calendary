@@ -1,27 +1,31 @@
-<div *ngIf="!calendarId">
-    <h3>Create a new Calendar</h3>
-    <button (click)="onCreateCalendar()">Create Calendar</button>
+<div class="container">
+  <div *ngIf="!calendar">
+    <button (click)="onCreateCalendar()">Створити новий календар</button>
   </div>
-  
-  <div *ngIf="calendarId">
-    <h3>Calendar Created: ID {{ calendarId }}</h3>
-  
-    <form>
-      <div>
-        <label for="firstDayOfWeek">First Day of the Week:</label>
-        <select id="firstDayOfWeek" [(ngModel)]="calendar.firstDayOfWeek" name="firstDayOfWeek">
-          <option value="Monday">Monday</option>
-          <option value="Sunday">Sunday</option>
-        </select>
+
+  <div *ngIf="calendar">
+    <form [formGroup]="calendarForm" (ngSubmit)="onSubmit()">
+
+      <!-- Перший день тижня -->
+      <div class="form-group">
+        <label for="firstDayOfWeek">Перший день тижня</label>
+        <div class="custom-select">
+          <select formControlName="firstDayOfWeek" class="form-control">
+            <option *ngFor="let day of daysOfWeek; let i = index" [ngValue]="i">{{ day }}</option>
+          </select>
+        </div>
       </div>
-  
-      <div>
-        <label for="language">Language:</label>
-        <option *ngFor="let language of languages" [ngValue]="calendar.languageId">
-            {{ language.name }}
-        </option>
+
+      <!-- Вибір мови -->
+      <div class="form-group">
+        <label for="language">Мова</label>
+        <div class="custom-select">
+          <select formControlName="languageId" class="form-control">
+            <option *ngFor="let language of languages" [ngValue]="language.id">{{ language.name }}</option>
+          </select>
+        </div>
       </div>
-  
-      <button type="submit">Save Calendar Settings</button>
+      <button type="submit" class="btn btn-primary btn-save" [disabled]="!calendarForm.valid">Зберегти</button>
     </form>
   </div>
+</div>

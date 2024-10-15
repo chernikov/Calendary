@@ -6,5 +6,4 @@ public class CalendarDto
     public int Year { get; set; }
     public DayOfWeek FirstDayOfWeek { get; set; }
     public int LanguageId { get; set; }
-    public int OrderId { get; set; }
 }
