@@ -27,5 +27,8 @@
       </div>
       <button type="submit" class="btn btn-primary btn-save" [disabled]="!calendarForm.valid">Зберегти</button>
     </form>
+
+    <app-calendar-images [calendarId]="calendar.id" (uploadCompleted)="onImageUpload($event)">
+    </app-calendar-images>
   </div>
 </div>

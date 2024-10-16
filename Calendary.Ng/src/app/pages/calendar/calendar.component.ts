@@ -5,13 +5,14 @@ import { CalendarService } from '../../../services/calendar.service';
 import { Calendar } from '../../../models/calendar';
 import { Language } from '../../../models/language';
 import { LanguageService } from '../../../services/language.service';
+import { CalendarImagesComponent } from '../../components/calendar-images/calendar-images.component';
 
 
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, CalendarImagesComponent],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
 })
@@ -21,7 +22,7 @@ export class CalendarComponent implements OnInit {
   
   languages: Language[] = [];
 
-  calendar: Calendar | null = new Calendar();
+  calendar: Calendar | null = null;
   
 
   constructor(
@@ -36,7 +37,8 @@ export class CalendarComponent implements OnInit {
     this.languageService.getLanguages().subscribe((data) => {
       this.languages = data;
     });
-  this.loadCurrentCalendar();
+  
+    this.loadCurrentCalendar();
   }
 
 initForm() {
@@ -48,6 +50,7 @@ initForm() {
 
   loadCurrentCalendar() {
     this.calendarService.getCalendar().subscribe((calendar) => {
+      console.log("Calendar loaded");
       this.calendar = calendar;
       this.calendarForm.patchValue({
         firstDayOfWeek: calendar.firstDayOfWeek,
@@ -81,6 +84,9 @@ initForm() {
         },
       });
     }
-  
+  }
+
+  onImageUpload(imageUrl: string) {
+    //this.calendar.images.push({ imageUrl });
   }
 }
