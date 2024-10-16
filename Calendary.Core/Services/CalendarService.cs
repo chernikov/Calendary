@@ -7,6 +7,8 @@ namespace Calendary.Core.Services;
 public interface ICalendarService
 {
     Task<Calendar> CreateAsync(int userId, Calendar calendar);
+    Task<Calendar?> GetByIdAsync(int calendarId);
+
     Task<Calendar?> GetCurrentAsync(int id);
 
     Task<bool> UpdateCalendarAsync(int userId, Calendar entity);
@@ -41,6 +43,11 @@ public class CalendarService(ICalendarRepository calendarRepository, IOrderRepos
         await MakeCurrentAsync(userId, calendar.Id);
 
         return calendar;
+    }
+
+    public Task<Calendar?> GetByIdAsync(int calendarId)
+    {
+        return calendarRepository.GetFullCalendarAsync(calendarId);
     }
 
     public async Task<Calendar?> GetCurrentAsync(int userId)
