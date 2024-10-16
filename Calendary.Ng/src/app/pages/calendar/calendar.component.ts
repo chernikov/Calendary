@@ -1,45 +1,92 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CalendarService } from '../../../services/calendar.service';
 import { Calendar } from '../../../models/calendar';
 import { Language } from '../../../models/language';
 import { LanguageService } from '../../../services/language.service';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { CalendarImagesComponent } from '../../components/calendar-images/calendar-images.component';
+
 
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, CalendarImagesComponent],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
 })
 export class CalendarComponent implements OnInit {
-  calendar: Calendar = new Calendar();
+  calendarForm!: FormGroup;
+  daysOfWeek = ['Неділя', 'Понеділок'];
+  
   languages: Language[] = [];
 
-  calendarId: number | null = null;
+  calendar: Calendar | null = null;
   
 
-  constructor(private calendarService: CalendarService,
+  constructor(
+    private fb: FormBuilder,
+    private calendarService: CalendarService,
     private languageService : LanguageService
   ) {}
 
   ngOnInit() {
+    this.initForm();
+
     this.languageService.getLanguages().subscribe((data) => {
-        this.languages = data;
+      this.languages = data;
+    });
+  
+    this.loadCurrentCalendar();
+  }
+
+initForm() {
+  this.calendarForm = this.fb.group({
+    firstDayOfWeek: [null, Validators.required],
+    languageId: [null, Validators.required],
+  });
+}
+
+  loadCurrentCalendar() {
+    this.calendarService.getCalendar().subscribe((calendar) => {
+      console.log("Calendar loaded");
+      this.calendar = calendar;
+      this.calendarForm.patchValue({
+        firstDayOfWeek: calendar.firstDayOfWeek,
+        languageId: calendar.languageId,
+      });
     });
   }
 
 
   // Створити новий календар
   onCreateCalendar() {
+    this.calendar = new Calendar();
     this.calendarService.createCalendar(this.calendar)
       .subscribe((response: Calendar) => {
-        this.calendarId = response.id;
         console.log('Calendar created successfully!', response);
       }, error => {
         console.error('Error creating calendar', error);
       });
+  }
+
+  onSubmit() {
+    if (this.calendarForm.valid) {
+      const updatedCalendar = this.calendarForm.value;
+      updatedCalendar.id = this.calendar?.id;
+      this.calendarService.updateCalendar(updatedCalendar).subscribe({
+        next: () => {
+          alert('Calendar settings saved successfully!');
+        },
+        error: (error) => {
+          console.error('Error saving calendar settings', error);
+        },
+      });
+    }
+  }
+
+  onImageUpload(imageUrl: string) {
+    //this.calendar.images.push({ imageUrl });
   }
 }

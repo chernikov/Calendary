@@ -6,6 +6,7 @@ namespace Calendary.Repos.Repositories;
 public interface IImageRepository : IRepository<Image>
 {
 
+    public Task<IEnumerable<Image>> GetAllByCalendarIdAsync(int calendarId);
 }
 public class ImageRepository : IImageRepository
 {
@@ -46,5 +47,12 @@ public class ImageRepository : IImageRepository
             _context.Images.Remove(entity);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<IEnumerable<Image>> GetAllByCalendarIdAsync(int calendarId)
+    {
+        return await _context.Images
+            .Where(image => image.CalendarId == calendarId)
+            .ToListAsync();
     }
 }

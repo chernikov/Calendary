@@ -1,12 +1,18 @@
 ﻿using Calendary.Model;
 using Calendary.Repos.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Core.Services;
 
 public interface ICalendarService
 {
     Task<Calendar> CreateAsync(int userId, Calendar calendar);
+    Task<Calendar?> GetByIdAsync(int calendarId);
+
     Task<Calendar?> GetCurrentAsync(int id);
+
+    Task<bool> UpdateCalendarAsync(int userId, Calendar entity);
+
 }
 
 public class CalendarService(ICalendarRepository calendarRepository, IOrderRepository orderRepository) : ICalendarService
@@ -37,6 +43,11 @@ public class CalendarService(ICalendarRepository calendarRepository, IOrderRepos
         await MakeCurrentAsync(userId, calendar.Id);
 
         return calendar;
+    }
+
+    public Task<Calendar?> GetByIdAsync(int calendarId)
+    {
+        return calendarRepository.GetFullCalendarAsync(calendarId);
     }
 
     public async Task<Calendar?> GetCurrentAsync(int userId)
@@ -71,5 +82,26 @@ public class CalendarService(ICalendarRepository calendarRepository, IOrderRepos
             calendarItem.IsCurrent = (calendar.Id == calendarId);
             await calendarRepository.UpdateAsync(calendar);
         }
+    }
+
+    public async Task<bool> UpdateCalendarAsync(int userId, Calendar entity)
+    {
+
+        var existingCalendar = await calendarRepository.GetFullCalendarAsync(entity.Id);
+
+        if (existingCalendar is null)
+        {
+            return false;
+        }
+
+        if (existingCalendar.Order.UserId != userId)
+        {
+            return false;
+        }
+        existingCalendar.LanguageId = entity.LanguageId;
+        existingCalendar.FirstDayOfWeek = entity.FirstDayOfWeek;
+
+        await calendarRepository.UpdateAsync(existingCalendar);
+        return true;
     }
 }

@@ -1,0 +1,10 @@
+<div class="upload-container">
+    <button class="upload-button" (click)="fileInput.click()">Завантажити зображення</button>
+    <input #fileInput type="file" ng2FileSelect [uploader]="uploader" multiple hidden />
+</div>
+
+<div class="image-gallery">
+    <div *ngFor="let image of images" class="image-item">
+        <img [src]="image.imageUrl" width="400px"/>
+    </div>
+</div>
