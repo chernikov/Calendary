@@ -14,4 +14,8 @@ export class ImageService {
     getImages(calendarId: number): Observable<Image[]> {
         return this.http.get<Image[]>(`${this.baseUrl}/${calendarId}`);
     }
+
+    deleteImage(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    }
 }

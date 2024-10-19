@@ -3,7 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Repos.Repositories;
 
-public class HolidayRepository : IRepository<Holiday>
+public interface IHolidayRepository : IRepository<Holiday>
+{
+
+}
+public class HolidayRepository : IHolidayRepository
 {
     private readonly ICalendaryDbContext _context;
 

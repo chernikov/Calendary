@@ -10,6 +10,8 @@ public interface IImageService
 
     Task<IEnumerable<Image>> GetAllByCalendarIdAsync(int calendarId);
 
+    Task<Image?> GetByIdAsync(int imageId);
+    Task DeleteAsync(Image image);
 }
 
 public class ImageService(IImageRepository imageRepository) : IImageService
@@ -28,4 +30,10 @@ public class ImageService(IImageRepository imageRepository) : IImageService
     {
         return (await imageRepository.GetAllByCalendarIdAsync(calendarId)).OrderBy(p => p.Order);
     }
+
+    public Task<Image?> GetByIdAsync(int imageId)
+        => imageRepository.GetByIdAsync(imageId);
+
+    public Task DeleteAsync(Image image)
+        => imageRepository.DeleteAsync(image.Id);
 }
