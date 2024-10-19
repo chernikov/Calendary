@@ -1,19 +1,19 @@
 <div class="container">
-    <h2>User Event Dates</h2>
+    <h2>Визначні дати</h2>
   
     <ul>
       <li *ngFor="let event of eventDates">
         <div>
           <strong>{{ event.date | date:'shortDate' }}</strong> - {{ event.description }}
         </div>
-        <button (click)="deleteEventDate(event.id)">Delete</button>
+        <button (click)="deleteEventDate(event.id)">Видалити</button>
       </li>
     </ul>
   
     <div class="add-event-form">
       <input type="date" [(ngModel)]="newEventDate.date">
-      <input type="text" [(ngModel)]="newEventDate.description" placeholder="Description">
-      <button (click)="addEventDate(newEventDate)">Add Event</button>
+      <input type="text" [(ngModel)]="newEventDate.description" placeholder="Description" class="full-width">
+      <button (click)="addEventDate(newEventDate)">Додати</button>
     </div>
   </div>
   

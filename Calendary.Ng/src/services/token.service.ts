@@ -8,8 +8,6 @@ import { ServerStorageStrategy } from '../app/strategies/server-storage-strategy
   providedIn: 'root',
 })
 export class TokenService {
-  private tokenKey = 'jwtToken';
-
   private storageStrategy: StorageStrategy;
   constructor(@Inject(PLATFORM_ID) private platformId: object) {
     // Вибір стратегії залежно від платформи

@@ -3,10 +3,11 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange
 import { FileUploader, FileUploadModule } from 'ng2-file-upload';
 import { ImageService } from '../../../services/image.service';
 import { Image } from '../../../models/image';
+import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-calendar-images',
   standalone: true,
-  imports: [CommonModule, FileUploadModule],
+  imports: [CommonModule, FileUploadModule, MatIconModule],
   templateUrl: './calendar-images.component.html',
   styleUrl: './calendar-images.component.scss'
 })
@@ -67,5 +68,12 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
         console.error('Error loading images:', error);
       }
     );
+  }
+
+  deleteImage(index: number): void {
+    const image = this.images[index];
+    this.imageService.deleteImage(image.id).subscribe(() => {
+      this.loadImages();
+    });
   }
 }

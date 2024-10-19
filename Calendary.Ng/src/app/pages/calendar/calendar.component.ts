@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { EventDatesComponent } from '../event-date/event-dates.component';
 import { CalendarService } from '../../../services/calendar.service';
 import { Calendar } from '../../../models/calendar';
 import { Language } from '../../../models/language';
@@ -12,7 +13,8 @@ import { CalendarImagesComponent } from '../../components/calendar-images/calend
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, CalendarImagesComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, CalendarImagesComponent, 
+      EventDatesComponent],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
 })

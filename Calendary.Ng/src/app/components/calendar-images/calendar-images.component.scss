@@ -21,3 +21,42 @@
   .upload-button:hover {
     background-color: #45a049;
   }
+  .image-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-around;
+  }
+  
+  .image-item {
+    position: relative;
+    flex: 1 1 calc(50% - 10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .image-item img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  
+  .delete-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 16px;
+    padding : 3px;
+  }
+  
+  .delete-button:hover {
+    background-color: darkred;
+  }
