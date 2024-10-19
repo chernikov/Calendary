@@ -23,7 +23,7 @@ namespace Calendary.Repos
             services.AddScoped<ICalendarRepository, CalendarRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IImageRepository, ImageRepository>();
-            services.AddScoped<IRepository<Holiday>, HolidayRepository>();
+            services.AddScoped<IHolidayRepository, HolidayRepository>();
             services.AddScoped<IRepository<PaymentInfo>, PaymentInfoRepository>();
 
             services.ApplyMigrationDb();

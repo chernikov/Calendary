@@ -49,7 +49,6 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Налаштування many-to-many між User і Role через UserRole
         modelBuilder.Entity<UserRole>()
             .HasKey(ur => new { ur.UserId, ur.RoleId });
 
@@ -66,33 +65,49 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
             .WithMany(u => u.CalendarHolidays)
             .HasForeignKey(ur => ur.CalendarId);
 
-        // Налаштування для видатних дат в налаштуваннях користувача
         modelBuilder.Entity<EventDate>()
             .HasOne(ed => ed.UserSetting)
             .WithMany(us => us.EventDates)
             .HasForeignKey(ed => ed.UserSettingId);
 
-        // Налаштування для зв'язку країни зі святковими днями
         modelBuilder.Entity<Holiday>()
             .HasOne(h => h.Country)
             .WithMany(c => c.Holidays)
             .HasForeignKey(h => h.CountryId);
 
-        // Seed дані для ролей
         modelBuilder.Entity<Role>().HasData(
             Role.AdminRole,
             Role.UserRole
         );
 
-        // Seed дані для мов
         modelBuilder.Entity<Language>().HasData(
             Language.Ukrainian,
             Language.English
         );
 
-        // Seed дані для країн
         modelBuilder.Entity<Country>().HasData(
             Country.Ukraine
+        );
+
+        
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                Id = 1,
+                UserName = "admin",
+                Email = "admin@calendary.com.ua",
+                PasswordHash = "21232f297a57a5a743894a0e4a801fc3",
+                IsEmailConfirmed = true,
+                IsPhoneNumberConfirmed = true
+            }
+        );
+
+        modelBuilder.Entity<UserRole>().HasData(
+            new UserRole
+            {
+                UserId = 1,
+                RoleId = 1
+            }
         );
     }
 }

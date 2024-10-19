@@ -20,6 +20,7 @@ public static class DependencyRegistration
         services.AddScoped<IEventDateService, EventDateService>();
         services.AddScoped<ICalendarService, CalendarService>();
         services.AddScoped<IImageService, ImageService>();
+        services.AddScoped<IHolidayService, HolidayService>();
 
         return services;
     }

@@ -84,6 +84,35 @@ public class ImageController : BaseUserController
     }
 
 
+    [HttpDelete("{imageId}")]
+    public async Task<IActionResult> DeleteImage(int imageId)
+    {
+        var user = await CurrentUser.Value;
+
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        var image = await imageService.GetByIdAsync(imageId);
+
+        if (image == null)
+        {
+            return NotFound();
+        }
+
+        var calendar = await calendarService.GetByIdAsync(image.CalendarId);
+
+        if (calendar == null || calendar.Order.UserId != user.Id)
+        {
+            return NotFound();
+        }
+
+        await imageService.DeleteAsync(image);
+
+        return NoContent();
+    }
+
 
 
 }

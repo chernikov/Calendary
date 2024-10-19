@@ -1,0 +1,16 @@
+<h2>Свята</h2>
+
+<ul>
+    <li *ngFor="let holiday of holidays">
+        <div>
+            <strong>{{ holiday.date | date: 'd MMMM' : 'uk' }}</strong> - {{ holiday.name }}
+        </div>
+        <button (click)="deleteHoliday(holiday.id)">Видалити</button>
+    </li>
+</ul>
+
+<div class="add-event-form">
+    <input type="date" [(ngModel)]="newHoliday.date">
+    <input type="text" [(ngModel)]="newHoliday.name" placeholder="Назва"  class="full-width">
+    <button (click)="addHoliday(newHoliday)">Додати</button>
+</div>
