@@ -50,6 +50,7 @@ jobs:
              host: ${{ vars.DIGITAL_OCEAN_HOST_IP }}
              username: root
              key: ${{ secrets.DIGITALOCEAN_SSHKEY }}
+	     envs: GITHUB_SHA
              script: |  
                cd /home          
                # Stop docker-compose
