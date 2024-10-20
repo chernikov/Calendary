@@ -11,10 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Calendary.Repos", "Calendar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Calendary.Api", "Calendary.Api\Calendary.Api.csproj", "{A1A9D008-AB6E-4AE7-8AA3-6F65C9F9C277}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "POC", "POC", "{C062B9ED-0053-448A-B5B0-41265187CE25}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalendaryPocApp", "CalendaryPocApp\CalendaryPocApp\CalendaryPocApp.csproj", "{4BB8A831-A74F-4799-848D-AD362F55687D}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,16 +33,9 @@ Global
 		{A1A9D008-AB6E-4AE7-8AA3-6F65C9F9C277}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1A9D008-AB6E-4AE7-8AA3-6F65C9F9C277}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1A9D008-AB6E-4AE7-8AA3-6F65C9F9C277}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4BB8A831-A74F-4799-848D-AD362F55687D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4BB8A831-A74F-4799-848D-AD362F55687D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4BB8A831-A74F-4799-848D-AD362F55687D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4BB8A831-A74F-4799-848D-AD362F55687D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{4BB8A831-A74F-4799-848D-AD362F55687D} = {C062B9ED-0053-448A-B5B0-41265187CE25}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F372E09-2B1A-4E8D-A8EC-C348FF02C6A4}
