@@ -1,18 +1,24 @@
 <div class="upload-container">
-    <button class="upload-button" 
-    (click)="fileInput.click()"
-    [disabled]="images.length >= 12">
-        Завантажити зображення ({{ images.length }}/12)
-    </button>
-    <input #fileInput type="file" ng2FileSelect [uploader]="uploader" multiple hidden />
+  <button class="upload-button" (click)="fileInput.click()" [disabled]="images.length >= 12">
+    Завантажити зображення ({{ images.length }}/12)
+  </button>
+  <input #fileInput type="file" ng2FileSelect [uploader]="uploader" multiple hidden />
 </div>
 
 
 <div class="image-gallery">
-    <div *ngFor="let image of images; let i = index" class="image-item">
-      <img [src]="image.imageUrl" />
-      <button class="delete-button" (click)="deleteImage(i)">
-        <mat-icon>delete</mat-icon>
-      </button>
-    </div>
+  <div *ngFor="let image of images; let i = index" class="image-item">
+    <img [src]="image.imageUrl" />
+    <button class="delete-button" (click)="deleteImage(i)">
+      <mat-icon>delete</mat-icon>
+    </button>
   </div>
+</div>
+
+<button 
+    class="generate-button"
+    id="generatePdfBtn" 
+    [disabled]="!canGeneratePdf()" 
+    (click)="generatePdf()">
+    Згенерувати PDF
+</button>

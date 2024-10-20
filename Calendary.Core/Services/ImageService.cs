@@ -20,7 +20,7 @@ public class ImageService(IImageRepository imageRepository) : IImageService
     {
         var images = await imageRepository.GetAllByCalendarIdAsync(image.CalendarId);
 
-        int maxOrder = images.Max(i => i.Order);
+        int maxOrder = images.Any() ? images.Max(i => i.Order) : 0;
 
         image.Order = (short)(maxOrder + 1);
         await imageRepository.AddAsync(image);

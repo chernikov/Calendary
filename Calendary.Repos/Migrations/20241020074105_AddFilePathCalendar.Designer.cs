@@ -4,6 +4,7 @@ using Calendary.Repos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calendary.Repos.Migrations
 {
     [DbContext(typeof(CalendaryDbContext))]
-    partial class CalendaryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241020074105_AddFilePathCalendar")]
+    partial class AddFilePathCalendar
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,9 +32,6 @@ namespace Calendary.Repos.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CountryId")
-                        .HasColumnType("int");
 
                     b.Property<string>("FilePath")
                         .HasColumnType("nvarchar(max)");
@@ -52,8 +52,6 @@ namespace Calendary.Repos.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CountryId");
 
                     b.HasIndex("LanguageId");
 
@@ -124,7 +122,7 @@ namespace Calendary.Repos.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UserSettingId")
+                    b.Property<int>("UserSettingId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -144,7 +142,7 @@ namespace Calendary.Repos.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CountryId")
+                    b.Property<int>("CountryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
@@ -194,10 +192,6 @@ namespace Calendary.Repos.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -210,13 +204,11 @@ namespace Calendary.Repos.Migrations
                         new
                         {
                             Id = 1,
-                            Code = "uk-UA",
                             Name = "Українська"
                         },
                         new
                         {
                             Id = 2,
-                            Code = "en-EN",
                             Name = "English"
                         });
                 });
@@ -411,12 +403,6 @@ namespace Calendary.Repos.Migrations
 
             modelBuilder.Entity("Calendary.Model.Calendar", b =>
                 {
-                    b.HasOne("Calendary.Model.Country", "Country")
-                        .WithMany()
-                        .HasForeignKey("CountryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Calendary.Model.Language", "Language")
                         .WithMany()
                         .HasForeignKey("LanguageId")
@@ -428,8 +414,6 @@ namespace Calendary.Repos.Migrations
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Country");
 
                     b.Navigation("Language");
 
@@ -457,15 +441,15 @@ namespace Calendary.Repos.Migrations
 
             modelBuilder.Entity("Calendary.Model.EventDate", b =>
                 {
-                    b.HasOne("Calendary.Model.Calendar", "Calendar")
+                    b.HasOne("Calendary.Model.Calendar", null)
                         .WithMany("EventDates")
                         .HasForeignKey("CalendarId");
 
                     b.HasOne("Calendary.Model.UserSetting", "UserSetting")
                         .WithMany("EventDates")
-                        .HasForeignKey("UserSettingId");
-
-                    b.Navigation("Calendar");
+                        .HasForeignKey("UserSettingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("UserSetting");
                 });
@@ -474,7 +458,9 @@ namespace Calendary.Repos.Migrations
                 {
                     b.HasOne("Calendary.Model.Country", "Country")
                         .WithMany("Holidays")
-                        .HasForeignKey("CountryId");
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Country");
                 });

@@ -5,8 +5,9 @@ namespace Calendary.Repos.Repositories;
 
 public interface IHolidayRepository : IRepository<Holiday>
 {
-
+    Task<IEnumerable<Holiday>> GetAllByCoutryIdAsync(int countryId);
 }
+
 public class HolidayRepository : IHolidayRepository
 {
     private readonly ICalendaryDbContext _context;
@@ -19,6 +20,13 @@ public class HolidayRepository : IHolidayRepository
     public async Task<IEnumerable<Holiday>> GetAllAsync()
     {
         return await _context.Holidays.ToListAsync();
+    }
+
+    public async Task<IEnumerable<Holiday>> GetAllByCoutryIdAsync(int countryId)
+    {
+        return await _context.Holidays
+            .Where(p => p.CountryId == countryId)
+            .ToListAsync();
     }
 
     public async Task<Holiday?> GetByIdAsync(int id)
@@ -47,4 +55,6 @@ public class HolidayRepository : IHolidayRepository
             await _context.SaveChangesAsync();
         }
     }
+
+   
 }
