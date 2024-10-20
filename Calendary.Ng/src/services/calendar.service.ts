@@ -8,6 +8,7 @@ import { Calendar } from '../models/calendar'; // Модель Calendar
 })
 export class CalendarService {
   private apiUrl = '/api/calendar'; // Базова URL для API
+  private apiGenerateUrl = '/api/calendar/generate'; // URL для API генерації PDF
 
   constructor(private http: HttpClient) { }
 
@@ -24,5 +25,10 @@ export class CalendarService {
   // Оновлення календаря
   updateCalendar(calendar: Calendar): Observable<Calendar> {
     return this.http.put<Calendar>(`${this.apiUrl}`, calendar);
+  }
+
+
+  generatePdf(calendarId : number) : Observable<Calendar> {
+    return this.http.get<Calendar>(`${this.apiGenerateUrl}/${calendarId}`);
   }
 }

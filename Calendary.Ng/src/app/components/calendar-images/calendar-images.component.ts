@@ -4,6 +4,7 @@ import { FileUploader, FileUploadModule } from 'ng2-file-upload';
 import { ImageService } from '../../../services/image.service';
 import { Image } from '../../../models/image';
 import { MatIconModule } from '@angular/material/icon';
+import { CalendarService } from '../../../services/calendar.service';
 @Component({
   selector: 'app-calendar-images',
   standalone: true,
@@ -21,7 +22,9 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
   @Output() uploadCompleted = new EventEmitter<string>();
 
 
-  constructor(private imageService : ImageService) 
+  constructor(private imageService : ImageService, 
+    private calendarService: CalendarService
+  ) 
   {
    
   }
@@ -74,6 +77,17 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
     const image = this.images[index];
     this.imageService.deleteImage(image.id).subscribe(() => {
       this.loadImages();
+    });
+  }
+
+  canGeneratePdf(): boolean {
+    return this.images.length === 12;
+  }
+
+  generatePdf(): void {
+    // Виклик API для генерації PDF
+    this.calendarService.generatePdf(this.calendarId).subscribe(response => {
+      alert('PDF згенеровано успішно!');
     });
   }
 }

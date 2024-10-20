@@ -7,15 +7,25 @@ namespace Calendary.Core.Services;
 public interface ICalendarService
 {
     Task<Calendar> CreateAsync(int userId, Calendar calendar);
+
     Task<Calendar?> GetByIdAsync(int calendarId);
 
     Task<Calendar?> GetCurrentAsync(int id);
 
     Task<bool> UpdateCalendarAsync(int userId, Calendar entity);
 
+    Task GeneratePdfAsync(int id, int calendarId);
+
+
 }
 
-public class CalendarService(ICalendarRepository calendarRepository, IOrderRepository orderRepository) : ICalendarService
+public class CalendarService(
+    ICalendarRepository calendarRepository,
+    IOrderRepository orderRepository,
+    IEventDateRepository eventDateRepository,
+    IHolidayRepository holidayRepository,
+    IPdfGeneratorService pdfGeneratorService
+    ) : ICalendarService
 {
 
     public async Task<Calendar> CreateAsync(int userId, Calendar calendar)
@@ -58,7 +68,7 @@ public class CalendarService(ICalendarRepository calendarRepository, IOrderRepos
         {
             var calendarsInOrder = await calendarRepository.GetCalendarsByOrderAsync(order.Id);
 
-            return calendarsInOrder.ToList().FirstOrDefault(p => p.IsCurrent); 
+            return calendarsInOrder.ToList().FirstOrDefault(p => p.IsCurrent);
         }
         return null;
     }
@@ -103,5 +113,39 @@ public class CalendarService(ICalendarRepository calendarRepository, IOrderRepos
 
         await calendarRepository.UpdateAsync(existingCalendar);
         return true;
+    }
+
+    public async Task GeneratePdfAsync(int userId, int calendarId)
+    {
+        var calendar = await calendarRepository.GetFullCalendarAsync(calendarId);
+
+        if (calendar is null)
+        {
+            return;
+        }
+
+        var order = await orderRepository.GetByIdAsync(calendar.OrderId);
+
+        if (order is null || order.UserId != userId)
+        {
+            return;
+        }
+
+        //do once
+        if (!calendar.CalendarHolidays.Any())
+        {
+            // copy holidays and events to the calendar
+            var eventDates = await eventDateRepository.GetAllByUserIdAsync(userId);
+            var holidays = await holidayRepository.GetAllByCoutryIdAsync(calendar.CountryId);
+
+            await calendarRepository.AssignEventDatesAsync(calendarId, eventDates);
+            await calendarRepository.AssignHolidays(calendarId, holidays);
+        }
+
+        // Генеруємо PDF
+        var pdfFile = await pdfGeneratorService.GeneratePdfAsync(calendarId);
+
+        await calendarRepository.SaveFileAsync(calendarId, pdfFile);
+
     }
 }

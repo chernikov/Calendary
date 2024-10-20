@@ -12,8 +12,10 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddCalendaryRepositories(connectionString);
 
 builder.Services.RegisterJwtAuthentication(builder.Configuration);
+builder.Services.RegisterPathProvider();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddCoreServices();
+
 
 // Add services to the container.
 builder.Services.AddControllers();

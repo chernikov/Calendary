@@ -80,6 +80,7 @@ namespace Calendary.Api.Controllers
             var userSetting = await userSettingService.GetSettingsByUserIdAsync(user.Id);
 
             calendar.Year = 2025;
+            calendar.CountryId = Country.Ukraine.Id;
 
             if (userSetting != null)
             {
@@ -87,5 +88,23 @@ namespace Calendary.Api.Controllers
                 calendar.LanguageId = userSetting.LanguageId;
             }
         }
+
+
+        [HttpGet("generate/{calendarId:int}")]
+        public async Task<IActionResult> GeneratePdf(int calendarId)
+        {
+            var user = await CurrentUser.Value;
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            await calendarService.GeneratePdfAsync(user.Id, calendarId);
+            return Ok();
+        }
+
+
+
     }
 }
