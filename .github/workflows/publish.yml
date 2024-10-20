@@ -1,0 +1,63 @@
+name : Publish on site
+on:
+  push:
+      branches: [main]
+
+jobs:
+    build_api :
+        name : Build Api
+        runs-on: ubuntu-latest
+        steps: 
+            - name: Checkout 
+              uses: actions/checkout@v2
+            - name: Log in Docker HUB
+              uses: docker/login-action@v1
+              with: 
+                username : chernikov
+                password : ${{ secrets.DOCKER_PASSWORD }}
+            - name: Build docker
+              uses: docker/build-push-action@v2
+              with: 
+                context: .
+                file: ./Dockerfile
+                push: true
+                tags: chernikov/calendary.api:latest
+    build_ng :
+        name : Build Ng
+        runs-on: ubuntu-latest
+        steps: 
+            - name: Checkout 
+              uses: actions/checkout@v2
+            - name: Log in Docker HUB
+              uses: docker/login-action@v1
+              with: 
+                username : chernikov
+                password : ${{ secrets.DOCKER_PASSWORD }}
+            - name: Build docker
+              uses: docker/build-push-action@v2
+              with: 
+                context: ./Calendary.Ng
+                file: ./Dockerfile
+                push: true
+                tags: chernikov/calendary.ng:latest
+    deploy :
+       runs-on: ubuntu-latest
+       needs: [build_api,build_ng]
+       steps: 
+         - name: Deploy to Digital Ocean droplet via SSH action
+           uses: appleboy/ssh-action@v0.1.3
+           with:
+             host: ${{ vars.DIGITAL_OCEAN_HOST_IP }}
+             username: root
+             key: ${{ secrets.DIGITALOCEAN_SSHKEY }}
+             passphrase: 
+             script: |  
+               cd /home          
+               # Stop docker-compose
+               docker-compose down
+               # Pull new images
+               docker-compose pull
+               # Run docker-compose
+               docker-compose up --detach
+               # Remove all old images
+               # docker image prune -a -f
