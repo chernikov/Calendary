@@ -45,12 +45,11 @@ jobs:
        needs: [build_api,build_ng]
        steps: 
          - name: Deploy to Digital Ocean droplet via SSH action
-           uses: appleboy/ssh-action@v0.1.3
+           uses: appleboy/ssh-action@v1.1.0
            with:
              host: ${{ vars.DIGITAL_OCEAN_HOST_IP }}
              username: root
              key: ${{ secrets.DIGITALOCEAN_SSHKEY }}
-             envs: GITHUB_SHA 
              debug: true
              script: |  
                cd /home          
