@@ -12,6 +12,6 @@ public class Holiday
     public DateTime Date { get; set; }
     public string Name { get; set; } // Наприклад, "Різдво", "День незалежності"
 
-    public int CountryId { get; set; }
-    public Country Country { get; set; }
+    public int? CountryId { get; set; }
+    public Country? Country { get; set; }
 }

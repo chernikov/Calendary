@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Calendary.Api.Providers;
+using Calendary.Core.Providers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -30,5 +32,10 @@ public static class DependencyRegistration
                     IssuerSigningKey = jwtKey
                 };
             });
+    }
+
+    public static void RegisterPathProvider(this IServiceCollection services)
+    {
+        services.AddSingleton<IPathProvider, WebPathProvider>();
     }
 }

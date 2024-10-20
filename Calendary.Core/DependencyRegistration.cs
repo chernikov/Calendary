@@ -21,6 +21,7 @@ public static class DependencyRegistration
         services.AddScoped<ICalendarService, CalendarService>();
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IHolidayService, HolidayService>();
+        services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
 
         return services;
     }
