@@ -1,0 +1,57 @@
+version: '3'
+services:
+  calendary_db:
+    container_name: calendary_db
+    image: mcr.microsoft.com/mssql/server
+    ports:
+      - "1443:1433"
+    networks:
+      - "calendary"
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: yourStrong(!)Password
+    volumes:
+      - mssqlsystem_calendary:/var/opt/mssql
+      - mssqluser_calendary:/var/opt/sqlserver
+    restart: always
+  calendary_api:
+    container_name: calendary_api
+    image: chernikov/calendary.api
+    environment:
+      - "ConnectionStrings__DefaultConnection=Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;"
+      - "Jwt__Key=Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;"
+    ports:
+     - "8080:8080"
+    volumes:
+     - "/calendary:/app/uploads"
+    networks:
+     - "calendary"
+    depends_on:
+     - calendary_db
+    restart: always
+  calendary_ng:
+    container_name: calendary_ng
+    image: chernikov/calendary.ng
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - "calendary"
+    depends_on:
+      - calendary_api
+    restart: always
+#    volumes:
+#     - "/certs:/certs"
+
+networks:
+  calendary:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 20.0.0.0/24
+
+volumes:
+  mssqlsystem_calendary:
+    external: true
+  mssqluser_calendary:
+    external: true
