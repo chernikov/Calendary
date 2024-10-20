@@ -37,7 +37,7 @@ jobs:
               uses: docker/build-push-action@v2
               with: 
                 context: ./Calendary.Ng
-                file: ./Dockerfile
+                file: ./Calendary.Ng/Dockerfile
                 push: true
                 tags: chernikov/calendary.ng:latest
     deploy :
