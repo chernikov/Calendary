@@ -6,11 +6,12 @@ EXPOSE 80
 
 
 # Встановлюємо необхідні пакети для ImageSharp
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
     libc6 \
     libgdiplus \
-    libjpeg-turbo8 \
-    libpng16-16 \
+    libjpeg62-turbo \
+    libpng-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Вибираємо SDK образ для збирання додатку
