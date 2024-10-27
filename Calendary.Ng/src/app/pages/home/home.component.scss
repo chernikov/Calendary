@@ -1,40 +1,99 @@
-.landing {
-    text-align: center;
-    padding: 20px;
-  }
-  
-  .header {
-    display: flex;
-    justify-content: flex-end;
-    padding: 10px;
-  }
-  
-  .register-button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  .register-button:hover {
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:hover {
     background-color: #0056b3;
   }
-  
-  .content {
-    margin-top: 50px;
-  }
-  
+}
+
+.hero {
+  text-align: center;
+  padding: 50px;
+  background-color: #f8f9fa;
+
   h1 {
-    font-size: 36px;
-    color: #333;
+    font-size: 3rem;
+    margin-bottom: 1rem;
   }
-  
+
   p {
-    font-size: 18px;
-    color: #666;
-    max-width: 600px;
-    margin: 0 auto;
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
   }
+
+}
+
+section {
+  padding: 40px 20px;
+  background-color: #fff;
+
+  &.features, &.how-it-works, &.testimonials {
+    background-color: #f1f1f1;
+  }
+
+  .content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    p, li {
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    blockquote {
+      font-style: italic;
+      margin: 10px 0;
+    }
+  }
+}
+
+.footer {
+  background-color: #343a40;
+  color: white;
+  padding: 10px;
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+.illustration {
+  max-width: 25%; /* Зменшуємо ширину до 25% */
+  height: auto;
+  display: block;
+  margin: 20px auto; /* Центруємо ілюстрацію */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}

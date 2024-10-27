@@ -12,12 +12,8 @@ import { HeaderComponent } from '../../components/header/header.component';
 export class HomeComponent {
   constructor(private router: Router) { }
 
-  navigateToRegister() {
-    this.router.navigate(['/register']);
-  }
-
-  navigateToLogin() {
-    this.router.navigate(['/login']);
+  goToCreateCalendar() {
+    
   }
 }
 

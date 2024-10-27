@@ -30,6 +30,7 @@ export const routes: Routes = [
     path: '',
     component: MainComponent,
     children: [
+      { path: '', component: HomeComponent },
       { path: 'calendar', component: CalendarComponent },
       { path: 'register', component: RegisterComponent },
       { path: 'login', component: LoginComponent },
