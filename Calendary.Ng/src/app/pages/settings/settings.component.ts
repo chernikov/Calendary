@@ -75,7 +75,6 @@ export class SettingsComponent implements OnInit {
   onSubmit() {
     if (this.settingsForm.valid) {
       const updatedSettings = this.settingsForm.value as Setting;
-      debugger;
       this.settingService.saveSettings(updatedSettings).subscribe({
         next: (response) => {
           alert('Settings saved successfully!');
