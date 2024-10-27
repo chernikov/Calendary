@@ -44,10 +44,9 @@ export class LoginComponent {
     }
 
     // Викликаємо сервіс для логіну
-    const user = new User(
-      this.loginForm.value.email,
-      this.loginForm.value.password
-    );
+    const user = new User();
+    user.email = this.loginForm.value.email;
+    user.password = this.loginForm.value.password;
 
     this.userService.login(user)
       .subscribe({
