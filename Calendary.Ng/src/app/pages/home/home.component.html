@@ -1,11 +1,80 @@
-<div class="landing">
-    <section class="content">
-        <h1>Ласкаво просимо до нашого проєкту "Calendary"!</h1>
-        <p>
-            "Calendary" — це унікальний сервіс, який дозволяє вам створити індивідуальні календарі з вашими особистими
-            фотографіями та важливими датами.
-            Легко виберіть 12 фотографій, додайте свої особисті події, і отримайте готовий календар на рік, доставлений
-            прямо до ваших дверей.
-        </p>
-    </section>
+<div class="hero">
+    <h1>Створіть ваш персональний календар</h1>
+    <p>Додавайте власні фотографії, важливі дати та створюйте унікальні календарі для кожного місяця.</p>
+    <img [src]="'/images/pic_2.png'" alt="Poster Calendar Example" class="illustration">
+    <br/>
+    <button (click)="goToCreateCalendar()">Створити календар</button>
 </div>
+
+<section class="about">
+    <div class="content">
+        <h2>Хто ми?</h2>
+        <p>Calendary – це сервіс для створення індивідуальних календарів із власними фотографіями та подіями. Наші
+            календарі – це більше, ніж просто дати, це спогади!</p>
+        <button (click)="goToCreateCalendar()">Створити календар</button>
+    </div>
+</section>
+
+<section class="features">
+    <div class="content">
+        <h2>Наші переваги</h2>
+        <ul>
+            <li>Персоналізація кожної сторінки календаря</li>
+            <li>Можливість додавання важливих дат та подій</li>
+            <li>Вибір дизайну та тем оформлення</li>
+        </ul>
+        <button (click)="goToCreateCalendar()">Створити календар</button>
+    </div>
+</section>
+
+<section class="how-it-works">
+    <div class="content">
+        <h2>Як працює наш сервіс?</h2>
+        <ol>
+            <li>Зареєструйтеся або увійдіть до свого акаунта</li>
+            <li>Завантажте фотографії для кожного місяця</li>
+            <li>Додайте події та виберіть дизайн</li>
+            <li>Оплатіть замовлення та отримайте календар поштою</li>
+        </ol>
+        <button (click)="goToCreateCalendar()">Створити календар</button>
+    </div>
+</section>
+
+<section class="testimonials">
+    <div class="content">
+      <h2>Що кажуть наші клієнти</h2>
+      <blockquote>
+        <p>"Замовила календар для подарунку – вийшло ідеально!"</p>
+        <cite>– Марина, Київ</cite>
+      </blockquote>
+      <img [src]="'/images/pic_3.png'" alt="Happy customers with calendar" class="illustration">
+      <blockquote>
+        <p>"Простий у користуванні сервіс та чудовий результат!"</p>
+        <cite>– Андрій, Львів</cite>
+      </blockquote>
+      <button (click)="goToCreateCalendar()">Створити календар</button>
+    </div>
+  </section>
+
+<section class="pricing">
+    <div class="content">
+        <h2>Обирайте свій календар</h2>
+        <ul>
+            <li>Цифровий PDF – 50 грн</li>
+            <li>Друкований календар – від 150 грн</li>
+        </ul>
+        <button (click)="goToCreateCalendar()">Створити календар</button>
+    </div>
+</section>
+
+<section class="contact">
+    <div class="content">
+        <h2>Зв'яжіться з нами</h2>
+        <p>Email: support&#64;calendary.com.ua</p>
+        <p>Телефон: +380 95 603 54 21</p>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>&copy; 2024 Calendary. Всі права захищені.</p>
+</footer>
