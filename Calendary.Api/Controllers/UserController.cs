@@ -4,62 +4,61 @@ using Calendary.Core.Services;
 using Calendary.Model;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Calendary.Api.Controllers
+namespace Calendary.Api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    private readonly IUserService _userService;
+    private readonly IAuthService _authService;
+    private readonly IMapper _mapper;
+
+    public UsersController(IUserService userService, IAuthService authService, IMapper mapper)
     {
-        private readonly IUserService _userService;
-        private readonly IAuthService _authService;
-        private readonly IMapper _mapper;
+        _userService = userService;
+        _authService = authService;
+        _mapper = mapper;
+    }
 
-        public UsersController(IUserService userService, IAuthService authService, IMapper mapper)
+    [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(UserDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
+    public async Task<IActionResult> Register([FromBody] UserLoginDto userLoginDto)
+    {
+        if (!ModelState.IsValid)
         {
-            _userService = userService;
-            _authService = authService;
-            _mapper = mapper;
+            return BadRequest(ModelState);
         }
 
-        [HttpPost("register")]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(UserDto))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        var user = _mapper.Map<User>(userLoginDto);
+        var newUser = await _userService.RegisterUserAsync(user, userLoginDto.Password);
+        var result = _mapper.Map<UserDto>(newUser);
+        result.Token = await _authService.GenerateJwtTokenAsync(user);
+        return Created("", result);
+    }
 
-        public async Task<IActionResult> Register([FromBody] UserLoginDto userLoginDto)
+
+    [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
+    {
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var user = _mapper.Map<User>(userLoginDto);
-            var newUser = await _userService.RegisterUserAsync(user, userLoginDto.Password);
-            var result = _mapper.Map<UserDto>(newUser);
-            result.Token = await _authService.GenerateJwtTokenAsync(user);
-            return Created("", result);
+            return BadRequest(ModelState);
         }
 
-
-        [HttpPost("login")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
+        var user = await _userService.LoginAsync(userLoginDto.Email, userLoginDto.Password);
+        if (user == null)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var user = await _userService.LoginAsync(userLoginDto.Email, userLoginDto.Password);
-            if (user == null)
-            {
-                return Unauthorized();
-            }
-
-            var userDto = _mapper.Map<UserDto>(user);
-            userDto.Token = await _authService.GenerateJwtTokenAsync(user);
-            return Ok(userDto);
+            return Unauthorized();
         }
+
+        var userDto = _mapper.Map<UserDto>(user);
+        userDto.Token = await _authService.GenerateJwtTokenAsync(user);
+        return Ok(userDto);
     }
 }
