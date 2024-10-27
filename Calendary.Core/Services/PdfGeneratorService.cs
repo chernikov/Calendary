@@ -14,6 +14,8 @@ using ImagePdf = iText.Layout.Element.Image;
 using CalendarModel = Calendary.Model.Calendar;
 using Calendary.Core.Providers;
 using static System.Net.Mime.MediaTypeNames;
+using System.Drawing.Imaging;
+using System.Drawing;
 
 namespace Calendary.Core.Services;
 
@@ -124,7 +126,7 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository, IPathPr
             DateTime currentDate = new DateTime(calendar.Year, monthIndex + 1, day);
 
             // Визначаємо колір шрифту
-            Color fontColor = GetFontColorForDay(currentDate, holidaysDtos, eventDateDtos);
+            iText.Kernel.Colors.Color fontColor = GetFontColorForDay(currentDate, holidaysDtos, eventDateDtos);
 
             // Отримуємо опис події або свята
             string description = GetEventDescription(day, monthIndex + 1, holidaysDtos, eventDateDtos);
@@ -148,7 +150,7 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository, IPathPr
         return table;
     }
 
-    private Color GetFontColorForDay(DateTime date, HolidayDto[] holidays, EventDateDto[] eventDates)
+    private iText.Kernel.Colors.Color GetFontColorForDay(DateTime date, HolidayDto[] holidays, EventDateDto[] eventDates)
     {
         // Перевіряємо, чи є дата святом або важливою подією
         bool isHoliday = holidays.Any(h => h.Day == date.Day && h.Month == date.Month);
@@ -179,12 +181,51 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository, IPathPr
     {
         // Завантажуємо зображення для місяця
         var pathImage = pathProvider.MapPath(image.ImageUrl);
-        var imageData = ImageDataFactory.Create(pathImage);
-        var imagePdf = new ImagePdf(imageData);
+        var imagePdf = LoadCorrectedImage(pathImage);
         ScaleImage(pdf, imagePdf);
 
         document.Add(imagePdf);
     }
+
+    // Завантаження зображення та корекція орієнтації
+    private ImagePdf LoadCorrectedImage(string imagePath)
+    {
+        using (var image = System.Drawing.Image.FromFile(imagePath))
+        {
+            RotateImageIfNeeded(image);
+            using (var memoryStream = new MemoryStream())
+            {
+                image.Save(memoryStream, ImageFormat.Jpeg);
+                var imageData = ImageDataFactory.Create(memoryStream.ToArray());
+                return new ImagePdf(imageData);
+            }
+        }
+    }
+
+    // Корекція орієнтації на основі EXIF-даних
+    private void RotateImageIfNeeded(System.Drawing.Image img)
+    {
+        const int OrientationPropertyId = 0x0112;
+
+        if (img.PropertyIdList.Contains(OrientationPropertyId))
+        {
+            var orientation = (int)img.GetPropertyItem(OrientationPropertyId).Value[0];
+
+            switch (orientation)
+            {
+                case 3:
+                    img.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                    break;
+                case 6:
+                    img.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                    break;
+                case 8:
+                    img.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                    break;
+            }
+        }
+    }
+
 
     private static void ScaleImage(PdfDocument pdf, ImagePdf imagePdf)
     {
