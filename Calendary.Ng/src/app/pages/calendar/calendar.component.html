@@ -30,7 +30,13 @@
 
     <app-event-dates>
     </app-event-dates>
-    <app-calendar-images [calendarId]="calendar.id" (uploadCompleted)="onImageUpload($event)">
+    <app-calendar-images [calendarId]="calendar.id" (uploadCompleted)="onImageUpload($event)"
+    (generatedCompleted)="onGeneratedCompleted($event)"
+    >
     </app-calendar-images>
-  </div>
+    <div *ngIf="calendar.filePath">
+      <div>
+        <a [href]="calendar.filePath" download class="btn btn-secondary">Завантажити календар</a>
+      </div>
+    </div>
 </div>
