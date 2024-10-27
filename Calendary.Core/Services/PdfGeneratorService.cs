@@ -42,7 +42,7 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository, IPathPr
     public string GenerateCalendarPdf(CalendarModel calendar, Model.Image[] images)
     {
         // Визначаємо шлях до PDF
-        var savedPath = System.IO.Path.Combine("output", $"calendar_{calendar.Id}_{calendar.Year}.pdf");
+        var savedPath = System.IO.Path.Combine("uploads", $"calendar_{calendar.Id}_{calendar.Year}.pdf");
         string dest = pathProvider.MapPath(savedPath);
 
         // Імена місяців
