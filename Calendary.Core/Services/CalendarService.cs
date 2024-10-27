@@ -31,22 +31,23 @@ public class CalendarService(
     public async Task<Calendar> CreateAsync(int userId, Calendar calendar)
     {
         // Перевіряємо, чи є існуюче замовлення зі статусом "Creating"
-        var existingOrder = await orderRepository.GetOrderByStatusAsync(userId, "Creating");
+        var currentOrder = await orderRepository.GetOrderByStatusAsync(userId, "Creating");
 
         // Якщо замовлення немає, створюємо нове
-        if (existingOrder == null)
+        if (currentOrder == null)
         {
-            existingOrder = new Order
+            currentOrder = new Order
             {
                 UserId = userId,
                 Status = "Creating",
-                OrderDate = DateTime.UtcNow
+                OrderDate = DateTime.UtcNow,
+                DeliveryAddress = "",
             };
 
-            await orderRepository.AddAsync(existingOrder);
+            await orderRepository.AddAsync(currentOrder);
         }
 
-        calendar.OrderId = existingOrder.Id;
+        calendar.OrderId = currentOrder.Id;
 
         await calendarRepository.AddAsync(calendar);
 
