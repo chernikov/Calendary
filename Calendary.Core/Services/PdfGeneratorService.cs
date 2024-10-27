@@ -24,7 +24,7 @@ public interface IPdfGeneratorService
     Task<string> GeneratePdfAsync(int calendarId);
 }
 
-public class PdfGeneratorService(ICalendarRepository calendarRepository, IPathProvider pathProvider) : IPdfGeneratorService
+public class PdfGeneratorService(ICalendarRepository calendarRepository, IPathProvider pathProvider, IImageRotatorService imageRotatorService) : IPdfGeneratorService
 {
     private PdfFont Font { get; init; } = PdfFontFactory.CreateFont("fonts/arial.ttf", PdfEncodings.IDENTITY_H);
     public async Task<string> GeneratePdfAsync(int calendarId)
@@ -181,51 +181,11 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository, IPathPr
     {
         // Завантажуємо зображення для місяця
         var pathImage = pathProvider.MapPath(image.ImageUrl);
-        var imagePdf = LoadCorrectedImage(pathImage);
+        var imagePdf = imageRotatorService.LoadCorrectedImage(pathImage);
         ScaleImage(pdf, imagePdf);
 
         document.Add(imagePdf);
     }
-
-    // Завантаження зображення та корекція орієнтації
-    private ImagePdf LoadCorrectedImage(string imagePath)
-    {
-        using (var image = System.Drawing.Image.FromFile(imagePath))
-        {
-            RotateImageIfNeeded(image);
-            using (var memoryStream = new MemoryStream())
-            {
-                image.Save(memoryStream, ImageFormat.Jpeg);
-                var imageData = ImageDataFactory.Create(memoryStream.ToArray());
-                return new ImagePdf(imageData);
-            }
-        }
-    }
-
-    // Корекція орієнтації на основі EXIF-даних
-    private void RotateImageIfNeeded(System.Drawing.Image img)
-    {
-        const int OrientationPropertyId = 0x0112;
-
-        if (img.PropertyIdList.Contains(OrientationPropertyId))
-        {
-            var orientation = (int)img.GetPropertyItem(OrientationPropertyId).Value[0];
-
-            switch (orientation)
-            {
-                case 3:
-                    img.RotateFlip(RotateFlipType.Rotate180FlipNone);
-                    break;
-                case 6:
-                    img.RotateFlip(RotateFlipType.Rotate90FlipNone);
-                    break;
-                case 8:
-                    img.RotateFlip(RotateFlipType.Rotate270FlipNone);
-                    break;
-            }
-        }
-    }
-
 
     private static void ScaleImage(PdfDocument pdf, ImagePdf imagePdf)
     {
