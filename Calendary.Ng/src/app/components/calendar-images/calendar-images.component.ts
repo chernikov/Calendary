@@ -20,6 +20,7 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
   public uploader!: FileUploader;
   
   @Output() uploadCompleted = new EventEmitter<string>();
+  @Output() generatedCompleted = new EventEmitter<boolean>();
 
 
   constructor(private imageService : ImageService, 
@@ -87,7 +88,7 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
   generatePdf(): void {
     // Виклик API для генерації PDF
     this.calendarService.generatePdf(this.calendarId).subscribe(response => {
-      alert('PDF згенеровано успішно!');
+      this.generatedCompleted.emit(true);
     });
   }
 }
