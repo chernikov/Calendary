@@ -5,4 +5,5 @@ export class Calendar {
     year: number = 0;
     firstDayOfWeek: DayOfWeek = DayOfWeek.Monday;
     languageId: number = 0;
+    filePath : string | null = null;
   }

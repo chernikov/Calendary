@@ -89,6 +89,13 @@ initForm() {
   }
 
   onImageUpload(imageUrl: string) {
-    //this.calendar.images.push({ imageUrl });
+    
+  }
+
+  onGeneratedCompleted($event: any) {
+    debugger;
+    alert('PDF згенеровано успішно!');
+    this.loadCurrentCalendar();
+
   }
 }
