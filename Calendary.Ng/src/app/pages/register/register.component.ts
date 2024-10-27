@@ -44,10 +44,9 @@ export class RegisterComponent {
     }
 
     // Make the API call to register the user
-    const user = new User(
-      this.registerForm.value.email,
-      this.registerForm.value.password
-    );
+    const user = new User();
+    user.email = this.registerForm.value.email;
+    user.password = this.registerForm.value.password;
 
     // Викликаємо метод сервісу для реєстрації
     this.userService.register(user)
