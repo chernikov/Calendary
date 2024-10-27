@@ -93,7 +93,6 @@ initForm() {
   }
 
   onGeneratedCompleted($event: any) {
-    debugger;
     alert('PDF згенеровано успішно!');
     this.loadCurrentCalendar();
 
