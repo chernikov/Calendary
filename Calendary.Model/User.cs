@@ -10,6 +10,8 @@ public class User
     public bool IsEmailConfirmed { get; set; } // Статус підтвердження email
     public bool IsPhoneNumberConfirmed { get; set; } // Статус підтвердження телефону
 
+    public bool IsTemporary { get; set; }
+
     public ICollection<UserRole> UserRoles { get; set; } = [];
     public ICollection<Order> Orders { get; set; } = [];
     public UserSetting Settings { get; set; } = null!;
