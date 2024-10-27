@@ -22,6 +22,7 @@ public static class DependencyRegistration
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IHolidayService, HolidayService>();
         services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
+        services.AddScoped<IImageRotatorService, ImageRotatorService>();
 
         return services;
     }
