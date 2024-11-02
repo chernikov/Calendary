@@ -10,42 +10,26 @@ body {
 
 button {
   padding: 10px 20px;
-  font-size: 1rem;
-  background-color: #007bff;
+  font-size: 20pt;
+  background-color: #2F9606;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 7px;
+  margin-top: 20px;
   cursor: pointer;
-
   &:hover {
-    background-color: #0056b3;
+    background-color: #1E6404;
   }
-}
-
-.hero {
-  text-align: center;
-  padding: 50px;
-  background-color: #f8f9fa;
-
-  h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-  }
-
-  p {
-    font-size: 1.25rem;
-    margin-bottom: 2rem;
-  }
-
 }
 
 section {
-  padding: 40px 20px;
-  background-color: #fff;
-
-  &.features, &.how-it-works, &.testimonials {
-    background-color: #f1f1f1;
+  &.background-white {
+    background-color: #fff;
   }
+  &.background-gray {
+    background-color: #f5f5f5;
+  }
+  padding: 40px 20px;
 
   .content {
     max-width: 800px;
@@ -56,8 +40,15 @@ section {
       font-size: 2rem;
       margin-bottom: 1rem;
     }
-
-    p, li {
+    ol {
+      margin-left: 150px;
+      width : 600px;
+      li {
+        text-align: left;
+      }
+    }
+    p,
+    li {
       font-size: 1.1rem;
       line-height: 1.6;
     }
@@ -78,6 +69,17 @@ section {
   }
 }
 
+.illustration {
+  max-width: 40%;
+  /* Зменшуємо ширину до 25% */
+  height: auto;
+  display: block;
+  margin: 20px auto;
+  /* Центруємо ілюстрацію */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 .footer {
   background-color: #343a40;
   color: white;
@@ -87,13 +89,4 @@ section {
   p {
     margin: 0;
   }
-}
-
-.illustration {
-  max-width: 25%; /* Зменшуємо ширину до 25% */
-  height: auto;
-  display: block;
-  margin: 20px auto; /* Центруємо ілюстрацію */
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }

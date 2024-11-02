@@ -5,16 +5,19 @@ import { ImageService } from '../../../services/image.service';
 import { Image } from '../../../models/image';
 import { MatIconModule } from '@angular/material/icon';
 import { CalendarService } from '../../../services/calendar.service';
+import { ImageItemComponent } from '../image-item/image-item.component';
 @Component({
   selector: 'app-calendar-images',
   standalone: true,
-  imports: [CommonModule, FileUploadModule, MatIconModule],
+  imports: [CommonModule, FileUploadModule, MatIconModule, ImageItemComponent],
   templateUrl: './calendar-images.component.html',
   styleUrl: './calendar-images.component.scss'
 })
 export class CalendarImagesComponent implements OnChanges, OnInit {
   @Input() calendarId!: number;
 
+  items = Array.from({length: 12}, (_, i) => i + 1);
+  monthes = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'];
   images: Image[] = [];
 
   public uploader!: FileUploader;
@@ -60,6 +63,10 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
         console.error('Помилка завантаження:', response);
       };
     }
+  }
+
+  getImage(index : number): Image | undefined {
+    return this.images.find(i => i.order === index);
   }
 
   loadImages(): void {
