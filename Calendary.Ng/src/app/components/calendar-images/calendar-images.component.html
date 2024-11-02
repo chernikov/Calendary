@@ -1,18 +1,13 @@
 <div class="upload-container">
-  <button class="upload-button" (click)="fileInput.click()" [disabled]="images.length >= 12">
-    Завантажити зображення ({{ images.length }}/12)
-  </button>
-  <input #fileInput type="file" ng2FileSelect [uploader]="uploader" multiple hidden />
+  <input #fileInput type="file" ng2FileSelect [uploader]="uploader" hidden />
 </div>
 
-
 <div class="image-gallery">
-  <div *ngFor="let image of images; let i = index" class="image-item">
-    <img [src]="image.imageUrl" />
-    <button class="delete-button" (click)="deleteImage(i)">
-      <mat-icon>delete</mat-icon>
-    </button>
-  </div>
+  <div *ngFor="let items of items; let i = index" class="image-item">
+    <app-image-item 
+      [number]="i" [month]="monthes[i]" [image]="getImage(i)"
+      (delete)="deleteImage(i)">
+    </app-image-item>
 </div>
 
 <button 

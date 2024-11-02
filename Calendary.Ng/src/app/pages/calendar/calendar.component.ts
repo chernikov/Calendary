@@ -2,19 +2,20 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EventDatesComponent } from '../event-date/event-dates.component';
+import { AdditionalCalendarSettingsComponent } from "../../components/additional-calendar-settings/additional-calendar-settings.component";
+import { CalendarImagesComponent } from '../../components/calendar-images/calendar-images.component';
 import { CalendarService } from '../../../services/calendar.service';
 import { Calendar } from '../../../models/calendar';
 import { Language } from '../../../models/language';
 import { LanguageService } from '../../../services/language.service';
-import { CalendarImagesComponent } from '../../components/calendar-images/calendar-images.component';
-
 
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, CalendarImagesComponent, 
-      EventDatesComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, CalendarImagesComponent,
+    EventDatesComponent, 
+    AdditionalCalendarSettingsComponent],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
 })
@@ -89,7 +90,6 @@ initForm() {
   }
 
   onImageUpload(imageUrl: string) {
-    
   }
 
   onGeneratedCompleted($event: any) {

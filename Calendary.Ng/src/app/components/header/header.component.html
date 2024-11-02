@@ -5,23 +5,5 @@
           <img [src]="'logo.png'" alt="Calendary" />
         </a>
       </div>
-  
-      <div class="navbar-end">
-        <!-- Якщо користувач не увійшов -->
-        <div *ngIf="!isLoggedIn">
-          <button (click)="router.navigate(['/login'])" class="btn btn-primary">Зайти</button>
-          <button (click)="router.navigate(['/register'])" class="btn btn-secondary">Зареєструватись</button>
-        </div>
-  
-        <!-- Якщо користувач увійшов -->
-        <div *ngIf="isLoggedIn">
-          <span>Привіт, {{ email }}</span>
-          <button (click)="router.navigate(['/settings'])" class="btn btn-secondary">Налаштування</button>
-
-          <button (click)="router.navigate(['/event-dates'])" class="btn btn-secondary">Мої дати</button>
-          <button (click)="router.navigate(['/calendar'])" class="btn btn-secondary">Календарі</button>
-          <button (click)="logout()" class="btn btn-danger">Вийти</button>
-        </div>
-      </div>
     </div>
   </nav>

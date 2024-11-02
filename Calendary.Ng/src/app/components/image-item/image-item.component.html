@@ -1,0 +1,19 @@
+
+<div class="item">
+    
+    <div class="image" *ngIf="image; else uploadButton">
+
+        <img [src]="image.imageUrl" alt="Image" />
+        <button class="delete-button">видалити</button>
+
+        
+    </div>
+    <ng-template #uploadButton>
+        <div class="upload-button">
+            Завантажити фото
+        </div>
+    </ng-template>
+    <div class="month">
+        {{month}}
+    </div>
+</div>
