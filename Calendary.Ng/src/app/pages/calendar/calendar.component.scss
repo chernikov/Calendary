@@ -4,96 +4,32 @@
   margin-top: 20px;
 }
 
-// Стиль для контейнера, якщо календар ще не створений
-button {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  background-color: #007bff;
-  color: #fff;
+.button-container {
+  margin-top: 20px;
+}
+
+.btn-order {
+  width: 100%;
+  padding: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #2f9606; /* Зелений фон для активної кнопки */
   border: none;
-  border-radius: 0.25rem;
+  border-radius: 12px;
   cursor: pointer;
-  margin-bottom: 1.5rem;
-
-  &:hover {
-    background-color: #0056b3;
-  }
+  transition: background-color 0.3s ease;
 }
 
-// Стилі для форми
-form {
-  .form-group {
-    margin-bottom: 1.5rem;
-
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-      color: #333;
-    }
-
-    .custom-select {
-      position: relative;
-
-      select.form-control {
-        width: 100%;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        transition: border-color 0.2s, box-shadow 0.2s;
-
-        &:focus {
-          border-color: #80bdff;
-          outline: 0;
-          box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
-      }
-    }
-  }
+.btn-order.disabled, .btn-order:disabled {
+  background-color: #a9a9a9; /* Сірий фон для неактивної кнопки */
+  cursor: not-allowed;
 }
 
-// Стиль для кнопки збереження
-.btn-save {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-
-  &:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-  }
+.btn-order:hover:not(.disabled):not(:disabled) {
+  background-color: #278504; /* Темніший зелений при наведенні */
 }
 
-
-
-.btn-secondary {
-  background-color: #4caf50;
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: background-color 0.3s;
-}
-
-.btn-secondary:hover {
-  background-color: #45a049;
-}
 
 /* Адаптивні стилі для мобільних пристроїв */
 @media (max-width: 768px) {

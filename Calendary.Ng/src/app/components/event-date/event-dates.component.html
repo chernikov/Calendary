@@ -1,0 +1,19 @@
+<div class="container">
+  <h2>Важливі дати</h2>
+
+  <ul class="event-list">
+    <li *ngFor="let event of eventDates" class="event-item">
+      <div class="event-details">
+        <span class="event-date">{{ event.date | date: 'dd MMMM' }}</span>
+        <span class="event-description">{{ event.description }}</span>
+      </div>
+      <button class="delete-button" (click)="deleteEventDate(event.id)">видалити</button>
+    </li>
+  </ul>
+
+  <div class="add-event-form">
+    <input type="date" [(ngModel)]="newEventDate.date" class="date-input">
+    <input type="text" [(ngModel)]="newEventDate.description" placeholder="Що за визначна дата" class="description-input">
+    <button class="add-button" (click)="addEventDate(newEventDate)">Додати</button>
+  </div>
+</div>
