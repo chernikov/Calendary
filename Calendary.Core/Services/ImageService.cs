@@ -16,21 +16,13 @@ public interface IImageService
 
 public class ImageService(IImageRepository imageRepository) : IImageService
 {
-    public async Task SaveAsync(Image image)
-    {
-        var images = await imageRepository.GetAllByCalendarIdAsync(image.CalendarId);
+    public Task SaveAsync(Image image)
+        => imageRepository.AddAsync(image);
 
-        int maxOrder = images.Any() ? images.Max(i => i.Order) : 0;
 
-        image.Order = (short)(maxOrder + 1);
-        await imageRepository.AddAsync(image);
-    }
-
-    public async Task<IEnumerable<Image>> GetAllByCalendarIdAsync(int calendarId)
-    {
-        return (await imageRepository.GetAllByCalendarIdAsync(calendarId)).OrderBy(p => p.Order);
-    }
-
+    public Task<IEnumerable<Image>> GetAllByCalendarIdAsync(int calendarId)
+        => imageRepository.GetAllByCalendarIdAsync(calendarId);
+    
     public Task<Image?> GetByIdAsync(int imageId)
         => imageRepository.GetByIdAsync(imageId);
 
