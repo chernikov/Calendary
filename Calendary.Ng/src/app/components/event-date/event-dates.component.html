@@ -12,8 +12,10 @@
   </ul>
 
   <div class="add-event-form">
-    <input type="date" [(ngModel)]="newEventDate.date" class="date-input">
-    <input type="text" [(ngModel)]="newEventDate.description" placeholder="Що за визначна дата" class="description-input">
+    <div class="inputs-wrapper">
+      <input type="date" [(ngModel)]="newEventDate.date" class="date-input">
+      <input type="text" [(ngModel)]="newEventDate.description" placeholder="Що за визначна дата" class="description-input">
+    </div>
     <button class="add-button" (click)="addEventDate(newEventDate)">Додати</button>
   </div>
 </div>

@@ -31,46 +31,26 @@
 }
 
 
-/* Адаптивні стилі для мобільних пристроїв */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 0 15px;
-  }
-
-  .image-item {
-    flex: 1 1 calc(100% - 10px);
-    /* Виводимо по одному зображенню в ряд */
-  }
-
-  button {
     width: 100%;
-    /* Кнопки займають всю ширину */
-  }
-
-  .btn-save,
-  .btn-secondary {
-    width: 100%;
-    /* Збільшуємо розмір кнопок на мобільних */
-  }
-
-  .upload-container {
-    margin-top: 10px;
-  }
-
-  .form-group {
-    margin-bottom: 1rem;
-
-    label {
-      font-size: 1rem;
-    }
-
-    select.form-control {
-      font-size: 1rem;
-    }
   }
 }
 
 @media (max-width: 480px) {
+  .container {
+    width: 100%;
+  }
+  
   .image-gallery {
     flex-direction: column;
     /* Зображення йдуть вертикально */
