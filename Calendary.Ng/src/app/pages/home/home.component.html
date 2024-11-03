@@ -1,21 +1,22 @@
-<div class="hero">
-    <h1>Створіть ваш персональний календар</h1>
-    <p>Додавайте власні фотографії, важливі дати та створюйте унікальні календарі для кожного місяця.</p>
-    <img [src]="'/images/pic_2.png'" alt="Poster Calendar Example" class="illustration">
-    <br/>
-    <button (click)="goToCreateCalendar()">Створити календар</button>
-</div>
-
-<section class="about">
+<section class="hero background-white">
     <div class="content">
-        <h2>Хто ми?</h2>
-        <p>Calendary – це сервіс для створення індивідуальних календарів із власними фотографіями та подіями. Наші
-            календарі – це більше, ніж просто дати, це спогади!</p>
+        <h2>Створіть ваш персональний календар</h2>
+        <p>Додавайте власні фотографії, важливі дати та створюйте унікальні календарі для кожного місяця.</p>
+        <img [src]="'/images/pic_2.png'" alt="Poster Calendar Example" class="illustration">
+        <br />
         <button (click)="goToCreateCalendar()">Створити календар</button>
     </div>
 </section>
 
-<section class="features">
+<section class="about background-gray">
+    <div class="content">
+        <h2>Хто ми?</h2>
+        <p>Calendary – це сервіс для створення індивідуальних календарів із власними фотографіями та подіями. Наші
+            календарі – це більше, ніж просто дати, це спогади!</p>
+    </div>
+</section>
+
+<section class="features background-white">
     <div class="content">
         <h2>Наші переваги</h2>
         <ul>
@@ -27,51 +28,49 @@
     </div>
 </section>
 
-<section class="how-it-works">
+<section class="how-it-works  background-gray">
     <div class="content">
         <h2>Як працює наш сервіс?</h2>
         <ol>
-            <li>Зареєструйтеся або увійдіть до свого акаунта</li>
-            <li>Завантажте фотографії для кожного місяця</li>
-            <li>Додайте події та виберіть дизайн</li>
-            <li>Оплатіть замовлення та отримайте календар поштою</li>
+            <li>Завантажте фотографії для кожного місяця
+            </li>
+            <li>
+                Додайте події
+            </li>
+            <li>
+                Оплатіть замовлення 
+                
+            </li>
+            <li>
+                Отримайте календар поштою
+            </li>
         </ol>
         <button (click)="goToCreateCalendar()">Створити календар</button>
     </div>
 </section>
 
-<section class="testimonials">
+<section class="testimonials  background-white">
     <div class="content">
-      <h2>Що кажуть наші клієнти</h2>
-      <blockquote>
-        <p>"Замовила календар для подарунку – вийшло ідеально!"</p>
-        <cite>– Марина, Київ</cite>
-      </blockquote>
-      <img [src]="'/images/pic_3.png'" alt="Happy customers with calendar" class="illustration">
-      <blockquote>
-        <p>"Простий у користуванні сервіс та чудовий результат!"</p>
-        <cite>– Андрій, Львів</cite>
-      </blockquote>
-      <button (click)="goToCreateCalendar()">Створити календар</button>
-    </div>
-  </section>
-
-<section class="pricing">
-    <div class="content">
-        <h2>Обирайте свій календар</h2>
-        <ul>
-            <li>Цифровий PDF – 50 грн</li>
-            <li>Друкований календар – від 150 грн</li>
-        </ul>
-        <button (click)="goToCreateCalendar()">Створити календар</button>
+        <h2>Що кажуть наші клієнти</h2>
+        <blockquote>
+            <p>"Замовила календар для подарунку – вийшло ідеально!"</p>
+            <cite>– Марина, Київ</cite>
+        </blockquote>
+        <img [src]="'/images/pic_3.png'" alt="Happy customers with calendar" class="illustration">
+        <blockquote>
+            <p>"Простий у користуванні сервіс та чудовий результат!"</p>
+            <cite>– Андрій, Львів</cite>
+        </blockquote>
     </div>
 </section>
 
-<section class="contact">
+<section class="pricing  background-gray">
     <div class="content">
-        <h2>Зв'яжіться з нами</h2>
-        <p>Email: support&#64;calendary.com.ua</p>
-        <p>Телефон: +380 95 603 54 21</p>
+        <h2>Обирайте свій календар</h2>
+        <ul>
+            <li>Друкований календар – 500 грн</li>
+        </ul>
+        <button (click)="goToCreateCalendar()">Створити календар</button>
     </div>
 </section>
 

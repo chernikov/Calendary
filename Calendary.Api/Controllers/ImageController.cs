@@ -55,15 +55,15 @@ public class ImageController : BaseUserController
 
 
     [HttpPost("upload/{calendarId}")]
-    public async Task<IActionResult> UploadImage(int calendarId, IFormFile file)
+    public async Task<IActionResult> UploadImage(int calendarId, [FromQuery] short month, IFormFile file)
     {
         if (file == null || file.Length == 0)
         {
-            return BadRequest("Файл не завантажено.");
+            return BadRequest("File isn't uploaded");
         }
 
         string imageUrl = await SaveImage(calendarId, file);
-        var image = new Image { ImageUrl = imageUrl, CalendarId = calendarId };
+        var image = new Image { ImageUrl = imageUrl, CalendarId = calendarId, MonthNumber = month };
 
         await imageService.SaveAsync(image);
 

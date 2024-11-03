@@ -1,6 +1,7 @@
 .upload-container {
   text-align: center;
   margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .upload-button {
@@ -38,6 +39,14 @@
   transition: background-color 0.3s;
 }
 
+
+h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  margin-left : 40px;
+}
+
 .generate-button:hover {
   background-color: #45a049;
 }
@@ -49,48 +58,13 @@
   justify-content: space-around;
 }
 
-.image-item {
-  position: relative;
-  flex: 1 1 calc(50% - 10px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.image-item img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-
-.delete-button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: red;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 3px;
-}
-
-.delete-button:hover {
-  background-color: darkred;
-}
-
 
 
 /* Адаптивні стилі для мобільних пристроїв */
 @media (max-width: 768px) {
   .image-item {
-      flex: 1 1 100%; /* 1 зображення в ряд */
-  }
-
-  .upload-button,
+    flex: 1 1 calc(50% - 8px); /* 2 картки в ряд на мобільних */
+}
   .generate-button {
       width: 100%; /* Кнопки займають всю ширину */
   }

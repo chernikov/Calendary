@@ -1,42 +1,18 @@
 <div class="container">
-  <div *ngIf="!calendar">
-    <button (click)="onCreateCalendar()">Створити новий календар</button>
-  </div>
-
   <div *ngIf="calendar">
-    <form [formGroup]="calendarForm" (ngSubmit)="onSubmit()">
-
-      <!-- Перший день тижня -->
-      <div class="form-group">
-        <label for="firstDayOfWeek">Перший день тижня</label>
-        <div class="custom-select">
-          <select formControlName="firstDayOfWeek" class="form-control">
-            <option *ngFor="let day of daysOfWeek; let i = index" [ngValue]="i">{{ day }}</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Вибір мови -->
-      <div class="form-group">
-        <label for="language">Мова</label>
-        <div class="custom-select">
-          <select formControlName="languageId" class="form-control">
-            <option *ngFor="let language of languages" [ngValue]="language.id">{{ language.name }}</option>
-          </select>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary btn-save" [disabled]="!calendarForm.valid">Зберегти</button>
-    </form>
-
-    <app-event-dates>
-    </app-event-dates>
-    <app-calendar-images [calendarId]="calendar.id" (uploadCompleted)="onImageUpload($event)"
-    (generatedCompleted)="onGeneratedCompleted($event)"
-    >
+    <app-calendar-images [calendarId]="calendar.id" (imagesFull)="onImagesFull($event)">
     </app-calendar-images>
-    <div *ngIf="calendar.filePath">
-      <div>
-        <a [href]="calendar.filePath" download class="btn btn-secondary">Завантажити календар</a>
-      </div>
+
+    <app-event-dates></app-event-dates>
+    <app-additional-settings [calendar]="calendar"
+    (calendarUpdated)="onCalendarUpdated($event)"></app-additional-settings>
+
+    <div class="button-container">
+      <button class="btn-order" 
+        [class.disabled]="!isValid" 
+        [disabled]="!isValid"
+        (click)="proceedToOrder()">
+        Додати до замовлення
+      </button>
     </div>
-</div>
+  </div>
