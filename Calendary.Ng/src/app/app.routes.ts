@@ -4,7 +4,6 @@ import { RegisterComponent } from './pages/register/register.component';
 import { Page404Component } from './pages/page404/page404.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { LoginComponent } from './pages/login/login.component';
-import { EventDatesComponent } from './pages/event-date/event-dates.component';
 import { CalendarComponent } from './pages/calendar/calendar.component';
 import { AuthGuard } from '../guards/admin.guard';
 import { MainComponent } from './main.component';
@@ -43,7 +42,6 @@ export const routes: Routes = [
       
       /* to remove */
       { path: 'settings', component: SettingsComponent },
-      { path: 'event-dates', component: EventDatesComponent },
     ],
   },
   { path: '**', component: Page404Component },

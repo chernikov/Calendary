@@ -17,9 +17,9 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
 
 
   @Input() calendarId!: number;
-  @Output() uploadCompleted = new EventEmitter<string>();
-  @Output() generatedCompleted = new EventEmitter<boolean>();
   
+  @Output() imagesFull = new EventEmitter<boolean>();
+
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   items = Array.from({length: 12}, (_, i) => i + 1);
@@ -29,18 +29,14 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
   public uploader!: FileUploader;
   selectedMonth: number = 0;
   
-  constructor(private imageService : ImageService, 
-    private calendarService: CalendarService
-  ) 
-  {
-   
-  }
+  constructor(
+    private imageService : ImageService) 
+  { }
 
   ngOnInit(): void {
     this.initializeUploader();
     this.loadImages();
   }
-
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['calendarId'] && !changes['calendarId'].firstChange) 
@@ -82,6 +78,7 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
     this.imageService.getImages(this.calendarId).subscribe(
       (images: Image[]) => {
         this.images = images;
+        this.imagesFull.emit(this.images.length === 12);
       },
       (error) => {
         console.error('Error loading images:', error);
@@ -107,12 +104,5 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
 
   canGeneratePdf(): boolean {
     return this.images.length === 12;
-  }
-
-  generatePdf(): void {
-    // Виклик API для генерації PDF
-    this.calendarService.generatePdf(this.calendarId).subscribe(response => {
-      this.generatedCompleted.emit(true);
-    });
   }
 }
