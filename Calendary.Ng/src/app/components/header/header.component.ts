@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { TokenService } from '../../../services/token.service'; // Сервіс для роботи з токеном
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { TokenService } from '../../../services/token.service'; // Сервіс для роботи з токеном
+import { faSignIn, faSignOut, faUserAlt, faCartShopping } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FontAwesomeModule, RouterModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -15,10 +17,16 @@ export class HeaderComponent implements OnInit {
   isLoggedIn = false;
   email: string | null = null;
 
+  userIcon = faUserAlt;
+  signInIcon = faSignIn;
+  signOutIcon = faSignOut;
+  cartIcon = faCartShopping;
+
   constructor(
     private tokenService: TokenService,
     public router: Router
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     // Перевіряємо наявність токену при ініціалізації компонента
@@ -44,7 +52,6 @@ export class HeaderComponent implements OnInit {
   logout(): void {
     this.tokenService.removeToken(); // Видаляємо токен
     this.isLoggedIn = false;
-    this.router.navigate(['/']); // Перенаправляємо на головну сторінку після виходу
-    window.location.reload(); // Перезавантажуємо сторінку
+    window.location.href = "/"; // Перезавантажуємо сторінку
   }
 }
