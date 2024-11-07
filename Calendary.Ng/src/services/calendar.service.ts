@@ -10,6 +10,8 @@ export class CalendarService {
   private apiUrl = '/api/calendar'; // Базова URL для API
   private apiGenerateUrl = '/api/calendar/generate'; // URL для API генерації PDF
 
+  private apiAddToCartUrl = '/api/calendar/add-cart'; // URL для API додавання в кошик
+
   constructor(private http: HttpClient) { }
 
   // Створення нового календаря
@@ -30,5 +32,9 @@ export class CalendarService {
 
   generatePdf(calendarId : number) : Observable<Calendar> {
     return this.http.get<Calendar>(`${this.apiGenerateUrl}/${calendarId}`);
+  }
+
+  addToCart(calendar: Calendar): Observable<Calendar> {
+    return this.http.post<Calendar>(`${this.apiAddToCartUrl}/${calendar.id}`, null);
   }
 }

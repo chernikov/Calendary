@@ -24,7 +24,7 @@ public class EventDateService(IEventDateRepository eventDateRepository,
     public async Task<EventDate?> CreateEventDateAsync(int userId, EventDate eventDate)
     {
         var setting = await userSettingRepository.GetByUserIdAsync(userId);
-        if (setting == null)
+        if (setting is null)
         { 
             return null; 
         }
@@ -36,12 +36,12 @@ public class EventDateService(IEventDateRepository eventDateRepository,
     public async Task DeleteEventDateAsync(int userId, int id)
     {
         var setting = await userSettingRepository.GetByUserIdAsync(userId);
-        if (setting == null)
+        if (setting is null)
         {
             return;
         }
         var existingEventDate = await eventDateRepository.GetByIdAsync(id);
-        if (existingEventDate == null)
+        if (existingEventDate is null)
         {
             return;
         }
@@ -55,7 +55,7 @@ public class EventDateService(IEventDateRepository eventDateRepository,
     public async Task<EventDate?> GetEventDateByIdAsync(int userId, int id)
     {
         var setting = await userSettingRepository.GetByUserIdAsync(userId);
-        if (setting == null)
+        if (setting is null)
         {
             return null;
         }
@@ -74,13 +74,13 @@ public class EventDateService(IEventDateRepository eventDateRepository,
     public async Task<EventDate?> UpdateEventDateAsync(int userId, EventDate eventDate)
     {
         var setting = await userSettingRepository.GetByUserIdAsync(userId);
-        if (setting == null)
+        if (setting is null)
         {
             return null;
         }
 
         var existingEventDate = await eventDateRepository.GetByIdAsync(eventDate.Id);
-        if (existingEventDate == null)
+        if (existingEventDate is null)
         {
             return null;
         }

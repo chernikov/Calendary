@@ -18,6 +18,6 @@ public class Order
     public int UserId { get; set; }
     public User User { get; set; }
 
-    public ICollection<Calendar> Calendars { get; set; }
-    public PaymentInfo PaymentInfo { get; set; }
+    public ICollection<OrderItem> OrderItems { get; set; } = [];
+    public PaymentInfo PaymentInfo { get; set; } = null!;
 }

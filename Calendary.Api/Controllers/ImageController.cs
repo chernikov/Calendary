@@ -38,12 +38,12 @@ public class ImageController : BaseUserController
     {
         var user = await CurrentUser.Value;
 
-        if (user == null)
+        if (user is null)
         {
             return Unauthorized();
         }
         var calendar = await calendarService.GetByIdAsync(calendarId);
-        if (calendar == null || calendar.Order.UserId != user.Id)
+        if (calendar is null || calendar.UserId != user.Id)
         {
             return NotFound();
         }
@@ -57,7 +57,7 @@ public class ImageController : BaseUserController
     [HttpPost("upload/{calendarId}")]
     public async Task<IActionResult> UploadImage(int calendarId, [FromQuery] short month, IFormFile file)
     {
-        if (file == null || file.Length == 0)
+        if (file is null || file.Length == 0)
         {
             return BadRequest("File isn't uploaded");
         }
@@ -88,26 +88,22 @@ public class ImageController : BaseUserController
     public async Task<IActionResult> DeleteImage(int imageId)
     {
         var user = await CurrentUser.Value;
-
-        if (user == null)
+        if (user is null)
         {
             return Unauthorized();
         }
 
         var image = await imageService.GetByIdAsync(imageId);
-
-        if (image == null)
+        if (image is null)
         {
             return NotFound();
         }
 
         var calendar = await calendarService.GetByIdAsync(image.CalendarId);
-
-        if (calendar == null || calendar.Order.UserId != user.Id)
+        if (calendar is null || calendar.UserId != user.Id)
         {
             return NotFound();
         }
-
         await imageService.DeleteAsync(image);
 
         return NoContent();
