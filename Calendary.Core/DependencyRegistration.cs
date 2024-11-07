@@ -1,10 +1,5 @@
 ﻿using Calendary.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Calendary.Core;
 
@@ -25,6 +20,8 @@ public static class DependencyRegistration
         services.AddScoped<IImageRotatorService, ImageRotatorService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPriceService, PriceService>();
+
+        services.AddHttpClient<INovaPostService, NovaPostService>();
 
         return services;
     }

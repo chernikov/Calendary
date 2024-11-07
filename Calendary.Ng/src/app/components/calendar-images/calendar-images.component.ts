@@ -21,12 +21,14 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
   @Output() imagesFull = new EventEmitter<boolean>();
 
   @ViewChild('fileInput') fileInput!: ElementRef;
+  @ViewChild('fileInputMulti') fileInputMulti!: ElementRef;
 
   items = Array.from({length: 12}, (_, i) => i + 1);
   monthes = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'];
   images: Image[] = [];
 
   public uploader!: FileUploader;
+  public uploaderMulti!: FileUploader;
   selectedMonth: number = 0;
   
   constructor(
@@ -35,6 +37,7 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
 
   ngOnInit(): void {
     this.initializeUploader();
+    this.initializeUploaderMulti();
     this.loadImages();
   }
 
@@ -42,6 +45,7 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
     if (changes['calendarId'] && !changes['calendarId'].firstChange) 
     {
       this.initializeUploader();
+      this.initializeUploaderMulti();
     }
   }
 
@@ -64,6 +68,26 @@ export class CalendarImagesComponent implements OnChanges, OnInit {
       };
 
       this.uploader.onErrorItem = (item, response, status, headers) => {
+        console.error('Помилка завантаження:', response);
+      };
+    }
+  }
+
+  private initializeUploaderMulti(): void {
+    if (this.calendarId) {
+      this.uploaderMulti = new FileUploader({
+        url: `/api/image/batchupload/${this.calendarId}`,
+        disableMultipart: false,
+        autoUpload: true, // Автоматичне завантаження
+        allowedFileType: ['image'], // Дозволяємо лише зображення
+        maxFileSize: 5 * 1024 * 1024 // Максимальний розмір 5MB
+      });
+
+      this.uploaderMulti.onCompleteItem = (item, response, status, headers) => {
+        this.loadImages();
+      };
+
+      this.uploaderMulti.onErrorItem = (item, response, status, headers) => {
         console.error('Помилка завантаження:', response);
       };
     }
