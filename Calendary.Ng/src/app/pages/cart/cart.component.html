@@ -1,1 +1,24 @@
-<p>cart works!</p>
+<div class="cart-container" *ngIf="order">
+    <h2>Кошик</h2>
+    
+    <div class="cart-items">
+      <div *ngFor="let item of order.items" class="cart-item">
+        <span>Календар #{{ item.calendar?.id }}</span>
+        <input type="number" [(ngModel)]="item.quantity" min="1" (change)="onUpdateItem(item)">
+        <span>{{ item.price }} грн</span>
+        <button (click)="removeItem(item.id)" class="delete-button">видалити</button>
+      </div>
+    </div>
+  
+    <div class="total">
+      <h3>Сума</h3>
+      <span class="sum">{{ calculateTotal() }} грн</span>
+    </div>
+  
+    <!-- Підключаємо компонент доставки -->
+    <app-delivery (deliveryInfo)="updateDelivery($event)" (validStatus)="updateValidationStatus($event)"></app-delivery>
+  
+    <button class="checkout-button" [disabled]="!isFormValid" (click)="proceedToPayment()">
+      Перейти до оплати
+    </button>
+  </div>

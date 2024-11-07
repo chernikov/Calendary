@@ -20,6 +20,10 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
     // DbSet для замовлень
     public DbSet<Order> Orders { get; set; }
 
+    // DbSet для елементів замовлення
+    public DbSet<OrderItem> OrderItems { get; set; }
+
+
     // DbSet для календарів
     public DbSet<Calendar> Calendars { get; set; }
 

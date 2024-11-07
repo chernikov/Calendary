@@ -1,6 +1,5 @@
 ﻿using Calendary.Model;
 using Calendary.Repos.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Core.Services;
 
@@ -14,18 +13,21 @@ public interface ICalendarService
 
     Task<bool> UpdateCalendarAsync(int userId, Calendar entity);
 
-    Task GeneratePdfAsync(int id, int calendarId);
+    Task GeneratePdfAsync(int userId, int calendarId);
 
-
+    Task MakeNotCurrentAsync(int userId, int calendarId);
+    Task DeleteAsync(int calendarId);
 }
 
 public class CalendarService(
     ICalendarRepository calendarRepository,
     IOrderRepository orderRepository,
     IEventDateRepository eventDateRepository,
+    IOrderItemRepository orderItemRepository,
+    IPriceService priceService,
     IHolidayRepository holidayRepository,
-    IPdfGeneratorService pdfGeneratorService
-    ) : ICalendarService
+    IPdfGeneratorService pdfGeneratorService) 
+    : ICalendarService
 {
 
     public async Task<Calendar> CreateAsync(int userId, Calendar calendar)
@@ -34,7 +36,7 @@ public class CalendarService(
         var currentOrder = await orderRepository.GetOrderByStatusAsync(userId, "Creating");
 
         // Якщо замовлення немає, створюємо нове
-        if (currentOrder == null)
+        if (currentOrder is null)
         {
             currentOrder = new Order
             {
@@ -47,10 +49,20 @@ public class CalendarService(
             await orderRepository.AddAsync(currentOrder);
         }
 
-        calendar.OrderId = currentOrder.Id;
+        calendar.UserId = userId;
 
         await calendarRepository.AddAsync(calendar);
 
+        // Прив'язуємо календар до замовлення
+        var orderItem = new OrderItem
+        {
+            OrderId = currentOrder.Id,
+            CalendarId = calendar.Id,
+            Quantity = 1,
+            Price = priceService.GetPrice()
+        };
+
+        await orderItemRepository.AddAsync(orderItem);
         await MakeCurrentAsync(userId, calendar.Id);
 
         return calendar;
@@ -63,41 +75,24 @@ public class CalendarService(
 
     public async Task<Calendar?> GetCurrentAsync(int userId)
     {
-        var order = await orderRepository.GetOrderByStatusAsync(userId, "Creating");
-        // Якщо замовлення немає, створюємо нове
-        if (order is not null)
-        {
-            var calendarsInOrder = await calendarRepository.GetCalendarsByOrderAsync(order.Id);
-
-            return calendarsInOrder.ToList().FirstOrDefault(p => p.IsCurrent);
-        }
-        return null;
+        var userCalendars = await calendarRepository.GetCalendarsByUserAsync(userId);
+        return userCalendars.ToList().FirstOrDefault(p => p.IsCurrent);
     }
 
     public async Task MakeCurrentAsync(int userId, int calendarId)
     {
         // Отримуємо календар
         var calendar = await calendarRepository.GetByIdAsync(calendarId);
-
-        if (calendar == null || calendar.Order == null)
+        if (calendar is not null && calendar.UserId == userId)
         {
-            throw new Exception("Calendar or Order not found");
-        }
-
-        // Отримуємо всі календарі, прив'язані до поточного замовлення користувача
-        var calendarsInOrder = await calendarRepository.GetCalendarsByOrderAsync(calendar.OrderId);
-
-        // Оновлюємо статус всіх календарів
-        foreach (var calendarItem in calendarsInOrder)
-        {
-            calendarItem.IsCurrent = (calendar.Id == calendarId);
+            calendar.IsCurrent = (calendar.Id == calendarId);
             await calendarRepository.UpdateAsync(calendar);
         }
     }
 
+   
     public async Task<bool> UpdateCalendarAsync(int userId, Calendar entity)
     {
-
         var existingCalendar = await calendarRepository.GetFullCalendarAsync(entity.Id);
 
         if (existingCalendar is null)
@@ -105,7 +100,7 @@ public class CalendarService(
             return false;
         }
 
-        if (existingCalendar.Order.UserId != userId)
+        if (existingCalendar.UserId != userId)
         {
             return false;
         }
@@ -120,14 +115,7 @@ public class CalendarService(
     {
         var calendar = await calendarRepository.GetFullCalendarAsync(calendarId);
 
-        if (calendar is null)
-        {
-            return;
-        }
-
-        var order = await orderRepository.GetByIdAsync(calendar.OrderId);
-
-        if (order is null || order.UserId != userId)
+        if (calendar is null || calendar.UserId != userId)
         {
             return;
         }
@@ -149,4 +137,18 @@ public class CalendarService(
         await calendarRepository.SaveFileAsync(calendarId, pdfFile);
 
     }
+
+    public async Task MakeNotCurrentAsync(int userId, int calendarId)
+    {
+        var calendar = await calendarRepository.GetFullCalendarAsync(calendarId);
+
+        if (calendar is not null && calendar.UserId == userId)
+        {
+            calendar.IsCurrent = false;
+            await calendarRepository.UpdateAsync(calendar);
+        }
+    }
+
+    public Task DeleteAsync(int calendarId)
+        => calendarRepository.DeleteAsync(calendarId);
 }

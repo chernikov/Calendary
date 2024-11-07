@@ -1,0 +1,78 @@
+.cart-container {
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+h2,
+h3 {
+    color: #3f3d56;
+}
+
+.cart-items {
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.delete-button {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+
+}
+
+.delete-button:hover {
+    background-color: #e04344;
+}
+
+.total {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+
+    .sum {
+        color: #3f3d56;
+        font-size: 24pt;
+        margin-left: 20px;
+        line-height: 48px;
+    }
+}
+
+input {
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 10px;
+    font-size: 16px;
+}
+
+.error-message {
+    color: red;
+    font-size: 12px;
+}
+
+
+.checkout-button {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #2f9606;
+    /* Зелений фон для активної кнопки */
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 0 auto 40px auto;
+}

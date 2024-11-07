@@ -19,8 +19,7 @@ public class EventDatesController(IUserService userService,
     public async Task<IActionResult> GetEventDates()
     {
         var user = await CurrentUser.Value;
-
-        if (user == null)
+        if (user is null)
         {
             return Unauthorized();
         }
@@ -34,14 +33,13 @@ public class EventDatesController(IUserService userService,
     public async Task<IActionResult> GetEventDate(int id)
     {
         var user = await CurrentUser.Value;
-
-        if (user == null)
+        if (user is null)
         {
             return Unauthorized();
         }
 
         var eventDate = await eventDateService.GetEventDateByIdAsync(user.Id, id);
-        if (eventDate == null)
+        if (eventDate is null)
         {
             return NotFound();
         }
@@ -53,11 +51,11 @@ public class EventDatesController(IUserService userService,
     public async Task<IActionResult> CreateEventDate(EventDateDto eventDate)
     {
         var user = await CurrentUser.Value;
-
-        if (user == null)
+        if (user is null)
         {
             return Unauthorized();
         }
+
         var entity = mapper.Map<EventDate>(eventDate);
         var createdEventDate = await eventDateService.CreateEventDateAsync(user.Id, entity);
         var result = mapper.Map<EventDateDto>(createdEventDate); 
@@ -68,14 +66,14 @@ public class EventDatesController(IUserService userService,
     public async Task<IActionResult> UpdateEventDate(EventDateDto eventDate)
     {
         var user = await CurrentUser.Value;
-
-        if (user == null)
+        if (user is null)
         {
             return Unauthorized();
         }
+
         var entity = mapper.Map<EventDate>(eventDate);
         var updatedEventDate = await eventDateService.UpdateEventDateAsync(user.Id, entity);
-        if (updatedEventDate == null)
+        if (updatedEventDate is null)
         {
             return NotFound();
         }
@@ -87,11 +85,11 @@ public class EventDatesController(IUserService userService,
     public async Task<IActionResult> DeleteEventDate(int id)
     {
         var user = await CurrentUser.Value;
-
-        if (user == null)
+        if (user is null)
         {
             return Unauthorized();
         }
+
         await eventDateService.DeleteEventDateAsync(user.Id, id);
         return NoContent();
     }
