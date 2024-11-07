@@ -20,7 +20,7 @@ public class SettingsController(IUserService userService,
     {
         var user = await CurrentUser.Value;
 
-        if (user == null)
+        if (user is null)
         {
             return Unauthorized();
         }
@@ -40,13 +40,13 @@ public class SettingsController(IUserService userService,
     {
         var user = await CurrentUser.Value;
 
-        if (user == null)
+        if (user is null)
         {
             return Unauthorized();
         }
 
         var existingSettings = await userSettingService.GetSettingsByUserIdAsync(user.Id);
-        if (existingSettings == null)
+        if (existingSettings is null)
         {
             return NotFound("Settings not found");
         }

@@ -6,13 +6,15 @@ namespace Calendary.Repos.Repositories;
 public interface IOrderRepository : IRepository<Order>
 {
     Task<Order?> GetOrderByStatusAsync(int userId, string status);
+
+    Task<Order?> GetFullOrderByStatusAsync(int userId, string status);
 }
 
 public class OrderRepository : IOrderRepository
 {
-    private readonly CalendaryDbContext _context;
+    private readonly ICalendaryDbContext _context;
 
-    public OrderRepository(CalendaryDbContext context)
+    public OrderRepository(ICalendaryDbContext context)
     {
         _context = context;
     }
@@ -51,4 +53,22 @@ public class OrderRepository : IOrderRepository
 
     public Task<Order?> GetOrderByStatusAsync(int userId, string status) 
         => _context.Orders.FirstOrDefaultAsync(o => o.UserId == userId && o.Status == status);
+
+
+    public Task<Order?> GetFullOrderByStatusAsync(int userId, string status)
+       => _context.Orders
+            .Include(p => p.OrderItems)
+                .ThenInclude(p => p.Calendar)
+                    .ThenInclude(p => p.Language)
+            .Include(p => p.OrderItems)
+                .ThenInclude(p => p.Calendar)
+                    .ThenInclude(p => p.CalendarHolidays)
+                        .ThenInclude(p => p.Holiday)
+            .Include(p => p.OrderItems)
+                .ThenInclude(p => p.Calendar)
+                    .ThenInclude(p => p.EventDates)
+            .Include(p => p.OrderItems)
+                .ThenInclude(p => p.Calendar)
+                    .ThenInclude(p => p.Images)
+            .FirstOrDefaultAsync(o => o.UserId == userId && o.Status == status);
 }

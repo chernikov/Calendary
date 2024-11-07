@@ -16,7 +16,7 @@ public class UserSettingService(IUserSettingRepository userSettingRepository) : 
     public async Task<bool> UpdateSettingAsync(int id, UserSetting updatedSettings)
     {
         var existingSetting = await userSettingRepository.GetByIdAsync(id);
-        if (existingSetting == null)
+        if (existingSetting is null)
         {
             return false;
         }

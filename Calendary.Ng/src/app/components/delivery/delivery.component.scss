@@ -1,0 +1,44 @@
+.delivery {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    
+    .form-item {
+        margin : 5px 10px;
+        label {
+
+        }
+
+        .input-btn {
+            display: flex;
+            justify-content: space-between;
+        }
+        input {
+            width: 100%;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 10px;
+            font-size: 16px;
+            margin : 0 10px;
+        }
+    }
+  }
+  
+  .error-message {
+    color: red;
+    font-size: 12px;
+  }
+  
+  .validate-button {
+    background-color: #2f9606;
+    color: #fff;
+    border-radius: 8px;
+    border : none;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+  }

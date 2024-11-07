@@ -11,7 +11,11 @@ public interface IImageService
     Task<IEnumerable<Image>> GetAllByCalendarIdAsync(int calendarId);
 
     Task<Image?> GetByIdAsync(int imageId);
+
+    Task DeleteImagesByCalendarIdAsync(int calendarId);
+
     Task DeleteAsync(Image image);
+    
 }
 
 public class ImageService(IImageRepository imageRepository) : IImageService
@@ -26,6 +30,22 @@ public class ImageService(IImageRepository imageRepository) : IImageService
     public Task<Image?> GetByIdAsync(int imageId)
         => imageRepository.GetByIdAsync(imageId);
 
-    public Task DeleteAsync(Image image)
-        => imageRepository.DeleteAsync(image.Id);
+    public async Task DeleteAsync(Image image)
+    {
+        var file = image.ImageUrl;
+        if (File.Exists(file))
+        {
+            File.Delete(file);
+        }
+        await imageRepository.DeleteAsync(image.Id);
+    }
+
+    public async Task DeleteImagesByCalendarIdAsync(int calendarId)
+    {
+        var images = await imageRepository.GetAllByCalendarIdAsync(calendarId);
+        foreach(var image in images)
+        {
+            await DeleteAsync(image);
+        }
+    }
 }

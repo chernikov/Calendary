@@ -1,0 +1,40 @@
+<div class="delivery">
+    <h3>Доставка</h3>
+    <form #deliveryForm="ngForm">
+        <div class="form-item">
+            <label>Місто</label>
+            <input type="text" [(ngModel)]="delivery.city" name="city" required (change)="emitDeliveryInfo()">
+        </div>
+
+        <div class="form-item">
+            <label>Відділення нової пошти</label>
+            <input type="text" [(ngModel)]="delivery.postOffice" name="postOffice" required
+                (change)="emitDeliveryInfo()">
+        </div>
+
+        <div class="form-item">
+            <label>Ім'я і прізвище</label>
+            <input type="text" [(ngModel)]="delivery.name" name="name" required (change)="emitDeliveryInfo()">
+        </div>
+
+        <div class="form-item">
+            <label>Email</label>
+            <div class="input-btn">
+                <input type="email" [(ngModel)]="delivery.email" name="email" required #emailInput="ngModel"
+                    (input)="validateEmail(emailInput)">
+                <button type="button" class="validate-button" (click)="validateEmail(emailInput)">Підтвердити</button>
+            </div>
+            <div *ngIf="!emailInput.valid && emailInput.touched" class="error-message">Email не коректний</div>
+        </div>
+
+        <div class="form-item">
+            <label>Телефон</label>
+            <div class="input-btn">
+                <input type="tel" [(ngModel)]="delivery.phone" name="phone" required #phoneInput="ngModel"
+                    (input)="validatePhone(phoneInput)">
+                <button type="button" class="validate-button" (click)="validatePhone(phoneInput)">Підтвердити</button>
+            </div>
+            <div *ngIf="!phoneInput.valid && phoneInput.touched" class="error-message">Телефон введено не вірно</div>
+        </div>
+    </form>
+</div>

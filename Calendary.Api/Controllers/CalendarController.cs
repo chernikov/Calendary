@@ -21,7 +21,7 @@ namespace Calendary.Api.Controllers
         {
             var user = await CurrentUser.Value;
 
-            if (user == null)
+            if (user is null)
             {
                 return Unauthorized();
             }
@@ -38,11 +38,18 @@ namespace Calendary.Api.Controllers
         {
             var user = await CurrentUser.Value;
 
-            if (user == null)
+            if (user is null)
             {
                 return Unauthorized();
             }
             var createdCalendar = await calendarService.GetCurrentAsync(user.Id);
+
+            if (createdCalendar is null)
+            {
+                var entity = mapper.Map<Calendar>(new Calendar());
+                await FillSettingsAsync(entity, user);
+                createdCalendar = await calendarService.CreateAsync(user.Id, entity);
+            }
             var result = mapper.Map<CalendarDto>(createdCalendar);
             return Ok(result);
         }
@@ -53,7 +60,7 @@ namespace Calendary.Api.Controllers
         {
             var user = await CurrentUser.Value;
 
-            if (user == null)
+            if (user is null)
             {
                 return Unauthorized();
             }
@@ -75,6 +82,20 @@ namespace Calendary.Api.Controllers
         }
 
 
+        [HttpPost]
+        [Route("add-cart/{calendarId:int}")]
+        public async Task<IActionResult> AddToCart(int calendarId)
+        {
+            var user = await CurrentUser.Value;
+            if (user is null)
+            {
+                return Unauthorized();
+            }
+            await calendarService.GeneratePdfAsync(user.Id, calendarId);
+            await calendarService.MakeNotCurrentAsync(user.Id, calendarId);
+            return Ok();
+        }
+
         private async Task FillSettingsAsync(Calendar calendar, User user)
         {
             var userSetting = await userSettingService.GetSettingsByUserIdAsync(user.Id);
@@ -95,7 +116,7 @@ namespace Calendary.Api.Controllers
         {
             var user = await CurrentUser.Value;
 
-            if (user == null)
+            if (user is null)
             {
                 return Unauthorized();
             }
@@ -103,8 +124,5 @@ namespace Calendary.Api.Controllers
             await calendarService.GeneratePdfAsync(user.Id, calendarId);
             return Ok();
         }
-
-
-
     }
 }

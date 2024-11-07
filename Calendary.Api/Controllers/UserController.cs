@@ -52,7 +52,7 @@ public class UsersController : ControllerBase
         }
 
         var user = await _userService.LoginAsync(userLoginDto.Email, userLoginDto.Password);
-        if (user == null)
+        if (user is null)
         {
             return Unauthorized();
         }
