@@ -76,3 +76,20 @@ input {
     transition: background-color 0.3s ease;
     margin: 0 auto 40px auto;
 }
+
+.secondary-button {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    background-color: #007bff; /* Secondary color (change as needed) */
+    color: #fff;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 12px;
+    margin: 10px auto 20px auto;/* Add spacing before the checkout button */
+  }
+  
+  .secondary-button:hover {
+    background-color: #0056b3; /* Darker shade for hover effect */
+  }
