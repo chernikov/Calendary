@@ -25,4 +25,8 @@ export class CartService {
   updateItem(item : OrderItem) : Observable<any> {
     return this.http.put<OrderItem>(`${this.apiUrl}/item`, item);
   }
+
+  itemsInCart() : Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/count`);
+  }
 }
