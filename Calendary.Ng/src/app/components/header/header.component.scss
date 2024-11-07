@@ -1,35 +1,39 @@
 .navbar {
-  background-color: #F5F5F5;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding : 10px; 
+  padding: 10px 20px;
+  background-color: #f8f9fa;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .navbar-brand {
-  font-size: 20px;
-  font-weight: bold;
-
-  a {
-    img {
-      width : 122px;
-    }
-  }
-}
-
-.navbar-end {
   display: flex;
-  /* Додаємо flex для зручного вирівнювання елементів */
-  gap: 10px;
-  /* Відступ між кнопками */
   align-items: center;
-  /* Вирівнюємо по центру вертикально */
 }
 
-.navbar-end button {
-  margin-left: 10px; /* Додаємо відступи між кнопками */
+.logo {
+  width: 150px; /* Adjust the logo size as needed */
 }
 
-.navbar-end button:first-child {
-  margin-left: 0; /* Видаляємо відступ для першої кнопки */
+.navbar-icons {
+  display: flex;
+  gap: 15px; /* Space between icons */
+  align-items: center;
+}
+
+.icon {
+  font-size: 1.5em;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.icon:hover {
+  transform: scale(1.1); /* Slightly enlarge on hover */
 }

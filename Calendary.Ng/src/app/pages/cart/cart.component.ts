@@ -5,13 +5,12 @@ import { DeliveryComponent } from '../../components/delivery/delivery.component'
 import { CartService } from '../../../services/cart.service';
 import { Order } from '../../../models/order';
 import { OrderItem } from '../../../models/order-item';
+import { RouterModule } from '@angular/router';
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, 
-    FormsModule, 
-    ReactiveFormsModule, 
-    DeliveryComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, 
+    DeliveryComponent, RouterModule],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.scss'
 })
