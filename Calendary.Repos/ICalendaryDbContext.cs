@@ -13,6 +13,7 @@ public interface ICalendaryDbContext
     DbSet<Image> Images { get; set; }
     DbSet<Language> Languages { get; set; }
     DbSet<Order> Orders { get; set; }
+    DbSet<OrderItem> OrderItems { get; set; }
     DbSet<PaymentInfo> PaymentInfos { get; set; }
     DbSet<Role> Roles { get; set; }
     DbSet<UserRole> UserRoles { get; set; }

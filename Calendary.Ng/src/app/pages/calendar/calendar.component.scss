@@ -6,10 +6,12 @@
 
 .button-container {
   margin-top: 20px;
+  display: flex;
 }
 
 .btn-order {
   width: 100%;
+  max-width: 400px;
   padding: 15px;
   font-size: 18px;
   font-weight: bold;
@@ -19,6 +21,7 @@
   border-radius: 12px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  margin: 0 auto 40px auto;
 }
 
 .btn-order.disabled, .btn-order:disabled {

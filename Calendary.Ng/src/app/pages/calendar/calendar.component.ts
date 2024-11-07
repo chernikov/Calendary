@@ -35,25 +35,19 @@ export class CalendarComponent implements OnInit {
     });
   }
 
-  // Створити новий календар
-  onCreateCalendar() {
-    this.calendar = new Calendar();
-    this.calendarService.createCalendar(this.calendar).subscribe(
-      (response: Calendar) => {
-        console.log('Calendar created successfully!', response);
-      },
-      (error) => {
-        console.error('Error creating calendar', error);
-      }
-    );
-  }
-
   onImagesFull(imagesFull: boolean) {
     this.isValid = imagesFull;
   }
 
   proceedToOrder() {
-    alert('Перехід до оформлення замовлення');
+    this.calendarService.addToCart(this.calendar!).subscribe({
+      next: () => {
+        console.log('Added to cart');
+      },
+      error: (error) => {
+        console.error('Error adding to cart', error);
+     }
+    });
   }
 
   onCalendarUpdated(calendar: Calendar) {
@@ -63,12 +57,5 @@ export class CalendarComponent implements OnInit {
         console.error('Error saving calendar settings', error);
       },
     });
-  }
-
-  onImageUpload(imageUrl: string) {}
-
-  onGeneratedCompleted($event: any) {
-    alert('PDF згенеровано успішно!');
-    this.loadCurrentCalendar();
   }
 }

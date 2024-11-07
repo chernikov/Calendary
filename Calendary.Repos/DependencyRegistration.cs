@@ -22,6 +22,7 @@ namespace Calendary.Repos
             services.AddScoped<IEventDateRepository, EventDateRepository>();
             services.AddScoped<ICalendarRepository, CalendarRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IOrderItemRepository, OrderItemRepository>();
             services.AddScoped<IImageRepository, ImageRepository>();
             services.AddScoped<IHolidayRepository, HolidayRepository>();
             services.AddScoped<IRepository<PaymentInfo>, PaymentInfoRepository>();

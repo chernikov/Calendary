@@ -4,6 +4,8 @@ public class Calendar
 {
     public int Id { get; set; }
 
+    public int UserId { get; set; }
+
     public bool IsCurrent { get; set; }
 
     public int Year { get; set; }
@@ -16,10 +18,6 @@ public class Calendar
     public int CountryId { get; set; }
 
     public Country Country { get; set; } = null!;
-
-    public int OrderId { get; set; }
-
-    public Order Order { get; set; } = null!;
 
     public ICollection<Image> Images { get; set; } = [];
     public ICollection<EventDate> EventDates { get; set; } = [];
