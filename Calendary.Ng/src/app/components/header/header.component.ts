@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TokenService } from '../../../services/token.service'; // Сервіс для роботи з токеном
 import { faSignIn, faSignOut, faUserAlt, faCartShopping } from '@fortawesome/free-solid-svg-icons';
+import { CartService } from '../../../services/cart.service';
 
 @Component({
   selector: 'app-header',
@@ -14,9 +15,11 @@ import { faSignIn, faSignOut, faUserAlt, faCartShopping } from '@fortawesome/fre
 })
 
 export class HeaderComponent implements OnInit {
+  isInited = false;
   isLoggedIn = false;
   email: string | null = null;
 
+  cartCount = 0;
   userIcon = faUserAlt;
   signInIcon = faSignIn;
   signOutIcon = faSignOut;
@@ -24,6 +27,7 @@ export class HeaderComponent implements OnInit {
 
   constructor(
     private tokenService: TokenService,
+    private cartService: CartService,
     public router: Router
   ) {
   }
@@ -35,7 +39,14 @@ export class HeaderComponent implements OnInit {
     if (token) {
       this.isLoggedIn = true;
       this.email = this.parseTokenEmail(token); // Парсимо email з токена
+      this.isInited = true;
     }
+
+    this.cartService.itemsInCart().subscribe((count) => {
+      this.cartCount = count;
+    });
+
+    
   }
 
   // Парсимо токен, щоб отримати email (можна використовувати бібліотеку jwt-decode)

@@ -3,6 +3,12 @@
 </div>
 <div class="upload-container">
   <input #fileInput type="file" ng2FileSelect [uploader]="uploader" hidden />
+ 
+  <input #fileInputMulti type="file" ng2FileSelect [uploader]="uploaderMulti" multiple hidden />
+  
+  <button class="upload-button" (click)="fileInputMulti.click()" [disabled]="images.length >= 12">
+    Завантажити зображення
+  </button>
 </div>
 
 <div class="image-gallery">
@@ -14,11 +20,3 @@
       >
     </app-image-item>
 </div>
-<!-- 
-<button 
-    class="generate-button"
-    id="generatePdfBtn" 
-    [disabled]="!canGeneratePdf()" 
-    (click)="generatePdf()">
-    Згенерувати PDF
-</button> -->

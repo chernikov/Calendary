@@ -6,8 +6,8 @@ namespace Calendary.Repos.Repositories;
 public interface IOrderRepository : IRepository<Order>
 {
     Task<Order?> GetOrderByStatusAsync(int userId, string status);
-
     Task<Order?> GetFullOrderByStatusAsync(int userId, string status);
+    Task<Order?> GetOrderWithItemsAsync(int userId, string status);
 }
 
 public class OrderRepository : IOrderRepository
@@ -70,5 +70,11 @@ public class OrderRepository : IOrderRepository
             .Include(p => p.OrderItems)
                 .ThenInclude(p => p.Calendar)
                     .ThenInclude(p => p.Images)
+            .FirstOrDefaultAsync(o => o.UserId == userId && o.Status == status);
+
+    public Task<Order?> GetOrderWithItemsAsync(int userId, string status)
+       => _context.Orders
+            .Include(p => p.OrderItems)
+                .ThenInclude(p => p.Calendar)
             .FirstOrDefaultAsync(o => o.UserId == userId && o.Status == status);
 }

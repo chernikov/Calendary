@@ -10,6 +10,7 @@ public interface IOrderService
     Task<OrderItem?> GetOrderItemByIdAsync(int itemId);
     Task DeleteOrderItemAsync(int itemId);
     Task UpdateOrderItemAsync(OrderItem orderItem);
+    Task<int> OrderItemsCountAsync(int userId);
 }
 
 internal class OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository) : IOrderService
@@ -35,5 +36,16 @@ internal class OrderService(IOrderRepository orderRepository, IOrderItemReposito
         }
         entity.Quantity = orderItem.Quantity;
         await orderItemRepository.UpdateAsync(entity);
+    }
+
+    public async Task<int> OrderItemsCountAsync(int userId)
+    {
+        var order = await orderRepository.GetOrderWithItemsAsync(userId, "Creating");
+        if (order is null)
+        {
+            return 0;
+        }
+        var preorderedCalendar = order.OrderItems.Where(p => p.Calendar.FilePath != null).Sum(p => p.Quantity);
+        return preorderedCalendar;
     }
 }

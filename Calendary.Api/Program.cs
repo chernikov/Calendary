@@ -2,6 +2,7 @@ using Calendary.Repos;
 using Calendary.Core;
 using Microsoft.EntityFrameworkCore;
 using Calendary.Api;
+using Calendary.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

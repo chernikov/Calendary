@@ -6,6 +6,8 @@ namespace Calendary.Core.Services;
 
 public interface IImageService
 {
+    Task<short> GetNotFilledMonthAsync(int calendarId);
+
     Task SaveAsync(Image image);
 
     Task<IEnumerable<Image>> GetAllByCalendarIdAsync(int calendarId);
@@ -47,5 +49,28 @@ public class ImageService(IImageRepository imageRepository) : IImageService
         {
             await DeleteAsync(image);
         }
+    }
+
+    public async Task<short> GetNotFilledMonthAsync(int calendarId)
+    {
+        var images = await imageRepository.GetAllByCalendarIdAsync(calendarId);
+
+        if (images.Count() > 0)
+        {
+            // Отримуємо всі місяці, які вже заповнені
+            var filledMonths = images.Select(img => img.MonthNumber).ToList();
+
+            // Шукаємо найменший місяць від 0 до 11, який відсутній
+            for (short month = 0; month < 12; month++)
+            {
+                if (!filledMonths.Contains(month))
+                {
+                    return month;
+                }
+            }
+            return -1;
+        }
+        return 0;
+        
     }
 }

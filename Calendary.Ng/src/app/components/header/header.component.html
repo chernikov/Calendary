@@ -6,11 +6,10 @@
           <img [src]="'logo.png'" alt="Calendary" class="logo"  />
         </a>
       </div>
-  
       <!-- Icons aligned to the right -->
-      <div class="navbar-icons">
+      <div class="navbar-icons" *ngIf="isInited">
         <!-- Cart Icon -->
-        <fa-icon *ngIf="isLoggedIn" [icon]="cartIcon" class="icon" [routerLink]="['/cart']"></fa-icon>
+        <fa-icon *ngIf="isLoggedIn && cartCount" [icon]="cartIcon" class="icon" [routerLink]="['/cart']"></fa-icon>
   
         <!-- User Icon (for profile/settings) -->
         <fa-icon *ngIf="isLoggedIn" [icon]="userIcon" class="icon" [routerLink]="['/profile']"></fa-icon>
