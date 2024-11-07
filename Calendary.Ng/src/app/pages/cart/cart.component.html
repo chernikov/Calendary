@@ -14,6 +14,10 @@
       <h3>Сума</h3>
       <span class="sum">{{ calculateTotal() }} грн</span>
     </div>
+
+    <button class="secondary-button" [routerLink]="['/calendar']">
+        Додати ще календар
+      </button>
   
     <!-- Підключаємо компонент доставки -->
     <app-delivery (deliveryInfo)="updateDelivery($event)" (validStatus)="updateValidationStatus($event)"></app-delivery>
