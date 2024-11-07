@@ -70,6 +70,28 @@ public class ImageController : BaseUserController
         return Ok(new { imageUrl });
     }
 
+    [HttpPost("batchupload/{calendarId}")]
+    public async Task<IActionResult> BatchUploadImage(int calendarId, IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest("File isn't uploaded");
+        }
+
+        string imageUrl = await SaveImage(calendarId, file);
+        var nextMonth = await imageService.GetNotFilledMonthAsync(calendarId);
+        if (nextMonth != -1)
+        {
+            var image = new Image { ImageUrl = imageUrl, CalendarId = calendarId, MonthNumber = nextMonth };
+
+            await imageService.SaveAsync(image);
+
+            return Ok(new { imageUrl });
+        }
+        return BadRequest("All months are filled");
+    }
+
+
     private async Task<string> SaveImage(int calendarId, IFormFile file)
     {
         var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
