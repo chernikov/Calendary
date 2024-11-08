@@ -20,6 +20,8 @@ services:
     environment:
       - "ConnectionStrings__DefaultConnection=Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;"
       - "Jwt__Key=Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;"
+      - "NovaPost__ApiKey=3a0e95bf3fc047834cbce9cc0235aea5"
+      - "NovaPost__EndPoint=https://api.novaposhta.ua/v2.0/json/"
     ports:
      - "8080:8080"
     volumes:
