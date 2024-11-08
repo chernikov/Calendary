@@ -21,4 +21,8 @@ export class SettingService {
   saveSettings(settings: Setting): Observable<any> {
     return this.http.put(`${this.apiUrl}`, settings);
   }
+
+  error() {
+    return this.http.get(`/api/error`);
+  }
 }
