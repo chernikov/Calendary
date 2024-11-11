@@ -4,11 +4,13 @@ namespace Calendary.Api.Controllers;
 
 [ApiController]
 [Route("api/error")]
-public class ErrorController : Controller
+public class ErrorController : ControllerBase
 {
     [HttpGet]
-    public Task<IActionResult> Get()
+    public IActionResult Get()
     {
-        throw new Exception();
+        Thread.Sleep(10000);
+
+        return NotFound("What?");
     }
 }

@@ -51,6 +51,10 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
     // DbSet для мов
     public DbSet<Language> Languages { get; set; }
 
+    public DbSet<VerificationEmailCode> VerificationEmailCodes { get; set; }
+
+    public DbSet<VerificationPhoneCode> VerificationPhoneCodes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserRole>()
@@ -98,11 +102,14 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
             new User
             {
                 Id = 1,
+                Identity = Guid.Parse("64F39BD1-633C-4B82-A64C-04CA94B77E90"),
                 UserName = "admin",
                 Email = "admin@calendary.com.ua",
                 PasswordHash = "21232f297a57a5a743894a0e4a801fc3",
                 IsEmailConfirmed = true,
-                IsPhoneNumberConfirmed = true
+                IsPhoneNumberConfirmed = true,
+                IsTemporary = false,
+                Created = new DateTime(2024, 10, 15),
             }
         );
 

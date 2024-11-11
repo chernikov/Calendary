@@ -12,11 +12,27 @@ export class ErrorInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
-        debugger;
         // Перевіряємо, чи це помилка HTTP
-        if (error.status < 200 || error.status >= 300) {
+        if (error.status >= 500) {
           // Відображаємо повідомлення через MatSnackBar
           this.snackBar.open('Сталася помилка під час запиту', 'Закрити', {
+            duration: 3000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+          });
+        }
+
+        if (error.status == 405) {
+          // Відображаємо повідомлення через MatSnackBar
+          this.snackBar.open('Ви не авторизовані', 'Закрити', {
+            duration: 3000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+          });
+        }
+        if (error.status == 404) {
+          // Відображаємо повідомлення через MatSnackBar
+          this.snackBar.open('Нема такої сторінки', 'Закрити', {
             duration: 3000,
             horizontalPosition: 'center',
             verticalPosition: 'bottom',

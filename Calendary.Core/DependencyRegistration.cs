@@ -21,7 +21,12 @@ public static class DependencyRegistration
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPriceService, PriceService>();
 
+        services.AddScoped<IEmailSender, SendGridSender>();
+        services.AddScoped<IEmailService, EmailService>();
+        
         services.AddHttpClient<INovaPostService, NovaPostService>();
+
+
 
         return services;
     }

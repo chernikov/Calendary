@@ -25,6 +25,8 @@ namespace Calendary.Repos
             services.AddScoped<IOrderItemRepository, OrderItemRepository>();
             services.AddScoped<IImageRepository, ImageRepository>();
             services.AddScoped<IHolidayRepository, HolidayRepository>();
+            services.AddScoped<IVerificationEmailCodeRepository, VerificationEmailCodeRepository>();
+            services.AddScoped<IVerificationPhoneCodeRepository, VerificationPhoneCodeRepository>();
             services.AddScoped<IRepository<PaymentInfo>, PaymentInfoRepository>();
 
             services.ApplyMigrationDb();

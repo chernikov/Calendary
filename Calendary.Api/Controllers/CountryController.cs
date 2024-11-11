@@ -7,7 +7,7 @@ namespace Calendary.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CountryController(ICountryService countryService, IMapper mapper) : Controller
+public class CountryController(ICountryService countryService, IMapper mapper) : ControllerBase
 {
     
  
