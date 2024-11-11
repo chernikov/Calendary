@@ -12,7 +12,6 @@ export class ErrorInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
-        debugger;
         // Перевіряємо, чи це помилка HTTP
         if (error.status < 200 || error.status >= 300) {
           // Відображаємо повідомлення через MatSnackBar

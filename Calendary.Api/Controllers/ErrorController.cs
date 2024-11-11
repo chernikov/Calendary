@@ -7,8 +7,10 @@ namespace Calendary.Api.Controllers;
 public class ErrorController : Controller
 {
     [HttpGet]
-    public Task<IActionResult> Get()
+    public IActionResult Get()
     {
-        throw new Exception();
+        Thread.Sleep(10000);
+
+        return NotFound("What?");
     }
 }
