@@ -19,6 +19,8 @@ public interface ICalendaryDbContext
     DbSet<UserRole> UserRoles { get; set; }
     DbSet<User> Users { get; set; }
     DbSet<UserSetting> UserSettings { get; set; }
+    DbSet<VerificationEmailCode> VerificationEmailCodes { get; set; }
+    DbSet<VerificationPhoneCode> VerificationPhoneCodes { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

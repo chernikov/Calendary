@@ -20,8 +20,12 @@ public static class DependencyRegistration
         services.AddScoped<IImageRotatorService, ImageRotatorService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPriceService, PriceService>();
+        services.AddScoped<IEmailService, EmailService>();
+
 
         services.AddHttpClient<INovaPostService, NovaPostService>();
+
+
 
         return services;
     }

@@ -23,10 +23,15 @@ public class AuthService(IRoleRepository roleRepository, IConfiguration configur
 
         var roles = await roleRepository.GetRolesByUserIdAsync(user.Id);
         List<Claim> claims = [
-            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+ 
+            new Claim(JwtRegisteredClaimNames.Jti, user.Identity.ToString())
         ];
+
+        if (user.Email is not null)
+        {
+            claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Email));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
+        }
 
         foreach (var role in roles)
         {

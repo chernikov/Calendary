@@ -23,7 +23,7 @@ public class CartController(IUserService userService,
         var user = await CurrentUser.Value;
         if (user is null)
         {
-            return Unauthorized();
+            return Ok(0);
         }
         var count = await orderService.OrderItemsCountAsync(user.Id);
         return Ok(count);

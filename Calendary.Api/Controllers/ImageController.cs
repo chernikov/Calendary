@@ -62,9 +62,8 @@ public class ImageController : BaseUserController
             return BadRequest("File isn't uploaded");
         }
 
-        string imageUrl = await SaveImage(calendarId, file);
+        string imageUrl = await SaveImage(file);
         var image = new Image { ImageUrl = imageUrl, CalendarId = calendarId, MonthNumber = month };
-
         await imageService.SaveAsync(image);
 
         return Ok(new { imageUrl });
@@ -78,10 +77,11 @@ public class ImageController : BaseUserController
             return BadRequest("File isn't uploaded");
         }
 
-        string imageUrl = await SaveImage(calendarId, file);
         var nextMonth = await imageService.GetNotFilledMonthAsync(calendarId);
         if (nextMonth != -1)
         {
+            string imageUrl = await SaveImage(file);
+
             var image = new Image { ImageUrl = imageUrl, CalendarId = calendarId, MonthNumber = nextMonth };
 
             await imageService.SaveAsync(image);
@@ -92,7 +92,7 @@ public class ImageController : BaseUserController
     }
 
 
-    private async Task<string> SaveImage(int calendarId, IFormFile file)
+    private async Task<string> SaveImage(IFormFile file)
     {
         var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
         var filePath = Path.Combine(_imageDirectory, fileName);

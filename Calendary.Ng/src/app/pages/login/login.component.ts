@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../../../services/user.service';
-import { User } from '../../../models/user';
+import { User, UserLogin } from '../../../models/user';
 import { TokenService } from '../../../services/token.service';
 
 @Component({
@@ -44,7 +44,7 @@ export class LoginComponent {
     }
 
     // Викликаємо сервіс для логіну
-    const user = new User();
+    const user = new UserLogin();
     user.email = this.loginForm.value.email;
     user.password = this.loginForm.value.password;
 

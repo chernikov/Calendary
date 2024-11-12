@@ -2,14 +2,15 @@
 using Calendary.Core.Services;
 using Calendary.Model;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 
 namespace Calendary.Api.Controllers;
 
-public abstract class BaseUserController : Controller
+public abstract class BaseUserController : ControllerBase
 {
-    private readonly IUserService _userService;
+    protected readonly IUserService _userService;
 
     protected AsyncLazy<User?> CurrentUser { get; private set; }
 
@@ -19,13 +20,14 @@ public abstract class BaseUserController : Controller
         CurrentUser = new AsyncLazy<User?>(GetCurrentUserAsync);
     }
 
-    private async Task<User?> GetCurrentUserAsync()
+    protected async Task<User?> GetCurrentUserAsync()
     {
         if (User.Identity?.IsAuthenticated ?? false)
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
+            var jti = User.FindFirstValue(JwtRegisteredClaimNames.Jti);
 
-            var user = await _userService.GetUserByEmailAsync(email!);
+            var identity = Guid.Parse(jti!);
+            var user = await _userService.GetUserByIdentityAsync(identity);
             return user;
         }
         return null;

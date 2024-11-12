@@ -1,0 +1,41 @@
+﻿<!-- Templates/EmailTemplate.html -->
+<html>
+<head>
+    <style>
+        .email-container {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            width: 250px;
+            margin-bottom: 20px;
+        }
+
+        .code {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 10px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        .footer {
+            font-size: 12px;
+            color: #888;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <img src="https://calendary.com.ua/logo.png" class="logo" alt="Calendary Logo">
+        <h2>Код перевірки</h2>
+        <p>Введіть цей код для перевірки email:</p>
+        <div class="code">{{CODE}}</div>
+        <p class="footer">Це код підтвердження email для додатку calendary.com.ua</p>
+    </div>
+</body>
+</html>

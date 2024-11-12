@@ -4,7 +4,7 @@ namespace Calendary.Api.Controllers;
 
 [ApiController]
 [Route("api/error")]
-public class ErrorController : Controller
+public class ErrorController : ControllerBase
 {
     [HttpGet]
     public IActionResult Get()

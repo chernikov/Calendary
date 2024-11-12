@@ -10,9 +10,7 @@ namespace Calendary.Api.Controllers;
 [Authorize(Roles="User")]
 [ApiController]
 [Route("api/[controller]")]
-public class SettingsController(IUserService userService,
-                                IUserSettingService userSettingService,
-                                IMapper mapper) 
+public class SettingsController(IUserService userService, IUserSettingService userSettingService, IMapper mapper) 
     : BaseUserController(userService)
 {
     [HttpGet]

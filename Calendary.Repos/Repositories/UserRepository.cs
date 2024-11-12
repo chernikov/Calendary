@@ -8,7 +8,8 @@ public interface IUserRepository : IRepository<User>
     Task<User?> GetUserByEmailAsync(string email);
 
     Task AddRole(int userId, int roleId);
-
+    Task<User?> GetByIdentityAsync(Guid userIdentity);
+    Task<bool> ValidateEmailAsync(int id, string email);
 }
 
 public class UserRepository : IUserRepository
@@ -63,5 +64,13 @@ public class UserRepository : IUserRepository
         var userRole = new UserRole { RoleId = roleId, UserId = userId };
         await _context.UserRoles.AddAsync(userRole);
         await _context.SaveChangesAsync();
+    }
+
+    public Task<User?> GetByIdentityAsync(Guid userIdentity)
+        => _context.Users.FirstOrDefaultAsync(u => u.Identity == userIdentity);
+
+    public async Task<bool> ValidateEmailAsync(int id, string email)
+    {
+        return !(await _context.Users.AnyAsync(u => u.Id != id && u.Email == email && !u.IsTemporary));
     }
 }

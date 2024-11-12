@@ -47,7 +47,6 @@ public class TempUserController : BaseUserController
         // Створення тимчасового користувача  
         var newUser = new User
         {
-            Email = $"user_{Guid.NewGuid()}@gmail.com",
             IsTemporary = true
         };
 

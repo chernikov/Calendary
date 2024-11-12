@@ -1,0 +1,15 @@
+<h2 mat-dialog-title>Введіть код підтвердження</h2>
+<div class="mat-dialog-content">
+  <p>Будь ласка, введіть код підтвердження, надісланий на вашу електронну пошту.</p>
+  
+  <mat-form-field>
+    <input matInput placeholder="Код підтвердження" [(ngModel)]="verificationCode" />
+  </mat-form-field>
+  
+  <!-- Відображення повідомлення про помилку -->
+  <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+</div>
+<div class="mat-dialog-actions">
+  <button mat-button (click)="onNoClick()">Скасувати</button>
+  <button mat-button (click)="verifyCode()">Підтвердити</button>
+</div>
