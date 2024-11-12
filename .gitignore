@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /Calendary.Api/wwwroot/uploads
 /Calendary.Api/wwwroot/output
+/docker-compose.yml
