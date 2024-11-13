@@ -3,5 +3,9 @@ obj/
 .env
 Dockerfile
 
-Calendary.Ng
-CalendaryPocApp
+docs
+README.md
+src/Calendary.Ng
+src/Calendary.Api/wwwroot/uploads
+src/Calendary.Api/wwwroot/output
+

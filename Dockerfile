@@ -18,9 +18,10 @@ RUN apt-get update && apt-get upgrade -y \
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
+# Копіюємо всі файли в поточну папку в контейнері
 COPY . .
 RUN dotnet restore
-RUN dotnet publish Calendary.Api -c Release -o /app/publish
+RUN cd src && dotnet publish Calendary.Api -c Release -o /app/publish
 
 # Копіюємо опублікований додаток в остаточний образ
 FROM base AS final

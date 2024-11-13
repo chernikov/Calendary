@@ -361,5 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/Calendary.Api/wwwroot/uploads
-/Calendary.Api/wwwroot/output
+/src/Calendary.Api/wwwroot/uploads
+/src/Calendary.Api/wwwroot/output
+/src/Calendary.ng
+/docker-compose.yml
