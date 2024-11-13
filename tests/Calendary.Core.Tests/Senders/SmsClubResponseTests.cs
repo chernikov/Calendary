@@ -19,6 +19,7 @@ public class SmsClubResponseTests
         // Assert
         Assert.NotNull(responseData);
         Assert.NotNull(responseData.SuccessRequest);
+        Assert.NotNull(responseData.SuccessRequest.Info);
 
     }
 }
