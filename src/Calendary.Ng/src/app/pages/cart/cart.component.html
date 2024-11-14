@@ -20,9 +20,8 @@
       </button>
   
     <!-- Підключаємо компонент доставки -->
-    <app-delivery (deliveryInfo)="updateDelivery($event)" (validStatus)="updateValidationStatus($event)"></app-delivery>
-  
-    <button class="checkout-button" [disabled]="!isFormValid" (click)="proceedToPayment()">
+    <app-delivery></app-delivery>
+    <button class="checkout-button" (click)="proceedToPayment()">
       Перейти до оплати
     </button>
   </div>

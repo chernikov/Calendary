@@ -1,0 +1,12 @@
+<h2 mat-dialog-title>Підтвердження замовлення</h2>
+<mat-dialog-content>
+  <p><strong>Адреса:</strong> {{ order.deliveryAddress }}</p>
+  <p><strong>Ім'я і прізвище:</strong> {{ order.user.userName }}</p>
+  <p><strong>Email:</strong> {{ order.user.email }}</p>
+  <p><strong>Телефон:</strong> {{ order.user.phoneNumber }}</p>
+  <p><strong>Загальна сума:</strong> {{ order.sum }} грн</p>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button class="close-button" (click)="onCancel()">Скасувати</button>
+  <button class="confirm-button" (click)="onConfirm()">Оплатити</button>
+</mat-dialog-actions>

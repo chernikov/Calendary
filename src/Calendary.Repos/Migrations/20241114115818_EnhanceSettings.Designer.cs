@@ -4,6 +4,7 @@ using Calendary.Repos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calendary.Repos.Migrations
 {
     [DbContext(typeof(CalendaryDbContext))]
-    partial class CalendaryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241114115818_EnhanceSettings")]
+    partial class EnhanceSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,12 +235,12 @@ namespace Calendary.Repos.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("DeliveryAddress")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("DeliveryRaw")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("IsPaid")
                         .HasColumnType("bit");
@@ -441,12 +444,12 @@ namespace Calendary.Repos.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("DeliveryAddress")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("DeliveryRaw")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("FirstDayOfWeek")
                         .HasColumnType("int");

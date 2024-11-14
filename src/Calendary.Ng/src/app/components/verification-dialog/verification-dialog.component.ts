@@ -29,7 +29,6 @@ export class VerificationDialogComponent {
     private verificationService: VerificationService, // Сервіс для верифікації
     @Inject(MAT_DIALOG_DATA) public data: {type :  'email' | 'phone'}
   ) {
-    debugger;
     this.type = data.type;
   }
 

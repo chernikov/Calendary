@@ -3,8 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Text;
-using Newtonsoft.Json.Serialization;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Calendary.Core.Services;
 
@@ -16,13 +14,13 @@ public interface INovaPostService
 }
 
 
-public class NovaPostService: INovaPostService
+public class NovaPostService : INovaPostService
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
 
 
-public NovaPostService(HttpClient httpClient, IConfiguration configuration)
+    public NovaPostService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _configuration = configuration;
@@ -44,7 +42,7 @@ public NovaPostService(HttpClient httpClient, IConfiguration configuration)
                Warehouse: "1",
                FindByString: search,
                Limit: "20"
-               
+
             )
         };
 
@@ -63,12 +61,11 @@ public NovaPostService(HttpClient httpClient, IConfiguration configuration)
         var responseContent = await response.Content.ReadAsStringAsync();
         var jsonResponse = JObject.Parse(responseContent);
 
-
         var obj = JsonConvert.DeserializeObject<NovaPostApiResponse>(responseContent);
 
         if (obj is null || !obj.Success)
         {
-            throw new ApplicationException("Nova Poshta API responded with an error.");
+            return [];
         }
 
         return obj.Data;
@@ -96,10 +93,7 @@ public NovaPostService(HttpClient httpClient, IConfiguration configuration)
         };
 
         var payload = JsonConvert.SerializeObject(requestPayload);
-        var content = new StringContent(
-            payload,
-            Encoding.UTF8,
-            "application/json");
+        var content = new StringContent(payload, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync(endpoint, content);
         if (!response.IsSuccessStatusCode)
@@ -115,7 +109,7 @@ public NovaPostService(HttpClient httpClient, IConfiguration configuration)
 
         if (obj is null || !obj.Success)
         {
-            throw new ApplicationException("Nova Poshta API responded with an error.");
+            return [];
         }
 
         return obj.Data;

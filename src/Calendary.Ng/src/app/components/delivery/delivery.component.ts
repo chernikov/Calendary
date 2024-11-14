@@ -8,10 +8,15 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { debounceTime, filter, switchMap, tap } from 'rxjs';
+import { VerificationDialogComponent } from '../verification-dialog/verification-dialog.component';
 import { UserService } from '../../../services/user.service';
 import { VerificationService } from '../../../services/verification.service';
+import { NovaPostService } from '../../../services/novapost.service';
 import { UserInfo } from '../../../models/user';
-import { VerificationDialogComponent } from '../verification-dialog/verification-dialog.component';
+import { NovaPostItem } from '../../../models/nova-post-item';
+import { CartService } from '../../../services/cart.service';
+import { DeliveryInfo } from '../../../models/delivery-info';
 
 @Component({
   selector: 'app-delivery',
@@ -27,17 +32,22 @@ export class DeliveryComponent implements OnInit {
   isEmailConfirmed = false;
   isPhoneConfirmed = false;
   errorMessage: string = '';
+  cityOptions: NovaPostItem[] = [];
+  postOfficeOptions: NovaPostItem[] = [];
+  selectedCity: string = '';
+  lastSelectedCity: string = ''; // Змінна для порівняння
+  lastSelectedPostOffice: string = ''; // Змінна для порівняння
+  highlightedCityIndex: number = -1; // Індекс для навігації по містах
+  highlightedPostOfficeIndex: number = -1; // Індекс для навігації по відділеннях
 
-  @Output() deliveryInfo = new EventEmitter<any>();
-  @Output() validStatus = new EventEmitter<{
-    isEmailValid: boolean;
-    isPhoneValid: boolean;
-  }>();
+  deliveryInfo: DeliveryInfo = new DeliveryInfo();
 
   constructor(
     private formBuilder: FormBuilder,
     private userService: UserService,
     private VerificationService: VerificationService,
+    private novaPostService: NovaPostService,
+    private cartService: CartService,
     public dialog: MatDialog
   ) {
     this.deliveryForm = this.formBuilder.group({
@@ -53,31 +63,158 @@ export class DeliveryComponent implements OnInit {
         ],
       ],
     });
+
+   
   }
 
   ngOnInit(): void {
     this.initUserInfo();
+    this.initDeliveryInfo();
+  }
+
+  private setupAutocomplete() {
+    // Автокомпліт для міста
+    this.deliveryForm.controls['city'].valueChanges
+      .pipe(
+        debounceTime(300),
+        filter((query) => query !== this.lastSelectedCity), // Фільтруємо, якщо значення не змінилось
+        tap(() => {
+          this.clearPostOffice(); // Очищуємо відділення при зміні міста
+          this.highlightedCityIndex = -1; // Скидаємо індекс навігації
+        }),
+        switchMap((query) => this.novaPostService.searchCity(query))
+      )
+      .subscribe((options) => (this.cityOptions = options));
+
+    // Автокомпліт для відділення, залежить від вибраного міста
+    this.deliveryForm.controls['postOffice'].valueChanges
+      .pipe(
+        debounceTime(300),
+        filter((query) => query !== this.lastSelectedPostOffice), // Фільтруємо, якщо значення не змінилось
+        switchMap((query) =>
+          this.novaPostService.searchWarehouse(this.selectedCity, query)
+        )
+      )
+      .subscribe((options) => (this.postOfficeOptions = options));
+  }
+
+  selectCity(city: NovaPostItem) {
+    this.selectedCity = city.description;
+    this.deliveryForm.controls['city'].setValue(city.description);
+    this.cityOptions = [];
+    this.lastSelectedCity = city.description; // Зберігаємо останнє обране значення
+    this.deliveryForm.controls['postOffice'].setValue('');
+    this.loadPostOfficesForCity(city.description); // Завантажуємо відділення для вибраного міста
+    this.highlightedCityIndex = -1; // Скидаємо індекс навігації
+    this.deliveryInfo.city.description = city.description;
+    this.deliveryInfo.city.ref = city.ref;
+  }
+
+  selectPostOffice(postOffice: NovaPostItem) {
+    this.deliveryForm.controls['postOffice'].setValue(postOffice.description);
+    this.postOfficeOptions = [];
+    this.lastSelectedPostOffice = postOffice.description; // Зберігаємо останнє обране значення
+    this.highlightedPostOfficeIndex = -1; // Скидаємо індекс навігації
+    this.deliveryInfo.postOffice.description = postOffice.description;
+    this.deliveryInfo.postOffice.ref = postOffice.ref;
+    this.updateDeliveryInfo();
+  }
+
+  private clearPostOffice() {
+    this.lastSelectedPostOffice = ''; // Скидаємо останнє вибране значення
+    this.deliveryForm.controls['postOffice'].setValue(''); // Очищуємо значення
+    this.postOfficeOptions = []; // Очищуємо опції
+  }
+
+  private loadPostOfficesForCity(cityName: string) {
+    this.novaPostService
+      .searchWarehouse(cityName, '') // Порожній параметр пошуку для отримання всіх відділень у місті
+      .subscribe((options) => (this.postOfficeOptions = options));
+  }
+
+  // Обробник натискань на клавіші для навігації по списку міст
+  onCityKeyDown(event: KeyboardEvent) {
+    if (this.cityOptions.length) {
+      if (event.key === 'ArrowDown') {
+        this.highlightedCityIndex =
+          (this.highlightedCityIndex + 1) % this.cityOptions.length;
+        event.preventDefault();
+      } else if (event.key === 'ArrowUp') {
+        this.highlightedCityIndex =
+          (this.highlightedCityIndex - 1 + this.cityOptions.length) %
+          this.cityOptions.length;
+        event.preventDefault();
+      } else if (event.key === 'Enter' && this.highlightedCityIndex >= 0) {
+        this.selectCity(this.cityOptions[this.highlightedCityIndex]);
+        event.preventDefault();
+      }
+    }
+  }
+
+  // Обробник натискань на клавіші для навігації по списку відділень
+  onPostOfficeKeyDown(event: KeyboardEvent) {
+    if (this.postOfficeOptions.length) {
+      if (event.key === 'ArrowDown') {
+        this.highlightedPostOfficeIndex =
+          (this.highlightedPostOfficeIndex + 1) % this.postOfficeOptions.length;
+        event.preventDefault();
+      } else if (event.key === 'ArrowUp') {
+        this.highlightedPostOfficeIndex =
+          (this.highlightedPostOfficeIndex -
+            1 +
+            this.postOfficeOptions.length) %
+          this.postOfficeOptions.length;
+        event.preventDefault();
+      } else if (
+        event.key === 'Enter' &&
+        this.highlightedPostOfficeIndex >= 0
+      ) {
+        this.selectPostOffice(
+          this.postOfficeOptions[this.highlightedPostOfficeIndex]
+        );
+        event.preventDefault();
+      }
+    }
   }
 
   initUserInfo() {
     this.userService.getInfo().subscribe(
       (data) => {
-        this.deliveryForm.patchValue({
-          name: data.userName,
-          email: data.email,
-          phone: data.phoneNumber,
-        });
+        if (data) {
+          this.deliveryForm.patchValue({
+            name: data.userName,
+            email: data.email,
+            phone: data.phoneNumber,
+          });
+          this.validateEmail();
+          this.validatePhone();
+          this.isEmailConfirmed = data.isEmailConfirmed;
+          if (this.isEmailConfirmed) {
+            this.deliveryForm.controls['email'].disable();
+          }
+          this.isPhoneConfirmed = data.isPhoneNumberConfirmed;
+          if (this.isPhoneConfirmed) {
+            this.deliveryForm.controls['phone'].disable();
+          }
+        }
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  }
 
-        this.validateEmail();
-        this.validatePhone();
-        this.isEmailConfirmed = data.isEmailConfirmed;
-        if (this.isEmailConfirmed) {
-          this.deliveryForm.controls['email'].disable();
+  initDeliveryInfo() {
+    this.cartService.getDeliveryInfo().subscribe(
+      (data) => {
+        if (data) {
+        this.deliveryInfo = data;
+          this.deliveryForm.patchValue({
+            city: data.city.description,
+            postOffice: data.postOffice.description,
+          });
         }
-        this.isPhoneConfirmed = data.isPhoneNumberConfirmed;
-        if (this.isPhoneConfirmed) {
-          this.deliveryForm.controls['phone'].disable();
-        }
+        this.setupAutocomplete();
       },
       (error) => {
         console.log(error);
@@ -87,18 +224,10 @@ export class DeliveryComponent implements OnInit {
 
   validateEmail() {
     this.isEmailValid = this.deliveryForm.controls['email'].valid;
-    this.emitValidationStatus();
-    if (this.isEmailValid) {
-      this.updateInfo();
-    }
   }
 
   validatePhone() {
     this.isPhoneValid = this.deliveryForm.controls['phone'].valid;
-    this.emitValidationStatus();
-    if (this.isPhoneValid) {
-      this.updateInfo();
-    }
   }
 
   updateInfo() {
@@ -109,9 +238,7 @@ export class DeliveryComponent implements OnInit {
 
     this.errorMessage = '';
     this.userService.updateInfo(userInfo).subscribe(
-      (data) => {
-        this.emitDeliveryInfo();
-      },
+      (data) => {},
       (error) => {
         this.errorMessage =
           error.error.message || 'Помилка при оновленні інформації';
@@ -119,15 +246,15 @@ export class DeliveryComponent implements OnInit {
     );
   }
 
-  emitValidationStatus() {
-    this.validStatus.emit({
-      isEmailValid: this.isEmailValid,
-      isPhoneValid: this.isPhoneValid,
-    });
-  }
-
-  emitDeliveryInfo() {
-    this.deliveryInfo.emit(this.deliveryForm.value);
+  updateDeliveryInfo() {
+    this.errorMessage = '';
+    this.cartService.updateDeliveryInfo(this.deliveryInfo).subscribe(
+      (data) => {},
+      (error) => {
+        this.errorMessage =
+          error.error.message || 'Помилка при оновленні інформації';
+      }
+    );
   }
 
   showModalEmailCode() {
@@ -171,18 +298,17 @@ export class DeliveryComponent implements OnInit {
     );
   }
 
-  
-modalVerifyPhoneCode() {
-  const dialogRef = this.dialog.open(VerificationDialogComponent, {
-    width: '400px',
-    panelClass: 'custom-dialog-container',
-    data: { type: 'phone' }
-  });
+  modalVerifyPhoneCode() {
+    const dialogRef = this.dialog.open(VerificationDialogComponent, {
+      width: '400px',
+      panelClass: 'custom-dialog-container',
+      data: { type: 'phone' },
+    });
 
-  dialogRef.afterClosed().subscribe(result => {
-    if (result) {
-      this.initUserInfo();
-    }
-  });
-}
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.initUserInfo();
+      }
+    });
+  }
 }

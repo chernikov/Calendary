@@ -120,5 +120,10 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
                 RoleId = 1
             }
         );
+
+
+        modelBuilder.Entity<OrderItem>()
+        .Property(o => o.Price)
+        .HasColumnType("decimal(18, 2)");
     }
 }

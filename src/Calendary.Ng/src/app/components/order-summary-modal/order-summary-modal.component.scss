@@ -1,0 +1,104 @@
+// Основний стиль для діалогового вікна
+:host {
+    display: block;
+    padding: 16px;
+}
+
+// Стилі для заголовка
+h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+// Стилі для контенту
+mat-dialog-content {
+    font-size: 16px;
+    color: #555;
+
+    p {
+        margin: 8px 0;
+    }
+
+    strong {
+        font-weight: bold;
+        color: #333;
+    }
+}
+
+// Стилі для кнопок
+mat-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+
+    button {
+        min-width: 100px;
+        padding: 8px 16px;
+        font-size: 14px;
+        text-transform: uppercase;
+    }
+
+
+    .close-button {
+        background-color: #d9534f; // Червоний колір для привертання уваги
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: none;
+        font-weight: bold;
+        text-transform: uppercase;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+            background-color: #c9302c; // Темніший червоний колір при наведенні
+        }
+
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.5); // Світліше виділення при фокусі
+        }
+    }
+
+    .confirm-button {
+        background-color: #5cb85c; // Зелений колір для позитивної дії
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: none;
+        font-weight: bold;
+        text-transform: uppercase;
+        transition: background-color 0.3s ease;
+        margin-left: 8px;
+    
+        &:hover {
+            background-color: #4cae4c; // Темніший зелений колір при наведенні
+        }
+    
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(92, 184, 92, 0.5); // Світліше виділення при фокусі
+        }
+    }
+}
+
+// Додаткові стилі для зведення даних
+.order-summary-content {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+
+    p {
+        display: flex;
+        justify-content: space-between;
+        font-size: 16px;
+        color: #444;
+
+        strong {
+            color: #222;
+        }
+    }
+}
