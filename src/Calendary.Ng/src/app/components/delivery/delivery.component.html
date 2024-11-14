@@ -1,41 +1,80 @@
 <div class="delivery">
-    <h3>Доставка</h3>
-    <form [formGroup]="deliveryForm">
-      <div class="form-item">
-        <label>Місто</label>
-        <input type="text" formControlName="city" required>
-        <div *ngIf="deliveryForm.controls['city'].invalid && deliveryForm.controls['city'].touched" class="error-message">Місто є обов'язковим</div>
+  <h3>Доставка</h3>
+  <form [formGroup]="deliveryForm">
+    <div class="form-item">
+      <label>Місто</label>
+      <input
+        type="text"
+        formControlName="city"
+        required
+        (focus)="cityOptions = []"
+        (keydown)="onCityKeyDown($event)"
+      />
+      <ul *ngIf="cityOptions.length">
+        <li
+          *ngFor="let option of cityOptions; let i = index"
+          [class.highlighted]="i === highlightedCityIndex"
+          (click)="selectCity(option)"
+        >
+          {{ option.description }}
+        </li>
+      </ul>
+      <div *ngIf="deliveryForm.controls['city'].invalid && deliveryForm.controls['city'].touched" class="error-message">
+        Місто є обов'язковим
       </div>
-  
-      <div class="form-item">
-        <label>Відділення нової пошти</label>
-        <input type="text" formControlName="postOffice" required>
-        <div *ngIf="deliveryForm.controls['postOffice'].invalid && deliveryForm.controls['postOffice'].touched" class="error-message">Відділення є обов'язковим</div>
+    </div>
+    
+    <div class="form-item">
+      <label>Відділення нової пошти</label>
+      <input
+        type="text"
+        formControlName="postOffice"
+        required
+        (focus)="postOfficeOptions = []"
+        (keydown)="onPostOfficeKeyDown($event)"
+      />
+      <ul *ngIf="postOfficeOptions.length">
+        <li
+          *ngFor="let option of postOfficeOptions; let i = index"
+          [class.highlighted]="i === highlightedPostOfficeIndex"
+          (click)="selectPostOffice(option)">
+          {{ option.description }}
+      </li>
+      </ul>
+      <div *ngIf="deliveryForm.controls['postOffice'].invalid && deliveryForm.controls['postOffice'].touched" class="error-message">
+        Відділення є обов'язковим
       </div>
-  
-      <div class="form-item">
-        <label>Ім'я і прізвище</label>
-        <input type="text" formControlName="name" required (blur)="updateInfo()">
-        <div *ngIf="deliveryForm.controls['name'].invalid && deliveryForm.controls['name'].touched" class="error-message">Ім'я є обов'язковим</div>
+    </div>
+
+    <div class="form-item">
+      <label>Ім'я і прізвище</label>
+      <input type="text" formControlName="name" required (blur)="updateInfo()">
+      <div *ngIf="deliveryForm.controls['name'].invalid && deliveryForm.controls['name'].touched" class="error-message">
+        Ім'я є обов'язковим</div>
+    </div>
+
+    <div class="form-item">
+      <label>Email</label>
+      <div class="input-btn">
+        <input type="email" formControlName="email" required (blur)="validateEmail()">
+        <button type="button" class="validate-button" (click)="showModalEmailCode()"
+          [disabled]="!isEmailValid || isEmailConfirmed">Підтвердити</button>
       </div>
-  
-      <div class="form-item">
-        <label>Email</label>
-        <div class="input-btn">
-          <input type="email" formControlName="email" required (blur)="validateEmail()">
-          <button type="button" class="validate-button" (click)="showModalEmailCode()" [disabled]="!isEmailValid || isEmailConfirmed">Підтвердити</button>
-        </div>
-        <div *ngIf="deliveryForm.controls['email'].invalid && deliveryForm.controls['email'].touched" class="error-message">Email не коректний</div>
+      <div *ngIf="deliveryForm.controls['email'].invalid && deliveryForm.controls['email'].touched"
+        class="error-message">Email не коректний</div>
+    </div>
+
+    <div class="form-item">
+      <label>Телефон</label>
+      <div class="input-btn">
+        <input type="tel" formControlName="phone" required (blur)="validatePhone()">
+        <button type="button" class="validate-button" (click)="showModalPhoneCode()"
+          [disabled]="!isPhoneValid || isPhoneConfirmed">Підтвердити</button>
       </div>
-  
-      <div class="form-item">
-        <label>Телефон</label>
-        <div class="input-btn">
-          <input type="tel" formControlName="phone" required (blur)="validatePhone()" >
-          <button type="button" class="validate-button" (click)="showModalPhoneCode()" [disabled]="!isPhoneValid || isPhoneConfirmed">Підтвердити</button>
-        </div>
-        <div *ngIf="deliveryForm.controls['phone'].value && deliveryForm.controls['phone'].invalid && deliveryForm.controls['phone'].touched" class="error-message">Телефон введено не вірно</div>
-      </div>
-      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-    </form>
-  </div>
+      <div
+        *ngIf="deliveryForm.controls['phone'].value && deliveryForm.controls['phone'].invalid && deliveryForm.controls['phone'].touched"
+        class="error-message">Телефон введено не вірно</div>
+    </div>
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+  </form>
+</div>

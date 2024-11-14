@@ -1,0 +1,28 @@
+h2 {
+    color: #d9534f;
+}
+
+mat-dialog-content p {
+    font-size: 1em;
+    color: #333;
+}
+
+.close-button {
+    background-color: #d9534f; // Червоний колір для привертання уваги
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+        background-color: #c9302c; // Темніший червоний колір при наведенні
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.5); // Світліше виділення при фокусі
+    }
+}
