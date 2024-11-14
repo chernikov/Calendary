@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DeliveryComponent } from '../../components/delivery/delivery.component';
 import { CartService } from '../../../services/cart.service';
+import { PaymentService } from '../../../services/payment.service';
 import { Order } from '../../../models/order';
 import { OrderItem } from '../../../models/order-item';
 import { RouterModule } from '@angular/router';
@@ -10,6 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationModalComponent } from '../../components/confirmation-modal/confirmation-modal.component';
 import { OrderSummaryModalComponent } from '../../components/order-summary-modal/order-summary-modal.component';
 import { SummaryOrder } from '../../../models/summary-order';
+import { PaymentRedirect } from '../../../models/payment.redirect';
 @Component({
   selector: 'app-cart',
   standalone: true,
@@ -24,6 +26,7 @@ export class CartComponent implements OnInit {
   delivery: any = {};
   
   constructor(private cartService: CartService, 
+    private paymentService: PaymentService,
     public dialog: MatDialog // Додаємо MatDialog для роботи з модальними вікнами
   ) {}
 
@@ -108,7 +111,17 @@ export class CartComponent implements OnInit {
   }
 
   confirmPayment() {
-    console.log('Перехід до оплати');
-    // Логіка для переходу до оплати
+    this.paymentService.getPay().subscribe({
+      next: (redirect) => {
+        this.redirectToPayment(redirect);
+      },
+      error: (error) => {
+        console.error('Failed to get payment redirect:', error);
+      }
+    });
+  }
+  
+  redirectToPayment(redirect: PaymentRedirect) {
+    window.open(redirect.paymentPage, '_blank');
   }
 }

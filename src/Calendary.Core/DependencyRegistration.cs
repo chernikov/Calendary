@@ -30,6 +30,8 @@ public static class DependencyRegistration
 
         services.AddHttpClient<ISmsSender, SmsClubSender>();
 
+        services.AddHttpClient<IPaymentService, MonoPaymentService>();
+
 
 
         return services;
