@@ -19,10 +19,10 @@ public class Order
     [MaxLength(10)]
     public string Status { get; set; } = "Creating"; // e.g., "Pending", "Completed", "Shipped"
 
-    [MaxLength(200)]
+    [MaxLength(1000)]
     public string? DeliveryAddress { get; set; } = null!;   // saved in text city, postOffice
 
-    [MaxLength(200)]
+    [MaxLength(1000)]
     public string? DeliveryRaw { get; set; } // saved in json city and postOffice  
 
     public int UserId { get; set; }
