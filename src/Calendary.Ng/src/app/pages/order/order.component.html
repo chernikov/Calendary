@@ -1,0 +1,31 @@
+<div class="order-container" *ngIf="order; else error">
+    <div class="order-details card shadow-sm p-4 mb-4 bg-white rounded">
+      <h2 class="mb-3">Деталі замовлення №{{ order.id }}</h2>
+      <div class="order-info mb-3">
+        <p><strong>Користувач:</strong> {{ order.user.userName }}</p>
+        <p><strong>Сума:</strong> <span class="text-primary">{{ order.sum | currency:'UAH' }}</span></p>
+        <p><strong>Статус:</strong> 
+          <span [class]="order.isPaid ? 'badge bg-success' : 'badge bg-warning'">
+            {{ order.isPaid ? 'Оплачено' : 'Не оплачено' }}
+          </span>
+        </p>
+      </div>
+  
+      <h3 class="mb-3">Список товарів:</h3>
+      <ul class="list-group mb-3">
+        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let item of order.orderItems">
+          <div>
+            <span class="item-name">{{ item.id }}</span>
+            <span class="item-quantity"> x {{ item.quantity }}</span>
+          </div>
+          <span class="text-primary">{{ item.price | currency:'UAH' }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+  
+  <ng-template #error>
+    <div class="alert alert-danger" role="alert">
+      {{ errorMessage }}
+    </div>
+  </ng-template>

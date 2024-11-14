@@ -12,6 +12,7 @@ import { HolidayComponent } from './admin/pages/holiday/holiday.component';
 import { AdminHomeComponent } from './admin/pages/admin-home/admin-home.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { CartComponent } from './pages/cart/cart.component';
+import { OrderComponent } from './pages/order/order.component';
 
 export const routes: Routes = [
   {
@@ -35,6 +36,7 @@ export const routes: Routes = [
       { path: 'calendar', component: CalendarComponent },
       { path: 'profile', component: ProfileComponent },
       { path: 'cart', component: CartComponent },
+      { path: 'order/:orderId', component: OrderComponent },
 
       /* to refine **/
       { path: 'register', component: RegisterComponent },
