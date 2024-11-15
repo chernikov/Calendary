@@ -1,6 +1,9 @@
 ﻿using Calendary.Core.Services;
+using Calendary.Model;
+using Calendary.Repos.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Api.Controllers;
 
@@ -11,7 +14,10 @@ public class PaymentController : BaseUserController
     private readonly IOrderService _orderService;
     private readonly IPaymentService _paymentService;
 
-    public PaymentController(IUserService userService, IOrderService orderService, IPaymentService paymentService) : base(userService)
+    public PaymentController(IUserService userService,
+        IOrderService orderService, 
+        IPaymentService paymentService
+        ) : base(userService)
     {
         _orderService = orderService;
         _paymentService = paymentService;
@@ -42,8 +48,23 @@ public class PaymentController : BaseUserController
 
 
     [HttpPost("mono/callback")]
-    public IActionResult MonoCallback()
+    public async Task<IActionResult> MonoCallback()
     {
-        return Ok();
+        try
+        {
+            // Читання тіла запиту
+            using var reader = new StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+
+            // Збереження у базу даних
+            await _paymentService.SaveWebhookAsync(body);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            // Логування помилки
+            Console.WriteLine("Error while processing webhook: " + ex.Message);
+            return StatusCode(500, "Internal Server Error");
+        }
     }
 }
