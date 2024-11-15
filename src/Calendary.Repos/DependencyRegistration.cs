@@ -29,6 +29,7 @@ namespace Calendary.Repos
             services.AddScoped<IVerificationPhoneCodeRepository, VerificationPhoneCodeRepository>();
             services.AddScoped<IRepository<PaymentInfo>, PaymentInfoRepository>();
             services.AddScoped<IMonoWebhookEventRepository, MonoWebhookEventRepository>();
+            services.AddScoped<IPaymentInfoRepository, PaymentInfoRepository>();
 
             services.ApplyMigrationDb();
 

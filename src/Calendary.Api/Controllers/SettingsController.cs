@@ -50,15 +50,13 @@ public class SettingsController(IUserService userService, IUserSettingService us
         }
 
         var newSettings = mapper.Map<UserSetting>(updatedSettings);
+        newSettings.Id = existingSettings.Id;
 
-
-        var result = await userSettingService.UpdateSettingAsync(existingSettings.Id, newSettings);
-
+        var result = await userSettingService.UpdateSettingAsync(newSettings);
         if (!result)
         {
             return StatusCode(500, "The error occurred while saving the settings.");
         }
-
         return NoContent(); 
     }
 }

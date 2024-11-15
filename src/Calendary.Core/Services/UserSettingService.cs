@@ -8,18 +8,18 @@ public interface IUserSettingService
 {
     Task<UserSetting?> GetSettingsByUserIdAsync(int userId);
     
-    Task<bool> UpdateSettingAsync(int id, UserSetting updatedSettings);
+    Task<bool> UpdateSettingAsync(UserSetting updatedSettings);
 
-    Task<bool> UpdateDeliveryAsync(int id, UserSetting updatedSettings);
+    Task UpdateDeliveryAsync(UserSetting updatedSettings);
 }
 
 public class UserSettingService(IUserSettingRepository userSettingRepository) : IUserSettingService
 {
     public Task<UserSetting?> GetSettingsByUserIdAsync(int userId) => userSettingRepository.GetFullByUserIdAsync(userId);
 
-    public async Task<bool> UpdateSettingAsync(int id, UserSetting updatedSettings)
+    public async Task<bool> UpdateSettingAsync(UserSetting updatedSettings)
     {
-        var existingSetting = await userSettingRepository.GetByIdAsync(id);
+        var existingSetting = await userSettingRepository.GetByIdAsync(updatedSettings.Id);
         if (existingSetting is null)
         {
             return false;
@@ -34,19 +34,17 @@ public class UserSettingService(IUserSettingRepository userSettingRepository) : 
         return true;
     }
 
-    public async Task<bool> UpdateDeliveryAsync(int id, UserSetting updatedSettings)
+    public async Task UpdateDeliveryAsync(UserSetting updatedSettings)
     {
-        var existingSetting = await userSettingRepository.GetByIdAsync(id);
+        var existingSetting = await userSettingRepository.GetByIdAsync(updatedSettings.Id);
         if (existingSetting is null)
         {
-            return false;
+            return;
         }
 
         existingSetting.DeliveryRaw = updatedSettings.DeliveryRaw;
         existingSetting.DeliveryAddress = updatedSettings.DeliveryAddress;
 
         await userSettingRepository.UpdateAsync(existingSetting);
-
-        return true;
     }
 }
