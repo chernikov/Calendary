@@ -21,6 +21,7 @@ public interface ICalendarService
 
 public class CalendarService(
     ICalendarRepository calendarRepository,
+    IUserSettingRepository userSettingRepository,
     IOrderRepository orderRepository,
     IEventDateRepository eventDateRepository,
     IOrderItemRepository orderItemRepository,
@@ -43,9 +44,15 @@ public class CalendarService(
                 UserId = userId,
                 Status = "Creating",
                 OrderDate = DateTime.UtcNow,
-                DeliveryAddress = "",
             };
 
+            var userSetting = await userSettingRepository.GetByUserIdAsync(userId);
+
+            if (userSetting is not null)
+            {
+                currentOrder.DeliveryAddress = userSetting.DeliveryAddress;
+                currentOrder.DeliveryRaw = userSetting.DeliveryRaw;
+            }
             await orderRepository.AddAsync(currentOrder);
         }
 
