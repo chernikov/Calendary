@@ -6,6 +6,8 @@ public class PaymentInfo
 {
     public int Id { get; set; }
 
+    public string InvoiceNumber { get; set; } = null!;
+
     [MaxLength(10)]
     public string PaymentMethod { get; set; } = null!; // "CreditCard", "PayPal"
     public bool IsPaid { get; set; }

@@ -1,5 +1,6 @@
 ﻿using Calendary.Model;
 using Calendary.Repos.Repositories;
+using iText.Layout.Borders;
 
 namespace Calendary.Core.Services;
 
@@ -11,7 +12,8 @@ public interface IOrderService
     Task DeleteOrderItemAsync(int itemId);
     Task UpdateOrderItemAsync(OrderItem orderItem);
     Task<int> OrderItemsCountAsync(int userId);
-    Task<bool> UpdateDeliveryOrderAsync(int orderId, Order updatedOrder);
+    Task UpdateOrderDeliveryAsync(Order updatedOrder);
+    Task UpdateOrderStatusAsync(Order updatedOrder);
 }
 
 internal class OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository) : IOrderService
@@ -50,19 +52,31 @@ internal class OrderService(IOrderRepository orderRepository, IOrderItemReposito
         return preorderedCalendar;
     }
 
-    public async Task<bool> UpdateDeliveryOrderAsync(int orderId, Order updatedOrder)
+    public async Task UpdateOrderDeliveryAsync(Order updatedOrder)
     {
-        var existingOrder = await orderRepository.GetByIdAsync(orderId);
+        var existingOrder = await orderRepository.GetByIdAsync(updatedOrder.Id);
         if (existingOrder is null)
         {
-            return false;
+            return;
         }
 
         existingOrder.DeliveryAddress = updatedOrder.DeliveryAddress;
         existingOrder.DeliveryRaw = updatedOrder.DeliveryRaw;
 
         await orderRepository.UpdateAsync(existingOrder);
+    }
 
-        return true;
+    public async Task UpdateOrderStatusAsync(Order updatedOrder)
+    {
+        var existingOrder = await orderRepository.GetByIdAsync(updatedOrder.Id);
+        if (existingOrder is null)
+        {
+            return;
+        }
+
+        existingOrder.IsPaid = updatedOrder.IsPaid;
+        existingOrder.Status = updatedOrder.Status;
+
+        await orderRepository.UpdateAsync(existingOrder);
     }
 }

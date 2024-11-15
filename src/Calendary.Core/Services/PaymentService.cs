@@ -2,44 +2,46 @@
 using Calendary.Repos.Repositories;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Calendary.Core.Services;
 
 public interface IPaymentService
 {
     Task<string> CreateInvoiceAsync(int orderId, decimal amount);
+    
+    Task SaveWebhookAsync(string webHookData, string xSign);
 
-    Task SaveWebhookAsync(string webHookData);
+    Task<PaymentInfo?> GetPaymentInfoByInvoiceIdAsync(string invoiceId);
+    Task UpdatePaymentInfoStatusAsync(PaymentInfo paymentInfo);
 }
-
 
 public class MonoPaymentService : IPaymentService
 {
     public class MonoInvoiceResponse
     {
+        public string InvoiceId { get; set; } = null!;
         public string PageUrl { get; set; } = null!; // Створене посилання на оплату
     }
 
     private readonly static string RequestUri = "https://api.monobank.ua/api/merchant/invoice/create";
+    private readonly string _merchantToken;
 
     private readonly HttpClient _httpClient;
-    private readonly string _merchantToken;
+
+    private readonly IPaymentInfoRepository _paymentInfoRepository;
     private readonly IMonoWebhookEventRepository _monoWebhookEventRepository;
 
 
     public MonoPaymentService(HttpClient httpClient, 
         IConfiguration configuration,
+        IPaymentInfoRepository paymentInfoRepository,
         IMonoWebhookEventRepository monoWebhookEventRepository)
     {
 
         _httpClient = httpClient;
+        _paymentInfoRepository = paymentInfoRepository;
         _monoWebhookEventRepository = monoWebhookEventRepository;
         _merchantToken = configuration["MonoBank:MerchantToken"]!;
     }
@@ -70,17 +72,45 @@ public class MonoPaymentService : IPaymentService
 
         // Обробка відповіді
         var responseContent = await response.Content.ReadFromJsonAsync<MonoInvoiceResponse>();
+
+        var paymentInfo = new PaymentInfo()
+        {
+            OrderId = orderId,
+            InvoiceNumber = responseContent!.InvoiceId,
+            IsPaid = false,
+            PaymentDate = DateTime.UtcNow,
+            PaymentMethod = "MonoBank"
+        };
+
+        await _paymentInfoRepository.AddAsync(paymentInfo);
+
         return responseContent!.PageUrl; // посилання на сторінку оплати
     }
 
-    public async Task SaveWebhookAsync(string webHookData)
+    public async Task SaveWebhookAsync(string webHookData, string xSign)
     {
         var webhookEvent = new MonoWebhookEvent
         {
             EventType = "MonoWebhook",
             Data = webHookData,
-            ReceivedAt = DateTime.UtcNow
+            XSign = xSign,
+            ReceivedAt = DateTime.UtcNow,
+
         };
         await _monoWebhookEventRepository.AddAsync(webhookEvent);
+    }
+
+    public Task<PaymentInfo?> GetPaymentInfoByInvoiceIdAsync(string invoiceId)
+        => _paymentInfoRepository.GetByInvoiceIdAsync(invoiceId);
+
+    public async Task UpdatePaymentInfoStatusAsync(PaymentInfo paymentInfo)
+    {
+        var paymentInfoInDb = await _paymentInfoRepository.GetByIdAsync(paymentInfo.Id);
+
+        if (paymentInfoInDb is not null)
+        {
+            paymentInfoInDb.IsPaid = paymentInfo.IsPaid;
+            await _paymentInfoRepository.UpdateAsync(paymentInfoInDb);
+        }
     }
 }

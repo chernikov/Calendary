@@ -218,7 +218,7 @@ public class CartController : BaseUserController
         {
             userSetting.DeliveryAddress = address;
             userSetting.DeliveryRaw = raw;
-            await _userSettingService.UpdateDeliveryAsync(userSetting.Id, userSetting);
+            await _userSettingService.UpdateDeliveryAsync(userSetting);
         }
     }
 
@@ -229,7 +229,7 @@ public class CartController : BaseUserController
         {
             order.DeliveryAddress = address;
             order.DeliveryRaw = raw;
-            await _orderService.UpdateDeliveryOrderAsync(order.Id, order);
+            await _orderService.UpdateOrderDeliveryAsync(order);
         }
     }
 

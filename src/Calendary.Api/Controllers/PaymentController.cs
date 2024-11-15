@@ -1,6 +1,9 @@
-﻿using Calendary.Core.Services;
+﻿using Calendary.Api.Dtos.Requests;
+using Calendary.Core.Services;
+using Calendary.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace Calendary.Api.Controllers;
 
@@ -53,9 +56,43 @@ public class PaymentController : BaseUserController
             // Читання тіла запиту
             using var reader = new StreamReader(Request.Body);
             var body = await reader.ReadToEndAsync();
+            var xSign = Request.Headers["X-Sign"].ToString() ?? string.Empty;
 
             // Збереження у базу даних
-            await _paymentService.SaveWebhookAsync(body);
+            await _paymentService.SaveWebhookAsync(body, xSign);
+
+            var hook = JsonSerializer.Deserialize<MonoWebHookRequest>(body);
+
+            if (hook is null)
+            {
+                return BadRequest();
+            }
+
+            // Обробка події
+
+            var paymentInfo = await _paymentService.GetPaymentInfoByInvoiceIdAsync(hook.InvoiceId);
+
+            if (paymentInfo is null)
+            {
+                return BadRequest();
+            }
+
+            if (hook.Status == "success")
+            {
+                paymentInfo.IsPaid = true;
+                await _paymentService.UpdatePaymentInfoStatusAsync(paymentInfo);
+
+                var order = await _orderService.GetOrderByIdAsync(paymentInfo.OrderId);
+
+                if (order is not null)
+                {
+                    order.Status = "Paid";
+                    order.IsPaid = true;
+                    await _orderService.UpdateOrderStatusAsync(order);
+                }
+            }
+           
+
             return Ok();
         }
         catch (Exception ex)

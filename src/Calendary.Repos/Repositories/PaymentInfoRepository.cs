@@ -3,7 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Repos.Repositories;
 
-public class PaymentInfoRepository : IRepository<PaymentInfo>
+public interface IPaymentInfoRepository : IRepository<PaymentInfo>
+{
+    Task<PaymentInfo?> GetByInvoiceIdAsync(string invoiceId);
+}
+
+public class PaymentInfoRepository : IPaymentInfoRepository
 {
     private readonly ICalendaryDbContext _context;
 
@@ -43,4 +48,7 @@ public class PaymentInfoRepository : IRepository<PaymentInfo>
             await _context.SaveChangesAsync();
         }
     }
+
+    public Task<PaymentInfo?> GetByInvoiceIdAsync(string invoiceId)
+        => _context.PaymentInfos.FirstOrDefaultAsync(p => p.InvoiceNumber == invoiceId);
 }
