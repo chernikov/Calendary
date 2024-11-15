@@ -1,9 +1,6 @@
 ﻿using Calendary.Core.Services;
-using Calendary.Model;
-using Calendary.Repos.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Api.Controllers;
 
@@ -47,6 +44,7 @@ public class PaymentController : BaseUserController
     }
 
 
+    [AllowAnonymous]
     [HttpPost("mono/callback")]
     public async Task<IActionResult> MonoCallback()
     {
