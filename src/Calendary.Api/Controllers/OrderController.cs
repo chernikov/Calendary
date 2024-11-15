@@ -33,7 +33,7 @@ public class OrderController : BaseUserController
             return Unauthorized();
         }
 
-        var order = await _orderService.GetFullCreatingOrderAsync(user.Id);
+        var order = await _orderService.GetFullOrderAsync(orderId);
 
         if (order == null)
         {

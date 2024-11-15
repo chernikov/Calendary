@@ -7,6 +7,7 @@ public interface IOrderRepository : IRepository<Order>
 {
     Task<Order?> GetOrderByStatusAsync(int userId, string status);
     Task<Order?> GetFullOrderByStatusAsync(int userId, string status);
+    Task<Order?> GetFullOrderAsync(int orderId);
     Task<Order?> GetOrderWithItemsAsync(int userId, string status);
 }
 
@@ -77,4 +78,21 @@ public class OrderRepository : IOrderRepository
             .Include(p => p.OrderItems)
                 .ThenInclude(p => p.Calendar)
             .FirstOrDefaultAsync(o => o.UserId == userId && o.Status == status);
+
+    public Task<Order?> GetFullOrderAsync(int orderId)
+         => _context.Orders
+            .Include(p => p.OrderItems)
+                .ThenInclude(p => p.Calendar)
+                    .ThenInclude(p => p.Language)
+            .Include(p => p.OrderItems)
+                .ThenInclude(p => p.Calendar)
+                    .ThenInclude(p => p.CalendarHolidays)
+                        .ThenInclude(p => p.Holiday)
+            .Include(p => p.OrderItems)
+                .ThenInclude(p => p.Calendar)
+                    .ThenInclude(p => p.EventDates)
+            .Include(p => p.OrderItems)
+                .ThenInclude(p => p.Calendar)
+                    .ThenInclude(p => p.Images)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
 }
