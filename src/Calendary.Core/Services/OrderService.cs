@@ -7,6 +7,8 @@ namespace Calendary.Core.Services;
 public interface IOrderService
 {
     Task<Order?> GetFullCreatingOrderAsync(int userId);
+
+    Task<Order?> GetFullOrderAsync(int orderId);
     Task<Order?> GetOrderByIdAsync(int orderId);
     Task<OrderItem?> GetOrderItemByIdAsync(int itemId);
     Task DeleteOrderItemAsync(int itemId);
@@ -20,6 +22,9 @@ internal class OrderService(IOrderRepository orderRepository, IOrderItemReposito
 {
     public Task<Order?> GetFullCreatingOrderAsync(int userId)
         => orderRepository.GetFullOrderByStatusAsync(userId, "Creating");
+
+    public Task<Order?> GetFullOrderAsync(int orderId)
+      => orderRepository.GetFullOrderAsync(orderId);
 
     public Task<Order?> GetOrderByIdAsync(int orderId)
         => orderRepository.GetByIdAsync(orderId);
