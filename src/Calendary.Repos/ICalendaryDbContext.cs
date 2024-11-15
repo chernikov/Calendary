@@ -12,6 +12,7 @@ public interface ICalendaryDbContext
     DbSet<Holiday> Holidays { get; set; }
     DbSet<Image> Images { get; set; }
     DbSet<Language> Languages { get; set; }
+    DbSet<MonoWebhookEvent> MonoWebhookEvents { get; set; }
     DbSet<Order> Orders { get; set; }
     DbSet<OrderItem> OrderItems { get; set; }
     DbSet<PaymentInfo> PaymentInfos { get; set; }
@@ -21,6 +22,8 @@ public interface ICalendaryDbContext
     DbSet<UserSetting> UserSettings { get; set; }
     DbSet<VerificationEmailCode> VerificationEmailCodes { get; set; }
     DbSet<VerificationPhoneCode> VerificationPhoneCodes { get; set; }
+
+    
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

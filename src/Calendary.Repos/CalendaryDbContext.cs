@@ -7,49 +7,35 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
     public CalendaryDbContext(DbContextOptions<CalendaryDbContext> options) : base(options)
     {
     }
-
-    // DbSet для користувачів
-    public DbSet<User> Users { get; set; }
-
-    // DbSet для ролей
-    public DbSet<Role> Roles { get; set; }
-
-    // DbSet для зв'язку користувачів з ролями (many-to-many)
-    public DbSet<UserRole> UserRoles { get; set; }
-
-    // DbSet для замовлень
-    public DbSet<Order> Orders { get; set; }
-
-    // DbSet для елементів замовлення
-    public DbSet<OrderItem> OrderItems { get; set; }
-
-
-    // DbSet для календарів
-    public DbSet<Calendar> Calendars { get; set; }
-
-    // DbSet для календарів
     public DbSet<CalendarHoliday> CalendarHolidays { get; set; }
 
-    // DbSet для зображень календаря
-    public DbSet<Image> Images { get; set; }
+    public DbSet<Calendar> Calendars { get; set; }
 
-    // DbSet для видатних дат
-    public DbSet<EventDate> EventDates { get; set; }
-
-    // DbSet для святкових днів
-    public DbSet<Holiday> Holidays { get; set; }
-
-    // DbSet для країн
     public DbSet<Country> Countries { get; set; }
 
-    // DbSet для налаштувань користувачів
-    public DbSet<UserSetting> UserSettings { get; set; }
+    public DbSet<EventDate> EventDates { get; set; }
 
-    // DbSet для платіжної інформації
+    public DbSet<Holiday> Holidays { get; set; }
+
+    public DbSet<Image> Images { get; set; }
+
+    public DbSet<Language> Languages { get; set; }
+
+    public DbSet<MonoWebhookEvent> MonoWebhookEvents { get; set; }
+
+    public DbSet<Order> Orders { get; set; }
+
+    public DbSet<OrderItem> OrderItems { get; set; }
+
     public DbSet<PaymentInfo> PaymentInfos { get; set; }
 
-    // DbSet для мов
-    public DbSet<Language> Languages { get; set; }
+    public DbSet<Role> Roles { get; set; }
+
+    public DbSet<UserRole> UserRoles { get; set; }
+
+    public DbSet<User> Users { get; set; }
+
+    public DbSet<UserSetting> UserSettings { get; set; }
 
     public DbSet<VerificationEmailCode> VerificationEmailCodes { get; set; }
 
@@ -97,7 +83,6 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
             Country.Ukraine
         );
 
-        
         modelBuilder.Entity<User>().HasData(
             new User
             {
@@ -120,7 +105,6 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
                 RoleId = 1
             }
         );
-
 
         modelBuilder.Entity<OrderItem>()
         .Property(o => o.Price)

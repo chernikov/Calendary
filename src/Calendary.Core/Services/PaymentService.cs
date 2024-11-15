@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Calendary.Model;
+using Calendary.Repos.Repositories;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,8 @@ namespace Calendary.Core.Services;
 public interface IPaymentService
 {
     Task<string> CreateInvoiceAsync(int orderId, decimal amount);
+
+    Task SaveWebhookAsync(string webHookData);
 }
 
 
@@ -23,14 +27,20 @@ public class MonoPaymentService : IPaymentService
         public string PageUrl { get; set; } = null!; // Створене посилання на оплату
     }
 
-    private readonly HttpClient _httpClient;
-    private readonly string _merchantToken;
-
     private readonly static string RequestUri = "https://api.monobank.ua/api/merchant/invoice/create";
 
-    public MonoPaymentService(HttpClient httpClient, IConfiguration configuration)
+    private readonly HttpClient _httpClient;
+    private readonly string _merchantToken;
+    private readonly IMonoWebhookEventRepository _monoWebhookEventRepository;
+
+
+    public MonoPaymentService(HttpClient httpClient, 
+        IConfiguration configuration,
+        IMonoWebhookEventRepository monoWebhookEventRepository)
     {
+
         _httpClient = httpClient;
+        _monoWebhookEventRepository = monoWebhookEventRepository;
         _merchantToken = configuration["MonoBank:MerchantToken"]!;
     }
 
@@ -61,5 +71,16 @@ public class MonoPaymentService : IPaymentService
         // Обробка відповіді
         var responseContent = await response.Content.ReadFromJsonAsync<MonoInvoiceResponse>();
         return responseContent!.PageUrl; // посилання на сторінку оплати
+    }
+
+    public async Task SaveWebhookAsync(string webHookData)
+    {
+        var webhookEvent = new MonoWebhookEvent
+        {
+            EventType = "MonoWebhook",
+            Data = webHookData,
+            ReceivedAt = DateTime.UtcNow
+        };
+        await _monoWebhookEventRepository.AddAsync(webhookEvent);
     }
 }
