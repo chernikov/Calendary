@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
 import { SettingService } from '../../../services/setting.service';
+import { SettingsComponent } from '../../components/settings/settings.component';
+import { ProfileOrdersComponent } from '../../components/profile-orders/profile-orders.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [],
+  imports: [SettingsComponent, ProfileOrdersComponent],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })
@@ -12,13 +14,5 @@ export class ProfileComponent {
 
   constructor(private settingService: SettingService) {
 
-  }
-
-  onClick() {
-    this.settingService.error().subscribe({
-      next : (data) => {
-        console.log("Error");
-      }
-    });
   }
 }

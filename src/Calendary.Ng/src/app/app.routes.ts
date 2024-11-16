@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { Page404Component } from './pages/page404/page404.component';
-import { SettingsComponent } from './pages/settings/settings.component';
+import { SettingsComponent } from './components/settings/settings.component';
 import { LoginComponent } from './pages/login/login.component';
 import { CalendarComponent } from './pages/calendar/calendar.component';
 import { AuthGuard } from '../guards/admin.guard';
