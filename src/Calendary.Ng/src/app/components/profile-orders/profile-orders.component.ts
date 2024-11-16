@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { OrderService } from '../../../services/order.service';
-import { Order } from '../../../models/order';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { RouterModule } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { OrderService } from '../../../services/order.service';
+import { Order } from '../../../models/order';
 
 @Component({
   selector: 'app-profile-orders',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatPaginatorModule, RouterModule],
+  imports: [CommonModule, MatTableModule, MatPaginatorModule, MatButtonModule, RouterModule],
   templateUrl: './profile-orders.component.html',
   styleUrls: ['./profile-orders.component.scss'],
 })

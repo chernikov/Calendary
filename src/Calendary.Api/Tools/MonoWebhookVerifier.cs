@@ -11,6 +11,7 @@ public static class MonoWebhookVerifier
         {
             // Розшифровуємо публічний ключ з Base64
             byte[] pubKeyBytes = Convert.FromBase64String(pubKeyBase64);
+            var decodedPublicKey = Encoding.UTF8.GetString(pubKeyBytes);
 
             // Розшифровуємо X-Sign з Base64
             byte[] signatureBytes = Convert.FromBase64String(xSign);
@@ -20,7 +21,7 @@ public static class MonoWebhookVerifier
 
             // Створюємо ECDSA-провайдер
             using var ecdsa = ECDsa.Create();
-            ecdsa.ImportSubjectPublicKeyInfo(pubKeyBytes, out _);
+            ecdsa.ImportFromPem(decodedPublicKey);
 
             // Перевіряємо підпис
             bool isValid = ecdsa.VerifyData(payloadBytes, signatureBytes, HashAlgorithmName.SHA256);
