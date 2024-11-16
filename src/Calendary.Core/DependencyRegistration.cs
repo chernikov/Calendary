@@ -8,6 +8,8 @@ public static class DependencyRegistration
 {
     public static IServiceCollection AddCoreServices(this IServiceCollection services)
     {
+        services.AddMemoryCache();
+
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserSettingService, UserSettingService>();

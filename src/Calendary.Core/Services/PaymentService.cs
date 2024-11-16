@@ -1,5 +1,6 @@
 ﻿using Calendary.Model;
 using Calendary.Repos.Repositories;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Net.Http.Json;
@@ -15,35 +16,44 @@ public interface IPaymentService
 
     Task<PaymentInfo?> GetPaymentInfoByInvoiceIdAsync(string invoiceId);
     Task UpdatePaymentInfoStatusAsync(PaymentInfo paymentInfo);
+
+    Task<string> GetPublicKeyAsync(bool force);
 }
 
 public class MonoPaymentService : IPaymentService
 {
+
+
     public class MonoInvoiceResponse
     {
         public string InvoiceId { get; set; } = null!;
         public string PageUrl { get; set; } = null!; // Створене посилання на оплату
     }
 
-    private readonly static string RequestUri = "https://api.monobank.ua/api/merchant/invoice/create";
+    private readonly static string CreateInvoiceRequestUrl = "https://api.monobank.ua/api/merchant/invoice/create";
+    private readonly static string MonoPublicKeyUrl = "https://api.monobank.ua/api/merchant/pubkey";
     private readonly string _merchantToken;
 
     private readonly HttpClient _httpClient;
 
+    private readonly IMemoryCache _cache;
+    private const string MonoPublicKeyCacheKey = "MonoPublicKey";
+
     private readonly IPaymentInfoRepository _paymentInfoRepository;
     private readonly IMonoWebhookEventRepository _monoWebhookEventRepository;
-
 
     public MonoPaymentService(HttpClient httpClient, 
         IConfiguration configuration,
         IPaymentInfoRepository paymentInfoRepository,
-        IMonoWebhookEventRepository monoWebhookEventRepository)
+        IMonoWebhookEventRepository monoWebhookEventRepository,
+        IMemoryCache cache)
     {
 
         _httpClient = httpClient;
         _paymentInfoRepository = paymentInfoRepository;
         _monoWebhookEventRepository = monoWebhookEventRepository;
         _merchantToken = configuration["MonoBank:MerchantToken"]!;
+        _cache = cache;
     }
 
     public async Task<string> CreateInvoiceAsync(int orderId, decimal amount)
@@ -66,7 +76,7 @@ public class MonoPaymentService : IPaymentService
             Encoding.UTF8,
             "application/json");
 
-        var response = await _httpClient.PostAsync(RequestUri, content);
+        var response = await _httpClient.PostAsync(CreateInvoiceRequestUrl, content);
         
         response.EnsureSuccessStatusCode();
 
@@ -112,5 +122,28 @@ public class MonoPaymentService : IPaymentService
             paymentInfoInDb.IsPaid = paymentInfo.IsPaid;
             await _paymentInfoRepository.UpdateAsync(paymentInfoInDb);
         }
+    }
+
+    public async Task<string> GetPublicKeyAsync(bool force)
+    {
+        // Спробуємо отримати ключ з кешу
+        if (!force && _cache.TryGetValue(MonoPublicKeyCacheKey, out string? cachedKey))
+        {
+            if (cachedKey is not null)
+            {
+                return cachedKey;
+            }
+        }
+
+        // Якщо ключу немає в кеші, отримуємо його з API
+        var response = await _httpClient.GetAsync(MonoPublicKeyUrl);
+        response.EnsureSuccessStatusCode();
+
+        string publicKey = await response.Content.ReadAsStringAsync();
+
+        // Додаємо ключ до кешу з часом життя 24 години
+        _cache.Set(MonoPublicKeyCacheKey, publicKey, TimeSpan.FromHours(24));
+
+        return publicKey;
     }
 }

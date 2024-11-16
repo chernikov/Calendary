@@ -1,4 +1,5 @@
 ﻿using Calendary.Api.Dtos.Requests;
+using Calendary.Api.Tools;
 using Calendary.Core.Services;
 using Calendary.Model;
 using Microsoft.AspNetCore.Authorization;
@@ -57,14 +58,16 @@ public class PaymentController : BaseUserController
             using var reader = new StreamReader(Request.Body);
             var body = await reader.ReadToEndAsync();
             var xSign = Request.Headers["X-Sign"].ToString() ?? string.Empty;
-
             // Збереження у базу даних
             await _paymentService.SaveWebhookAsync(body, xSign);
+
             var hook = JsonSerializer.Deserialize<MonoWebHookRequest>(body);
             if (hook is null)
             {
                 return BadRequest();
             }
+
+            await ValidateSign(body, xSign);
 
             // Обробка події
             var paymentInfo = await _paymentService.GetPaymentInfoByInvoiceIdAsync(hook.InvoiceId);
@@ -93,6 +96,30 @@ public class PaymentController : BaseUserController
             // Логування помилки
             Console.WriteLine("Error while processing webhook: " + ex.Message);
             return StatusCode(500, "Internal Server Error");
+        }
+    }
+
+    private async Task ValidateSign(string body, string xSign)
+    {
+        var publicKey = await _paymentService.GetPublicKeyAsync(false);
+        if (publicKey is null)
+        {
+            throw new Exception("Can't get public key for validation sign");
+        }
+        var validate = MonoWebhookVerifier.VerifyWebhook(xSign, publicKey, body);
+
+        if (!validate)
+        {
+            publicKey = await _paymentService.GetPublicKeyAsync(true);
+            if (publicKey is null)
+            {
+                throw new Exception("Can't get public key for validation sign");
+            }
+            validate = MonoWebhookVerifier.VerifyWebhook(xSign, publicKey, body);
+        }
+        if (!validate)
+        {
+            throw new Exception("Sign is invalid");
         }
     }
 }
