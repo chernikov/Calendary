@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TokenService } from '../../../services/token.service'; // Сервіс для роботи з токеном
-import { faSignIn, faSignOut, faUserAlt, faCartShopping } from '@fortawesome/free-solid-svg-icons';
 import { CartService } from '../../../services/cart.service';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, FontAwesomeModule, RouterModule],
+  imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -20,11 +20,7 @@ export class HeaderComponent implements OnInit {
   email: string | null = null;
 
   cartCount = 0;
-  userIcon = faUserAlt;
-  signInIcon = faSignIn;
-  signOutIcon = faSignOut;
-  cartIcon = faCartShopping;
-
+ 
   constructor(
     private tokenService: TokenService,
     private cartService: CartService,

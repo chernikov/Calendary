@@ -11,6 +11,9 @@ public interface IOrderRepository : IRepository<Order>
     Task<Order?> GetOrderWithItemsAsync(int userId, string status);
 
     Task<(List<Order>, int)> GetOrdersWithPagingAsync(int userId, int page, int pageSize);
+
+    Task<(List<Order>, int)> GetAllOrdersWithPagingAsync(int page, int pageSize);
+    
 }
 
 public class OrderRepository : IOrderRepository
@@ -74,6 +77,23 @@ public class OrderRepository : IOrderRepository
                 .ThenInclude(p => p.Calendar)
                     .ThenInclude(p => p.Images);
 
+    private IQueryable<Order> IncludeOrderDetailsAndUser(IQueryable<Order> query)
+    => query
+        .Include(p => p.User)
+        .Include(p => p.OrderItems)
+            .ThenInclude(p => p.Calendar)
+                .ThenInclude(p => p.Language)
+        .Include(p => p.OrderItems)
+            .ThenInclude(p => p.Calendar)
+                .ThenInclude(p => p.CalendarHolidays)
+                    .ThenInclude(p => p.Holiday)
+        .Include(p => p.OrderItems)
+            .ThenInclude(p => p.Calendar)
+                .ThenInclude(p => p.EventDates)
+        .Include(p => p.OrderItems)
+            .ThenInclude(p => p.Calendar)
+                .ThenInclude(p => p.Images);
+
     public Task<Order?> GetFullOrderByStatusAsync(int userId, string status)
         => IncludeOrderDetails(_context.Orders)
             .FirstOrDefaultAsync(o => o.UserId == userId && o.Status == status);
@@ -91,12 +111,29 @@ public class OrderRepository : IOrderRepository
     public async Task<(List<Order>, int)> GetOrdersWithPagingAsync(int userId, int page, int pageSize)
     {
         var query = _context.Orders
-            .Where(o => o.UserId == userId);
+            .Where(o => o.UserId == userId && o.OrderItems.Any());
         var fullQuery = IncludeOrderDetails(query);
 
         var totalOrders = await query.CountAsync();
         var orders = await fullQuery
             .OrderByDescending(o => o.OrderDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (orders, totalOrders);
+    }
+
+    public async Task<(List<Order>, int)> GetAllOrdersWithPagingAsync(int page, int pageSize)
+    {
+        var query = _context.Orders;
+        var fullQuery = IncludeOrderDetailsAndUser(query);
+
+        var totalOrders = await query.CountAsync();
+
+        var orders = await fullQuery
+            .OrderByDescending(o => o.OrderDate)
+            .Where(p => p.OrderItems.Any())
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

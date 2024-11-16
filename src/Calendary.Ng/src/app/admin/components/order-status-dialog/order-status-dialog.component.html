@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Змінити статус замовлення</h2>
+    <mat-dialog-content>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Новий статус</mat-label>
+        <mat-select [(value)]="data.status">
+          <mat-option value="Creating">Створюється</mat-option>
+          <mat-option value="Paid">Оплачено</mat-option>
+          <mat-option value="InPrinting">Передано на друк</mat-option>
+          <mat-option value="InDelivery">Доставляється</mat-option>
+          <mat-option value="Delivered">Доставлено</mat-option>
+          <mat-option value="Declined">Відмінено</mat-option>
+          <mat-option value="Done">Виконано</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Відмінити</button>
+      <button mat-raised-button color="primary" (click)="save()">OK</button>
+    </mat-dialog-actions>

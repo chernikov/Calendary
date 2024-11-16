@@ -1,24 +1,25 @@
-  <nav class="navbar">
-    <div class="container">
-      <!-- Logo on the left -->
-      <div class="navbar-brand">
-        <a href="/">
-          <img [src]="'logo.png'" alt="Calendary" class="logo"  />
-        </a>
-      </div>
-      <!-- Icons aligned to the right -->
-      <div class="navbar-icons" *ngIf="isInited">
-        <!-- Cart Icon -->
-        <fa-icon *ngIf="isLoggedIn && cartCount" [icon]="cartIcon" class="icon" [routerLink]="['/cart']"></fa-icon>
-  
-        <!-- User Icon (for profile/settings) -->
-        <fa-icon *ngIf="isLoggedIn" [icon]="userIcon" class="icon" [routerLink]="['/profile']"></fa-icon>
-  
-        <!-- Sign Out Icon (shown if logged in) -->
-        <fa-icon *ngIf="isLoggedIn" [icon]="signOutIcon" class="icon" (click)="logout()"></fa-icon>
-  
-        <!-- Sign In Icon (shown if not logged in) -->
-        <fa-icon *ngIf="!isLoggedIn" [icon]="signInIcon" class="icon" [routerLink]="['/login']"></fa-icon>
-      </div>
+<nav class="navbar">
+  <div class="container">
+    <!-- Logo on the left -->
+    <div class="navbar-brand">
+      <a href="/">
+        <img [src]="'logo.png'" alt="Calendary" class="logo" />
+      </a>
     </div>
-  </nav>
+    <!-- Icons aligned to the right -->
+    <div class="navbar-icons" *ngIf="isInited">
+      <button *ngIf="isLoggedIn && cartCount" mat-icon-button [routerLink]="['/cart']" aria-label="Кошик">
+        <mat-icon>shopping_cart</mat-icon>
+      </button>
+      <button *ngIf="isLoggedIn" mat-icon-button [routerLink]="['/profile']" aria-label="Профіль">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+      <button *ngIf="isLoggedIn" mat-icon-button (click)="logout()" aria-label="Вихід">
+        <mat-icon>logout</mat-icon>
+      </button>
+      <button *ngIf="!isLoggedIn" mat-icon-button [routerLink]="['/login']" aria-label="Вхід">
+        <mat-icon>login</mat-icon>
+      </button>
+    </div>
+  </div>
+</nav>

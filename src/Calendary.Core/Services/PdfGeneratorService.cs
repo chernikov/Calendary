@@ -1,7 +1,5 @@
-﻿using Calendary.Model;
-using Calendary.Repos.Repositories;
+﻿using Calendary.Repos.Repositories;
 using iText.IO.Font;
-using iText.IO.Image;
 using iText.Kernel.Colors;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
@@ -13,9 +11,6 @@ using System.Globalization;
 using ImagePdf = iText.Layout.Element.Image;
 using CalendarModel = Calendary.Model.Calendar;
 using Calendary.Core.Providers;
-using static System.Net.Mime.MediaTypeNames;
-using System.Drawing.Imaging;
-using System.Drawing;
 
 namespace Calendary.Core.Services;
 
@@ -24,7 +19,10 @@ public interface IPdfGeneratorService
     Task<string> GeneratePdfAsync(int calendarId);
 }
 
-public class PdfGeneratorService(ICalendarRepository calendarRepository, IPathProvider pathProvider, IImageRotatorService imageRotatorService) : IPdfGeneratorService
+public class PdfGeneratorService(ICalendarRepository calendarRepository,
+    IPathProvider pathProvider,
+    IImageRotatorService imageRotatorService
+    ) : IPdfGeneratorService
 {
     private PdfFont Font { get; init; } = PdfFontFactory.CreateFont("fonts/arial.ttf", PdfEncodings.IDENTITY_H);
     public async Task<string> GeneratePdfAsync(int calendarId)

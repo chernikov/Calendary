@@ -1,13 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SummaryOrder } from '../../../models/summary-order';
 import { OrderService } from '../../../services/order.service';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-order',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule],
   templateUrl: './order.component.html',
   styleUrl: './order.component.scss'
 })
@@ -17,7 +19,8 @@ export class OrderComponent implements OnInit {
 
   constructor(
     private orderService: OrderService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -31,5 +34,9 @@ export class OrderComponent implements OnInit {
       next: (order) => (this.order = order),
       error: (error) => (this.errorMessage = error.error || 'Помилка завантаження замовлення')
     });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/profile']); // Перенаправляє на сторінку профілю
   }
 }

@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { StorageStrategy } from '../app/strategies/storage-strategy';
 import { BrowserStorageStrategy } from '../app/strategies/browser-storage-strategy';
 import { ServerStorageStrategy } from '../app/strategies/server-storage-strategy';
-
+import { jwtDecode } from 'jwt-decode';
 @Injectable({
   providedIn: 'root',
 })
@@ -33,5 +33,12 @@ export class TokenService {
   // Перевіряє наявність токену
   hasToken(): boolean {
     return this.getToken() !== null;
+  }
+
+
+  getRole(token: string): string {
+    const decodedToken: any = jwtDecode(token);
+    const role = decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    return role;
   }
 }

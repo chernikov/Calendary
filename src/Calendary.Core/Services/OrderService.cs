@@ -18,6 +18,8 @@ public interface IOrderService
     Task UpdateOrderStatusAsync(Order updatedOrder);
 
     Task<(List<Order>, int)> GetOrdersWithPagingAsync(int userId, int page, int pageSize);
+
+    Task<(List<Order>, int)> GetAllOrdersWithPagingAsync(int page, int pageSize);
 }
 
 internal class OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository) : IOrderService
@@ -83,12 +85,17 @@ internal class OrderService(IOrderRepository orderRepository, IOrderItemReposito
 
         existingOrder.IsPaid = updatedOrder.IsPaid;
         existingOrder.Status = updatedOrder.Status;
+        existingOrder.UpdatedDate = DateTime.UtcNow;
 
         await orderRepository.UpdateAsync(existingOrder);
     }
 
     public Task<(List<Order>, int)> GetOrdersWithPagingAsync(int userId, int page, int pageSize)
         => orderRepository.GetOrdersWithPagingAsync(userId, page, pageSize);
+
+    public Task<(List<Order>, int)> GetAllOrdersWithPagingAsync(int page, int pageSize)
+        => orderRepository.GetAllOrdersWithPagingAsync(page, pageSize);
+
 }
 
 
