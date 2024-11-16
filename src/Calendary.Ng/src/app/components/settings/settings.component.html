@@ -1,0 +1,35 @@
+<div class="settings-container">
+    <form [formGroup]="settingsForm">
+      <div class="form-item">
+        <label>Ім'я і прізвище</label>
+        <input type="text" formControlName="name" required (blur)="updateInfo()">
+        <div *ngIf="settingsForm.controls['name'].invalid && settingsForm.controls['name'].touched" class="error-message">
+          Ім'я є обов'язковим</div>
+      </div>
+  
+      <div class="form-item">
+        <label>Email</label>
+        <div class="input-btn">
+          <input type="email" formControlName="email" required (blur)="validateEmail()">
+          <button type="button" class="validate-button" (click)="showModalEmailCode()"
+            [disabled]="!isEmailValid || isEmailConfirmed">Підтвердити</button>
+        </div>
+        <div *ngIf="settingsForm.controls['email'].invalid && settingsForm.controls['email'].touched"
+          class="error-message">Email не коректний</div>
+      </div>
+  
+      <div class="form-item">
+        <label>Телефон</label>
+        <div class="input-btn">
+          <input type="tel" formControlName="phone" required (blur)="validatePhone()">
+          <button type="button" class="validate-button" (click)="showModalPhoneCode()"
+            [disabled]="!isPhoneValid || isPhoneConfirmed">Підтвердити</button>
+        </div>
+        <div
+          *ngIf="settingsForm.controls['phone'].value && settingsForm.controls['phone'].invalid && settingsForm.controls['phone'].touched"
+          class="error-message">Телефон введено не вірно</div>
+      </div>
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    </form>
+  </div>
+  
