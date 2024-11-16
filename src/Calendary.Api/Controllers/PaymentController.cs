@@ -67,7 +67,7 @@ public class PaymentController : BaseUserController
                 return BadRequest();
             }
 
-            await ValidateSign(body, xSign);
+            //await ValidateSign(body, xSign);
 
             // Обробка події
             var paymentInfo = await _paymentService.GetPaymentInfoByInvoiceIdAsync(hook.InvoiceId);

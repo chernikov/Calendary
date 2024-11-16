@@ -1,4 +1,10 @@
 <div class="orders">
+    <div class="actions">
+        <button mat-raised-button color="primary" [routerLink]="['/calendar']">
+            Створити календар
+        </button>
+    </div>
+    
     <table mat-table [dataSource]="orders" class="mat-elevation-z8">
         <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef> Замовлення </th>
