@@ -1,0 +1,35 @@
+.admin-orders {
+    table {
+      width: 100%;
+      margin-top: 1rem;
+    }
+  
+    mat-paginator {
+      margin-top: 1rem;
+    }
+  
+    .mat-header-cell {
+      font-weight: bold;
+      text-align: center;
+    }
+  
+    .mat-cell {
+      text-align: left;
+      vertical-align: middle;
+    }
+  
+    button {
+      margin-right: 8px;
+      margin-top : 4px;
+      margin-bottom : 4px;
+    }
+  
+    .mat-raised-button {
+      display: flex;
+      align-items: center;
+    }
+  
+    .mat-icon {
+      margin-right: 4px;
+    }
+  }

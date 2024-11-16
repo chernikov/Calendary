@@ -53,9 +53,18 @@ export class LoginComponent {
         next: (response) => {
           console.log('User logged in successfully!', response);
           this.tokenService.saveToken(response.token);
-          this.router.navigate(['/']).then(() => {
-            window.location.reload();
-          });
+
+          const role = this.tokenService.getRole(response.token);
+          if (role === 'Admin') {
+            this.router.navigate(['/admin']).then(() => {
+              window.location.reload();
+            });
+          } else {
+            this.router.navigate(['/']).then(() => {
+              window.location.reload();
+            });
+          }
+          
         },
         error: (error) => {
           console.error('Error logging in user:', error);

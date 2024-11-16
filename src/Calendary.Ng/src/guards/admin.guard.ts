@@ -18,9 +18,7 @@ export class AuthGuard implements CanActivate {
       return false;
     }
 
-    const decodedToken: any = jwtDecode(token);
-    const role = decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-
+    const role = this.tokenService.getRole(token);
     if (role === 'Admin') {
       return true;
     } else {

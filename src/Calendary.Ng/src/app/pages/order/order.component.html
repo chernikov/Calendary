@@ -1,4 +1,7 @@
 <div class="order-container" *ngIf="order; else error">
+  <button mat-button color="primary" (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon> Назад
+  </button>
     <div class="order-details card shadow-sm p-4 mb-4 bg-white rounded">
       <h2 class="mb-3">Деталі замовлення №{{ order.id }}</h2>
       <div class="order-info mb-3">

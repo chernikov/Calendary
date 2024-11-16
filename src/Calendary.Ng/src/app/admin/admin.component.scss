@@ -1,25 +1,49 @@
 /* Задаємо повну висоту для всього контейнера */
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%; /* Висота HTML та body для коректного розтягнення */
-    overflow: hidden; /* Прибираємо зайвий скрол */
-  }
-  
-  .sidenav-container {
-    height: 100vh; /* Висота на весь екран */
-    display: flex;
-  }
-  
-  /* Ширина бічного меню */
-  mat-sidenav {
-    width: 250px;
-  }
-  
-  /* Контент */
-  mat-sidenav-content {
-    flex: 1;
-    padding: 20px;
-    overflow: auto; /* Дозволяємо контенту прокручуватись, якщо потрібно */
-  }
-  
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  /* Висота HTML та body для коректного розтягнення */
+  overflow: hidden;
+  /* Прибираємо зайвий скрол */
+}
+
+.sidenav-container {
+  height: 100vh;
+  /* Висота на весь екран */
+  display: flex;
+}
+
+/* Ширина бічного меню */
+mat-sidenav {
+  width: 250px;
+}
+
+/* Контент */
+mat-sidenav-content {
+  flex: 1;
+  padding: 20px;
+  overflow: auto;
+  /* Дозволяємо контенту прокручуватись, якщо потрібно */
+}
+
+
+.admin-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+}
+
+.logout-button {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.logout-button:hover {
+  background-color: #e33e3f;
+}

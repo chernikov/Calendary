@@ -9,10 +9,12 @@ import { AuthGuard } from '../guards/admin.guard';
 import { MainComponent } from './main.component';
 import { AdminComponent } from './admin/admin.component';
 import { HolidayComponent } from './admin/pages/holiday/holiday.component';
+import { AdminOrderComponent } from './admin/pages/admin-order/admin-order.component';
 import { AdminHomeComponent } from './admin/pages/admin-home/admin-home.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { CartComponent } from './pages/cart/cart.component';
 import { OrderComponent } from './pages/order/order.component';
+
 
 export const routes: Routes = [
   {
@@ -24,6 +26,7 @@ export const routes: Routes = [
         children: [
           { path: '', component: AdminHomeComponent},
           { path: 'holiday', component: HolidayComponent },
+          { path: 'orders', component: AdminOrderComponent },
         ],
       }
     ],
