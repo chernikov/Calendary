@@ -223,10 +223,12 @@ export class DeliveryComponent implements OnInit {
   }
 
   validateEmail() {
+    this.updateInfo();
     this.isEmailValid = this.deliveryForm.controls['email'].valid;
   }
 
   validatePhone() {
+    this.updateInfo();
     this.isPhoneValid = this.deliveryForm.controls['phone'].valid;
   }
 
