@@ -9,9 +9,4 @@
       "secure": false,
       "changeOrigin": true
     },
-    "/thumbnails": {
-      "target": "https://localhost:7252",
-      "secure": false,
-      "changeOrigin": true
-    }
   }
