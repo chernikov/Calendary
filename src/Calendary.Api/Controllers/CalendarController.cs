@@ -93,6 +93,7 @@ namespace Calendary.Api.Controllers
                 return Unauthorized();
             }
             await calendarService.GeneratePdfAsync(user.Id, calendarId);
+            await CreateThumnail(calendarId);
             await calendarService.MakeNotCurrentAsync(user.Id, calendarId);
             return Ok();
         }
@@ -123,14 +124,19 @@ namespace Calendary.Api.Controllers
             }
 
             await calendarService.GeneratePdfAsync(user.Id, calendarId);
+           
+            await CreateThumnail(calendarId);
+            return Ok();
+        }
+
+        private async Task CreateThumnail(int calendarId)
+        {
             var images = await imageService.GetAllByCalendarIdAsync(calendarId);
 
             var imagePaths = images.Select(p => p.ImageUrl).ToList().ToArray();
-
             var fileName = $"{Guid.NewGuid()}.jpg";
             var thumbnailPath = await imageService.CreateCombinedThumbnailAsync(imagePaths, fileName, 117, 156);
             await calendarService.UpdatePreviewPathAsync(calendarId, thumbnailPath);
-            return Ok();
         }
     }
 }
