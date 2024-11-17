@@ -75,6 +75,12 @@ export class CartComponent implements OnInit {
   }
 
 
+  hasIncompleteCalendars(): boolean {
+    if (!this.order) 
+      return false;
+    return this.order.items.some(item => !item.calendar?.previewPath);
+  }
+  
   proceedToPayment() {
 
     this.cartService.summary().subscribe({
