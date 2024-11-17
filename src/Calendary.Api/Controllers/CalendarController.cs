@@ -13,6 +13,7 @@ namespace Calendary.Api.Controllers
     public class CalendarController(IUserService userService,
         IUserSettingService userSettingService,
         ICalendarService calendarService,
+        IImageService imageService,
         IMapper mapper) : BaseUserController(userService)
     {
 
@@ -122,6 +123,13 @@ namespace Calendary.Api.Controllers
             }
 
             await calendarService.GeneratePdfAsync(user.Id, calendarId);
+            var images = await imageService.GetAllByCalendarIdAsync(calendarId);
+
+            var imagePaths = images.Select(p => p.ImageUrl).ToList().ToArray();
+
+            var fileName = $"{Guid.NewGuid()}.jpg";
+            var thumbnailPath = await imageService.CreateCombinedThumbnailAsync(imagePaths, fileName, 117, 156);
+            await calendarService.UpdatePreviewPathAsync(calendarId, thumbnailPath);
             return Ok();
         }
     }
