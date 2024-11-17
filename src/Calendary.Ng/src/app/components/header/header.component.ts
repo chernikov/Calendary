@@ -35,14 +35,18 @@ export class HeaderComponent implements OnInit {
     if (token) {
       this.isLoggedIn = true;
       this.email = this.parseTokenEmail(token); // Парсимо email з токена
+      this.checkCart();
+    } else {
       this.isInited = true;
     }
+  }
 
+  checkCart() : void
+  {
     this.cartService.itemsInCart().subscribe((count) => {
       this.cartCount = count;
+      this.isInited = true;
     });
-
-    
   }
 
   // Парсимо токен, щоб отримати email (можна використовувати бібліотеку jwt-decode)

@@ -13,6 +13,8 @@
         public class CalendarDto
         {
             public int Id { get; set; }
+
+            public string? PreviewPath { get; set; }
         }
 
         public class UserDto

@@ -16,7 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 export class OrderComponent implements OnInit {
   order: SummaryOrder | null = null;
   errorMessage: string | null = null;
-
+  previewImage: string | null = null;
   constructor(
     private orderService: OrderService,
     private route: ActivatedRoute,
@@ -38,5 +38,18 @@ export class OrderComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/profile']); // Перенаправляє на сторінку профілю
+  }
+
+  
+  // Відкриття прев'ю
+  openPreview(imagePath: string | null | undefined): void {
+    if (imagePath) {
+      this.previewImage = imagePath;
+    }
+  }
+
+  // Закриття прев'ю
+  closePreview(): void {
+    this.previewImage = null;
   }
 }

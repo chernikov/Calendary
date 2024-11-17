@@ -43,7 +43,6 @@
         <th mat-header-cell *matHeaderCellDef> Елементи </th>
         <td mat-cell *matCellDef="let order">
             <div *ngFor="let item of order.items" class="order-item">
-                {{ item.calendar.year }} 
                 <a *ngIf="item.calendar.filePath" href="{{ item.calendar.filePath }}" target="_blank">PDF</a> - {{ item.quantity }} шт, {{ item.price | currency:'UAH' }}
            
               </div>

@@ -5,11 +5,12 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { RouterModule } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-profile-orders',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatPaginatorModule, RouterModule],
+  imports: [CommonModule, MatTableModule, MatPaginatorModule, MatButtonModule, RouterModule],
   templateUrl: './profile-orders.component.html',
   styleUrls: ['./profile-orders.component.scss'],
 })

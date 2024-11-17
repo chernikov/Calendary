@@ -18,7 +18,7 @@
       <ul class="list-group mb-3">
         <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let item of order.orderItems">
           <div>
-            <span class="item-name">{{ item.id }}</span>
+            <img [src]="item.calendar.previewPath" class="thumbnail" (mousedown)="openPreview(item.calendar.previewPath)" (mouseup)="closePreview()">
             <span class="item-quantity"> x {{ item.quantity }}</span>
           </div>
           <span class="text-primary">{{ item.price | currency:'UAH' }}</span>
@@ -32,3 +32,9 @@
       {{ errorMessage }}
     </div>
   </ng-template>
+
+  <!-- Модальне вікно для перегляду повного зображення -->
+  <div class="modal" *ngIf="previewImage">
+    <div class="modal-overlay" (click)="closePreview()"></div>
+    <img [src]="previewImage" class="modal-image">
+  </div>
