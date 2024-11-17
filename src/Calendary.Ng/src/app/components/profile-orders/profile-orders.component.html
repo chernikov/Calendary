@@ -9,7 +9,11 @@
         <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef> Замовлення </th>
             <td mat-cell *matCellDef="let order"> 
-                <a [routerLink]="['/order', order.id]" class="order-link">
+                
+                <a [routerLink]="['/cart']" class="order-link" *ngIf="order.status == 'Creating'">
+                    Замовлення #{{ order.id }}
+                  </a>
+                  <a [routerLink]="['/order', order.id]" class="order-link" *ngIf="order.status != 'Creating'">
                     Замовлення #{{ order.id }}
                   </a>
                 <p *ngIf="order.comment">Коментар: {{ order.comment }}</p>

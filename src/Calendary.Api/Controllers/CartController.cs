@@ -59,7 +59,6 @@ public class CartController : BaseUserController
             return NotFound();
         }
 
-        order.OrderItems = order.OrderItems.Where(p => p.Calendar.FilePath != null).ToList();
         var result = _mapper.Map<OrderDto>(order);
         return Ok(result);
     }

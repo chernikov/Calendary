@@ -103,8 +103,19 @@ input {
     border-radius: 12px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    margin: 20px auto 40px auto;
+    margin: 10px auto 40px auto;
+
+    
+    &:disabled {
+    background-color: #cccccc; /* Сірий фон для неактивної кнопки */
+    color: #666666; /* Темно-сірий текст */
+    cursor: not-allowed; /* Іконка забороненого доступу */
+    opacity: 0.8; /* Напівпрозорість для додаткового візуального ефекту */
+    pointer-events: none; /* Заборонити всі взаємодії */
 }
+}
+
+
 
 .secondary-button {
     width: 100%;
@@ -151,4 +162,10 @@ input {
     max-height: 80%;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  .error-message {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 10px;
   }

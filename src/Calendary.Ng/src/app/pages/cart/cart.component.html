@@ -1,11 +1,11 @@
 <div class="cart-container" *ngIf="order">
   <h2>Кошик</h2>
-
   <div class="cart-items">
     <div *ngFor="let item of order.items" class="cart-item">
       <span class="title">#{{ item.calendar?.id }}</span>
-      <img [src]="item.calendar?.previewPath" class="thumbnail" (mousedown)="openPreview(item.calendar?.previewPath)"
+      <img *ngIf="item.calendar?.previewPath" [src]="item.calendar?.previewPath" class="thumbnail" (mousedown)="openPreview(item.calendar?.previewPath)"
         (mouseup)="closePreview()">
+      <a *ngIf="!item.calendar?.previewPath" [routerLink]="['/calendar']">Продовжити редагування</a>
       <input class="input" type="number" [(ngModel)]="item.quantity" min="1" (change)="onUpdateItem(item)">
       <span>{{ item.price }} грн</span>
       <button (click)="removeItem(item.id)" class="delete-button">видалити</button>
@@ -30,7 +30,10 @@
 
   <!-- Підключаємо компонент доставки -->
   <app-delivery></app-delivery>
-  <button class="checkout-button" (click)="proceedToPayment()">
+  <p *ngIf="hasIncompleteCalendars()" class="error-message">
+    Завершіть редагування всіх календарів перед переходом до оплати.
+  </p>
+  <button class="checkout-button" (click)="proceedToPayment()" [disabled]="hasIncompleteCalendars()">
     Перейти до оплати
   </button>
 
