@@ -30,7 +30,7 @@ public interface IImageService
 public class ImageService(IImageRepository imageRepository, IPathProvider pathProvider) : IImageService
 {
 
-    private static string ThumbnailDirPath = "thumbnails";
+    private static string ThumbnailDirPath = "uploads";
     public Task SaveAsync(ImageModel image)
         => imageRepository.AddAsync(image);
 
