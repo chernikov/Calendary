@@ -6,6 +6,7 @@ namespace Calendary.Core.Services;
 
 public interface IOrderService
 {
+    Task<Order?> GetOrderAsync(int orderId);
     Task<Order?> GetFullCreatingOrderAsync(int userId);
 
     Task<Order?> GetFullOrderAsync(int orderId);
@@ -17,6 +18,8 @@ public interface IOrderService
     Task UpdateOrderDeliveryAsync(Order updatedOrder);
     Task UpdateOrderStatusAsync(Order updatedOrder);
 
+    Task UpdateOrderCommentAsync(Order updatedOrder);
+
     Task<(List<Order>, int)> GetOrdersWithPagingAsync(int userId, int page, int pageSize);
 
     Task<(List<Order>, int)> GetAllOrdersWithPagingAsync(int page, int pageSize);
@@ -24,6 +27,9 @@ public interface IOrderService
 
 internal class OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository) : IOrderService
 {
+    public Task<Order?> GetOrderAsync(int orderId)
+        => orderRepository.GetByIdAsync(orderId);
+
     public Task<Order?> GetFullCreatingOrderAsync(int userId)
         => orderRepository.GetFullOrderByStatusAsync(userId, "Creating");
 
@@ -96,6 +102,19 @@ internal class OrderService(IOrderRepository orderRepository, IOrderItemReposito
     public Task<(List<Order>, int)> GetAllOrdersWithPagingAsync(int page, int pageSize)
         => orderRepository.GetAllOrdersWithPagingAsync(page, pageSize);
 
+  
+
+    public async Task UpdateOrderCommentAsync(Order updatedOrder)
+    {
+        var existingOrder = await orderRepository.GetByIdAsync(updatedOrder.Id);
+        if (existingOrder is null)
+        {
+            return;
+        }
+
+        existingOrder.Comment = updatedOrder.Comment;
+        await orderRepository.UpdateAsync(existingOrder);
+    }
 }
 
 

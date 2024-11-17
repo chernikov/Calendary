@@ -74,6 +74,21 @@ input {
     font-size: 12px;
 }
 
+.comment-section {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .comment-input {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+  }
+
 
 .checkout-button {
     width: 100%;
