@@ -12,6 +12,7 @@ public interface ICalendarRepository : IRepository<Calendar>
 
     Task<Calendar?> GetFullCalendarAsync(int id);
     Task SaveFileAsync(int calendarId, string pdfFile);
+    Task UpdatePreviewPathAsync(int calendarId, string thumbnailPath);
 }
 
 public class CalendarRepository : ICalendarRepository
@@ -109,6 +110,16 @@ public class CalendarRepository : ICalendarRepository
         if (calendar != null)
         {
             calendar.FilePath = pdfFile;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task UpdatePreviewPathAsync(int calendarId, string thumbnailPath)
+    {
+        var calendar = await _context.Calendars.FindAsync(calendarId);
+        if (calendar != null)
+        {
+            calendar.PreviewPath = thumbnailPath;
             await _context.SaveChangesAsync();
         }
     }

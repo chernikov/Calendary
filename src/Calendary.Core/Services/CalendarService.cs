@@ -16,7 +16,10 @@ public interface ICalendarService
     Task GeneratePdfAsync(int userId, int calendarId);
 
     Task MakeNotCurrentAsync(int userId, int calendarId);
+
     Task DeleteAsync(int calendarId);
+
+    Task UpdatePreviewPathAsync(int calendarId, string thumbnailPath);
 }
 
 public class CalendarService(
@@ -25,8 +28,8 @@ public class CalendarService(
     IOrderRepository orderRepository,
     IEventDateRepository eventDateRepository,
     IOrderItemRepository orderItemRepository,
-    IPriceService priceService,
     IHolidayRepository holidayRepository,
+    IPriceService priceService,
     IPdfGeneratorService pdfGeneratorService) 
     : ICalendarService
 {
@@ -158,4 +161,7 @@ public class CalendarService(
 
     public Task DeleteAsync(int calendarId)
         => calendarRepository.DeleteAsync(calendarId);
+
+    public Task UpdatePreviewPathAsync(int calendarId, string thumbnailPath)
+        => calendarRepository.UpdatePreviewPathAsync(calendarId, thumbnailPath);
 }

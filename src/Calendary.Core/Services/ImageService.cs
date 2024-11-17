@@ -1,6 +1,9 @@
-﻿using Calendary.Model;
-using Calendary.Repos.Repositories;
-using System.Globalization;
+﻿using Calendary.Repos.Repositories;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using ImageModel = Calendary.Model.Image;
+using Calendary.Core.Providers;
 
 namespace Calendary.Core.Services;
 
@@ -8,31 +11,37 @@ public interface IImageService
 {
     Task<short> GetNotFilledMonthAsync(int calendarId);
 
-    Task SaveAsync(Image image);
+    Task SaveAsync(ImageModel image);
 
-    Task<IEnumerable<Image>> GetAllByCalendarIdAsync(int calendarId);
+    Task<IEnumerable<ImageModel>> GetAllByCalendarIdAsync(int calendarId);
 
-    Task<Image?> GetByIdAsync(int imageId);
+    Task<ImageModel?> GetByIdAsync(int imageId);
 
     Task DeleteImagesByCalendarIdAsync(int calendarId);
 
-    Task DeleteAsync(Image image);
-    
+    Task DeleteAsync(ImageModel image);
+
+    Task<string> CreateCombinedThumbnailAsync(string[] imagePaths, 
+        string fileName, int thumbnailWidth, int thumbnailHeight);
+
+
 }
 
-public class ImageService(IImageRepository imageRepository) : IImageService
+public class ImageService(IImageRepository imageRepository, IPathProvider pathProvider) : IImageService
 {
-    public Task SaveAsync(Image image)
+
+    private static string ThumbnailDirPath = "thumbnails";
+    public Task SaveAsync(ImageModel image)
         => imageRepository.AddAsync(image);
 
 
-    public Task<IEnumerable<Image>> GetAllByCalendarIdAsync(int calendarId)
+    public Task<IEnumerable<ImageModel>> GetAllByCalendarIdAsync(int calendarId)
         => imageRepository.GetAllByCalendarIdAsync(calendarId);
     
-    public Task<Image?> GetByIdAsync(int imageId)
+    public Task<ImageModel?> GetByIdAsync(int imageId)
         => imageRepository.GetByIdAsync(imageId);
 
-    public async Task DeleteAsync(Image image)
+    public async Task DeleteAsync(ImageModel image)
     {
         var file = image.ImageUrl;
         if (File.Exists(file))
@@ -72,5 +81,57 @@ public class ImageService(IImageRepository imageRepository) : IImageService
         }
         return 0;
         
+    }
+
+    public async Task<string> CreateCombinedThumbnailAsync(string[] imagePaths, string fileName,
+        int thumbnailWidth, int thumbnailHeight)
+    {
+        int imagesPerRow = 6; // Наприклад, 4 зображення в рядку
+        int rows = (int)Math.Ceiling(imagePaths.Length / (double)imagesPerRow);
+
+        // Розраховуємо розмір фінального зображення
+        int combinedWidth = imagesPerRow * thumbnailWidth;
+        int combinedHeight = rows * thumbnailHeight;
+
+        // Створюємо фінальне зображення
+        using (var combinedImage = new Image<Rgba32>(combinedWidth, combinedHeight))
+        {
+            int x = 0, y = 0;
+
+            foreach (var path in imagePaths)
+            {
+                var destPath = pathProvider.MapPath(path);
+                // Завантажуємо кожне зображення
+                using (var image = Image.Load<Rgba32>(destPath))
+                {
+                    // Масштабуємо до розміру прев'ю
+                    image.Mutate(i => i.Resize(thumbnailWidth, thumbnailHeight));
+
+                    // Малюємо зображення на фінальному полотні
+                    combinedImage.Mutate(ctx => ctx.DrawImage(image, new Point(x, y), 1f));
+                }
+
+                // Зсуваємо позицію
+                x += thumbnailWidth;
+                if (x >= combinedWidth)
+                {
+                    x = 0;
+                    y += thumbnailHeight;
+                }
+            }
+
+            // Зберігаємо фінальне зображення
+            string outputFileName = Path.Combine(ThumbnailDirPath, fileName);
+            var ouputPath = pathProvider.MapPath(outputFileName);
+
+            // Create directory if not exists
+            var directory = pathProvider.MapPath(ThumbnailDirPath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            await combinedImage.SaveAsync(ouputPath);
+            return outputFileName;
+        }
     }
 }

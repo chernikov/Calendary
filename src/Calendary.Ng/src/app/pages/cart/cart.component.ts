@@ -24,6 +24,7 @@ export class CartComponent implements OnInit {
 
   order: Order | null = null;
   delivery: any = {};
+  previewImage: string | null = null;
   
   constructor(private cartService: CartService, 
     private paymentService: PaymentService,
@@ -123,5 +124,18 @@ export class CartComponent implements OnInit {
   
   redirectToPayment(redirect: PaymentRedirect) {
     window.open(redirect.paymentPage, '_blank');
+  }
+
+
+  // Відкриття прев'ю
+  openPreview(imagePath: string | null | undefined): void {
+    if (imagePath) {
+      this.previewImage = imagePath;
+    }
+  }
+
+  // Закриття прев'ю
+  closePreview(): void {
+    this.previewImage = null;
   }
 }

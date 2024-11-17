@@ -6,4 +6,5 @@ export class Calendar {
     firstDayOfWeek: DayOfWeek = DayOfWeek.Monday;
     languageId: number = 0;
     filePath : string | null = null;
+    previewPath : string | null = null;
   }
