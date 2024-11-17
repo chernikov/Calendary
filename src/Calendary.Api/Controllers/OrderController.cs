@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Calendary.Api.Dtos;
+using Calendary.Api.Dtos.Requests;
 using Calendary.Api.Dtos.Results;
 using Calendary.Core.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -67,5 +68,32 @@ public class OrderController : BaseUserController
         };
 
         return Ok(result);
+    }
+
+
+    [HttpPut("comment")]
+    public async Task<IActionResult> UpdateComment([FromBody] UpdateCommentRequest request)
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        var order = await _orderService.GetOrderAsync(request.Id);
+        if (order == null)
+        {
+            return NotFound("Замовлення не знайдено.");
+        }
+
+        if (order.UserId != user.Id)
+        {
+            return Forbid("Замовлення не належить поточному користувачу.");
+        }
+
+        // Оновлюємо коментар
+        order.Comment = request.Comment;
+        await _orderService.UpdateOrderCommentAsync(order);
+        return Ok(new { result = "OK" });
     }
 }

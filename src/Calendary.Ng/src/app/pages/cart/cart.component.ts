@@ -12,6 +12,7 @@ import { ConfirmationModalComponent } from '../../components/confirmation-modal/
 import { OrderSummaryModalComponent } from '../../components/order-summary-modal/order-summary-modal.component';
 import { SummaryOrder } from '../../../models/summary-order';
 import { PaymentRedirect } from '../../../models/payment.redirect';
+import { OrderService } from '../../../services/order.service';
 @Component({
   selector: 'app-cart',
   standalone: true,
@@ -26,8 +27,10 @@ export class CartComponent implements OnInit {
   delivery: any = {};
   previewImage: string | null = null;
   
-  constructor(private cartService: CartService, 
+  constructor(
+    private cartService: CartService, 
     private paymentService: PaymentService,
+    private orderService: OrderService,
     public dialog: MatDialog // Додаємо MatDialog для роботи з модальними вікнами
   ) {}
 
@@ -137,5 +140,16 @@ export class CartComponent implements OnInit {
   // Закриття прев'ю
   closePreview(): void {
     this.previewImage = null;
+  }
+
+   // Оновлення коментаря
+   onCommentChange(): void {
+    if (this.order) 
+      {
+      this.orderService.updateComment(this.order!).subscribe({
+        next: () => console.log('Коментар збережено'),
+        error: (err) => console.error('Помилка при збереженні коментаря', err)
+      });
+    }
   }
 }
