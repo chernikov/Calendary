@@ -23,6 +23,7 @@ public static class DependencyRegistration
         services.AddScoped<IImageRotatorService, ImageRotatorService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPriceService, PriceService>();
+        services.AddScoped<IWebHookService, WebHookService>();
 
         services.AddScoped<IEmailSender, SendGridSender>();
         services.AddScoped<IEmailService, EmailService>();
