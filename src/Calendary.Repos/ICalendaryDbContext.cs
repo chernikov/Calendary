@@ -23,7 +23,9 @@ public interface ICalendaryDbContext
     DbSet<VerificationEmailCode> VerificationEmailCodes { get; set; }
     DbSet<VerificationPhoneCode> VerificationPhoneCodes { get; set; }
 
-    
+    DbSet<WebHook> WebHooks { get; set; }
+
+
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

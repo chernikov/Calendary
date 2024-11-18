@@ -41,6 +41,8 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     public DbSet<VerificationPhoneCode> VerificationPhoneCodes { get; set; }
 
+    public DbSet<WebHook> WebHooks { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserRole>()
