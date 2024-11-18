@@ -125,7 +125,7 @@ public class CalendarService(
     {
         var calendar = await calendarRepository.GetFullCalendarAsync(calendarId);
 
-        if (calendar is null || calendar.UserId != userId)
+        if (calendar is null /*|| calendar.UserId != userId*/)
         {
             return;
         }
