@@ -11,6 +11,7 @@ using System.Globalization;
 using ImagePdf = iText.Layout.Element.Image;
 using CalendarModel = Calendary.Model.Calendar;
 using Calendary.Core.Providers;
+using iText.Layout.Borders;
 
 namespace Calendary.Core.Services;
 
@@ -64,8 +65,8 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
                         AddImageOnPage(images[i], pdf, document);
                         AddHeaderOfPage(calendar.Language.Code, months[i], document);
 
-                         Table table = CreateTable(calendar, days, i);
-                         document.Add(table);
+                        var table = CreateTable(calendar, days, i);
+                        document.Add(table);
                         if (i + 1 < months.Length)
                         {
                             document.Add(new AreaBreak());
@@ -96,13 +97,21 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
         // Створюємо таблицю з 7 стовпцями (дні тижня)
         Table table = new Table(UnitValue.CreatePercentArray(7)).UseAllAvailableWidth();
 
+        // Колір рамки
+        var borderColor = new DeviceRgb(211, 211, 211); // Світло-сірий (LightGray)
+
+        // Внутрішній відступ для клітинок
+        float cellPadding = 4f;
+
         // Додаємо заголовки для днів тижня
         foreach (var day in days)
         {
             table.AddHeaderCell(new Cell().Add(new Paragraph(day))
                 .SetFont(Font)
+                .SetFontSize(18)
                 .SetTextAlignment(TextAlignment.CENTER)
-                .SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+                .SetBorder(null)
+                .SetPadding(cellPadding)); // Відступи всередині заголовку
         }
 
         // Визначаємо кількість днів у поточному місяці
@@ -115,26 +124,35 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
         // Додаємо порожні клітинки перед першим днем місяця
         for (int i = 0; i < startDayOfWeek; i++)
         {
-            table.AddCell(new Cell().Add(new Paragraph("")).SetHeight(50));
+            table.AddCell(new Cell().Add(new Paragraph(""))
+                .SetBorder(new SolidBorder(borderColor, 1))); // Відступи для порожніх клітинок
         }
 
         // Додаємо дні місяця в таблицю
         for (int day = 1; day <= daysInMonth; day++)
         {
-            DateTime currentDate = new DateTime(calendar.Year, monthIndex + 1, day);
+            var currentDate = new DateTime(calendar.Year, monthIndex + 1, day);
 
-            // Визначаємо колір шрифту
-            iText.Kernel.Colors.Color fontColor = GetFontColorForDay(currentDate, holidaysDtos, eventDateDtos);
+            // Визначаємо колір шрифту для дати
+            var fontColor = GetFontColorForDay(currentDate, holidaysDtos, eventDateDtos);
 
             // Отримуємо опис події або свята
             string description = GetEventDescription(day, monthIndex + 1, holidaysDtos, eventDateDtos);
 
-            Cell cell = new Cell().Add(new Paragraph($"{day}\n{description}")
-                .SetFont(Font).SetFontSize(10).SetFontColor(fontColor))
+            // Створюємо клітинку
+            Cell cell = new Cell()
                 .SetTextAlignment(TextAlignment.LEFT)
-                .SetVerticalAlignment(VerticalAlignment.TOP)
-                .SetHeight(50);
+                .SetVerticalAlignment(VerticalAlignment.TOP) // Вирівнювання по центру вертикалі
+                .SetHeight(60)
+                .SetBorder(new SolidBorder(borderColor, 1))
+                .SetPadding(cellPadding);
 
+            // Додаємо дату і опис в один рядок
+            Paragraph content = new Paragraph()
+                .Add(new Text($"{day} ").SetFont(Font).SetFontSize(18).SetFontColor(fontColor)) // Число
+                .Add(new Text(description).SetFont(Font).SetFontSize(10).SetFontColor(fontColor)); // Опис
+
+            cell.Add(content);
             table.AddCell(cell);
         }
 
@@ -142,13 +160,16 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
         int remainingCells = (7 - (startDayOfWeek + daysInMonth) % 7) % 7;
         for (int i = 0; i < remainingCells; i++)
         {
-            table.AddCell(new Cell().Add(new Paragraph("")).SetHeight(50));
+            table.AddCell(new Cell().Add(new Paragraph(""))
+                .SetHeight(60)
+                .SetBorder(new SolidBorder(borderColor, 1))
+                .SetPadding(cellPadding)); // Відступи для порожніх клітинок
         }
 
         return table;
     }
 
-    private iText.Kernel.Colors.Color GetFontColorForDay(DateTime date, HolidayDto[] holidays, EventDateDto[] eventDates)
+    private Color GetFontColorForDay(DateTime date, HolidayDto[] holidays, EventDateDto[] eventDates)
     {
         // Перевіряємо, чи є дата святом або важливою подією
         bool isHoliday = holidays.Any(h => h.Day == date.Day && h.Month == date.Month);
@@ -189,21 +210,21 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
     {
         // Масштабуємо зображення
         float pageWidth = pdf.GetDefaultPageSize().GetWidth();
-        float pageHeight = pdf.GetDefaultPageSize().GetHeight() / 2;
-        float scaleFactor = Math.Min(pageWidth / imagePdf.GetImageWidth(), pageHeight / imagePdf.GetImageHeight()) * 1.2f;
+        float pageHeight = pdf.GetDefaultPageSize().GetHeight() / 2f; // Зменшено висоту зображення
+        float scaleFactor = Math.Min(pageWidth / imagePdf.GetImageWidth(), pageHeight / imagePdf.GetImageHeight()) * 1.0f; // Трохи зменшено коефіцієнт
         imagePdf.Scale(scaleFactor, scaleFactor).SetHorizontalAlignment(HorizontalAlignment.CENTER);
     }
 
     private void AddHeaderOfPage(string langCode, string month, Document document)
     {
         // Capitalize the first letter of the month
-        string capitalizedMonth = new CultureInfo("uk-UA").TextInfo.ToTitleCase(month); 
+        string capitalizedMonth = new CultureInfo("uk-UA").TextInfo.ToTitleCase(month);
 
         // Add the capitalized month as the header
         Paragraph title = new Paragraph(capitalizedMonth)
             .SetFont(Font)
             .SetTextAlignment(TextAlignment.CENTER)
-            .SetFontSize(24);
+            .SetFontSize(30);
         document.Add(title);
     }
 
