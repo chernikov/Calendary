@@ -30,6 +30,14 @@ namespace Calendary.Repos
             services.AddScoped<IMonoWebhookEventRepository, MonoWebhookEventRepository>();
             services.AddScoped<IPaymentInfoRepository, PaymentInfoRepository>();
             services.AddScoped<IWebHookRepository, WebHookRepository>();
+            services.AddScoped<IFluxModelRepository, FluxModelRepository>();
+            services.AddScoped<IJobRepository, JobRepository>();
+            services.AddScoped<IJobTaskRepository, JobTaskRepository>();
+            services.AddScoped<IPhotoRepository, PhotoRepository>();
+            services.AddScoped<IPromptRepository, PromptRepository>();
+            services.AddScoped<IPromptThemeRepository, PromptThemeRepository>();
+            services.AddScoped<ITrainingRepository, TrainingRepository>();
+
 
             services.ApplyMigrationDb();
 

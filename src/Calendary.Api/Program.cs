@@ -15,7 +15,7 @@ builder.Services.AddCalendaryRepositories(connectionString);
 builder.Services.RegisterJwtAuthentication(builder.Configuration);
 builder.Services.RegisterPathProvider();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
-builder.Services.AddCoreServices();
+builder.Services.AddCoreServices(builder.Configuration);
 
 
 // Add services to the container.
