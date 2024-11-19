@@ -1,14 +1,18 @@
 ﻿using Calendary.Core.Senders;
 using Calendary.Core.Services;
+using Calendary.Core.Settings;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Calendary.Core;
 
 public static class DependencyRegistration
 {
-    public static IServiceCollection AddCoreServices(this IServiceCollection services)
+    public static IServiceCollection AddCoreServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddMemoryCache();
+
+        services.Configure<ReplicateSettings>(configuration.GetSection("ReplicateSettings"));
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
@@ -28,14 +32,13 @@ public static class DependencyRegistration
         services.AddScoped<IEmailSender, SendGridSender>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ISmsService, SmsService>();
-        
+
         services.AddHttpClient<INovaPostService, NovaPostService>();
 
         services.AddHttpClient<ISmsSender, SmsClubSender>();
 
         services.AddHttpClient<IPaymentService, MonoPaymentService>();
-
-
+        services.AddHttpClient<IReplicateService, ReplicateService>();
 
         return services;
     }
