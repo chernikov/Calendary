@@ -5,6 +5,9 @@ using Calendary.Consumer;
 using Microsoft.Extensions.Configuration;
 using Calendary.Consumer.Consumers;
 
+
+
+
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
@@ -12,8 +15,9 @@ IHost host = Host.CreateDefaultBuilder(args)
         var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
         services.AddCalendaryRepositories(connectionString);
 
-        // Реєстрація RabbitMQ Consumer
-        services.AddHostedService<JobTaskConsumer>();
+        services.AddSingleton<IRabbitMqService, RabbitMqService>();
+        services.AddTransient<CreatePredictionConsumer>();
+        services.AddHostedService<RabbitMqHostService>();
     })
     .Build();
 
