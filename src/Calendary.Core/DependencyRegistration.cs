@@ -29,12 +29,13 @@ public static class DependencyRegistration
         services.AddScoped<IPriceService, PriceService>();
         services.AddScoped<IWebHookService, WebHookService>();
 
-        services.AddScoped<IEmailSender, SendGridSender>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ISmsService, SmsService>();
 
         services.AddHttpClient<INovaPostService, NovaPostService>();
 
+        services.AddScoped<IEmailSender, SendGridSender>();
+        services.AddScoped<IRabbitMqSender, RabbitMqSender>();
         services.AddHttpClient<ISmsSender, SmsClubSender>();
 
         services.AddHttpClient<IPaymentService, MonoPaymentService>();
