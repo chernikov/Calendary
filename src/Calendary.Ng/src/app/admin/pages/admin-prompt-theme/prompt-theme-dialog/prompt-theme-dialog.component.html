@@ -1,0 +1,15 @@
+<h2 mat-dialog-title>{{ data?.id ? 'Редагувати тему' : 'Створити тему' }}</h2>
+<form [formGroup]="promptThemeForm" (ngSubmit)="onSave()">
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>Назва</mat-label>
+    <input matInput formControlName="name" />
+    <mat-error *ngIf="promptThemeForm.get('name')?.hasError('required')">Введіть назву</mat-error>
+    <mat-error *ngIf="promptThemeForm.get('name')?.hasError('maxlength')">Максимально 50 символів</mat-error>
+  </mat-form-field>
+  <div mat-dialog-actions>
+    <button mat-button (click)="onCancel()">Скасувати</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="promptThemeForm.invalid">
+      Зберегти
+    </button>
+  </div>
+</form>
