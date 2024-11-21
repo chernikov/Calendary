@@ -33,12 +33,15 @@ services:
     environment:
       - "ConnectionStrings__DefaultConnection=Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;"
       - "Jwt__Key=Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;"
-      - "NovaPost__ApiKey=" #add here
+      - "NovaPost__ApiKey=" #Add here
       - "NovaPost__EndPoint=https://api.novaposhta.ua/v2.0/json/"
-      - "SendGrid__ApiKey=" #add here
-      - "SmsClub__ApiKey=" #add here
-      - "MonoBank__MerchantToken=" #add here
-      - "ReplicateSettings__ApiKey=" #add here
+      - "SendGrid__ApiKey=" #Add here
+      - "SmsClub__ApiKey=" #Add here
+      - "MonoBank__MerchantToken=" #Add here
+      - "ReplicateSettings__ApiKey=" #Add here
+      - "RabbitMQ__Host=calendary_rabbitmq"
+      - "RabbitMQ__User=user"
+      - "RabbitMQ__Password=Gz8!vLk3NpQwX@2rY4&"
     ports:
      - "8080:8080"
     volumes:
@@ -70,6 +73,7 @@ services:
       RabbitMQ__Host: calendary_rabbitmq
       RabbitMQ__User: user
       RabbitMQ__Password: Gz8!vLk3NpQwX@2rY4&
+      ConnectionStrings__DefaultConnection: Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;
     restart: always
     networks:
       - "calendary"

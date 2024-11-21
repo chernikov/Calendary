@@ -11,8 +11,16 @@ using Calendary.Consumer.Consumers;
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
+
+        var host = context.Configuration["RabbitMQ:Host"];
+        var user = context.Configuration["RabbitMQ:User"];
+        var password = context.Configuration["RabbitMQ:Password"];
+
+        Console.WriteLine($"{host} {user} {password}");
         // Підключення до бази даних
-        var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
+        var connectionString = context.Configuration.GetConnectionString("DefaultConnection")
+                ?? throw new Exception("Can't find connection string with name DefaultConnection");
+        Console.WriteLine(connectionString);
         services.AddCalendaryRepositories(connectionString);
 
         services.AddSingleton<IRabbitMqService, RabbitMqService>();
