@@ -15,6 +15,8 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { CartComponent } from './pages/cart/cart.component';
 import { OrderComponent } from './pages/order/order.component';
 import { AdminPromptThemeComponent } from './admin/pages/admin-prompt-theme/admin-prompt-theme.component';
+import { AdminPromptComponent } from './admin/pages/admin-prompt/admin-prompt.component';
+import { EditPromptComponent } from './admin/pages/admin-prompt/edit-prompt/edit-prompt.component';
 
 
 export const routes: Routes = [
@@ -29,6 +31,9 @@ export const routes: Routes = [
           { path: 'holiday', component: HolidayComponent },
           { path: 'orders', component: AdminOrderComponent },
           { path: 'prompt-themes', component: AdminPromptThemeComponent },
+          { path: 'prompts', component: AdminPromptComponent },
+          { path: 'prompts/edit/:id', component: EditPromptComponent },
+          { path: 'prompts/create', component: EditPromptComponent }
         ],
       }
     ],

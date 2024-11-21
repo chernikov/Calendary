@@ -5,6 +5,10 @@ namespace Calendary.Repos.Repositories;
 
 public interface IPromptRepository : IRepository<Prompt>
 {
+    
+    Task<IEnumerable<Prompt>> GetFullAllAsync();
+
+    Task<IEnumerable<Prompt>> GetFullByThemeIdAsync(int themeId);
 }
 
 public class PromptRepository : IPromptRepository
@@ -19,6 +23,19 @@ public class PromptRepository : IPromptRepository
     public async Task<IEnumerable<Prompt>> GetAllAsync()
     {
         return await _context.Prompts.ToListAsync();
+    }
+
+    public async Task<IEnumerable<Prompt>> GetFullAllAsync()
+    {
+        return await _context.Prompts
+            .Include(p => p.Theme).ToListAsync();
+    }
+
+    public async Task<IEnumerable<Prompt>> GetFullByThemeIdAsync(int themeId)
+    {
+        return await _context.Prompts
+            .Include(p => p.Theme)
+            .Where(p => p.ThemeId == themeId).ToListAsync();
     }
 
     public async Task<Prompt?> GetByIdAsync(int id)
@@ -47,4 +64,6 @@ public class PromptRepository : IPromptRepository
             await _context.SaveChangesAsync();
         }
     }
+
+  
 }
