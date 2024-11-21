@@ -28,6 +28,7 @@ public static class DependencyRegistration
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPriceService, PriceService>();
         services.AddScoped<IWebHookService, WebHookService>();
+        services.AddScoped<IPromptThemeService, PromptThemeService>();
 
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ISmsService, SmsService>();

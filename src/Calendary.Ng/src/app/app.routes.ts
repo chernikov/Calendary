@@ -14,6 +14,7 @@ import { AdminHomeComponent } from './admin/pages/admin-home/admin-home.componen
 import { ProfileComponent } from './pages/profile/profile.component';
 import { CartComponent } from './pages/cart/cart.component';
 import { OrderComponent } from './pages/order/order.component';
+import { AdminPromptThemeComponent } from './admin/pages/admin-prompt-theme/admin-prompt-theme.component';
 
 
 export const routes: Routes = [
@@ -27,6 +28,7 @@ export const routes: Routes = [
           { path: '', component: AdminHomeComponent},
           { path: 'holiday', component: HolidayComponent },
           { path: 'orders', component: AdminOrderComponent },
+          { path: 'prompt-themes', component: AdminPromptThemeComponent },
         ],
       }
     ],

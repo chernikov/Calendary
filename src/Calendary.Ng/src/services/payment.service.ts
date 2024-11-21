@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SummaryOrder } from '../models/summary-order';
-import { PaymentRedirect } from '../models/payment.redirect';
+import { PaymentRedirect } from '../models/payment-redirect';
 
 @Injectable({
   providedIn: 'root'

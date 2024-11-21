@@ -11,7 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationModalComponent } from '../../components/confirmation-modal/confirmation-modal.component';
 import { OrderSummaryModalComponent } from '../../components/order-summary-modal/order-summary-modal.component';
 import { SummaryOrder } from '../../../models/summary-order';
-import { PaymentRedirect } from '../../../models/payment.redirect';
+import { PaymentRedirect } from '../../../models/payment-redirect';
 import { OrderService } from '../../../services/order.service';
 @Component({
   selector: 'app-cart',
