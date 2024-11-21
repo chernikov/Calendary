@@ -1,4 +1,6 @@
-﻿namespace Calendary.Model;
+﻿using Calendary.Model.Enums;
+
+namespace Calendary.Model;
 
 public class FluxModel
 {
@@ -8,7 +10,7 @@ public class FluxModel
     public string Description { get; set; } = string.Empty;
     public string ReplicateId { get; set; } = string.Empty;
     public string Status { get; set; } = "prepared"; // ENUM: prepared, inprogress, failed, ready
-    public string Gender { get; set; } = "unknown"; // ENUM: male, female, non-binary, unknown
+    public GenderEnum Gender { get; set; } = GenderEnum.Male; 
     public string ArchiveUrl { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }

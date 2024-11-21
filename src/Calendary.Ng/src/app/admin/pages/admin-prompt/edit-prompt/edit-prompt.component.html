@@ -1,0 +1,31 @@
+<div class="edit-prompt-container">
+    <h2>{{ isEditMode ? 'Змінити промпт' : 'Створити промпт' }}</h2>
+    <form [formGroup]="promptForm" (ngSubmit)="onSubmit()">
+      <mat-form-field class="full-width">
+        <mat-label>Тема</mat-label>
+        <mat-select formControlName="themeId" required>
+            <mat-option *ngFor="let theme of themes" [value]="theme.id">{{ theme.name }}</mat-option>
+          </mat-select>
+        <mat-error *ngIf="promptForm.get('themeId')?.hasError('required')">Тема є обов'язковою</mat-error>
+      </mat-form-field>
+  
+      <mat-form-field class="full-width">
+        <mat-label>Стать</mat-label>
+        <mat-select formControlName="gender">
+          <mat-option [value]="0">Чоловік</mat-option>
+          <mat-option [value]="1">Жінка</mat-option>
+        </mat-select>
+      </mat-form-field>
+  
+      <mat-form-field class="full-width">
+        <mat-label>Текст</mat-label>
+        <textarea matInput formControlName="text" class="edit-text"></textarea>
+        <mat-error *ngIf="promptForm.get('text')?.hasError('required')">Введіть текст</mat-error>
+      </mat-form-field>
+  
+      <div class="actions">
+          <button mat-raised-button color="warn" type="button" (click)="onCancel()">Cancel</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="promptForm.invalid">Save</button>
+      </div>
+    </form>
+  </div>

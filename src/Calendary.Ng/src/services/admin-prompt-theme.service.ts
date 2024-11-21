@@ -12,10 +12,10 @@ export class AdminPromptThemeService {
     constructor(private http: HttpClient) {}
 
     getAll(): Observable<PromptTheme[]> {
-        return this.http.get<any[]>(`${this.apiUrl}`);
+        return this.http.get<PromptTheme[]>(`${this.apiUrl}`);
     }
 
-    getById(id: string): Observable<PromptTheme> {
+    getById(id: number): Observable<PromptTheme> {
         return this.http.get<PromptTheme>(`${this.apiUrl}/${id}`);
     }
 
