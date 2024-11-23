@@ -5,6 +5,7 @@ namespace Calendary.Repos.Repositories;
 
 public interface IPhotoRepository : IRepository<Photo>
 {
+    Task<IReadOnlyCollection<Photo>> GetByFluxModelIdAsync(int fluxModelId);
 }
 
 public class PhotoRepository : IPhotoRepository
@@ -47,4 +48,12 @@ public class PhotoRepository : IPhotoRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<IReadOnlyCollection<Photo>> GetByFluxModelIdAsync(int fluxModelId)
+    {
+        return await _context.Photos
+            .Where(p => p.FluxModelId == fluxModelId)
+            .ToListAsync();
+    }
+    
 }

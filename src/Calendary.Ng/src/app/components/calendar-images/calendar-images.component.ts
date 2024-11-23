@@ -4,7 +4,6 @@ import { FileUploader, FileUploadModule } from 'ng2-file-upload';
 import { ImageService } from '../../../services/image.service';
 import { Image } from '../../../models/image';
 import { MatIconModule } from '@angular/material/icon';
-import { CalendarService } from '../../../services/calendar.service';
 import { ImageItemComponent } from '../image-item/image-item.component';
 @Component({
   selector: 'app-calendar-images',

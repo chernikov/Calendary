@@ -1,0 +1,40 @@
+<div class="upload-photos" *ngIf="fluxModel">
+  
+  <h2>📸 Завантаження фотографій</h2>
+
+  <p class="upload-info">
+    Завантажте <strong>мінімум 12 фото</strong> для створення моделі.
+  </p>
+  <!-- File uploader -->
+  <div class="file-input-container">
+    <input
+      type="file"
+      id="fileInput"
+      ng2FileSelect
+      [uploader]="uploader"
+      multiple
+      class="file-input"
+    />
+    <label for="fileInput" class="file-label">Виберіть фото</label>
+  </div>
+
+  <p class="file-count" *ngIf="uploader.queue.length > 0">
+    Вибрано <strong>{{ uploader.queue.length }}</strong> фото
+  </p>
+
+  <button
+    (click)="uploadPhotos()"
+    [disabled]="uploader.queue.length < 12"
+    class="upload-btn"
+  >
+    Завантажити
+  </button>
+
+  <!-- Прогрес завантаження -->
+  <div *ngIf="uploading" class="progress-container">
+    <p>Завантаження триває...</p>
+    <progress max="100" [value]="progress" class="progress-bar"></progress>
+  </div>
+
+  <p *ngIf="uploadSuccess" class="success-message">✅ Завантаження завершено!</p>
+</div>

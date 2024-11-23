@@ -30,6 +30,8 @@ public static class DependencyRegistration
         services.AddScoped<IWebHookService, WebHookService>();
         services.AddScoped<IPromptThemeService, PromptThemeService>();
         services.AddScoped<IPromptService, PromptService>();
+        services.AddScoped<IPhotoService, PhotoService>();
+        services.AddScoped<IFluxModelService, FluxModelService>();
 
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ISmsService, SmsService>();

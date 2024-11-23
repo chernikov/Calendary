@@ -1,0 +1,39 @@
+<div class="master-container">
+    <h1>Календар Мрій</h1>
+
+
+    <div *ngIf="fluxModel">
+      <p><strong>ID:</strong> {{ fluxModel.id }}</p>
+      <p><strong>Назва:</strong> {{ fluxModel.name }}</p>
+      <p><strong>Статус:</strong> {{ fluxModel.status }}</p>
+      <p><strong>Стать:</strong> {{ fluxModel.gender === 0 ? 'Чоловіча' : 'Жіноча' }}</p>
+      <p><strong>Архів:</strong> {{ fluxModel.archiveUrl }}</p>
+    </div>
+
+     <!-- FluxModel Component -->
+    <app-flux-model (onUpdate)="onUpdateFluxModel($event)" *ngIf="!fluxModel"></app-flux-model>
+    
+    <!-- Завантаження фото -->
+    <app-photo-upload [fluxModel]="fluxModel" *ngIf="fluxModel && fluxModel.status === 'Creating'"></app-photo-upload>
+  
+    <!-- Генерація -->
+    <app-generation-status *ngIf="fluxModel && fluxModel.status === 'Prepared'"></app-generation-status>
+  
+    <!-- Результати генерації -->
+    <app-generation-results></app-generation-results>
+  
+    <!-- Вибір теми промптів -->
+    <app-prompt-selection></app-prompt-selection>
+  
+    <!-- Результати з тренувань -->
+    <app-prompt-results></app-prompt-results>
+  
+    <!-- Місяці календаря -->
+    <app-calendar-months></app-calendar-months>
+  
+    <!-- Важливі дати календаря -->
+    <app-calendar-dates></app-calendar-dates>
+  
+    <!-- Кнопка додати до кошика -->
+    <app-cart-button></app-cart-button>
+  </div>

@@ -11,9 +11,11 @@ public class FluxModel
     public string ReplicateId { get; set; } = string.Empty;
     public string Status { get; set; } = "prepared"; // ENUM: prepared, inprogress, failed, ready
     public GenderEnum Gender { get; set; } = GenderEnum.Male; 
-    public string ArchiveUrl { get; set; } = string.Empty;
+    public string? ArchiveUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
+
+    public bool IsPaid { get; set; } // Поле оплати
 
     // Навігаційні властивості
 

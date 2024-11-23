@@ -5,6 +5,7 @@ namespace Calendary.Repos.Repositories;
 
 public interface IFluxModelRepository : IRepository<FluxModel>
 {
+    Task<FluxModel?> GetCurrentByUserIdAsync(int useId);
 }
 
 public class FluxModelRepository : IFluxModelRepository
@@ -21,10 +22,20 @@ public class FluxModelRepository : IFluxModelRepository
         return await _context.FluxModels.ToListAsync();
     }
 
+    
     public async Task<FluxModel?> GetByIdAsync(int id)
     {
         return await _context.FluxModels.FindAsync(id);
     }
+
+    public async Task<FluxModel?> GetCurrentByUserIdAsync(int userId)
+    {
+        return await _context.FluxModels
+            .Where(fm => fm.UserId == userId)
+            .OrderByDescending(fm => fm.Id)
+            .FirstOrDefaultAsync();
+    }
+
 
     public async Task AddAsync(FluxModel entity)
     {
@@ -47,4 +58,6 @@ public class FluxModelRepository : IFluxModelRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    
 }
