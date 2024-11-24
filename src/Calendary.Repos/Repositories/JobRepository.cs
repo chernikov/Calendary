@@ -5,6 +5,7 @@ namespace Calendary.Repos.Repositories;
 
 public interface IJobRepository : IRepository<Job>
 {
+    Task<Job?> GetJobWithTasksAsync(int id);
 }
 
 public class JobRepository : IJobRepository
@@ -47,4 +48,10 @@ public class JobRepository : IJobRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public Task<Job?> GetJobWithTasksAsync(int id)
+        => _context.Jobs
+            .Include(job => job.Tasks)
+                .ThenInclude(jobTask => jobTask.Prompt)
+            .FirstOrDefaultAsync(job => job.Id == id);
 }

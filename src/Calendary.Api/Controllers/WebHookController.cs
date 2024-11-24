@@ -26,6 +26,8 @@ public class WebHookController(IWebHookService webHookService,
         {
             var replicateId = trainModelResponse.Id;
             var newStatus = trainModelResponse.Status;
+            var version = trainModelResponse.Version;
+
 
             if (!string.IsNullOrEmpty(replicateId) && !string.IsNullOrEmpty(newStatus))
             {
@@ -36,13 +38,16 @@ public class WebHookController(IWebHookService webHookService,
                 if (trainingRecord is not null)
                 {
                     await trainingService.UpdateStatusAsync(trainingRecord.Id, newStatus);
+                    await trainingService.UpdateVersionAsync(trainingRecord.Id, version);
 
 
                     var fluxModel = await fluxModelService.GetByIdAsync(trainingRecord.FluxModelId);
                     if (fluxModel is not null)
                     {
                         fluxModel.Status = "succeeded";
+                        fluxModel.Version = version;
                         await fluxModelService.UpdateStatusAsync(fluxModel);
+                        await fluxModelService.UpdateVersionAsync(fluxModel);
                     }
 
                 }

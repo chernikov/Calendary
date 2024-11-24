@@ -1,4 +1,5 @@
-﻿using Calendary.Core.Services.Models;
+﻿using Calendary.Core.Providers;
+using Calendary.Core.Services.Models;
 using Calendary.Core.Settings;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
@@ -18,16 +19,22 @@ public interface IReplicateService
     Task CancelTrainingAsync(string replicateId);
 
     Task<TrainModelResponse> GetTrainingStatusAsync(string replicateId);
+
+    Task<string> DownloadAndSaveImageAsync(string imageUrl);
 }
 
 public class ReplicateService : IReplicateService
 {
     private readonly HttpClient _httpClient;
+    private readonly IPathProvider _pathProvider;
     private readonly ReplicateSettings _settings;
 
-    public ReplicateService(HttpClient httpClient, IOptions<ReplicateSettings> settings)
+    public ReplicateService(HttpClient httpClient, 
+            IOptions<ReplicateSettings> settings,
+            IPathProvider pathProvider)
     {
         _httpClient = httpClient;
+        _pathProvider = pathProvider;
         _settings = settings.Value;
     }
 
@@ -96,11 +103,17 @@ public class ReplicateService : IReplicateService
             Input = input
         };
 
-        var response = await _httpClient.PostAsync(
-            "https://api.replicate.com/v1/predictions",
-            new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
-        );
+        var json = JsonSerializer.Serialize(requestBody);
+        var reqContent = new StringContent(json, Encoding.UTF8, "application/json");
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.replicate.com/v1/predictions")
+        {
+            Content = reqContent
+        };
 
+        // Додаємо заголовок Prefer
+        request.Headers.Add("Prefer", "wait");
+
+        var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<GenerateImageResponse>(content)!;
@@ -133,5 +146,35 @@ public class ReplicateService : IReplicateService
 
         var result = await response.Content.ReadFromJsonAsync<TrainModelResponse>();
         return result ?? throw new InvalidOperationException("Failed to deserialize training status response.");
+    }
+
+    public async Task<string> DownloadAndSaveImageAsync(string imageUrl)
+    {
+        try
+        {
+            // Завантаження зображення через HttpClient
+            var response = await _httpClient.GetAsync(imageUrl);
+            response.EnsureSuccessStatusCode();
+
+            // Отримання байтів зображення
+            var imageBytes = await response.Content.ReadAsByteArrayAsync();
+
+            // Формуємо шлях для збереження зображення
+            var fileName = $"{Guid.NewGuid()}.jpg"; // Генеруємо унікальне ім'я
+            var path = Path.Combine("uploads", fileName);
+            var realPath = _pathProvider.MapPath(path); // Каталог для збереження
+
+            // Збереження файлу
+            await File.WriteAllBytesAsync(realPath, imageBytes);
+
+            // Повертаємо відносний шлях (наприклад, для доступу через веб)
+            return path;
+        }
+        catch (Exception ex)
+        {
+            // Логування помилки
+            Console.WriteLine($"Error downloading image: {ex.Message}");
+            throw;
+        }
     }
 }

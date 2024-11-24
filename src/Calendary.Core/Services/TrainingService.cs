@@ -12,6 +12,7 @@ public interface ITrainingService
     Task<Training?> GetByReplicateIdAsync(string replicateId);
     Task<IEnumerable<Training>> GetAllAsync();
     Task UpdateStatusAsync(int trainingId, string status);
+    Task UpdateVersionAsync(int trainingId, string version);
 }
 
 public class TrainingService : ITrainingService
@@ -87,5 +88,17 @@ public class TrainingService : ITrainingService
 
     public Task<Training?> GetByReplicateIdAsync(string replicateId)
         => _trainingRepository.GetByReplicateIdAsync(replicateId);
-    
+
+    public async Task UpdateVersionAsync(int trainingId, string version)
+    {
+        var training = await _trainingRepository.GetByIdAsync(trainingId);
+        if (training == null)
+        {
+            throw new InvalidOperationException($"Training with ID {trainingId} not found.");
+        }
+
+        training.Version = version;
+        await _trainingRepository.UpdateAsync(training);
+        
+    }
 }

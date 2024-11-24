@@ -33,6 +33,8 @@ public static class DependencyRegistration
         services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IFluxModelService, FluxModelService>();
         services.AddScoped<ITrainingService, TrainingService>();
+        services.AddScoped<IJobService, JobService>();
+        services.AddScoped<IJobTaskService, JobTaskService>();
 
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ISmsService, SmsService>();

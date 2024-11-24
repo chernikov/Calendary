@@ -11,7 +11,7 @@ public record GenerateImageRequestInput
     public string Prompt { get; init; }
 
     [JsonPropertyName("lora_scale")]
-    public int LoraScale { get; init; }
+    public decimal LoraScale { get; init; }
 
     [JsonPropertyName("num_outputs")]
     public int NumOutputs { get; init; }
@@ -33,4 +33,7 @@ public record GenerateImageRequestInput
 
     [JsonPropertyName("num_inference_steps")]
     public int NumInferenceSteps { get; init; }
+
+    [JsonPropertyName("extra_lora_scale")]
+    public decimal ExtraLoraScale { get; init; }
 }

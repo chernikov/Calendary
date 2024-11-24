@@ -4,6 +4,7 @@ import { Training } from "./training";
 export class FluxModel {
     id: number = 0;
     name: string = '';
+    version: string = '';
     description: string = '';
     status: string = '';
     gender: number = 0;

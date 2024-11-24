@@ -4,13 +4,13 @@
 
     <div *ngIf="fluxModel">
 
-      {{fluxModel | json}}
-
       <p><strong>ID:</strong> {{ fluxModel.id }}</p>
       <p><strong>Назва:</strong> {{ fluxModel.name }}</p>
       <p><strong>Статус:</strong> {{ fluxModel.status }}</p>
       <p><strong>Стать:</strong> {{ fluxModel.gender === 0 ? 'Чоловіча' : 'Жіноча' }}</p>
       <p><strong>Архів:</strong> {{ fluxModel.archiveUrl }}</p>
+      <p><strong>Version:</strong> {{ fluxModel.version }}</p>
+
     </div>
 
      <!-- FluxModel Component -->
@@ -23,13 +23,13 @@
     <app-generation-status [fluxModel]="fluxModel" *ngIf="fluxModel && (fluxModel.status === 'Prepared' || fluxModel.status === 'Inprocess') "></app-generation-status>
   
     <!-- Результати генерації -->
-    <app-generation-results *ngIf="fluxModel && fluxModel.status === 'succeeded'"></app-generation-results>
+    <app-generation-results [fluxModel]="fluxModel" (onUpdate)="onUpdateModelSelf()" *ngIf="fluxModel && fluxModel.status === 'succeeded'"></app-generation-results>
   
     <!-- Вибір теми промптів -->
-    <app-prompt-selection></app-prompt-selection>
+    <app-prompt-selection [fluxModel]="fluxModel" (onUpdate)="onUpdateModelSelf()" (onUpdateTask)="onUpdateTask($event)" *ngIf="fluxModel && fluxModel.status === 'Completed'"></app-prompt-selection>
   
     <!-- Результати з тренувань -->
-    <app-prompt-results></app-prompt-results>
+    <app-prompt-results [tasks]="tasks" *ngIf="fluxModel && fluxModel.status === 'Completed' && fluxModel.jobs.length > 1"></app-prompt-results>
   
     <!-- Місяці календаря -->
     <app-calendar-months></app-calendar-months>

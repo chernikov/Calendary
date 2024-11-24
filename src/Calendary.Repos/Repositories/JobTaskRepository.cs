@@ -5,6 +5,8 @@ namespace Calendary.Repos.Repositories;
 
 public interface IJobTaskRepository : IRepository<JobTask>
 {
+    Task AddRangeAsync(List<JobTask> jobTasks);
+    Task<JobTask?> GetByIdWithPromptAsync(int jobTaskId);
 }
 
 public class JobTaskRepository : IJobTaskRepository
@@ -47,4 +49,15 @@ public class JobTaskRepository : IJobTaskRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task AddRangeAsync(List<JobTask> jobTasks)
+    {
+        await _context.JobTasks.AddRangeAsync(jobTasks);
+        await _context.SaveChangesAsync();
+    }
+
+    public Task<JobTask?> GetByIdWithPromptAsync(int jobTaskId)
+        => _context.JobTasks
+            .Include(x => x.Prompt)
+            .FirstOrDefaultAsync(x => x.Id == jobTaskId);
 }

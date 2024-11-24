@@ -1,1 +1,41 @@
-<p>prompt-results works!</p>
+<div class="prompt-results" *ngIf="tasks.length">
+    <div *ngIf="tasks.length" class="job-details">
+      <!-- Галерея зображень -->
+      <div class="task-images">
+        <h3>Images from Tasks</h3>
+        <div *ngFor="let task of tasks" class="image-container">
+          <!-- Перевірка наявності зображення -->
+          <div *ngIf="task.imageUrl; else placeholder">
+            <img
+              [src]="task.imageUrl"
+              alt="Generated Image"
+              (click)="openImage(task.imageUrl)"
+            />
+          </div>
+          <!-- Заглушка, якщо зображення немає -->
+          <ng-template #placeholder>
+            <div class="placeholder">
+              <p>No Image Available</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+  
+      <!-- Якщо завдань немає -->
+      <ng-template #noTasks>
+        <p class="no-tasks-message">No tasks available for this job.</p>
+      </ng-template>
+    </div>
+  </div>
+  
+  <!-- Модальне вікно -->
+  <div
+    class="modal"
+    *ngIf="selectedImageUrl"
+    (click)="closeImage()"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <img [src]="selectedImageUrl" alt="Full-Size Image" />
+      <button class="close-btn" (click)="closeImage()">Close</button>
+    </div>
+  </div>

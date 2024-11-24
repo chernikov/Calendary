@@ -1,1 +1,22 @@
-<p>generation-results works!</p>
+<div class="generation-results">
+    <h2>Результати генерації</h2>
+  
+    <!-- Виведення повідомлення про помилку -->
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+  
+    <!-- Кнопки для створення та запуску Job -->
+    <div class="actions">
+      <button (click)="createJob()" class="btn-create">Створити Job</button>
+      <button (click)="runJob()" class="btn-run" [disabled]="!job">Запустити Job</button>
+    </div>
+  
+    <!-- Інформація про створений Job -->
+    <div *ngIf="job" class="job-info">
+      <h3>Створений Job</h3>
+      <p><strong>ID:</strong> {{ job.id }}</p>
+      <p><strong>Статус:</strong> {{ job.status }}</p>
+      <p><strong>Кількість завдань:</strong> {{ job.tasks.length }}</p>
+    </div>
+  </div>
