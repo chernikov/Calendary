@@ -5,6 +5,7 @@ namespace Calendary.Repos.Repositories;
 
 public interface ITrainingRepository : IRepository<Training>
 {
+    Task<Training?> GetByReplicateIdAsync(string replicateId);
 }
 
 public class TrainingRepository : ITrainingRepository
@@ -47,4 +48,7 @@ public class TrainingRepository : ITrainingRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public Task<Training?> GetByReplicateIdAsync(string replicateId)
+         => _context.Trainings.FirstOrDefaultAsync(t => t.ReplicateId == replicateId);
 }

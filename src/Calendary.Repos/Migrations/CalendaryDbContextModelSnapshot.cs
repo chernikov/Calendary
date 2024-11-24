@@ -146,7 +146,6 @@ namespace Calendary.Repos.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ArchiveUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("CompletedAt")
@@ -162,6 +161,9 @@ namespace Calendary.Repos.Migrations
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -176,6 +178,10 @@ namespace Calendary.Repos.Migrations
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("WebHookId")
                         .HasColumnType("int");
@@ -469,6 +475,9 @@ namespace Calendary.Repos.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("FluxModelId")
+                        .HasColumnType("int");
+
                     b.Property<string>("InvoiceNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -476,7 +485,7 @@ namespace Calendary.Repos.Migrations
                     b.Property<bool>("IsPaid")
                         .HasColumnType("bit");
 
-                    b.Property<int>("OrderId")
+                    b.Property<int?>("OrderId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("PaymentDate")
@@ -489,8 +498,11 @@ namespace Calendary.Repos.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FluxModelId");
+
                     b.HasIndex("OrderId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[OrderId] IS NOT NULL");
 
                     b.ToTable("PaymentInfos");
                 });
@@ -515,9 +527,6 @@ namespace Calendary.Repos.Migrations
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProcessedImageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -616,9 +625,6 @@ namespace Calendary.Repos.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BatchSize")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
@@ -628,18 +634,7 @@ namespace Calendary.Repos.Migrations
                     b.Property<int>("FluxModelId")
                         .HasColumnType("int");
 
-                    b.Property<double>("LearningRate")
-                        .HasColumnType("float");
-
-                    b.Property<string>("Optimizer")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ReplicateId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Resolution")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -647,8 +642,9 @@ namespace Calendary.Repos.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Steps")
-                        .HasColumnType("int");
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -1072,11 +1068,15 @@ namespace Calendary.Repos.Migrations
 
             modelBuilder.Entity("Calendary.Model.PaymentInfo", b =>
                 {
+                    b.HasOne("Calendary.Model.FluxModel", "FluxModel")
+                        .WithMany()
+                        .HasForeignKey("FluxModelId");
+
                     b.HasOne("Calendary.Model.Order", "Order")
                         .WithOne("PaymentInfo")
-                        .HasForeignKey("Calendary.Model.PaymentInfo", "OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Calendary.Model.PaymentInfo", "OrderId");
+
+                    b.Navigation("FluxModel");
 
                     b.Navigation("Order");
                 });

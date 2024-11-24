@@ -5,6 +5,7 @@ namespace Calendary.Repos.Repositories;
 
 public interface IPromptThemeRepository : IRepository<PromptTheme>
 {
+    Task<PromptTheme?> GetByNameAsync(string name);
 }
 
 public class PromptThemeRepository : IPromptThemeRepository
@@ -47,4 +48,7 @@ public class PromptThemeRepository : IPromptThemeRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public Task<PromptTheme?> GetByNameAsync(string name)
+        => _context.PromptThemes.FirstOrDefaultAsync(p => p.Name == name);
 }

@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>{{ data?.id ? 'Редагувати тему' : 'Створити тему' }}</h2>
+<h2 mat-dialog-title>{{ data.id ? 'Редагувати тему' : 'Створити тему' }}</h2>
 <form [formGroup]="promptThemeForm" (ngSubmit)="onSave()">
   <mat-form-field appearance="fill" class="full-width">
     <mat-label>Назва</mat-label>

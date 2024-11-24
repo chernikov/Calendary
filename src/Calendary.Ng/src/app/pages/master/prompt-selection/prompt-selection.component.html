@@ -1,0 +1,33 @@
+<div class="prompt-selection">
+    <h2>Prompt Selection</h2>
+    <div *ngIf="job" class="job-details">
+        <!-- Перевіряємо, чи є tasks -->
+        <div *ngIf="job.tasks.length > 0; else noTasks">
+            <div class="task-images">
+                <h3>Images from Tasks</h3>
+                <div *ngFor="let task of job.tasks" class="image-container">
+                    <img [src]="task.imageUrl" alt="Generated Image" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Якщо tasks немає -->
+        <ng-template #noTasks>
+            <p class="no-tasks-message">No tasks available for this job.</p>
+        </ng-template>
+
+         <!-- Вибір теми -->
+         <div class="theme-selection">
+            <label for="promptTheme">Select a Prompt Theme:</label>
+            <select id="promptTheme" [(ngModel)]="selectedTheme">
+                <option *ngFor="let theme of promptThemes" [ngValue]="theme">{{ theme.name }}</option>
+            </select>
+            <button (click)="generateJob()" [disabled]="!selectedTheme" class="generate-button">Generate Jobs</button>
+        </div>
+
+
+        <div *ngIf="lastJob && lastJob.id != job.id">
+            <button (click)="processJob()" class="message-button">Process Jobs</button>
+        </div>
+    </div>
+</div>

@@ -29,10 +29,6 @@ export const appConfig: ApplicationConfig = {
       useClass: ErrorInterceptor,
       multi: true
     },
-    { provide: HTTP_INTERCEPTORS, 
-      useClass: BlockUiInterceptor,
-      multi: true
-    },
     { provide: LOCALE_ID, useValue: 'uk' },
     provideAnimationsAsync(), provideAnimationsAsync('noop'),
     

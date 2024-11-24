@@ -1,17 +1,62 @@
 ﻿using Calendary.Core.Services;
+using Calendary.Core.Services.Models;
 using Calendary.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
+using System.Text.Json;
 
 namespace Calendary.Api.Controllers;
 
 [ApiController]
 [Route("api/webhook")]
-public class WebHookController(IWebHookService webHookService) : ControllerBase
+public class WebHookController(IWebHookService webHookService, 
+        ITrainingService trainingService, 
+        IFluxModelService fluxModelService) : ControllerBase
 {
     [HttpPost]
     [HttpGet]
     public async Task<IActionResult> WebHookAsync()
+    {
+        var body = await SaveWebHook(webHookService);
+
+        var trainModelResponse = JsonSerializer.Deserialize<TrainModelResponse>(body);
+
+        if (trainModelResponse is not null)
+        {
+            var replicateId = trainModelResponse.Id;
+            var newStatus = trainModelResponse.Status;
+            var version = trainModelResponse.Version;
+
+
+            if (!string.IsNullOrEmpty(replicateId) && !string.IsNullOrEmpty(newStatus))
+            {
+
+                // Оновити статус у базі даних
+                var trainingRecord = await trainingService.GetByReplicateIdAsync(replicateId);
+
+                if (trainingRecord is not null)
+                {
+                    await trainingService.UpdateStatusAsync(trainingRecord.Id, newStatus);
+                    await trainingService.UpdateVersionAsync(trainingRecord.Id, version);
+
+
+                    var fluxModel = await fluxModelService.GetByIdAsync(trainingRecord.FluxModelId);
+                    if (fluxModel is not null)
+                    {
+                        fluxModel.Status = "succeeded";
+                        fluxModel.Version = version;
+                        await fluxModelService.UpdateStatusAsync(fluxModel);
+                        await fluxModelService.UpdateVersionAsync(fluxModel);
+                    }
+
+                }
+            }
+        }
+        return Ok();
+    }
+
+    private async Task<string> SaveWebHook(IWebHookService webHookService)
     {
         // Збираємо дані із запиту
         var method = Request.Method;
@@ -37,6 +82,6 @@ public class WebHookController(IWebHookService webHookService) : ControllerBase
 
         // Зберігаємо в базу даних
         await webHookService.AddAsync(webHook);
-        return Ok();
+        return body;
     }
 }

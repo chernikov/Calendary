@@ -1,0 +1,20 @@
+<div *ngIf="fluxModel" class="flux-model-container">
+    <button (click)="generateModel()" class="btn btn-primary generate-btn">Згенерувати модель</button>
+
+    <div *ngIf="fluxModel.trainings && fluxModel.trainings.length > 0" class="trainings-list">
+        <h4 class="trainings-header">Список тренувань:</h4>
+        <ul class="trainings">
+            <li *ngFor="let training of fluxModel.trainings" class="training-item">
+                <div class="training-info">
+                    <span class="training-title">Тренування #{{ training.id }}:</span>
+                    <span class="training-status">{{ training.replicateId }} - {{ training.status }}</span>
+                </div>
+                <div class="training-actions">
+                    <button (click)="updateStatus(training.id)" class="btn btn-outline-primary btn-sm">Оновити
+                        статус</button>
+                    <button (click)="cancelTraining(training.id)" class="btn btn-outline-danger btn-sm">Відміна</button>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>

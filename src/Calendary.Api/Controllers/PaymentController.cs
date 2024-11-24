@@ -80,12 +80,20 @@ public class PaymentController : BaseUserController
                 paymentInfo.IsPaid = true;
                 await _paymentService.UpdatePaymentInfoStatusAsync(paymentInfo);
 
-                var order = await _orderService.GetOrderByIdAsync(paymentInfo.OrderId);
-                if (order is not null)
+                if (paymentInfo.OrderId is not null)
                 {
-                    order.Status = "Paid";
-                    order.IsPaid = true;
-                    await _orderService.UpdateOrderStatusAsync(order);
+                    var order = await _orderService.GetOrderByIdAsync(paymentInfo.OrderId!.Value);
+                    if (order is not null)
+                    {
+                        order.Status = "Paid";
+                        order.IsPaid = true;
+                        await _orderService.UpdateOrderStatusAsync(order);
+                    }
+                }
+
+                if (paymentInfo.FluxModelId is not null)
+                {
+                    //TODO: Update flux model status
                 }
             }
 

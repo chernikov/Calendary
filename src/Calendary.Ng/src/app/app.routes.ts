@@ -17,6 +17,7 @@ import { OrderComponent } from './pages/order/order.component';
 import { AdminPromptThemeComponent } from './admin/pages/admin-prompt-theme/admin-prompt-theme.component';
 import { AdminPromptComponent } from './admin/pages/admin-prompt/admin-prompt.component';
 import { EditPromptComponent } from './admin/pages/admin-prompt/edit-prompt/edit-prompt.component';
+import { MasterComponent } from './pages/master/master.component';
 
 
 export const routes: Routes = [
@@ -47,6 +48,7 @@ export const routes: Routes = [
       { path: 'profile', component: ProfileComponent },
       { path: 'cart', component: CartComponent },
       { path: 'order/:orderId', component: OrderComponent },
+      { path: 'master', component: MasterComponent },
 
       /* to refine **/
       { path: 'register', component: RegisterComponent },
