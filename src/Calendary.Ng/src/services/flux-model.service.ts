@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { FluxModel } from '../models/flux-model';
 
@@ -30,5 +30,9 @@ export class FluxModelService {
     return this.http.patch<FluxModel>(`${this.apiUrl}/${id}`, status, {
       headers: { 'Content-Type': 'application/json' }
     });
+  }
+
+  generate(id : number) : Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/generate`, { id });
   }
 }

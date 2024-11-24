@@ -31,6 +31,9 @@ public class FluxModelRepository : IFluxModelRepository
     public async Task<FluxModel?> GetCurrentByUserIdAsync(int userId)
     {
         return await _context.FluxModels
+            .Include(p => p.Trainings)
+            .Include(p => p.Jobs)
+                .ThenInclude(p => p.Tasks)
             .Where(fm => fm.UserId == userId)
             .OrderByDescending(fm => fm.Id)
             .FirstOrDefaultAsync();

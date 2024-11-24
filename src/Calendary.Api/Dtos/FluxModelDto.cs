@@ -14,4 +14,7 @@ public class FluxModelDto
     public DateTime? CompletedAt { get; set; }
 
     public bool IsPaid { get; set; } // Поле оплати
+
+
+    public List<TrainingDto> Trainings { get; set; }
 }

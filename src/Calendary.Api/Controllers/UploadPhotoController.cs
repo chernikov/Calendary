@@ -113,6 +113,7 @@ public class UploadPhotoController : BaseUserController
         }
 
         // Оновлюємо модель: зберігаємо шлях до архіву і змінюємо статус
+        zipFilePath = zipFilePath.Replace("\\", "/");
         model.ArchiveUrl = zipFilePath;
         await _fluxModelService.UpdateArchiveUrlAsync(model);
         model.Status = "Prepared";

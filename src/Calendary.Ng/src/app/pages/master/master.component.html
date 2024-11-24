@@ -3,6 +3,9 @@
 
 
     <div *ngIf="fluxModel">
+
+      {{fluxModel | json}}
+
       <p><strong>ID:</strong> {{ fluxModel.id }}</p>
       <p><strong>Назва:</strong> {{ fluxModel.name }}</p>
       <p><strong>Статус:</strong> {{ fluxModel.status }}</p>
@@ -14,13 +17,13 @@
     <app-flux-model (onUpdate)="onUpdateFluxModel($event)" *ngIf="!fluxModel"></app-flux-model>
     
     <!-- Завантаження фото -->
-    <app-photo-upload [fluxModel]="fluxModel" *ngIf="fluxModel && fluxModel.status === 'Creating'"></app-photo-upload>
+    <app-photo-upload [fluxModel]="fluxModel" *ngIf="fluxModel && fluxModel.status === 'creating'"></app-photo-upload>
   
     <!-- Генерація -->
-    <app-generation-status *ngIf="fluxModel && fluxModel.status === 'Prepared'"></app-generation-status>
+    <app-generation-status [fluxModel]="fluxModel" *ngIf="fluxModel && (fluxModel.status === 'Prepared' || fluxModel.status === 'Inprocess') "></app-generation-status>
   
     <!-- Результати генерації -->
-    <app-generation-results></app-generation-results>
+    <app-generation-results *ngIf="fluxModel && fluxModel.status === 'succeeded'"></app-generation-results>
   
     <!-- Вибір теми промптів -->
     <app-prompt-selection></app-prompt-selection>

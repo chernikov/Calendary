@@ -1,3 +1,5 @@
+import { Job } from "./job";
+import { Training } from "./training";
 
 export class FluxModel {
     id: number = 0;
@@ -9,4 +11,6 @@ export class FluxModel {
     createdAt: Date = new Date();
     completedAt?: Date;
     isPaid: boolean = false;
+    trainings : Training[] = [];
+    jobs: Job[] = [];
   }

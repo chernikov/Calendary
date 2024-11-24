@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Calendary.Api.Dtos;
 using Calendary.Core.Services;
+using Calendary.Core.Services.Models;
 using Calendary.Model;
 using Calendary.Model.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -9,16 +10,24 @@ using Microsoft.AspNetCore.Mvc;
 namespace Calendary.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles ="User")]
+[Authorize(Roles = "User")]
 [Route("api/flux-model")]
 public class FluxModelController : BaseUserController
 {
     private readonly IFluxModelService _fluxModelService;
+    private readonly IReplicateService _replicateService;
+    private readonly ITrainingService _trainingService;
     private readonly IMapper _mapper;
 
-    public FluxModelController(IUserService userService, IFluxModelService fluxModelService, IMapper mapper) : base(userService)
+    public FluxModelController(IUserService userService, 
+            IFluxModelService fluxModelService, 
+            IReplicateService replicateService,
+            ITrainingService trainingService,   
+            IMapper mapper) : base(userService)
     {
         _fluxModelService = fluxModelService;
+        _replicateService = replicateService;
+        _trainingService = trainingService;
         _mapper = mapper;
     }
 
@@ -81,7 +90,7 @@ public class FluxModelController : BaseUserController
         return CreatedAtAction(nameof(GetById), new { id = fluxModel.Id }, result);
     }
 
-  
+
 
     // Оновлення статусу FluxModel
     [HttpPatch("{id}")]
@@ -99,6 +108,45 @@ public class FluxModelController : BaseUserController
     }
 
 
+    [HttpPost("generate")]
+    public async Task<IActionResult> GenerateModel(GenerateModelRequest request)
+    {
+        var fluxModel = await _fluxModelService.GetByIdAsync(request.Id);
+        if (fluxModel == null)
+        {
+            return NotFound();
+        }
+
+        if (fluxModel.ArchiveUrl == null)
+        {
+            return BadRequest("Archive isn't prepared");
+        }
+
+        // Виклик створення моделі в Replicate
+        var random = new Random();
+        var randomDigits = random.Next(100, 1000); // Генерує число від 100 до 999 (включно)
+        var replicateName = $"chernikov_api_flux_{fluxModel.Id}_{randomDigits}";
+
+        var createModelResponse = await _replicateService.CreateModelAsync(replicateName, fluxModel.Name);
+
+        // Записуємо ReplicateId у модель
+        fluxModel.ReplicateId = $"{createModelResponse.Owner}/{createModelResponse.Name}";
+        await _fluxModelService.UpdateReplicateIdAsync(fluxModel);
+
+
+        // Запуск тренування
+        var trainModelRequestInput = GetTrainingRequest(fluxModel.ArchiveUrl!);
+       
+        var trainingResponse = await _replicateService.TrainModelAsync(fluxModel.ReplicateId, trainModelRequestInput);
+
+        await _trainingService.SaveAsync(fluxModel.Id, trainingResponse);
+
+        fluxModel.Status = "Inprocess";   
+        await _fluxModelService.UpdateStatusAsync(fluxModel);
+
+        return Ok(new { Message = "Model created and training started successfully." });
+    }
+
 
     private string GenerateRandomName()
     {
@@ -111,5 +159,28 @@ public class FluxModelController : BaseUserController
         string creature = creatures[random.Next(creatures.Length)];
 
         return $"{color} {creature}";
+    }
+
+
+    private static TrainModelRequestInput GetTrainingRequest(string archiveUrl)
+    {
+        return new TrainModelRequestInput()
+        {
+            Steps = 1000,
+            LoraRank = 16,
+            Optimizer = "adamw8bit",
+            BatchSize = 1,
+            Resolution = "512,768,1024",
+            Autocaption = true,
+            AutocaptionPrefix = "a photo of TOK",
+            InputImages = $"https://calendary.com.ua/{archiveUrl}",
+            TriggerWord = "TOK",
+            LearningRate = 0.0004,
+            WandbProject = "flux_train_replicate",
+            WandbSaveInterval = 100,
+            WandbSampleInterval = 100,
+            CaptionDropoutRate = 0.05,
+            CacheLatentsToDisk = false
+        };
     }
 }

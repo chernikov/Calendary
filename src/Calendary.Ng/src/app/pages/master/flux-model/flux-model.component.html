@@ -1,19 +1,24 @@
 <div class="flux-model">
-  <h2>Створення FluxModel</h2>
+  <h2 class="title">Створення FluxModel</h2>
 
-  <div *ngIf="!fluxModel">
+  <div *ngIf="!fluxModel" class="form-container">
     <!-- Вибір статі -->
     <div class="gender-selection">
-      <label>
-        <input type="radio" name="gender" value="male" [(ngModel)]="gender" /> Чоловіча
+      <label class="gender-label">
+        <input type="radio" name="gender" value="male" [(ngModel)]="gender" />
+        <span>Чоловіча</span>
       </label>
-      <label>
-        <input type="radio" name="gender" value="female" [(ngModel)]="gender" /> Жіноча
+      <label class="gender-label">
+        <input type="radio" name="gender" value="female" [(ngModel)]="gender" />
+        <span>Жіноча</span>
       </label>
     </div>
     <!-- Кнопка створення -->
-    <button (click)="createFluxModel()" [disabled]="!gender">Створити</button>
+    <button 
+      class="create-button" 
+      (click)="createFluxModel()" 
+      [disabled]="!gender">
+      Створити
+    </button>
   </div>
-  <!-- Відображення створеної моделі -->
-  
 </div>

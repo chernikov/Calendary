@@ -1,8 +1,7 @@
 ﻿using Calendary.Core.Services.Models;
 using Calendary.Core.Settings;
-using Calendary.Model;
 using Microsoft.Extensions.Options;
-using System.Runtime;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
@@ -10,7 +9,15 @@ namespace Calendary.Core.Services;
 
 public interface IReplicateService
 {
+    Task<CreateModelResponse> CreateModelAsync(string modelName, string description);
 
+    Task<TrainModelResponse> TrainModelAsync(string destination, TrainModelRequestInput input);
+
+    Task<GenerateImageResponse> GenerateImageAsync(string modelVersion, GenerateImageRequestInput input);
+
+    Task CancelTrainingAsync(string replicateId);
+
+    Task<TrainModelResponse> GetTrainingStatusAsync(string replicateId);
 }
 
 public class ReplicateService : IReplicateService
@@ -28,7 +35,6 @@ public class ReplicateService : IReplicateService
     {
         _httpClient.DefaultRequestHeaders.Clear();
         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
-        _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
     }
 
     // 1. Створення моделі
@@ -45,10 +51,10 @@ public class ReplicateService : IReplicateService
             Hardware = "cpu"
         };
 
-        var response = await _httpClient.PostAsync(
-            "https://api.replicate.com/v1/models",
-            new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
-        );
+
+        var json = JsonSerializer.Serialize(requestBody);
+        var stringContent = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync("https://api.replicate.com/v1/models", stringContent);
 
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
@@ -56,7 +62,7 @@ public class ReplicateService : IReplicateService
     }
 
     // 2. Тренування моделі
-    public async Task<TrainModelResponse> TrainModelAsync(string destination, TrainModelRequestInput input, string webhook)
+    public async Task<TrainModelResponse> TrainModelAsync(string destination, TrainModelRequestInput input)
     {
         AddAuthorizationHeader();
 
@@ -64,7 +70,7 @@ public class ReplicateService : IReplicateService
         {
             Destination = destination,
             Input = input,
-            Webhook = webhook
+            Webhook = _settings.WebhookUrl
         };
 
         var url = $"https://api.replicate.com/v1/models/{_settings.TrainerModel}/versions/{_settings.TrainerVersion}/trainings";
@@ -98,5 +104,34 @@ public class ReplicateService : IReplicateService
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<GenerateImageResponse>(content)!;
+    }
+
+
+    /// <summary>
+    /// Скасовує тренування за replicateId.
+    /// </summary>
+    /// <param name="replicateId">Replicate ID тренування</param>
+    public async Task CancelTrainingAsync(string replicateId)
+    {
+        AddAuthorizationHeader();
+
+        var response = await _httpClient.PostAsync($"https://api.replicate.com/v1/predictions/{replicateId}/cancel", null);
+        response.EnsureSuccessStatusCode();
+    }
+
+    /// <summary>
+    /// Отримує статус тренування за replicateId.
+    /// </summary>
+    /// <param name="replicateId">Replicate ID тренування</param>
+    /// <returns>Статус тренування</returns>
+    public async Task<TrainModelResponse> GetTrainingStatusAsync(string replicateId)
+    {
+        AddAuthorizationHeader();
+
+        var response = await _httpClient.GetAsync($"https://api.replicate.com/v1/predictions/{replicateId}");
+        response.EnsureSuccessStatusCode();
+
+        var result = await response.Content.ReadFromJsonAsync<TrainModelResponse>();
+        return result ?? throw new InvalidOperationException("Failed to deserialize training status response.");
     }
 }
