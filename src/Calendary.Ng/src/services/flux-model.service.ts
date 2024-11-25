@@ -35,4 +35,8 @@ export class FluxModelService {
   generate(id : number) : Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/generate`, { id });
   }
+
+  archive(id : number) : Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/archive/${id}`, null);
+  }
 }

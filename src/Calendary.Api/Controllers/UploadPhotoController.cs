@@ -98,6 +98,7 @@ public class UploadPhotoController : BaseUserController
         var realZipFilePath = _pathProvider.MapPath(zipFilePath); // Змінити на реальний шлях
 
 
+        var index = 1;
         using (var zipStream = new FileStream(realZipFilePath, FileMode.Create))
         using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: false))
         {
@@ -107,8 +108,10 @@ public class UploadPhotoController : BaseUserController
                 if (System.IO.File.Exists(realFilePath))
                 {
                     var fileName =  Path.GetFileName(realFilePath);
-                    archive.CreateEntryFromFile(realFilePath, fileName);
+                    var extension = Path.GetExtension(realFilePath);
+                    archive.CreateEntryFromFile(realFilePath, $"TOK({index}){extension}");
                 }
+                index++;
             }
         }
 
