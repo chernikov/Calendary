@@ -25,8 +25,7 @@ public class WebHookController(IWebHookService webHookService,
         {
             var replicateId = webhookRequest.Id;
             var newStatus = webhookRequest.Status;
-            var version = webhookRequest.Version;
-
+            var version = GetVersion(webhookRequest.Output.Version);
 
             if (!string.IsNullOrEmpty(replicateId) && !string.IsNullOrEmpty(newStatus))
             {
@@ -96,5 +95,11 @@ public class WebHookController(IWebHookService webHookService,
             return NotFound(); 
         }
         return Ok(webHook.Body);
+    }
+
+    public string GetVersion(string outputVersion)
+    {
+        var version = outputVersion.Split(":")[1];
+        return version;
     }
 }
