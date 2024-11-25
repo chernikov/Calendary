@@ -35,9 +35,8 @@ export class MasterComponent {
 
   tasks: JobTask[] = [];
 
-  constructor(private fluxModelService: FluxModelService) 
-  {
-  }
+  constructor(private fluxModelService: FluxModelService) { }
+
   fluxModel: FluxModel | null = null;
 
   onUpdateFluxModel($event: FluxModel) {

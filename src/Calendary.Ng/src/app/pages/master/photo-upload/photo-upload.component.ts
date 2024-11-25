@@ -69,6 +69,7 @@ export class PhotoUploadComponent implements OnChanges {
           this.uploading = false;
           this.uploadSuccess = true;
           this.uploader.clearQueue(); // Очищення черги
+          window.location.reload();
         },
         error: (err) => {
           console.error('Помилка завантаження фотографій:', err);

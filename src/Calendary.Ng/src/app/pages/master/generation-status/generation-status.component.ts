@@ -30,6 +30,7 @@ export class GenerationStatusComponent {
     this.fluxModelService.generate(this.fluxModel.id).subscribe({
       next: (response) => {
         console.log('Model generation triggered successfully', response);
+        window.location.reload();
       },
       error: (error) => {
         console.error('Error during model generation', error);
@@ -61,5 +62,11 @@ export class GenerationStatusComponent {
       },
       error: (err) => console.error('Error canceling training', err)
     });
+  }
+
+
+  canGenerateTraining() : boolean {
+    const result = this.fluxModel && (this.fluxModel.trainings.length == 0 || this.fluxModel.trainings.every((t: any) => t.status === 'succeeded' || t.status === 'canceled'  || t.status === 'failed'));
+    return result ?? false;
   }
 }
