@@ -1,5 +1,5 @@
 <div *ngIf="fluxModel" class="flux-model-container">
-    <button (click)="generateModel()" class="btn btn-primary generate-btn">Згенерувати модель</button>
+    <button (click)="generateModel()" class="btn btn-primary generate-btn" *ngIf="canGenerateTraining()">Згенерувати модель</button>
 
     <div *ngIf="fluxModel.trainings && fluxModel.trainings.length > 0" class="trainings-list">
         <h4 class="trainings-header">Список тренувань:</h4>
