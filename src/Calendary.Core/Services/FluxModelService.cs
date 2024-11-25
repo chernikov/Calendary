@@ -16,6 +16,7 @@ public interface IFluxModelService
 
     Task UpdateReplicateIdAsync(FluxModel model);
     Task UpdateVersionAsync(FluxModel fluxModel);
+    Task ArchiveAsync(FluxModel fluxModel);
 }
 
 public class FluxModelService : IFluxModelService
@@ -83,6 +84,17 @@ public class FluxModelService : IFluxModelService
             return;
         }
         entityDb.Version = model.Version;
+        await fluxModelRepository.UpdateAsync(entityDb);
+    }
+
+    public async Task ArchiveAsync(FluxModel fluxModel)
+    {
+        var entityDb = await fluxModelRepository.GetByIdAsync(fluxModel.Id);
+        if (entityDb is null)
+        {
+            return;
+        }
+        entityDb.IsArchive = true;
         await fluxModelRepository.UpdateAsync(entityDb);
     }
 }

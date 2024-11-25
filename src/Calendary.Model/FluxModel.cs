@@ -19,6 +19,8 @@ public class FluxModel
 
     public bool IsPaid { get; set; } // Поле оплати
 
+    public bool IsArchive { get; set; }
+
     // Навігаційні властивості
 
     public WebHook? WebHook { get; set; }

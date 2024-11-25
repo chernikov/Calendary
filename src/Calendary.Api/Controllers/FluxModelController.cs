@@ -35,7 +35,7 @@ public class FluxModelController : BaseUserController
     [HttpGet]
     public async Task<IActionResult> GetCurrent()
     {
-        var user = await CurrentUser.Value;
+       var user = await CurrentUser.Value;
         if (user is null)
         {
             return Unauthorized();
@@ -43,7 +43,7 @@ public class FluxModelController : BaseUserController
         var fluxModel = await _fluxModelService.GetCurrentByUserIdAsync(user.Id);
         if (fluxModel == null)
         {
-            return NotFound();
+            return Ok();
         }
         var result = _mapper.Map<FluxModelDto>(fluxModel);
         return Ok(result);
@@ -145,6 +145,20 @@ public class FluxModelController : BaseUserController
         await _fluxModelService.UpdateStatusAsync(fluxModel);
 
         return Ok(new { Message = "Model created and training started successfully." });
+    }
+
+
+    // Оновлення статусу FluxModel
+    [HttpPost("archive/{id}")]
+    public async Task<IActionResult> UpdateStatus(int id)
+    {
+        var fluxModel = await _fluxModelService.GetByIdAsync(id);
+        if (fluxModel == null)
+        {
+            return NotFound();
+        }
+        await _fluxModelService.ArchiveAsync(fluxModel);
+        return Ok();
     }
 
 

@@ -2,16 +2,31 @@
     <h1>Календар Мрій</h1>
 
 
-    <div *ngIf="fluxModel">
-
-      <p><strong>ID:</strong> {{ fluxModel.id }}</p>
-      <p><strong>Назва:</strong> {{ fluxModel.name }}</p>
-      <p><strong>Статус:</strong> {{ fluxModel.status }}</p>
-      <p><strong>Стать:</strong> {{ fluxModel.gender === 0 ? 'Чоловіча' : 'Жіноча' }}</p>
-      <p><strong>Архів:</strong> {{ fluxModel.archiveUrl }}</p>
-      <p><strong>Version:</strong> {{ fluxModel.version }}</p>
-
+    <div *ngIf="fluxModel" class="flux-model-card">
+      <p>
+        <strong>🆔 ID:</strong> <span>{{ fluxModel.id }}</span>
+      </p>
+      <p>
+        <strong>📛 Назва:</strong> <span>{{ fluxModel.name }}</span>
+      </p>
+      <p>
+        <strong>📋 Статус:</strong> <span>{{ fluxModel.status }}</span>
+      </p>
+      <p>
+        <strong>🧑‍⚖️ Стать:</strong> 
+        <span>{{ fluxModel.gender === 0 ? 'Чоловіча 🚹' : 'Жіноча 🚺' }}</span>
+      </p>
+      <p *ngIf="fluxModel.archiveUrl">
+        <strong>📦 Архів:</strong> 
+        <a [href]="fluxModel.archiveUrl" target="_blank">Архів зображень</a>
+      </p>
+      <p *ngIf="fluxModel.version">
+        <strong>🛠️ Version:</strong> <span>{{ fluxModel.version }}</span>
+      </p>
+      <button class="archive-btn" (click)="archiveFluxModel()">📂 Архівувати</button>
     </div>
+
+
 
      <!-- FluxModel Component -->
     <app-flux-model (onUpdate)="onUpdateFluxModel($event)" *ngIf="!fluxModel"></app-flux-model>

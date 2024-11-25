@@ -41,7 +41,7 @@ export class MasterComponent {
 
   onUpdateFluxModel($event: FluxModel) {
     this.fluxModel = $event;
-    if (this.fluxModel.jobs && this.fluxModel.jobs.length > 0) {
+    if (this.fluxModel && this.fluxModel.jobs && this.fluxModel.jobs.length > 0) {
       this.tasks = this.fluxModel.jobs[this.fluxModel.jobs.length - 1].tasks;
     }
   }
@@ -73,4 +73,14 @@ export class MasterComponent {
       console.log(`Task with ID ${task.id} added as new:`, task);
     }
   }
+
+  archiveFluxModel() {
+    this.fluxModelService.archive(this.fluxModel!.id).subscribe({
+      next(value) {
+        console.log('FluxModel archived successfully', value);
+        window.location.reload();
+      },
+    });
+  }
+
 }
