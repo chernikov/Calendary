@@ -84,4 +84,18 @@ public class WebHookController(IWebHookService webHookService,
         await webHookService.AddAsync(webHook);
         return body;
     }
+
+
+    [HttpGet("data/{id:int}")]
+    public async Task<IActionResult> Data(int id)
+    {
+        var webHook = await webHookService.GetByIdAsync(id);
+
+        if (webHook is null)
+        {
+
+            return NotFound(); 
+        }
+        return Ok(webHook.Body);
+    }
 }
