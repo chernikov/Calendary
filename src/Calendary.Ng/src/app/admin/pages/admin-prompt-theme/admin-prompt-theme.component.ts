@@ -7,6 +7,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
+import { Prompt } from '../../../../models/prompt';
+import { PromptTheme } from '../../../../models/prompt-theme';
 
 @Component({
   selector: 'app-admin-prompt-theme',
@@ -32,6 +34,9 @@ export class AdminPromptThemeComponent {
   }
 
   openDialog(theme: any = null): void {
+    if (!theme) {
+      theme = new PromptTheme();
+    }
     const dialogRef = this.dialog.open(PromptThemeDialogComponent, {
       width: '400px',
       data: theme,
