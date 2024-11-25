@@ -2,7 +2,6 @@
 using Calendary.Core.Services.Models;
 using Calendary.Model;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
 
@@ -20,13 +19,13 @@ public class WebHookController(IWebHookService webHookService,
     {
         var body = await SaveWebHook(webHookService);
 
-        var trainModelResponse = JsonSerializer.Deserialize<TrainModelResponse>(body);
+        var webhookRequest = JsonSerializer.Deserialize<WebhookRequest>(body);
 
-        if (trainModelResponse is not null)
+        if (webhookRequest is not null)
         {
-            var replicateId = trainModelResponse.Id;
-            var newStatus = trainModelResponse.Status;
-            var version = trainModelResponse.Version;
+            var replicateId = webhookRequest.Id;
+            var newStatus = webhookRequest.Status;
+            var version = webhookRequest.Version;
 
 
             if (!string.IsNullOrEmpty(replicateId) && !string.IsNullOrEmpty(newStatus))
