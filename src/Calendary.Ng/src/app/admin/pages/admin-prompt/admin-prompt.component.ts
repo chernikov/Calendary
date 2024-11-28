@@ -5,11 +5,11 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
-
+import { AgeGenderDisplayPipe } from '../../../pipes/age-gender-display';
 @Component({
   selector: 'app-admin-prompt',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule, AgeGenderDisplayPipe],
   templateUrl: './admin-prompt.component.html',
   styleUrl: './admin-prompt.component.scss'
 })
@@ -57,19 +57,4 @@ export class AdminPromptComponent {
     }
   }
 
-  getAgeGenderDisplay(value: number): string {
-    const ageGenderMap: { [key: number]: string } = {
-      0: 'Чоловік',
-      1: 'Жінка',
-      2: 'Хлопчик (малюк)',
-      3: 'Дівчинка (малюк)',
-      4: 'Хлопчик',
-      5: 'Дівчинка',
-      6: 'Чоловік середнього віку',
-      7: 'Жінка середнього віку',
-      8: 'Чоловік похилого віку',
-      9: 'Жінка похилого віку',
-    };
-    return ageGenderMap[value] || 'Невідомо';
-  }
 }

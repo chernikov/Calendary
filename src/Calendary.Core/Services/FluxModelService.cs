@@ -5,6 +5,8 @@ namespace Calendary.Core.Services;
 
 public interface IFluxModelService
 {
+    Task<IReadOnlyCollection<FluxModel>> GetAllAsync(int page, int pageSize);
+
     Task<FluxModel?> GetCurrentByUserIdAsync(int id);
 
     Task<FluxModel?> GetByIdAsync(int id);
@@ -17,6 +19,7 @@ public interface IFluxModelService
     Task UpdateReplicateIdAsync(FluxModel model);
     Task UpdateVersionAsync(FluxModel fluxModel);
     Task ArchiveAsync(FluxModel fluxModel);
+    Task<FluxModel?> GetFullAsync(int id);
 }
 
 public class FluxModelService : IFluxModelService
@@ -26,6 +29,11 @@ public class FluxModelService : IFluxModelService
     public FluxModelService(IFluxModelRepository fluxModelRepository)
     {
         this.fluxModelRepository = fluxModelRepository;
+    }
+
+    public async Task<IReadOnlyCollection<FluxModel>> GetAllAsync(int page, int pageSize)
+    {
+        return await fluxModelRepository.GetAllAsync(page, pageSize);
     }
 
     public Task<FluxModel?> GetCurrentByUserIdAsync(int useId)
@@ -96,5 +104,10 @@ public class FluxModelService : IFluxModelService
         }
         entityDb.IsArchive = true;
         await fluxModelRepository.UpdateAsync(entityDb);
+    }
+
+    public Task<FluxModel?> GetFullAsync(int id) 
+    {
+        return fluxModelRepository.GetFullAsync(id);
     }
 }
