@@ -15,10 +15,10 @@
         <td mat-cell *matCellDef="let element">{{ element.themeName }}</td>
       </ng-container>
   
-      <!-- Gender Column -->
-      <ng-container matColumnDef="gender">
-        <th mat-header-cell *matHeaderCellDef>Стать</th>
-        <td mat-cell *matCellDef="let element">{{ element.gender ? "Жінка" : "Чоловік" }}</td>
+      <!-- Age Gender Column -->
+      <ng-container matColumnDef="age-gender">
+        <th mat-header-cell *matHeaderCellDef>Категорія</th>
+        <td mat-cell *matCellDef="let element">{{ getAgeGenderDisplay(element.ageGender) }}</td>
       </ng-container>
   
       <!-- Text Column -->

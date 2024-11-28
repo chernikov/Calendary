@@ -60,7 +60,7 @@ public class JobService : IJobService
         }
 
         // Визначаємо тему і гендер
-        var gender = fluxModel.Gender;
+        var ageGender = fluxModel.AgeGender;
         var promptTheme = await _promptThemeRepository.GetByIdAsync(promptThemeId);
 
         if (promptTheme is null)
@@ -81,7 +81,7 @@ public class JobService : IJobService
         await _jobRepository.AddAsync(job);
 
         var themesPrompts = await _promptRepository.GetFullByThemeIdAsync(promptTheme.Id);
-        var genderPrompts = themesPrompts.Where(p => p.Gender == gender);
+        var genderPrompts = themesPrompts.Where(p => p.AgeGender == ageGender);
 
         // Створюємо JobTasks на основі prompt
         var jobTasks = genderPrompts.Select(prompt => new JobTask
