@@ -1,4 +1,6 @@
-﻿namespace Calendary.Model;
+﻿using System.Text.Json.Serialization;
+
+namespace Calendary.Model;
 
 public class Job
 {
@@ -11,9 +13,14 @@ public class Job
     public DateTime? CompletedAt { get; set; }
     public bool IsDefault { get; set; }
     // Навігаційні властивості
+
     public User User { get; set; } = null!;
+
     public PromptTheme Theme { get; set; } = null!;
+
+    [JsonIgnore]
     public FluxModel FluxModel { get; set; } = null!;
+
     public ICollection<JobTask> Tasks { get; set; } = new List<JobTask>();
 }
 
