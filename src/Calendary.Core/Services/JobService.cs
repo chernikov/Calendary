@@ -42,15 +42,15 @@ public class JobService : IJobService
             throw new Exception($"PromptTheme with name {defaultPromptTheme} not found.");
         }
 
-        return await CreateJobInternalAsync(fluxModelId, promptTheme.Id);
+        return await CreateJobInternalAsync(fluxModelId, promptTheme.Id, true);
     }
 
     public async Task<Job> CreateJobAsync(int fluxModelId, int promptThemeId)
     {
-        return await CreateJobInternalAsync(fluxModelId, promptThemeId);
+        return await CreateJobInternalAsync(fluxModelId, promptThemeId, false);
     }
 
-    private async Task<Job> CreateJobInternalAsync(int fluxModelId, int promptThemeId)
+    private async Task<Job> CreateJobInternalAsync(int fluxModelId, int promptThemeId, bool isDefault)
     {
         // Завантажуємо FluxModel для перевірки
         var fluxModel = await _fluxModelRepository.GetByIdAsync(fluxModelId);
@@ -75,6 +75,7 @@ public class JobService : IJobService
             FluxModelId = fluxModelId,
             ThemeId = promptTheme.Id,
             CreatedAt = DateTime.UtcNow,
+            IsDefault = isDefault,
             Status = "pending",
         };
 

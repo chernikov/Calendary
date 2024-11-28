@@ -1,4 +1,6 @@
-﻿namespace Calendary.Model;
+﻿using System.Text.Json.Serialization;
+
+namespace Calendary.Model;
 
 public class Photo
 {
@@ -12,5 +14,6 @@ public class Photo
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Навігаційні властивості
+    [JsonIgnore]
     public FluxModel FluxModel { get; set; } = null!;
 }

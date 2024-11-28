@@ -1,0 +1,47 @@
+<div class="table-container">
+    <h1>Admin Flux Models</h1>
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  
+      <!-- ID Column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef> ID </th>
+        <td mat-cell *matCellDef="let element"> {{ element.id }} </td>
+      </ng-container>
+  
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef> Name </th>
+        <td mat-cell *matCellDef="let element"> {{ element.name }} </td>
+      </ng-container>
+  
+      <!-- User Column -->
+      <ng-container matColumnDef="user">
+        <th mat-header-cell *matHeaderCellDef> Author </th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.user?.userName || 'Unknown' }}
+        </td>
+      </ng-container>
+  
+      <!-- CreatedAt Column -->
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef> Created At </th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.createdAt | date:'short' }}
+        </td>
+      </ng-container>
+  
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef> Actions </th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-button color="primary" (click)="viewDetails(element)">Details</button>
+        </td>
+      </ng-container>
+  
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  
+    <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons></mat-paginator>
+  </div>
+  

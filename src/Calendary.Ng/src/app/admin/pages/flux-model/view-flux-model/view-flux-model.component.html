@@ -1,0 +1,69 @@
+<div *ngIf="isLoading" class="loading-container">
+    <p>Завантаження...</p>
+  </div>
+  
+  <div *ngIf="!isLoading && fluxModel" class="details-container">
+    <button mat-button color="primary" (click)="goBack()">Назад</button>
+    <h1>{{ fluxModel.name }}</h1>
+    <p><strong>ID:</strong> {{ fluxModel.id }}</p>
+    <p><strong>Версія:</strong> {{ fluxModel.version }}</p>
+    <p><strong>Опис:</strong> {{ fluxModel.description }}</p>
+    <p><strong>Статус:</strong> {{ fluxModel.status }}</p>
+    <p><strong>Вікова категорія:</strong> {{ fluxModel.ageGender | ageGenderDisplay }}</p>
+    <p><strong>Автор:</strong> {{ fluxModel.user!.userName || 'Невідомо' }}</p>
+    <p><strong>Створено:</strong> {{ fluxModel.createdAt | date: 'short' }}</p>
+    <p><strong>Завершено:</strong> {{ (fluxModel.completedAt | date: 'short') || 'Не доступно' }}</p>
+    <p><strong>Оплачено:</strong> {{ fluxModel.isPaid ? 'Так' : 'Ні' }}</p>
+  
+    <h2>Фото</h2>
+    <div *ngIf="fluxModel.photos.length > 0; else noPhotos">
+      <div *ngFor="let photo of fluxModel.photos" class="photo-item">
+        <img [src]="photo.imageUrl" alt="Фото" />
+      </div>
+    </div>
+    <ng-template #noPhotos>
+      <p>Фотографії відсутні.</p>
+    </ng-template>
+  
+    <h2>Тренування</h2>
+    <div *ngIf="fluxModel.trainings.length > 0; else noTrainings">
+      <div *ngFor="let training of fluxModel.trainings" class="training-item">
+        <p><strong>ID тренування:</strong> {{ training.id }}</p>
+        <p><strong>Статус:</strong> {{ training.status }}</p>
+        <p><strong>Версія:</strong> {{ training.version }}</p>
+  
+        <h3>Роботи</h3>
+        <div *ngIf="fluxModel.jobs.length > 0; else noJobs">
+          <div *ngFor="let job of fluxModel.jobs" class="job-item">
+            <p><strong>ID роботи:</strong> {{ job.id }}</p>
+            <p><strong>Статус:</strong> {{ job.status }}</p>
+            <h4>Завдання</h4>
+            <div *ngIf="job.tasks.length > 0; else noTasks">
+              <div *ngFor="let task of job.tasks" class="task-item">
+                <p><strong>ID завдання:</strong> {{ task.id }}</p>
+                <p><strong>Статус:</strong> {{ task.status }}</p>
+                <img
+                  *ngIf="task.imageUrl"
+                  [src]="task.imageUrl"
+                  alt="Original Photo"
+                />
+              </div>
+            </div>
+            <ng-template #noTasks>
+              <p>Завдання відсутні.</p>
+            </ng-template>
+          </div>
+        </div>
+        <ng-template #noJobs>
+          <p>Роботи відсутні.</p>
+        </ng-template>
+      </div>
+    </div>
+    <ng-template #noTrainings>
+      <p>Тренування відсутні.</p>
+    </ng-template>
+  </div>
+  
+  <div *ngIf="!isLoading && !fluxModel">
+    <p>Модель не знайдена.</p>
+  </div>

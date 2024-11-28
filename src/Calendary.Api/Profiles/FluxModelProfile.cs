@@ -9,5 +9,7 @@ public class FluxModelProfile : Profile
     public FluxModelProfile()
     {
         CreateMap<FluxModel, FluxModelDto>().ReverseMap();
+
+        CreateMap<FluxModel, AdminFluxModelDto>();
     }
 }

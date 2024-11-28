@@ -1,0 +1,66 @@
+.details-container {
+    margin: 20px;
+  }
+  
+  .details-container h1, h2, h3, h4 {
+    margin: 10px 0;
+  }
+  
+  .photo-item, .task-item {
+    margin: 5px;
+    max-width: 100px;
+    border-radius: 5px;
+  }
+  
+  .photo-item img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    display: inline-block;
+    border-radius: 5px;
+    margin: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .photo-item {
+    display: inline-block;
+  }
+  
+  .training-item, .job-item {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  .task-item {
+    margin: 5px 0;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+
+  .task-item img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    display: inline-block;
+    border-radius: 5px;
+    margin: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  button {
+    margin-bottom: 20px;
+  }
+  
+  .loading-container {
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  p {
+    margin: 5px 0;
+    font-size: 14px;
+  }

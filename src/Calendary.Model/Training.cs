@@ -1,4 +1,6 @@
-﻿namespace Calendary.Model;
+﻿using System.Text.Json.Serialization;
+
+namespace Calendary.Model;
 
 public class Training
 {
@@ -12,5 +14,6 @@ public class Training
     public DateTime? CompletedAt { get; set; }
 
     // Навігаційні властивості
+    [JsonIgnore]
     public FluxModel FluxModel { get; set; } = null!;
 }
