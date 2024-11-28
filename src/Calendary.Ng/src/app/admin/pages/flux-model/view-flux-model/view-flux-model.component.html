@@ -46,14 +46,7 @@
                     <p><strong>Статус:</strong> {{ task.status }}</p>
                   </div>
                   <div class="task-image">
-                    <img
-                      *ngIf="task.processedImageUrl; else originalImage"
-                      [src]="task.processedImageUrl"
-                      alt="Processed Photo"
-                    />
-                    <ng-template #originalImage>
-                      <img [src]="task.imageUrl" alt="Original Photo" />
-                    </ng-template>
+                    <img [src]="task.imageUrl" alt="Original Photo" />
                   </div>
                 </div>
               </div>
