@@ -6,10 +6,11 @@
     margin: 10px 0;
   }
   
-  .photo-item, .task-item {
+  .photo-item {
     margin: 5px;
     max-width: 100px;
     border-radius: 5px;
+    display: inline-block;
   }
   
   .photo-item img {
@@ -21,12 +22,8 @@
     margin: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-
-  .photo-item {
-    display: inline-block;
-  }
   
-  .training-item, .job-item {
+  .training-item {
     margin: 10px 0;
     padding: 10px;
     border: 1px solid #ddd;
@@ -34,21 +31,60 @@
     background-color: #f9f9f9;
   }
   
-  .task-item {
-    margin: 5px 0;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+  .job-item {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
-
-  .task-item img {
-    width: auto;
-    max-width: 100%;
-    height: auto;
-    display: inline-block;
-    border-radius: 5px;
-    margin: 5px;
+  
+  .job-item h4 {
+    margin-top: 20px;
+    font-size: 18px;
+  }
+  
+  .tasks-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+  }
+  
+  .task-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 200px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .task-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+  
+  .task-info {
+    text-align: center;
+  }
+  
+  .task-info p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  p {
+    font-size: 16px;
+    margin: 5px 0;
   }
   
   button {
