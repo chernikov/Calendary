@@ -51,7 +51,7 @@ public class PromptService : IPromptService
             return;
         }
         entity.ThemeId = prompt.ThemeId;
-        entity.Gender = prompt.Gender;
+        entity.AgeGender = prompt.AgeGender;
         entity.Text = prompt.Text;
         await _promptRepository.UpdateAsync(entity);
     }

@@ -77,7 +77,7 @@ public class FluxModelController : BaseUserController
         var fluxModel = new FluxModel
         {
             UserId = user.Id,
-            Gender = model.Gender == "male" ? GenderEnum.Male : GenderEnum.Female,
+            AgeGender =(AgeGenderEnum)model.AgeGender,
             Status = "creating",
             Name = randomName,
             IsPaid = true
@@ -89,9 +89,7 @@ public class FluxModelController : BaseUserController
         var result = _mapper.Map<FluxModelDto>(entity);
         return CreatedAtAction(nameof(GetById), new { id = fluxModel.Id }, result);
     }
-
-
-
+   
     // Оновлення статусу FluxModel
     [HttpPatch("{id}")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] string status)

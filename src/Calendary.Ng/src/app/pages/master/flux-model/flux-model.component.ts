@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './flux-model.component.scss'
 })
 export class FluxModelComponent {
-  gender: string | null = null;
+  ageGender: number | null = null;
   fluxModel: FluxModel | null = null;
 
   @Output() 
@@ -36,13 +36,13 @@ export class FluxModelComponent {
   }
 
   createFluxModel(): void {
-    if (!this.gender) 
+    if (!this.ageGender) 
     {
-      alert('Оберіть стать!');
+      alert('Оберіть категорію.');
       return;
     }
 
-    this.fluxModelService.create(this.gender).subscribe({
+    this.fluxModelService.create(this.ageGender).subscribe({
       next: (model) => {
         this.fluxModel = model;
         this.onUpdate.emit(model);

@@ -49,7 +49,7 @@ export class EditPromptComponent implements OnInit {
     this.promptForm = this.fb.group({
       id: [null],
       themeId: [null, Validators.required],
-      gender: [0, Validators.required],
+      ageGender: [0, Validators.required],
       text: ['', [Validators.required]]
     });
   }

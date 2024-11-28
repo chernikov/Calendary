@@ -5,7 +5,7 @@ public class Prompt
 {
     public int Id { get; set; }
     public int ThemeId { get; set; }
-    public GenderEnum Gender { get; set; } = GenderEnum.Male;
+    public AgeGenderEnum AgeGender { get; set; } = AgeGenderEnum.Male;
     public string Text { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
