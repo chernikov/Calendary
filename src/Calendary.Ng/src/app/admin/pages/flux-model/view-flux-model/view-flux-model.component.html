@@ -34,29 +34,37 @@
   
         <h3>Роботи</h3>
         <div *ngIf="fluxModel.jobs.length > 0; else noJobs">
-          <div *ngFor="let job of fluxModel.jobs" class="job-item">
-            <p><strong>ID роботи:</strong> {{ job.id }}</p>
-            <p><strong>Статус:</strong> {{ job.status }}</p>
-            <h4>Завдання</h4>
-            <div *ngIf="job.tasks.length > 0; else noTasks">
-              <div *ngFor="let task of job.tasks" class="task-item">
-                <p><strong>ID завдання:</strong> {{ task.id }}</p>
-                <p><strong>Статус:</strong> {{ task.status }}</p>
-                <img
-                  *ngIf="task.imageUrl"
-                  [src]="task.imageUrl"
-                  alt="Original Photo"
-                />
+            <div *ngFor="let job of fluxModel.jobs" class="job-item">
+              <p><strong>ID роботи:</strong> {{ job.id }}</p>
+              <p><strong>Статус:</strong> {{ job.status }}</p>
+          
+              <h4>Завдання</h4>
+              <div *ngIf="job.tasks.length > 0; else noTasks" class="tasks-container">
+                <div *ngFor="let task of job.tasks" class="task-card">
+                  <div class="task-info">
+                    <p><strong>ID завдання:</strong> {{ task.id }}</p>
+                    <p><strong>Статус:</strong> {{ task.status }}</p>
+                  </div>
+                  <div class="task-image">
+                    <img
+                      *ngIf="task.processedImageUrl; else originalImage"
+                      [src]="task.processedImageUrl"
+                      alt="Processed Photo"
+                    />
+                    <ng-template #originalImage>
+                      <img [src]="task.imageUrl" alt="Original Photo" />
+                    </ng-template>
+                  </div>
+                </div>
               </div>
+              <ng-template #noTasks>
+                <p>Завдання відсутні.</p>
+              </ng-template>
             </div>
-            <ng-template #noTasks>
-              <p>Завдання відсутні.</p>
-            </ng-template>
           </div>
-        </div>
-        <ng-template #noJobs>
-          <p>Роботи відсутні.</p>
-        </ng-template>
+          <ng-template #noJobs>
+            <p>Роботи відсутні.</p>
+          </ng-template>
       </div>
     </div>
     <ng-template #noTrainings>
