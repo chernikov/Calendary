@@ -1,0 +1,16 @@
+<h2>Історія тестів для промпту #{{ promptId }}</h2>
+
+<div *ngIf="testPrompts.length > 0; else noHistory">
+  <div *ngFor="let test of testPrompts" class="test-item">
+    <p><strong>Текст:</strong> {{ test.text }}</p>
+    <div *ngIf="test.imageUrl">
+      <img [src]="test.imageUrl" alt="Test Image" class="test-image" />
+    </div>
+  </div>
+</div>
+
+<ng-template #noHistory>
+  <p>Історія відсутня.</p>
+</ng-template>
+
+<button mat-raised-button color="primary" routerLink="/admin/prompts">Назад</button>

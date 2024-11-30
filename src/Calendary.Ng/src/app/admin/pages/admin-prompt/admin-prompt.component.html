@@ -57,11 +57,12 @@
   
       <!-- Actions Column -->
       <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <th mat-header-cell *matHeaderCellDef>Дії</th>
         <td mat-cell *matCellDef="let element">
           <button mat-button color="primary" (click)="editPrompt(element.id)">Змінити</button>
           <button mat-button color="warn" (click)="deletePrompt(element.id)">Видалити</button>
           <button mat-button color="accent" (click)="openTestDialog(element)">Тестувати</button>
+          <button mat-button color="primary" (click)="goToHistory(element.id)">Історія</button>
         </td>
       </ng-container>
   

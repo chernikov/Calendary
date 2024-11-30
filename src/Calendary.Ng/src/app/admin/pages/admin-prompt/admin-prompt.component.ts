@@ -77,6 +77,11 @@ export class AdminPromptComponent {
     );
   }
 
+  applyFilters() {
+    this.loadPrompts();
+  }
+
+
   createNew(): void {
     this.router.navigate(['/admin/prompts/create']);
   }
@@ -131,7 +136,8 @@ export class AdminPromptComponent {
     );
   }
 
-  applyFilters() {
-    this.loadPrompts();
+  
+  goToHistory(promptId: number): void {
+    this.router.navigate([`/admin/prompts/${promptId}/history`]);
   }
 }

@@ -17,6 +17,7 @@ import { OrderComponent } from './pages/order/order.component';
 import { AdminPromptThemeComponent } from './admin/pages/admin-prompt-theme/admin-prompt-theme.component';
 import { AdminPromptComponent } from './admin/pages/admin-prompt/admin-prompt.component';
 import { EditPromptComponent } from './admin/pages/admin-prompt/edit-prompt/edit-prompt.component';
+import { PromptHistoryComponent } from './admin/pages/prompt-history/prompt-history.component';
 import { MasterComponent } from './pages/master/master.component';
 import { FluxModelComponent } from './admin/pages/flux-model/flux-model.component';
 import { ViewFluxModelComponent } from './admin/pages/flux-model/view-flux-model/view-flux-model.component';
@@ -37,8 +38,11 @@ export const routes: Routes = [
           { path: 'prompts', component: AdminPromptComponent },
           { path: 'prompts/edit/:id', component: EditPromptComponent },
           { path: 'prompts/create', component: EditPromptComponent },
+          { path: 'prompts/:id/history', component: PromptHistoryComponent },
           { path: 'flux-models', component: FluxModelComponent },
           { path: 'flux-models/view/:id', component: ViewFluxModelComponent }
+
+          
         ],
       }
     ],
