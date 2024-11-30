@@ -12,8 +12,8 @@ public class Job
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
     public bool IsDefault { get; set; }
-    // Навігаційні властивості
 
+    // Навігаційні властивості
     public User User { get; set; } = null!;
 
     public PromptTheme Theme { get; set; } = null!;

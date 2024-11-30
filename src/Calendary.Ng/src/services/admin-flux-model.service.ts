@@ -22,4 +22,9 @@ export class AdminFluxModelService {
   getById(id: number): Observable<AdminFluxModel> {
     return this.http.get<AdminFluxModel>(`${this.apiUrl}/${id}`);
   }
+
+  // Метод для отримання моделей за ageGender
+  getByAgeGender(ageGender: number): Observable<AdminFluxModel[]> {
+    return this.http.get<AdminFluxModel[]>(`${this.apiUrl}/age/${ageGender}`);
+  }
 }

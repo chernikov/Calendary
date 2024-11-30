@@ -24,6 +24,7 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
     public DbSet<Job> Jobs { get; set; }
 
     public DbSet<JobTask> JobTasks { get; set; }
+
     public DbSet<Language> Languages { get; set; }
 
     public DbSet<MonoWebhookEvent> MonoWebhookEvents { get; set; }
@@ -33,6 +34,7 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
     public DbSet<OrderItem> OrderItems { get; set; }
 
     public DbSet<PaymentInfo> PaymentInfos { get; set; }
+
     public DbSet<Photo> Photos { get; set; }
 
     public DbSet<Prompt> Prompts { get; set; }
@@ -41,8 +43,9 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     public DbSet<Role> Roles { get; set; }
 
-    public DbSet<Training> Trainings { get; set; }
+    public DbSet<TestPrompt> TestPrompts { get; set; }
 
+    public DbSet<Training> Trainings { get; set; }
 
     public DbSet<UserRole> UserRoles { get; set; }
 

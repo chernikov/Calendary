@@ -1,6 +1,34 @@
 <div class="prompt-container">
     <h2>Теми промптів</h2>
     <button mat-raised-button color="primary" (click)="createNew()" class="create-button">Додати</button>
+
+    <div class="filters">
+      <mat-form-field appearance="fill" class="filter-field">
+        <mat-label>Тема</mat-label>
+        <mat-select [(ngModel)]="filterThemeId" (ngModelChange)="applyFilters()" placeholder="Введіть тему"  >
+          <mat-option [value]="null">Всі</mat-option>
+          <mat-option *ngFor="let theme of themes" [value]="theme.id">{{ theme.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    
+      <mat-form-field appearance="fill" class="filter-field">
+        <mat-label>Категорія</mat-label>
+        <mat-select [(ngModel)]="filterAgeGender" (ngModelChange)="applyFilters()" placeholder="Введіть тему"  >
+          <mat-option [value]="">Всі</mat-option>
+          <mat-option [value]="0">Чоловік</mat-option>
+          <mat-option [value]="1">Жінка</mat-option>
+          <mat-option [value]="2">Хлопчик (малюк)</mat-option>
+          <mat-option [value]="3">Дівчинка (малюк)</mat-option>
+          <mat-option [value]="4">Хлопчик</mat-option>
+          <mat-option [value]="5">Дівчинка</mat-option>
+          <mat-option [value]="6">Чоловік середнього віку</mat-option>
+          <mat-option [value]="7">Жінка середнього віку</mat-option>
+          <mat-option [value]="8">Чоловік похилого віку</mat-option>
+          <mat-option [value]="9">Жінка похилого віку</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
 <div class="mat-elevation-z8">
     <table mat-table [dataSource]="dataSource" class="mat-table">
       <!-- ID Column -->
@@ -33,6 +61,7 @@
         <td mat-cell *matCellDef="let element">
           <button mat-button color="primary" (click)="editPrompt(element.id)">Змінити</button>
           <button mat-button color="warn" (click)="deletePrompt(element.id)">Видалити</button>
+          <button mat-button color="accent" (click)="openTestDialog(element)">Тестувати</button>
         </td>
       </ng-container>
   

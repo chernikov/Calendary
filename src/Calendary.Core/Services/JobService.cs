@@ -81,9 +81,8 @@ public class JobService : IJobService
 
         await _jobRepository.AddAsync(job);
 
-        var themesPrompts = await _promptRepository.GetFullByThemeIdAsync(promptTheme.Id);
-        var genderPrompts = themesPrompts.Where(p => p.AgeGender == ageGender);
-
+        var genderPrompts = await _promptRepository.GetFullAllAsync(promptTheme.Id, (int)ageGender);
+        
         // Створюємо JobTasks на основі prompt
         var jobTasks = genderPrompts.Select(prompt => new JobTask
         {

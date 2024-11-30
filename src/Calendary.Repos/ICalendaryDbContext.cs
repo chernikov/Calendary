@@ -23,6 +23,8 @@ public interface ICalendaryDbContext
     DbSet<Prompt> Prompts { get; set; }
     DbSet<PromptTheme> PromptThemes { get; set; }
     DbSet<Role> Roles { get; set; }
+
+    DbSet<TestPrompt> TestPrompts { get; set; }
     DbSet<Training> Trainings { get; set; }
     DbSet<UserRole> UserRoles { get; set; }
     DbSet<User> Users { get; set; }
