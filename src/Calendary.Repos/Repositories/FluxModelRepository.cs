@@ -6,6 +6,7 @@ namespace Calendary.Repos.Repositories;
 public interface IFluxModelRepository : IRepository<FluxModel>
 {
     Task<IReadOnlyCollection<FluxModel>> GetAllAsync(int page, int pageSize);
+    Task<IEnumerable<FluxModel>> GetByAgeGenderAsync(int ageGender);
     Task<FluxModel?> GetCurrentByUserIdAsync(int useId);
     Task<FluxModel?> GetFullAsync(int id);
 }
@@ -83,5 +84,13 @@ public class FluxModelRepository : IFluxModelRepository
             .Include(p => p.Jobs)
                 .ThenInclude(p => p.Tasks)
             .FirstOrDefaultAsync(fm => fm.Id == id);
+    }
+
+    public async Task<IEnumerable<FluxModel>> GetByAgeGenderAsync(int ageGender)
+    {
+        return await _context.FluxModels
+            .Include(p => p.User)
+            .Where(fm => (int)fm.AgeGender == ageGender)
+            .ToListAsync();
     }
 }

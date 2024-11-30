@@ -10,25 +10,34 @@ public interface IFluxModelService
     Task<FluxModel?> GetCurrentByUserIdAsync(int id);
 
     Task<FluxModel?> GetByIdAsync(int id);
+
+    Task<FluxModel?> GetByTrainingIdAsync(int trainingId);
     Task CreateAsync(FluxModel fluxModel);
 
     Task UpdateStatusAsync(FluxModel model);
-    
+
     Task UpdateArchiveUrlAsync(FluxModel model);
 
     Task UpdateReplicateIdAsync(FluxModel model);
+    
     Task UpdateVersionAsync(FluxModel fluxModel);
+    
     Task ArchiveAsync(FluxModel fluxModel);
+
     Task<FluxModel?> GetFullAsync(int id);
+
+    Task<IEnumerable<FluxModel>> GetByAgeGenderAsync(int ageGender);
 }
 
 public class FluxModelService : IFluxModelService
 {
     private readonly IFluxModelRepository fluxModelRepository;
+    private readonly ITrainingRepository trainingRepository;
 
-    public FluxModelService(IFluxModelRepository fluxModelRepository)
+    public FluxModelService(IFluxModelRepository fluxModelRepository, ITrainingRepository trainingRepository)
     {
         this.fluxModelRepository = fluxModelRepository;
+        this.trainingRepository = trainingRepository;
     }
 
     public async Task<IReadOnlyCollection<FluxModel>> GetAllAsync(int page, int pageSize)
@@ -42,6 +51,17 @@ public class FluxModelService : IFluxModelService
     public Task<FluxModel?> GetByIdAsync(int id)
         => fluxModelRepository.GetByIdAsync(id);
 
+
+    public async Task<FluxModel?> GetByTrainingIdAsync(int trainingId)
+    {
+
+        var training = await trainingRepository.GetByIdAsync(trainingId);
+        if (training is null)
+        {
+            return null;
+        }
+        return await fluxModelRepository.GetByIdAsync(training.FluxModelId);
+    }
 
     public async Task CreateAsync(FluxModel model)
     {
@@ -68,7 +88,7 @@ public class FluxModelService : IFluxModelService
         {
             return;
         }
-        entityDb.ArchiveUrl = model.ArchiveUrl; 
+        entityDb.ArchiveUrl = model.ArchiveUrl;
         await fluxModelRepository.UpdateAsync(entityDb);
     }
 
@@ -106,8 +126,13 @@ public class FluxModelService : IFluxModelService
         await fluxModelRepository.UpdateAsync(entityDb);
     }
 
-    public Task<FluxModel?> GetFullAsync(int id) 
+    public Task<FluxModel?> GetFullAsync(int id)
     {
         return fluxModelRepository.GetFullAsync(id);
     }
+
+    public Task<IEnumerable<FluxModel>> GetByAgeGenderAsync(int ageGender)
+        => fluxModelRepository.GetByAgeGenderAsync(ageGender);
+
+ 
 }

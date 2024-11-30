@@ -36,4 +36,22 @@ public record GenerateImageRequestInput
 
     [JsonPropertyName("extra_lora_scale")]
     public decimal ExtraLoraScale { get; init; }
+
+    public static GenerateImageRequestInput GetImageRequest(string text)
+    {
+        return new()
+        {
+            Prompt = text,
+            Model = "dev",
+            LoraScale = 1m,
+            NumOutputs = 1,
+            AspectRatio = "3:4",
+            OutputFormat = "jpg",
+            GuidanceScale = 3.5,
+            OutputQuality = 90,
+            PromptStrength = 0.8,
+            ExtraLoraScale = 1m,
+            NumInferenceSteps = 28
+        };
+    }
 }

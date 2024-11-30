@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 namespace Calendary.Core.Services;
 public interface IPromptService
 {
-    Task<IEnumerable<Prompt>> GetFullAllAsync();
-    Task<IEnumerable<Prompt>> GetFullAllByThemeIdAsync(int themeId);
+    Task<IEnumerable<Prompt>> GetFullAllAsync(int? themeId, int? ageGender);
     Task<Prompt?> GetByIdAsync(int id);
     Task CreateAsync(Prompt prompt);
     Task UpdateAsync(Prompt prompt);
@@ -26,11 +25,8 @@ public class PromptService : IPromptService
         _promptRepository = promptRepository;
     }
 
-    public Task<IEnumerable<Prompt>> GetFullAllAsync()
-        => _promptRepository.GetFullAllAsync();
-    
-    public Task<IEnumerable<Prompt>> GetFullAllByThemeIdAsync(int themeId)
-        => _promptRepository.GetFullByThemeIdAsync(themeId); 
+    public Task<IEnumerable<Prompt>> GetFullAllAsync(int? themeId, int? ageGender)
+        => _promptRepository.GetFullAllAsync(themeId, ageGender); 
    
     public async Task<Prompt?> GetByIdAsync(int id)
     {

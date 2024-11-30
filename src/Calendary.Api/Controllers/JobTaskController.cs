@@ -53,8 +53,9 @@ public class JobTaskController : Controller
             if (task.Status == "Pending")
             {
                 // Відправка запиту до ReplicateService для генерації зображення
-                
-                var result = await _replicateService.GenerateImageAsync(fluxModel.Version, GetImageRequest(task.Prompt));
+
+                var imageRequest = GenerateImageRequestInput.GetImageRequest(task.Prompt.Text);
+                var result = await _replicateService.GenerateImageAsync(fluxModel.Version, imageRequest);
 
                 if (result is not null && result.Output.Count > 0)
                 {
@@ -83,23 +84,5 @@ public class JobTaskController : Controller
         {
             return BadRequest($"Error while running Job: {ex.Message}");
         }
-    }
-
-    private GenerateImageRequestInput GetImageRequest(Prompt prompt)
-    {
-        return new()
-        {
-            Prompt = prompt.Text,
-            Model = "dev",
-            LoraScale = 1m,
-            NumOutputs = 1,
-            AspectRatio = "3:4",
-            OutputFormat = "jpg",
-            GuidanceScale = 3.5,
-            OutputQuality = 90,
-            PromptStrength = 0.8,
-            ExtraLoraScale = 1m,
-            NumInferenceSteps = 28
-        };
     }
 }

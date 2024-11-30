@@ -11,7 +11,6 @@ public class TrainingController : BaseUserController
 {
     private readonly ITrainingService _trainingService;
     private readonly IReplicateService _replicateService;
-    private readonly IFluxModelService _fluxModelService;
 
     public TrainingController(
         ITrainingService trainingService,

@@ -1,0 +1,21 @@
+.full-width {
+    width: 100%;
+  }
+  
+  .loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .result {
+    margin-top: 20px;
+  }
+  
+  .test-image {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }

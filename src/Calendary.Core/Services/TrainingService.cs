@@ -11,6 +11,7 @@ public interface ITrainingService
 
     Task<Training?> GetByReplicateIdAsync(string replicateId);
     Task<IEnumerable<Training>> GetAllAsync();
+    Task<IEnumerable<Training>> GetByModelIdAsync(int modelId);
     Task UpdateStatusAsync(int trainingId, string status);
     Task UpdateVersionAsync(int trainingId, string version);
 }
@@ -64,6 +65,9 @@ public class TrainingService : ITrainingService
         return await _trainingRepository.GetAllAsync();
     }
 
+    public Task<IEnumerable<Training>> GetByModelIdAsync(int modelId)
+        => _trainingRepository.GetByModelIdAsync(modelId);
+    
     /// <summary>
     /// Оновлює статус тренування.
     /// </summary>
@@ -101,4 +105,6 @@ public class TrainingService : ITrainingService
         await _trainingRepository.UpdateAsync(training);
         
     }
+
+    
 }

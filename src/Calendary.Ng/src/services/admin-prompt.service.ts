@@ -4,34 +4,49 @@ import { Observable } from 'rxjs';
 import { Prompt } from '../models/prompt';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class AdminPromptService {
-    private apiUrl = '/api/admin/prompt';
+  private apiUrl = '/api/admin/prompt';
 
-    constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-    getAll(themeId : number | null): Observable<Prompt[]> {
-        if (themeId) {
-            return this.http.get<Prompt[]>(`${this.apiUrl}/?themeId=${themeId}`);
-        } else {
-            return this.http.get<Prompt[]>(`${this.apiUrl}`);
-        }
+  getAll(
+    themeId: number | null,
+    ageGender: number | null
+  ): Observable<Prompt[]> {
+    let url = this.apiUrl;
+    const params: string[] = [];
+
+    // Додаємо параметри, якщо вони є
+    if (themeId !== null && themeId !== undefined) {
+      params.push(`themeId=${themeId}`);
+    }
+    if (ageGender !== null && ageGender !== undefined) {
+      params.push(`ageGender=${ageGender}`);
     }
 
-    getById(id: number): Observable<Prompt> {
-        return this.http.get<Prompt>(`${this.apiUrl}/${id}`);
+    // Формуємо URL з параметрами, якщо вони є
+    if (params.length > 0) {
+      url += `?${params.join('&')}`;
     }
 
-    create(Prompt: Prompt): Observable<Prompt> {
-        return this.http.post<Prompt>(`${this.apiUrl}`, Prompt);
-    }
+    return this.http.get<Prompt[]>(url);
+  }
 
-    update(Prompt: Prompt): Observable<Prompt> {
-        return this.http.put<Prompt>(`${this.apiUrl}`, Prompt);
-    }
+  getById(id: number): Observable<Prompt> {
+    return this.http.get<Prompt>(`${this.apiUrl}/${id}`);
+  }
 
-    delete(id: number): Observable<void> {
-        return this.http.delete<void>(`${this.apiUrl}/${id}`);
-    }
+  create(Prompt: Prompt): Observable<Prompt> {
+    return this.http.post<Prompt>(`${this.apiUrl}`, Prompt);
+  }
+
+  update(Prompt: Prompt): Observable<Prompt> {
+    return this.http.put<Prompt>(`${this.apiUrl}`, Prompt);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

@@ -36,5 +36,13 @@ public class FluxModelController : BaseAdminController
         var results = _mapper.Map<AdminFluxModelDto>(models);
         return Ok(models);
     }
+
+    [HttpGet("age/{ageGender:int}")]
+    public async Task<IActionResult> GetByAgeGender(int ageGender)
+    {
+        var models = await _fluxModelService.GetByAgeGenderAsync(ageGender);
+        var entities = _mapper.Map<List<FluxModel>>(models);
+        return Ok(entities);
+    }
 }
 

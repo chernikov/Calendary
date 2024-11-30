@@ -1,3 +1,14 @@
 .create-button {
     margin-bottom: 20px;
 }
+
+.filters {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.filter-field {
+    flex: 1;
+}

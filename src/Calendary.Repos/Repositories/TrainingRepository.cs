@@ -5,6 +5,7 @@ namespace Calendary.Repos.Repositories;
 
 public interface ITrainingRepository : IRepository<Training>
 {
+    Task<IEnumerable<Training>> GetByModelIdAsync(int modelId);
     Task<Training?> GetByReplicateIdAsync(string replicateId);
 }
 
@@ -50,5 +51,10 @@ public class TrainingRepository : ITrainingRepository
     }
 
     public Task<Training?> GetByReplicateIdAsync(string replicateId)
-         => _context.Trainings.FirstOrDefaultAsync(t => t.ReplicateId == replicateId);
+        => _context.Trainings.FirstOrDefaultAsync(t => t.ReplicateId == replicateId);
+
+    public async Task<IEnumerable<Training>> GetByModelIdAsync(int modelId)
+    {
+        return await _context.Trainings.Where(t => t.FluxModelId == modelId).ToListAsync();
+    }
 }
