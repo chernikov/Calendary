@@ -50,7 +50,7 @@ public record GenerateImageInput
             Model = "dev",
             LoraScale = 1m,
             NumOutputs = 1,
-            AspectRatio = "3:4",
+            AspectRatio = "1:1",
             OutputFormat = "jpg",
             GuidanceScale = 3.5,
             OutputQuality = 90,
