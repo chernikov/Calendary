@@ -1,16 +1,19 @@
 <div class="flux-model">
-  <h2 class="title">Створення FluxModel</h2>
+  <div *ngIf="categories" class="form-container">
+    <!-- Вибір категорії -->
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Оберіть категорію</mat-label>
+      <mat-select [(value)]="categoryId" required>
+        <mat-option *ngFor="let category of categories" [value]="category.id">
+          {{ category.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
 
-  <div *ngIf="!fluxModel && categories" class="form-container">
-    <!-- Вибір статі -->
-    <div class="age-gender-selection">
-      <label for="category">Оберіть категорію:</label>
-      <select id="category" [(ngModel)]="categoryId">
-        <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
-      </select>
-    </div>
     <!-- Кнопка створення -->
     <button 
+      mat-raised-button 
+      color="primary" 
       class="create-button" 
       (click)="createFluxModel()" 
       [disabled]="!categoryId">

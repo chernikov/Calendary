@@ -1,56 +1,84 @@
 <div class="master-container">
-    <h1>Календар Мрій</h1>
+  <h1>Календар Мрій</h1>
+  {{fluxModel | json }}
+  <!-- Обрати категорію -->
+  <mat-card class="stage-card" [class.active]="!fluxModel">
+    <mat-card-title>Обрати категорію</mat-card-title>
+    <mat-card-content>
+      <app-flux-model (onUpdate)="updateFluxModel($event)"></app-flux-model>
+    </mat-card-content>
+  </mat-card>
+  <ng-container *ngIf="fluxModel">
+    <!-- Завантажити фото -->
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'uploading'">
+      <mat-card-title>Завантажити фото</mat-card-title>
+      <mat-card-content>
+        <app-photo-upload *ngIf="fluxModel.status === 'uploading'" [fluxModel]="fluxModel"></app-photo-upload>
+      </mat-card-content>
+    </mat-card>
 
+    <!-- Оплатити модель -->
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'pay_model'">
+      <mat-card-title>Оплатити модель</mat-card-title>
+      <mat-card-content>
+        <!-- Тут компонент оплати -->
+      </mat-card-content>
+    </mat-card>
 
-    <div *ngIf="fluxModel" class="flux-model-card">
-      <p>
-        <strong>🆔 ID:</strong> <span>{{ fluxModel.id }}</span>
-      </p>
-      <p>
-        <strong>📛 Назва:</strong> <span>{{ fluxModel.name }}</span>
-      </p>
-      <p>
-        <strong>📋 Статус:</strong> <span>{{ fluxModel.status }}</span>
-      </p>
-      <p>
-        <strong>🧑‍⚖️ Категорія:</strong> <span> {{ fluxModel.category.name}} </span>
-      </p>
-      <p *ngIf="fluxModel.archiveUrl">
-        <strong>📦 Архів:</strong> 
-        <a [href]="fluxModel.archiveUrl" target="_blank">Архів зображень</a>
-      </p>
-      <p *ngIf="fluxModel.version">
-        <strong>🛠️ Version:</strong> <span>{{ fluxModel.version }}</span>
-      </p>
-      <button class="archive-btn" (click)="archiveFluxModel()">📂 Архівувати</button>
-    </div>
+    <!-- Генерація моделі -->
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'prepare'">
+      <mat-card-title>Генерація моделі</mat-card-title>
+      <mat-card-content>
+        <app-generation-status *ngIf="fluxModel.status === 'prepare'" [fluxModel]="fluxModel"></app-generation-status>
+      </mat-card-content>
+    </mat-card>
 
+    <!-- Результати тренування -->
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'processed'">
+      <mat-card-title>Результати тренування</mat-card-title>
+      <mat-card-content>
+        <!-- Тут компонент результатів -->
+      </mat-card-content>
+    </mat-card>
 
+    <!-- Обрати тему -->
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'exampled'">
+      <mat-card-title>Обрати тему</mat-card-title>
+      <mat-card-content>
+        <app-prompt-selection *ngIf="fluxModel.status === 'exampled'" [fluxModel]="fluxModel"></app-prompt-selection>
+      </mat-card-content>
+    </mat-card>
 
-     <!-- FluxModel Component -->
-    <app-flux-model (onUpdate)="onUpdateFluxModel($event)" *ngIf="!fluxModel"></app-flux-model>
-    
-    <!-- Завантаження фото -->
-    <app-photo-upload [fluxModel]="fluxModel" *ngIf="fluxModel && fluxModel.status === 'creating'"></app-photo-upload>
-  
-    <!-- Генерація -->
-    <app-generation-status [fluxModel]="fluxModel" *ngIf="fluxModel && (fluxModel.status === 'Prepared' || fluxModel.status === 'Inprocess') "></app-generation-status>
-  
-    <!-- Результати генерації -->
-    <app-generation-results [fluxModel]="fluxModel" (onUpdate)="onUpdateModelSelf()" *ngIf="fluxModel && fluxModel.status === 'succeeded'"></app-generation-results>
-  
-    <!-- Вибір теми промптів -->
-    <app-prompt-selection [fluxModel]="fluxModel" (onUpdate)="onUpdateModelSelf()" (onUpdateTask)="onUpdateTask($event)" *ngIf="fluxModel && fluxModel.status === 'Completed'"></app-prompt-selection>
-  
-    <!-- Результати з тренувань -->
-    <app-prompt-results [tasks]="tasks" *ngIf="fluxModel && fluxModel.status === 'Completed' && fluxModel.jobs.length > 1"></app-prompt-results>
-  
+    <!-- Генерація зображень -->
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'image_generating'">
+      <mat-card-title>Генерація зображень</mat-card-title>
+      <mat-card-content>
+        <!-- Тут компонент генерації зображень -->
+      </mat-card-content>
+    </mat-card>
+
     <!-- Місяці календаря -->
-    <app-calendar-months></app-calendar-months>
-  
-    <!-- Важливі дати календаря -->
-    <app-calendar-dates></app-calendar-dates>
-  
-    <!-- Кнопка додати до кошика -->
-    <app-cart-button></app-cart-button>
-  </div>
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'placed'">
+      <mat-card-title>Місяці календаря</mat-card-title>
+      <mat-card-content>
+        <app-calendar-months *ngIf="fluxModel.status === 'placed'"></app-calendar-months>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Важливі дати -->
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'dated'">
+      <mat-card-title>Важливі дати</mat-card-title>
+      <mat-card-content>
+        <!-- Тут компонент важливих дат -->
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Календар готовий -->
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'ready'">
+      <mat-card-title>Календар готовий</mat-card-title>
+      <mat-card-content>
+        <!-- Тут компонент готового календаря -->
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
+</div>

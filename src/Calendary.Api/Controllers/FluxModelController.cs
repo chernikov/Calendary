@@ -77,7 +77,7 @@ public class FluxModelController : BaseUserController
         {
             UserId = user.Id,
             CategoryId = model.CategoryId,
-            Status = "creating",
+            Status = "uploading",
             Name = randomName,
             IsPaid = true
         };

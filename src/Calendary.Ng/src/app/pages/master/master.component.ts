@@ -10,77 +10,39 @@ import { PromptSelectionComponent } from './prompt-selection/prompt-selection.co
 import { FluxModelComponent } from './flux-model/flux-model.component';
 import { FluxModel } from '../../../models/flux-model';
 import { CommonModule } from '@angular/common';
-import { FluxModelService } from '../../../services/flux-model.service';
-import { JobTask } from '../../../models/job-task';
+import { MatCardModule } from '@angular/material/card';
+import { PaymentComponent } from './payment/payment.component';
+import { TrainingResultsComponent } from './training-results/training-results.component';
+import { ImageGenerationComponent } from './image-generation/image-generation.component';
+import { PhotoSelectionComponent } from './photo-selection/photo-selection.component';
+import { CalendarReadyComponent } from './calendar-ready/calendar-ready.component';
 
 @Component({
   selector: 'app-master',
   standalone: true,
   imports: [
     CommonModule,
+    MatCardModule,
+    
     FluxModelComponent,
     PhotoUploadComponent,
-    CalendarDatesComponent,
-    CalendarMonthsComponent,
-    CartButtonComponent,
-    GenerationResultsComponent,
     GenerationStatusComponent,
-    PromptResultsComponent,
     PromptSelectionComponent,
+    PaymentComponent,
+    TrainingResultsComponent,
+    ImageGenerationComponent,
+    PhotoSelectionComponent,
+    CalendarMonthsComponent,
+    CalendarDatesComponent,
+    CalendarReadyComponent
   ],
   templateUrl: './master.component.html',
   styleUrl: './master.component.scss',
 })
 export class MasterComponent {
+  fluxModel: any = null; // Поточна FluxModel
 
-  tasks: JobTask[] = [];
-
-  constructor(private fluxModelService: FluxModelService) { }
-
-  fluxModel: FluxModel | null = null;
-
-  onUpdateFluxModel($event: FluxModel) {
+  updateFluxModel($event: FluxModel) {
     this.fluxModel = $event;
-    if (this.fluxModel && this.fluxModel.jobs && this.fluxModel.jobs.length > 0) {
-      this.tasks = this.fluxModel.jobs[this.fluxModel.jobs.length - 1].tasks;
-    }
   }
-
-  onUpdateModelSelf() {
-    this.fluxModelService.current().subscribe({
-      next: (model) => {
-        this.fluxModel = model;
-        if (this.fluxModel.jobs && this.fluxModel.jobs.length > 0) {
-          this.tasks = this.fluxModel.jobs[this.fluxModel.jobs.length - 1].tasks;
-        }
-        console.log('Поточний FluxModel:', model);
-      },
-      error: (err) => {
-        console.error('Помилка завантаження поточного FluxModel:', err);
-      }
-    });
-  }
-  onUpdateTask(task: JobTask) {
-    const index = this.tasks.findIndex(t => t.id === task.id);
-  
-    if (index !== -1) {
-      // Якщо завдання з таким id знайдено, оновлюємо його
-      this.tasks[index] = task;
-      console.log(`Task with ID ${task.id} updated:`, task);
-    } else {
-      // Якщо завдання з таким id не знайдено, додаємо його
-      this.tasks.push(task);
-      console.log(`Task with ID ${task.id} added as new:`, task);
-    }
-  }
-
-  archiveFluxModel() {
-    this.fluxModelService.archive(this.fluxModel!.id).subscribe({
-      next(value) {
-        console.log('FluxModel archived successfully', value);
-        window.location.reload();
-      },
-    });
-  }
-
 }
