@@ -1,10 +1,5 @@
 ﻿using Calendary.Model;
 using Calendary.Repos.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Calendary.Core.Services;
 public interface IPromptService
@@ -14,6 +9,12 @@ public interface IPromptService
     Task CreateAsync(Prompt prompt);
     Task UpdateAsync(Prompt prompt);
     Task DeleteAsync(int id);
+
+    Task AssignSeedAsync(int promptId, int seed);
+
+    Task DeassignSeedAsync(int promptId, int seed);
+
+    Task ClearSeedsAsync(int promptId);
 }
 
 public class PromptService : IPromptService
@@ -48,6 +49,11 @@ public class PromptService : IPromptService
         }
         entity.ThemeId = prompt.ThemeId;
         entity.AgeGender = prompt.AgeGender;
+
+        if (entity.Text != prompt.Text)
+        {
+            await _promptRepository.ClearSeedsAsync(entity.Id);
+        }
         entity.Text = prompt.Text;
         await _promptRepository.UpdateAsync(entity);
     }
@@ -57,5 +63,12 @@ public class PromptService : IPromptService
         await _promptRepository.DeleteAsync(id);
     }
 
-   
+    public Task AssignSeedAsync(int promptId, int seed)
+        => _promptRepository.AssignSeedAsync(promptId, seed);
+    
+    public Task DeassignSeedAsync(int promptId, int seed)
+        => _promptRepository.DeassignSeedAsync(promptId, seed);  
+    
+    public Task ClearSeedsAsync(int promptId)
+        => _promptRepository.ClearSeedsAsync(promptId);
 }

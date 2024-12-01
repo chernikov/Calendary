@@ -12,3 +12,15 @@
 .filter-field {
     flex: 1;
 }
+
+.seed-badge {
+    display: inline-block;
+    background-color: #e0f7fa; /* Світло-блакитний фон */
+    color: #006064; /* Темний текст */
+    border-radius: 12px; /* Округлі кути */
+    padding: 5px 10px; /* Відступи всередині бейджа */
+    font-size: 12px; /* Розмір тексту */
+    margin: 5px; /* Відстань між бейджами */
+    border: 1px solid #b2ebf2; /* Тонка рамка */
+    font-weight: 500; /* Трохи товщий текст */
+  }

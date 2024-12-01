@@ -105,38 +105,19 @@ export class AdminPromptComponent {
 
   openTestDialog(prompt: Prompt): void {
     const dialogRef = this.dialog.open(TestPromptDialogComponent, {
-      width: '1200px', // Задаємо ширину
+      panelClass: 'custom-dialog-container', 
+      width: '800px', // Задаємо ширину
       height: '800px', // Задаємо висоту
       data: {
-        promptId: prompt.id, // Передаємо ID промпту
-        ageGender: prompt.ageGender,
-        promptText: prompt.text, // Передаємо текст промпту
+        prompt: prompt
       },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.saveUpdatedPrompt(prompt, result);
-      }
+        this.loadPrompts();
     });
   }
 
-  saveUpdatedPrompt(prompt: Prompt, updatedText: string): void {
-    const newPrompt = { ...prompt };
-    newPrompt.text = updatedText;
-
-    this.adminPromptService.update(newPrompt).subscribe(
-      () => {
-        console.log('Промпт успішно збережений');
-        this.loadPrompts();
-      },
-      (error) => {
-        console.error('Помилка при збереженні промпту:', error);
-      }
-    );
-  }
-
-  
   goToHistory(promptId: number): void {
     this.router.navigate([`/admin/prompts/${promptId}/history`]);
   }

@@ -39,6 +39,8 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     public DbSet<Prompt> Prompts { get; set; }
 
+    public DbSet<PromptSeed> PromptSeeds { get; set; }
+
     public DbSet<PromptTheme> PromptThemes { get; set; }
 
     public DbSet<Role> Roles { get; set; }

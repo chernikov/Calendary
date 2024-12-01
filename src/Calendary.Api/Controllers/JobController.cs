@@ -184,7 +184,7 @@ public class JobController  : BaseUserController
         }
     }
 
-    private GenerateImageRequestInput GetImageRequest(Prompt prompt)
+    private GenerateImageInput GetImageRequest(Prompt prompt)
     {
         return new()
         {

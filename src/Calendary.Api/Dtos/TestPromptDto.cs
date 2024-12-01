@@ -7,6 +7,11 @@ public class TestPromptDto
 
     public int TrainingId { get; set; }
     public string Text { get; set; } = string.Empty;
+
+    public int? Seed { get; set; }
+
+    public int? OutputSeed { get; set; }
+
     public string ImageUrl { get; set; } = string.Empty;
     public string? ProcessedImageUrl { get; set; }
     public string Status { get; set; } = string.Empty; 

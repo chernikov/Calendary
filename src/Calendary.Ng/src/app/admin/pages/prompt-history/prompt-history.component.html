@@ -2,7 +2,10 @@
 
 <div *ngIf="testPrompts.length > 0; else noHistory">
   <div *ngFor="let test of testPrompts" class="test-item">
+    
     <p><strong>Текст:</strong> {{ test.text }}</p>
+    <p><strong>Заданий seed:</strong> {{ test.seed }}</p>
+    <p><strong>Вихідний seed:</strong> {{ test.outputSeed }}</p>
     <div *ngIf="test.imageUrl">
       <img [src]="test.imageUrl" alt="Test Image" class="test-image" />
     </div>

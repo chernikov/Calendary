@@ -11,5 +11,7 @@ public class Prompt
 
     // Навігаційні властивості
     public PromptTheme Theme { get; set; } = null!;
+
+    public ICollection<PromptSeed> Seeds { get; set; } = [];
 }
 

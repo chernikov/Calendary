@@ -4,6 +4,7 @@ using Calendary.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Calendary.Model;
 using Calendary.Api.Dtos;
+using System.Text.RegularExpressions;
 
 namespace Calendary.Api.Controllers;
 
@@ -54,12 +55,17 @@ public class JobTaskController : Controller
             {
                 // Відправка запиту до ReplicateService для генерації зображення
 
-                var imageRequest = GenerateImageRequestInput.GetImageRequest(task.Prompt.Text);
+                var imageRequest = GenerateImageInput.GetImageRequest(task.Prompt.Text, task.Seed);
                 var result = await _replicateService.GenerateImageAsync(fluxModel.Version, imageRequest);
 
                 if (result is not null && result.Output.Count > 0)
                 {
+                    var info = await _replicateService.GeGenerateImageStatusAsync(result.Id);
                     var imagePath = result.Output[0];
+                    // Updating task status and result
+                    var seed = info.ExtractSeedFromLogs();
+                    task.ReplicateId = result.Id;
+                    task.OutputSeed = seed;
                     // Оновлення статусу завдання та результату
                     task.Status = "Completed";
                     task.ProcessedImageUrl = imagePath;
@@ -85,4 +91,7 @@ public class JobTaskController : Controller
             return BadRequest($"Error while running Job: {ex.Message}");
         }
     }
+
+
+  
 }

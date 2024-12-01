@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace Calendary.Core.Services.Models;
 
@@ -44,5 +45,6 @@ public record TrainModelResponse
     public string Webhook { get; set; }
 
     [JsonPropertyName("urls")]
-    public TrainModelUrls Urls { get; set; }
+    public Urls Urls { get; set; }
+
 }

@@ -1,39 +1,49 @@
 <h2 mat-dialog-title>Вибір моделі</h2>
 <mat-dialog-content>
-  <p>Виберіть модель для категорії: {{ data.ageGender | ageGenderDisplay }}</p>
-  
-  <mat-form-field appearance="fill" class="full-width">
-    <mat-label>Модель</mat-label>
-    <mat-select [(value)]="selectedModel">
-      <mat-option *ngFor="let model of models" [value]="model">
-        {{ model.name }} {{model.ageGender  | ageGenderDisplay }} {{model.user!.userName}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
+    <p>Виберіть модель для категорії: {{ data.prompt.ageGender | ageGenderDisplay }}</p>
 
-<mat-form-field appearance="fill" class="full-width">
-    <mat-label>Prompt Text</mat-label>
-    <textarea matInput [(ngModel)]="promptText" rows="5"></textarea>
-</mat-form-field>
-  
-  <button mat-raised-button color="primary" (click)="runTest()" [disabled]="!selectedModel || loading">
-    Запустити
-  </button>
+    <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Модель</mat-label>
+        <mat-select [(value)]="selectedModel">
+            <mat-option *ngFor="let model of models" [value]="model">
+                {{ model.name }} {{model.ageGender | ageGenderDisplay }} {{model.user!.userName}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
 
-  <!-- Loading Indicator -->
-  <div *ngIf="loading" class="loading">
-    <mat-spinner diameter="30"></mat-spinner>
-    <p>Завантаження...</p>
-  </div>
-  
-  <!-- Display Image -->
-  <div *ngIf="imageUrl" class="result">
-    <p>Результат:</p>
-    <img [src]="imageUrl" alt="Test Result" class="test-image" />
-  </div>
+    <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Промпт</mat-label>
+        <textarea matInput [(ngModel)]="promptText" rows="5"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Seed</mat-label>
+        <input matInput [(ngModel)]="seed" placeholder="Введіть seed (опціонально)" type="number" />
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" (click)="runTest()" [disabled]="!selectedModel || loading">
+        Запустити
+    </button>
+    <button mat-raised-button color="accent" (click)="applyPrompt()" [disabled]="loading">Застосувати</button>
+    <button mat-raised-button color="accent" (click)="applyPromptWithSeed()" [disabled]="loading">Застосувати з seed</button>
+
+    <p *ngIf="outputSeed">Використаний seed: {{ outputSeed }}</p>
+
+    <!-- Loading Indicator -->
+    <div *ngIf="loading" class="loading">
+        <mat-spinner diameter="30"></mat-spinner>
+        <p>Завантаження...</p>
+    </div>
+
+    <!-- Display Image -->
+    <div *ngIf="imageUrl" class="result">
+        <p>Результат:</p>
+        <img [src]="imageUrl" alt="Test Result" class="test-image" />
+    </div>
+
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="cancel()">Скасувати</button>
-  <button mat-raised-button color="accent" (click)="applyPrompt()" [disabled]="loading">Застосувати</button>
+    <button mat-button (click)="cancel()">Скасувати</button>
+
 </mat-dialog-actions>

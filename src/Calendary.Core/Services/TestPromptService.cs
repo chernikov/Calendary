@@ -7,7 +7,7 @@ public interface ITestPromptService
 {
     Task<IEnumerable<TestPrompt>> GetByPromptIdAsync(int idPrompt);
 
-    Task<TestPrompt> CreateAsync(int promptId, int trainingId, string? text);
+    Task<TestPrompt> CreateAsync(int promptId, int trainingId, string? text, int? seed);
 
     Task<IEnumerable<TestPrompt>> GetFullAllAsync();
 
@@ -37,7 +37,7 @@ public class TestPromptService : ITestPromptService
      => _testPromptRepository.GetByPromptIdAsync(idPrompt);
 
 
-    public async Task<TestPrompt> CreateAsync(int promptId, int trainingId, string? text)
+    public async Task<TestPrompt> CreateAsync(int promptId, int trainingId, string? text, int? seed)
     {
         var prompt = await _promptRepository.GetByIdAsync(promptId);
         var training = await _trainingRepository.GetByIdAsync(trainingId);
@@ -52,6 +52,7 @@ public class TestPromptService : ITestPromptService
             PromptId = promptId,
             TrainingId = trainingId,
             Text = text ?? prompt.Text,
+            Seed = seed,
             Status = "prepared",
             CreatedAt = DateTime.UtcNow,
             Prompt = prompt,
@@ -77,6 +78,8 @@ public class TestPromptService : ITestPromptService
         {
             return;
         }
+        entity.ReplicateId = testPrompt.ReplicateId;   
+        entity.OutputSeed = testPrompt.OutputSeed;  
         entity.ProcessedImageUrl = testPrompt.ProcessedImageUrl;
         entity.ImageUrl = testPrompt.ImageUrl;
         entity.Status = testPrompt.Status;
