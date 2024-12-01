@@ -4,6 +4,7 @@
       <div
         class="month-container"
         cdkDropList
+        id="monthes"
         #monthes="cdkDropList"
         [cdkDropListData]="calendarImages"
         [cdkDropListConnectedTo]="['images']"
@@ -27,7 +28,8 @@
         #images="cdkDropList"
         [cdkDropListData]="jobTasks"
         [cdkDropListConnectedTo]="['monthes']" 
-        (cdkDropListDropped)="onDrop($event)">
+        (cdkDropListDropped)="onDrop($event)"
+        >
 
       <div class="gallery-image"
         *ngFor="let jobTask of jobTasks"

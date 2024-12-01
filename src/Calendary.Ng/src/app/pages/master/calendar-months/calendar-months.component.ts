@@ -6,7 +6,7 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDropList, DragDropModule } from '@angular/cdk/drag-drop';
 import { FluxModel } from '../../../../models/flux-model';
 import { CommonModule } from '@angular/common';
 import { JobTask } from '../../../../models/job-task';
@@ -14,7 +14,7 @@ import { JobTask } from '../../../../models/job-task';
 @Component({
   selector: 'app-calendar-months',
   standalone: true,
-  imports: [CommonModule, DragDropModule],
+  imports: [CommonModule, DragDropModule, CdkDropList, CdkDrag],
   templateUrl: './calendar-months.component.html',
   styleUrls: ['./calendar-months.component.scss'],
 })
@@ -61,24 +61,27 @@ export class CalendarMonthsComponent implements OnChanges {
     }
   }
 
-  onDrop(event: any): void {
-    debugger;
-    console.log("onDrop", event);
-    // if (i === null) {
-    //   const droppedImage = event.item.data as JobTask;
-    //   this.images.push(droppedImage);
-    //   console.log("Вернути назад", droppedImage);
-    //   return;
-    // }
-    // const monthIndex = i;
-    // const droppedImage = event.item.data as JobTask;
+  onDrop(event: CdkDragDrop<any[]>): void {
+    const draggedImage = event.item.data;
+    console.log(event);
+    // Якщо перетягуємо в місяць
+    // if (event.container !== event.previousContainer) {
+    //   // Визначаємо індекс місяця
+    //   const targetIndex = this.months.findIndex((_, i) => this.calendarImages[i].id === event.container.data);
 
-    // this.calendarImages[monthIndex] = droppedImage;
-    // const index = this.images.indexOf(droppedImage);
+    //   if (targetIndex !== -1) {
+    //     // Додаємо зображення до місяця
+    //     this.calendarImages[targetIndex] = draggedImage;
 
-    // console.log("Поставити на " + index, droppedImage);
-    // if (index !== -1) {
-    //   this.images.splice(index, 1);
+    //     // Видаляємо з галереї
+    //     const imageIndex = this.jobTasks.findIndex((img) => img.imageUrl === draggedImage.imageUrl);
+    //     if (imageIndex !== -1) {
+    //       this.images.splice(imageIndex, 1);
+    //     }
+    //   }
+    // } else {
+    //   // Якщо скинули в ту саму галерею
+    //   console.log('No container switch detected');
     // }
   }
 
