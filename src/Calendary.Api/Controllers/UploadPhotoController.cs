@@ -119,7 +119,7 @@ public class UploadPhotoController : BaseUserController
         zipFilePath = zipFilePath.Replace("\\", "/");
         model.ArchiveUrl = zipFilePath;
         await _fluxModelService.UpdateArchiveUrlAsync(model);
-        model.Status = "Prepared";
+        model.Status = "pay_model";
         await _fluxModelService.UpdateStatusAsync(model);
 
         return Ok(new { Message = "Model updated and archived successfully.", ZipFile = zipFilePath });

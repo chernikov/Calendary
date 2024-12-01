@@ -65,7 +65,7 @@ export class EditPromptComponent implements OnInit {
       themeId: [null, Validators.required],
       categoryId: [0, Validators.required],
       text: ['', [Validators.required]],
-      newSeed: [null] // Обов'язково додайте це поле тут
+      newSeed: [null] 
     });
   }
 

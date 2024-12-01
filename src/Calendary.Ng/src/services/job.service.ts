@@ -31,15 +31,6 @@ export class JobService {
         return this.http.get<Job>(`${this.apiUrl}/generate/${fluxModelId}?promptThemeId=${promptThemeId}`);
       }
 
-  /**
-   * Виконує Job з усіма JobTasks.
-   * @param jobId ID Job
-   * @returns Observable<string>
-   */
-  runJob(jobId: number): Observable<string> {
-    return this.http.get<string>(`${this.apiUrl}/run/${jobId}`);
-  }
-
    /**
    * Додає до черги Job з усіма JobTasks.
    * @param jobId ID Job

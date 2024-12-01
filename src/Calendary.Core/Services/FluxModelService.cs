@@ -27,6 +27,7 @@ public interface IFluxModelService
     Task<FluxModel?> GetFullAsync(int id);
 
     Task<IEnumerable<FluxModel>> GetByCategoryIdAsync(int categoryId);
+    Task<FluxModel> GetUserFluxModelAsync(int userId, int fluxModelId);
 }
 
 public class FluxModelService : IFluxModelService
@@ -129,4 +130,7 @@ public class FluxModelService : IFluxModelService
 
     public Task<IEnumerable<FluxModel>> GetByCategoryIdAsync(int categoryId)
         => fluxModelRepository.GetByCategoryIdAsync(categoryId);
+
+    public Task<FluxModel> GetUserFluxModelAsync(int userId, int fluxModelId)
+              => fluxModelRepository.GetUserFluxModelAsync(userId, fluxModelId);
 }

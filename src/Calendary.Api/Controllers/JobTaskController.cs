@@ -77,11 +77,16 @@ public class JobTaskController : Controller
             var dbJob = await _jobService.GetJobWithTasksAsync(task.JobId);
             if (dbJob is not null)
             {
-                if (dbJob.Tasks.All(p => p.Status == "Completed"))
+                if (dbJob.Tasks.All(p => p.Status == "completed"))
                 {
-                    await _jobService.UpdateStatusAsync(dbJob.Id, "Completed");
+                    await _jobService.UpdateStatusAsync(dbJob.Id, "completed");
+
+                    fluxModel.Status = "ready_selected";
+                    await _fluxModelService.UpdateStatusAsync(fluxModel);
                 }
             }
+
+
 
             var output = _mapper.Map<JobTaskDto>(task);
             return Ok(output);

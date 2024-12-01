@@ -1,1 +1,40 @@
-<p>calendar-months works!</p>
+<div class="calendar-container">
+    <h2>Місяці календаря</h2>
+    <div class="calendar-grid">
+      <div
+        class="month-container"
+        cdkDropList
+        id="monthes"
+        #monthes="cdkDropList"
+        [cdkDropListData]="calendarImages"
+        [cdkDropListConnectedTo]="['images']"
+        (cdkDropListDropped)="onDrop($event)"
+      >
+      <div *ngFor="let month of months; let i = index">
+        <h3>{{ month }}</h3>
+        <div class="image-slot" *ngIf="calendarImages[i]; else emptySlot">
+          <img [src]="calendarImages[i]" alt="Image for {{ month }}" />
+        </div>
+        <ng-template #emptySlot>
+            <p class="empty-slot">Перетягніть зображення сюди</p>
+          </ng-template>
+      </div>
+        
+      </div>
+    </div>
+  
+    <div class="images-gallery" 
+        cdkDropList 
+        #images="cdkDropList"
+        [cdkDropListData]="jobTasks"
+        [cdkDropListConnectedTo]="['monthes']" 
+        (cdkDropListDropped)="onDrop($event)"
+        >
+
+      <div class="gallery-image"
+        *ngFor="let jobTask of jobTasks"
+        cdkDrag>
+        <img [src]="jobTask.imageUrl" alt="Gallery Image" />
+      </div>
+    </div>
+  </div>

@@ -9,6 +9,7 @@ public interface IFluxModelRepository : IRepository<FluxModel>
     Task<IEnumerable<FluxModel>> GetByCategoryIdAsync(int categoryId);
     Task<FluxModel?> GetCurrentByUserIdAsync(int useId);
     Task<FluxModel?> GetFullAsync(int id);
+    Task<FluxModel?> GetUserFluxModelAsync(int userId, int fluxModelId);
 }
 
 public class FluxModelRepository : IFluxModelRepository
@@ -96,5 +97,10 @@ public class FluxModelRepository : IFluxModelRepository
             .Include(p => p.Category)
             .Where(fm => fm.CategoryId == categoryId)
             .ToListAsync();
+    }
+
+    public async Task<FluxModel?> GetUserFluxModelAsync(int userId, int fluxModelId)
+    {
+        return await _context.FluxModels.FirstOrDefaultAsync(p => p.UserId == userId && p.Id == fluxModelId);
     }
 }

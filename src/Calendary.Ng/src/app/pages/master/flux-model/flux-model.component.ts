@@ -1,19 +1,24 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { FluxModelService } from '../../../../services/flux-model.service';
-import { FluxModel } from '../../../../models/flux-model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { FluxModelService } from '../../../../services/flux-model.service';
+import { FluxModel } from '../../../../models/flux-model';
 import { CategoryService } from '../../../../services/category.service';
 import { Category } from '../../../../models/category';
 
 @Component({
   selector: 'app-flux-model',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
   templateUrl: './flux-model.component.html',
   styleUrl: './flux-model.component.scss'
 })
-export class FluxModelComponent {
+export class FluxModelComponent 
+{
+
   categoryId: number | null = null;
   fluxModel: FluxModel | null = null;
   categories: Category[] = [];
@@ -31,7 +36,6 @@ export class FluxModelComponent {
     this.fluxModelService.current().subscribe({
       next: (model) => {
         this.fluxModel = model;
-        console.log('Поточний FluxModel:', model);
         this.onUpdate.emit(model);
       },
       error: (err) => {

@@ -7,12 +7,16 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { FluxModel } from '../../../../models/flux-model';
-import { Job } from '../../../../models/job';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatCardModule } from '@angular/material/card';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { Job } from '../../../../models/job';
+import { FluxModel } from '../../../../models/flux-model';
 import { PromptTheme } from '../../../../models/prompt-theme';
 import { PromptThemeService } from '../../../../services/prompt-theme.service';
-import { FormsModule } from '@angular/forms';
 import { JobService } from '../../../../services/job.service';
 import { JobTaskService } from '../../../../services/job-task.service';
 import { JobTask } from '../../../../models/job-task';
@@ -20,14 +24,13 @@ import { JobTask } from '../../../../models/job-task';
 @Component({
   selector: 'app-prompt-selection',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatCardModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
   templateUrl: './prompt-selection.component.html',
   styleUrl: './prompt-selection.component.scss',
 })
 export class PromptSelectionComponent implements OnChanges, OnInit {
   @Input() fluxModel: FluxModel | null = null;
   @Output() onUpdate: EventEmitter<void> = new EventEmitter<void>();
-  @Output() onUpdateTask: EventEmitter<JobTask> = new EventEmitter<JobTask>();
   job?: Job;
   lastJob?: Job;
 
@@ -38,7 +41,6 @@ export class PromptSelectionComponent implements OnChanges, OnInit {
   constructor(
     private promptThemeService: PromptThemeService,
     private jobService: JobService,
-    private jobTaskService: JobTaskService
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -87,25 +89,6 @@ export class PromptSelectionComponent implements OnChanges, OnInit {
             this.errorMessage = 'Failed to generate Job. Please try again.';
           }
         );
-    }
-  }
-
-  async processJob() {
-    if (!this.lastJob) {
-      return;
-    }
-
-    this.errorMessage = null;
-    for (const task of this.lastJob.tasks) {
-      try {
-        const result = await this.jobTaskService.run(task.id).toPromise();
-        console.log(`Task ${task.id} completed:`, result);
-        this.onUpdateTask.emit(result);
-      } catch (taskError) {
-        console.error(`Error executing task ${task.id}:`, taskError);
-        this.errorMessage = `Failed to execute task ${task.id}. Please try again.`;
-        break; // Зупиняємо виконання наступних завдань у разі помилки
-      }
     }
   }
 }
