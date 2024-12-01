@@ -18,6 +18,7 @@ namespace Calendary.Repos
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IUserSettingRepository, UserSettingRepository>();
             services.AddScoped<ICountryRepository, CountryRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<ILanguageRepository, LanguageRepository>();
             services.AddScoped<IEventDateRepository, EventDateRepository>();
             services.AddScoped<ICalendarRepository, CalendarRepository>();

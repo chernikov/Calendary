@@ -21,6 +21,7 @@ import { PromptHistoryComponent } from './admin/pages/prompt-history/prompt-hist
 import { MasterComponent } from './pages/master/master.component';
 import { FluxModelComponent } from './admin/pages/flux-model/flux-model.component';
 import { ViewFluxModelComponent } from './admin/pages/flux-model/view-flux-model/view-flux-model.component';
+import { AdminCategoryComponent } from './admin/pages/admin-category/admin-category.component';
 
 
 export const routes: Routes = [
@@ -34,6 +35,7 @@ export const routes: Routes = [
           { path: '', component: AdminHomeComponent},
           { path: 'holiday', component: HolidayComponent },
           { path: 'orders', component: AdminOrderComponent },
+          { path: 'categories', component: AdminCategoryComponent },
           { path: 'prompt-themes', component: AdminPromptThemeComponent },
           { path: 'prompts', component: AdminPromptComponent },
           { path: 'prompts/edit/:id', component: EditPromptComponent },

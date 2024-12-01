@@ -7,6 +7,8 @@ public interface ICalendaryDbContext
 {
     DbSet<CalendarHoliday> CalendarHolidays { get; set; }
     DbSet<Calendar> Calendars { get; set; }
+
+    DbSet<Category> Categories { get; set; }
     DbSet<Country> Countries { get; set; }
     DbSet<EventDate> EventDates { get; set; }
     DbSet<FluxModel> FluxModels { get; set; }

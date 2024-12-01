@@ -11,6 +11,8 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     public DbSet<Calendar> Calendars { get; set; }
 
+    public DbSet<Category> Categories { get; set; }
+
     public DbSet<Country> Countries { get; set; }
 
     public DbSet<EventDate> EventDates { get; set; }
@@ -131,5 +133,18 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
         modelBuilder.Entity<OrderItem>()
         .Property(o => o.Price)
         .HasColumnType("decimal(18, 2)");
+
+        modelBuilder.Entity<Category>().HasData(
+          new Category { Id = 1, Name = "Чоловік", IsAlive = true },
+          new Category { Id = 2, Name = "Жінка", IsAlive = true },
+          new Category { Id = 3, Name = "Хлопчик (малюк)", IsAlive = true },
+          new Category { Id = 4, Name = "Дівчинка (малюк)", IsAlive = true },
+          new Category { Id = 5, Name = "Хлопчик", IsAlive = true },
+          new Category { Id = 6, Name = "Дівчинка", IsAlive = true },
+          new Category { Id = 7, Name = "Чоловік середнього віку", IsAlive = true },
+          new Category { Id = 8, Name = "Жінка середнього віку", IsAlive = true },
+          new Category { Id = 9, Name = "Чоловік поважного віку", IsAlive = true },
+          new Category { Id = 10, Name = "Жінка поважного віку", IsAlive = true }
+        );
     }
 }
