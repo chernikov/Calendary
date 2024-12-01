@@ -2,8 +2,7 @@ import { Component } from '@angular/core';
 import { PhotoUploadComponent } from './photo-upload/photo-upload.component';
 import { CalendarDatesComponent } from './calendar-dates/calendar-dates.component';
 import { CartButtonComponent } from './cart-button/cart-button.component';
-import { GenerationResultsComponent } from './generation-results/generation-results.component';
-import { GenerationStatusComponent } from './generation-status/generation-status.component';
+import { GenerationComponent } from './generation-status/generation.component';
 import { CalendarMonthsComponent } from './calendar-months/calendar-months.component';
 import { PromptResultsComponent } from './prompt-results/prompt-results.component';
 import { PromptSelectionComponent } from './prompt-selection/prompt-selection.component';
@@ -26,7 +25,7 @@ import { CalendarReadyComponent } from './calendar-ready/calendar-ready.componen
     
     FluxModelComponent,
     PhotoUploadComponent,
-    GenerationStatusComponent,
+    GenerationComponent,
     PromptSelectionComponent,
     PaymentComponent,
     TrainingResultsComponent,

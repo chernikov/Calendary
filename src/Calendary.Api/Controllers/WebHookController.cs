@@ -1,4 +1,5 @@
-﻿using Calendary.Core.Services;
+﻿using Calendary.Core.Helpers;
+using Calendary.Core.Services;
 using Calendary.Core.Services.Models;
 using Calendary.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,8 @@ namespace Calendary.Api.Controllers;
 [Route("api/webhook")]
 public class WebHookController(IWebHookService webHookService, 
         ITrainingService trainingService, 
-        IFluxModelService fluxModelService) : ControllerBase
+        IFluxModelService fluxModelService,
+        IDefaultJobHelper defaultJobHelper) : ControllerBase
 {
     [HttpPost]
     [HttpGet]
@@ -31,21 +33,24 @@ public class WebHookController(IWebHookService webHookService,
             {
 
                 // Оновити статус у базі даних
-                var trainingRecord = await trainingService.GetByReplicateIdAsync(replicateId);
+                var training = await trainingService.GetByReplicateIdAsync(replicateId);
 
-                if (trainingRecord is not null)
+                if (training is not null)
                 {
-                    await trainingService.UpdateStatusAsync(trainingRecord.Id, newStatus);
-                    await trainingService.UpdateVersionAsync(trainingRecord.Id, version);
+                    await trainingService.UpdateStatusAsync(training.Id, newStatus);
+                    await trainingService.UpdateVersionAsync(training.Id, version);
 
 
-                    var fluxModel = await fluxModelService.GetByIdAsync(trainingRecord.FluxModelId);
+                    var fluxModel = await fluxModelService.GetByIdAsync(training.FluxModelId);
                     if (fluxModel is not null)
                     {
-                        fluxModel.Status = "succeeded";
+                        fluxModel.Status = "processed";
                         fluxModel.Version = version;
                         await fluxModelService.UpdateStatusAsync(fluxModel);
                         await fluxModelService.UpdateVersionAsync(fluxModel);
+
+                        // run default job
+                        await defaultJobHelper.RunAsync(fluxModel.Id);
                     }
 
                 }

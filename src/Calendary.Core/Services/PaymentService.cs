@@ -10,14 +10,17 @@ namespace Calendary.Core.Services;
 
 public interface IPaymentService
 {
-    Task<string> CreateInvoiceAsync(int orderId, decimal amount);
-    
+    Task<string> CreateOrderInvoiceAsync(int orderId, decimal amount);
+
+    Task<string> CreateFluxInvoiceAsync(int fluxId, decimal amount);
+
     Task SaveWebhookAsync(string webHookData, string xSign);
 
     Task<PaymentInfo?> GetPaymentInfoByInvoiceIdAsync(string invoiceId);
     Task UpdatePaymentInfoStatusAsync(PaymentInfo paymentInfo);
 
     Task<string> GetPublicKeyAsync(bool force);
+    
 }
 
 public class MonoPaymentService : IPaymentService
@@ -56,18 +59,38 @@ public class MonoPaymentService : IPaymentService
         _cache = cache;
     }
 
-    public async Task<string> CreateInvoiceAsync(int orderId, decimal amount)
+  
+
+    public async Task<string> CreateOrderInvoiceAsync(int orderId, decimal amount)
+    {
+        return await CreateInvoiceInnerAsync(
+            amount,
+            redirectUrl: $"https://calendary.com.ua/order/{orderId}",
+            orderId: orderId
+        );
+    }
+
+    public async Task<string> CreateFluxInvoiceAsync(int fluxModelId, decimal amount)
+    {
+        return await CreateInvoiceInnerAsync(
+            amount,
+            redirectUrl: $"https://calendary.com.ua/master",
+            fluxModelId: fluxModelId
+        );
+    }
+
+
+    private async Task<string> CreateInvoiceInnerAsync(decimal amount, string redirectUrl, int? orderId = null, int? fluxModelId = null)
     {
         // Формування тіла запиту для створення рахунку
         var requestBody = new
         {
             amount = (int)(amount * 100), // в копійках
             ccy = 980, // Код валюти UAH
-            redirectUrl = $"https://calendary.com.ua/order/{orderId}", // посилання на замовлення
-            webHookUrl = $"https://calendary.com.ua/api/pay/mono/callback", // посилання на обробник платежу
+            redirectUrl, // посилання на замовлення чи розробку
+            webHookUrl = $"https://calendary.com.ua/api/pay/mono/callback" // посилання на обробник платежу
         };
 
-       
         _httpClient.DefaultRequestHeaders.Add("X-Token", _merchantToken);
 
         var payload = JsonConvert.SerializeObject(requestBody);
@@ -77,15 +100,16 @@ public class MonoPaymentService : IPaymentService
             "application/json");
 
         var response = await _httpClient.PostAsync(CreateInvoiceRequestUrl, content);
-        
         response.EnsureSuccessStatusCode();
 
         // Обробка відповіді
         var responseContent = await response.Content.ReadFromJsonAsync<MonoInvoiceResponse>();
 
-        var paymentInfo = new PaymentInfo()
+        // Формування запису для PaymentInfo
+        var paymentInfo = new PaymentInfo
         {
             OrderId = orderId,
+            FluxModelId = fluxModelId,
             InvoiceNumber = responseContent!.InvoiceId,
             IsPaid = false,
             PaymentDate = DateTime.UtcNow,

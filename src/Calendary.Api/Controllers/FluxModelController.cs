@@ -79,7 +79,7 @@ public class FluxModelController : BaseUserController
             CategoryId = model.CategoryId,
             Status = "uploading",
             Name = randomName,
-            IsPaid = true
+            IsPaid = false
         };
         await _fluxModelService.CreateAsync(fluxModel);
 
@@ -138,7 +138,7 @@ public class FluxModelController : BaseUserController
 
         await _trainingService.SaveAsync(fluxModel.Id, trainingResponse);
 
-        fluxModel.Status = "Inprocess";   
+        fluxModel.Status = "inprocess";   
         await _fluxModelService.UpdateStatusAsync(fluxModel);
 
         return Ok(new { Message = "Model created and training started successfully." });

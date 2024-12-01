@@ -1,11 +1,10 @@
 <div class="master-container">
   <h1>Календар Мрій</h1>
-  {{fluxModel | json }}
   <!-- Обрати категорію -->
   <mat-card class="stage-card" [class.active]="!fluxModel">
     <mat-card-title>Обрати категорію</mat-card-title>
     <mat-card-content>
-      <app-flux-model (onUpdate)="updateFluxModel($event)"></app-flux-model>
+      <app-flux-model *ngIf="!fluxModel" (onUpdate)="updateFluxModel($event)"></app-flux-model>
     </mat-card-content>
   </mat-card>
   <ng-container *ngIf="fluxModel">
@@ -21,23 +20,23 @@
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'pay_model'">
       <mat-card-title>Оплатити модель</mat-card-title>
       <mat-card-content>
-        <!-- Тут компонент оплати -->
+        <app-payment *ngIf="fluxModel.status === 'pay_model'" [fluxModel]="fluxModel"></app-payment>
       </mat-card-content>
     </mat-card>
 
     <!-- Генерація моделі -->
-    <mat-card class="stage-card" [class.active]="fluxModel.status === 'prepare'">
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'prepare' || fluxModel.status === 'inprocess'">
       <mat-card-title>Генерація моделі</mat-card-title>
       <mat-card-content>
-        <app-generation-status *ngIf="fluxModel.status === 'prepare'" [fluxModel]="fluxModel"></app-generation-status>
+        <app-generation *ngIf="fluxModel.status === 'prepare' || fluxModel.status === 'inprocess'" [fluxModel]="fluxModel"></app-generation>
       </mat-card-content>
     </mat-card>
 
     <!-- Результати тренування -->
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'processed'">
-      <mat-card-title>Результати тренування</mat-card-title>
+      <mat-card-title>Результати</mat-card-title>
       <mat-card-content>
-        <!-- Тут компонент результатів -->
+        <p *ngIf="fluxModel.status === 'processed'"> Готуємо приклади...</p>
       </mat-card-content>
     </mat-card>
 
@@ -53,15 +52,15 @@
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'image_generating'">
       <mat-card-title>Генерація зображень</mat-card-title>
       <mat-card-content>
-        <!-- Тут компонент генерації зображень -->
+        <app-image-generation *ngIf="fluxModel.status === 'image_generating'" [fluxModel]="fluxModel" (onUpdate)="updateFluxModel($event)"></app-image-generation>
       </mat-card-content>
     </mat-card>
 
     <!-- Місяці календаря -->
-    <mat-card class="stage-card" [class.active]="fluxModel.status === 'placed'">
+    <mat-card class="stage-card" [class.active]="fluxModel.status === 'ready_selected'">
       <mat-card-title>Місяці календаря</mat-card-title>
       <mat-card-content>
-        <app-calendar-months *ngIf="fluxModel.status === 'placed'"></app-calendar-months>
+        <app-calendar-months *ngIf="fluxModel.status === 'ready_selected'" [fluxModel]="fluxModel" (onUpdate)="updateFluxModel($event)"></app-calendar-months>
       </mat-card-content>
     </mat-card>
 

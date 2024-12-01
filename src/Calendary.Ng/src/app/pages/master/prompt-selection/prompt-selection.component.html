@@ -1,33 +1,31 @@
 <div class="prompt-selection">
-    <h2>Prompt Selection</h2>
     <div *ngIf="job" class="job-details">
-        <!-- Перевіряємо, чи є tasks -->
-        <div *ngIf="job.tasks.length > 0; else noTasks">
-            <div class="task-images">
-                <h3>Images from Tasks</h3>
-                <div *ngFor="let task of job.tasks" class="image-container">
-                    <img [src]="task.imageUrl" alt="Generated Image" />
-                </div>
-            </div>
+      <!-- Заголовок для прикладу -->
+      <h3 class="example-title">Приклад</h3>
+      <div *ngIf="job.tasks.length > 0; else noTasks" class="task-images">
+        <div class="image-container" *ngFor="let task of job.tasks">
+          <mat-card class="image-card">
+            <img mat-card-image [src]="task.imageUrl" alt="Generated Image" class="large-image" />
+          </mat-card>
         </div>
-
-        <!-- Якщо tasks немає -->
-        <ng-template #noTasks>
-            <p class="no-tasks-message">No tasks available for this job.</p>
-        </ng-template>
-
-         <!-- Вибір теми -->
-         <div class="theme-selection">
-            <label for="promptTheme">Select a Prompt Theme:</label>
-            <select id="promptTheme" [(ngModel)]="selectedTheme">
-                <option *ngFor="let theme of promptThemes" [ngValue]="theme">{{ theme.name }}</option>
-            </select>
-            <button (click)="generateJob()" [disabled]="!selectedTheme" class="generate-button">Generate Jobs</button>
-        </div>
-
-
-        <div *ngIf="lastJob && lastJob.id != job.id">
-            <button (click)="processJob()" class="message-button">Process Jobs</button>
-        </div>
+      </div>
+  
+      <!-- Якщо немає tasks -->
+      <ng-template #noTasks>
+        <p class="no-tasks-message">Немає завдань для цієї роботи.</p>
+      </ng-template>
+  
+      <!-- Вибір теми -->
+      <div class="theme-selection">
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Обери тему для генерації зображень</mat-label>
+          <mat-select [(value)]="selectedTheme">
+            <mat-option *ngFor="let theme of promptThemes" [value]="theme">{{ theme.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="generateJob()" [disabled]="!selectedTheme">
+         Згенерувати
+        </button>
+      </div>
     </div>
-</div>
+  </div>

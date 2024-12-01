@@ -1,7 +1,5 @@
-﻿using Calendary.Core.Services;
-using Calendary.Core.Services.Models;
-using Calendary.Model;
-using Calendary.Model.Messages;
+﻿using Calendary.Model.Messages;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -10,33 +8,23 @@ namespace Calendary.Consumer.Consumers;
 public class CreatePredictionConsumer : IQueueConsumer
 {
     private readonly ILogger<CreatePredictionConsumer> _logger;
-    private readonly IReplicateService _replicateService;
-    private readonly IJobTaskService _jobTaskService;
-    private readonly IJobService _jobService;
-    private readonly IFluxModelService _fluxModelService;
-    private readonly IPromptService _promptService;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IConfiguration _configuration;
 
     public CreatePredictionConsumer(
         ILogger<CreatePredictionConsumer> logger,
-        IReplicateService replicateService,
-        IJobTaskService jobTaskService,
-        IJobService jobService,
-        IFluxModelService fluxModelService,
-        IPromptService promptService)
+        IHttpClientFactory httpClientFactory,
+        IConfiguration configuration)
     {
         _logger = logger;
-        _replicateService = replicateService;
-        _jobTaskService = jobTaskService;
-        _jobService = jobService;
-        _fluxModelService = fluxModelService;
-        _promptService = promptService;
+        _httpClientFactory = httpClientFactory;
+        _configuration = configuration;
     }
 
     public async Task ProcessMessageAsync(string message)
     {
         _logger.LogInformation("Processing message from create-prediction: {Message}", message);
 
-        // Десеріалізація JSON у TaskDto
         JobTaskMessage? taskMessage;
         try
         {
@@ -53,8 +41,34 @@ public class CreatePredictionConsumer : IQueueConsumer
             return;
         }
 
-        
-    }
+        // Формуємо URL для API
+        var apiUrl = _configuration["API:runTask"];
+        if (string.IsNullOrEmpty(apiUrl))
+        {
+            _logger.LogError("API:runTask is not configured.");
+            return;
+        }
 
-   
+        var fullUrl = $"{apiUrl}/{taskMessage.Id}";
+
+        try
+        {
+            using var httpClient = _httpClientFactory.CreateClient();
+            var response = await httpClient.GetAsync(fullUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Successfully triggered runTask API for Task ID: {TaskId}", taskMessage.Id);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to trigger runTask API for Task ID: {TaskId}. Status Code: {StatusCode}",
+                    taskMessage.Id, response.StatusCode);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while triggering runTask API for Task ID: {TaskId}", taskMessage.Id);
+        }
+    }
 }

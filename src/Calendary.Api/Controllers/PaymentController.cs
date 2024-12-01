@@ -14,14 +14,17 @@ public class PaymentController : BaseUserController
 {
     private readonly IOrderService _orderService;
     private readonly IPaymentService _paymentService;
+    private readonly IFluxModelService _fluxModelService;
 
     public PaymentController(IUserService userService,
         IOrderService orderService, 
-        IPaymentService paymentService
+        IPaymentService paymentService,
+        IFluxModelService fluxModelService
         ) : base(userService)
     {
         _orderService = orderService;
         _paymentService = paymentService;
+        _fluxModelService = fluxModelService;
     }
 
     [HttpGet]
@@ -42,7 +45,35 @@ public class PaymentController : BaseUserController
 
         var totalAmount = order.OrderItems.Sum(p => p.Quantity * p.Price);
         var count = order.OrderItems.Sum(p => p.Quantity);
-        var pageUrl = await _paymentService.CreateInvoiceAsync(order.Id, totalAmount);
+        var pageUrl = await _paymentService.CreateOrderInvoiceAsync(order.Id, totalAmount);
+
+        return Ok(new { paymentPage = pageUrl });
+    }
+
+    [HttpGet("flux-model/{id:int}")]
+    public async Task<IActionResult> PayFluxModel(int id)
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        var fluxModel = await _fluxModelService.GetUserFluxModelAsync(user.Id, id);
+
+        if (fluxModel is null)
+        {
+            return NotFound();
+        }
+
+        if (fluxModel.IsPaid)
+        {
+            fluxModel.Status = "prepare";
+            await _fluxModelService.UpdateStatusAsync(fluxModel);
+        }
+
+        var totalAmount = 100;
+        var pageUrl = await _paymentService.CreateFluxInvoiceAsync(fluxModel.Id, totalAmount);
 
         return Ok(new { paymentPage = pageUrl });
     }

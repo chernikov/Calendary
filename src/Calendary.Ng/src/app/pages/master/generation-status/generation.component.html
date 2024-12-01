@@ -1,0 +1,40 @@
+<div *ngIf="fluxModel" class="flux-model-container">
+  <div class="generate-container">
+    <!-- Кнопка для генерації -->
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="generateModel()" 
+      *ngIf="fluxModel.status === 'prepared'" 
+      class="generate-btn">
+      Згенерувати модель
+    </button>
+
+    <!-- Текст для статусу inprocess -->
+    <p *ngIf="fluxModel.status === 'inprocess'" class="generate-text">
+      Все генерується...
+    </p>
+  </div>
+</div>
+  
+    <!-- <div *ngIf="fluxModel.trainings && fluxModel.trainings.length > 0" class="trainings-list">
+      <h4 class="trainings-header">Список тренувань:</h4>
+      <ul class="trainings">
+        <li *ngFor="let training of fluxModel.trainings" class="training-item">
+          <div class="training-info">
+            <span class="training-title">Тренування #{{ training.id }}:</span>
+            <span class="training-status">{{ training.replicateId }} - {{ training.status }}</span>
+          </div>
+          <div class="training-actions">
+            <button mat-stroked-button color="primary" (click)="updateStatus(training.id)" class="action-btn">
+              Оновити статус
+            </button>
+            <button mat-stroked-button color="warn" (click)="cancelTraining(training.id)" class="action-btn">
+              Відміна
+            </button>
+          </div>
+        </li>
+      </ul>
+    </div> -->
+
+    

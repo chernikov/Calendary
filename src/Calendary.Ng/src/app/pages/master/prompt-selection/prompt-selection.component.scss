@@ -1,21 +1,38 @@
-/* Основний контейнер */
 .prompt-selection {
-    font-family: Arial, sans-serif;
     max-width: 800px;
     margin: 20px auto;
-    text-align: center;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-}
-
-/* Заголовок */
-.prompt-selection h2 {
-    font-size: 2rem;
-    color: #333;
-    margin-bottom: 20px;
-}
+    padding: 10px;
+  }
+  
+  .job-details {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .task-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+  
+  .image-container {
+    width: 500px; /* Ширина контейнера для зображення */
+    height: auto;
+  }
+  
+  .image-card {
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+  }
+  
+  .large-image {
+    width: 100%; /* Зображення займає всю ширину контейнера */
+    height: auto; /* Пропорційна висота */
+    border-radius: 8px; /* Згладження країв */
+  }
+  
 
 /* Секція вибору теми */
 .theme-selection {
@@ -78,51 +95,4 @@
 
 .message-button:hover:not(:disabled) {
     background-color: #0056b3;
-}
-
-/* Галерея зображень */
-.task-images {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.task-images h3 {
-    width: 100%;
-    font-size: 1.5rem;
-    margin-bottom: 20px;
-    color: #555;
-}
-
-/* Контейнер для кожного зображення */
-.image-container {
-    width: 180px;
-    height: 180px;
-    overflow: hidden;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    background-color: #fff;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 15px;
-}
-
-.image-container:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Стилізація зображення */
-.image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Повідомлення про відсутність завдань */
-.no-tasks-message {
-    font-size: 1.2rem;
-    color: #777;
-    margin-top: 20px;
 }

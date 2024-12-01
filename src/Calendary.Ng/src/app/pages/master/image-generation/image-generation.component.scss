@@ -1,0 +1,32 @@
+.flux-model-images {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+  
+    .image-gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+  
+    .image-container {
+      width: 200px; /* Розмір контейнера */
+      height: 200px;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  
+    .generated-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* Масштабування зображення */
+      border-radius: 8px;
+    }
+  
+    .no-images-message {
+      font-size: 1.2rem;
+      color: #888;
+    }
+  }

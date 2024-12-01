@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { SummaryOrder } from '../models/summary-order';
 import { PaymentRedirect } from '../models/payment-redirect';
 
 @Injectable({
@@ -14,5 +13,9 @@ export class PaymentService {
 
   getPay(): Observable<PaymentRedirect> {
     return this.http.get<PaymentRedirect>(`${this.apiUrl}`);
+  }
+
+  getFluxModelPay(id : number): Observable<PaymentRedirect> {
+    return this.http.get<PaymentRedirect>(`${this.apiUrl}/flux-model/${id}`);
   }
 }

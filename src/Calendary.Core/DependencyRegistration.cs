@@ -1,4 +1,5 @@
-﻿using Calendary.Core.Senders;
+﻿using Calendary.Core.Helpers;
+using Calendary.Core.Senders;
 using Calendary.Core.Services;
 using Calendary.Core.Settings;
 using Microsoft.Extensions.Configuration;
@@ -50,6 +51,8 @@ public static class DependencyRegistration
 
         services.AddHttpClient<IPaymentService, MonoPaymentService>();
         services.AddHttpClient<IReplicateService, ReplicateService>();
+
+        services.AddScoped<IDefaultJobHelper, DefaultJobHelper>();
 
         return services;
     }

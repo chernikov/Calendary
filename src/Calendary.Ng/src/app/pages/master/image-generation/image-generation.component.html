@@ -1,1 +1,10 @@
-<p>image-generation works!</p>
+<div class="flux-model-images">
+    <div *ngIf="imageUrls.length > 0; else noImages" class="image-gallery">
+      <div *ngFor="let imageUrl of imageUrls" class="image-container">
+        <img [src]="imageUrl" alt="Generated Image" class="generated-image" />
+      </div>
+    </div>
+    <ng-template #noImages>
+      <p class="no-images-message">Зображень ще немає.</p>
+    </ng-template>
+  </div>
