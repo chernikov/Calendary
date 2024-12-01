@@ -21,6 +21,7 @@ public interface ICalendaryDbContext
     DbSet<PaymentInfo> PaymentInfos { get; set; }
     DbSet<Photo> Photos { get; set; }
     DbSet<Prompt> Prompts { get; set; }
+    DbSet<PromptSeed> PromptSeeds { get; set; }
     DbSet<PromptTheme> PromptThemes { get; set; }
     DbSet<Role> Roles { get; set; }
 

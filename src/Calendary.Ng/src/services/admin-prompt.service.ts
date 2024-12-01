@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Prompt } from '../models/prompt';
+import { PromptSeed } from '../models/promt-seed';
 
 @Injectable({
   providedIn: 'root',
@@ -38,12 +39,20 @@ export class AdminPromptService {
     return this.http.get<Prompt>(`${this.apiUrl}/${id}`);
   }
 
-  create(Prompt: Prompt): Observable<Prompt> {
-    return this.http.post<Prompt>(`${this.apiUrl}`, Prompt);
+  create(prompt: Prompt): Observable<Prompt> {
+    return this.http.post<Prompt>(`${this.apiUrl}`, prompt);
   }
 
-  update(Prompt: Prompt): Observable<Prompt> {
-    return this.http.put<Prompt>(`${this.apiUrl}`, Prompt);
+  update(prompt: Prompt): Observable<Prompt> {
+    return this.http.put<Prompt>(`${this.apiUrl}`, prompt);
+  }
+
+  assignSeed(promptSeed: PromptSeed): Observable<PromptSeed> {
+    return this.http.post<PromptSeed>(`${this.apiUrl}/assign`, promptSeed);
+  }
+
+  deassignSeed(promptSeed: PromptSeed): Observable<PromptSeed> {
+    return this.http.post<PromptSeed>(`${this.apiUrl}/deassign`, promptSeed);
   }
 
   delete(id: number): Observable<void> {

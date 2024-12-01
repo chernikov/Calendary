@@ -4,6 +4,7 @@ using Calendary.Repos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calendary.Repos.Migrations
 {
     [DbContext(typeof(CalendaryDbContext))]
-    partial class CalendaryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241130165817_AddSeedAndReplicateId")]
+    partial class AddSeedAndReplicateId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -577,27 +580,6 @@ namespace Calendary.Repos.Migrations
                     b.HasIndex("ThemeId");
 
                     b.ToTable("Prompts");
-                });
-
-            modelBuilder.Entity("Calendary.Model.PromptSeed", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("PromptId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Seed")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PromptId");
-
-                    b.ToTable("PromptSeeds");
                 });
 
             modelBuilder.Entity("Calendary.Model.PromptTheme", b =>
@@ -1195,15 +1177,6 @@ namespace Calendary.Repos.Migrations
                     b.Navigation("Theme");
                 });
 
-            modelBuilder.Entity("Calendary.Model.PromptSeed", b =>
-                {
-                    b.HasOne("Calendary.Model.Prompt", null)
-                        .WithMany("Seeds")
-                        .HasForeignKey("PromptId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Calendary.Model.TestPrompt", b =>
                 {
                     b.HasOne("Calendary.Model.Prompt", "Prompt")
@@ -1357,11 +1330,6 @@ namespace Calendary.Repos.Migrations
 
                     b.Navigation("PaymentInfo")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Calendary.Model.Prompt", b =>
-                {
-                    b.Navigation("Seeds");
                 });
 
             modelBuilder.Entity("Calendary.Model.PromptTheme", b =>

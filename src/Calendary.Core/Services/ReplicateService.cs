@@ -14,11 +14,13 @@ public interface IReplicateService
 
     Task<TrainModelResponse> TrainModelAsync(string destination, TrainModelRequestInput input);
 
-    Task<GenerateImageResponse> GenerateImageAsync(string modelVersion, GenerateImageRequestInput input);
+    Task<GenerateImageResponse> GenerateImageAsync(string modelVersion, GenerateImageInput input);
 
     Task CancelTrainingAsync(string replicateId);
 
     Task<TrainModelResponse> GetTrainingStatusAsync(string replicateId);
+
+    Task<GenerateImageResponse> GeGenerateImageStatusAsync(string replicateId);
 
     Task<string> DownloadAndSaveImageAsync(string imageUrl);
 }
@@ -93,7 +95,7 @@ public class ReplicateService : IReplicateService
     }
 
     // 3. Генерація зображень
-    public async Task<GenerateImageResponse> GenerateImageAsync(string modelVersion, GenerateImageRequestInput input)
+    public async Task<GenerateImageResponse> GenerateImageAsync(string modelVersion, GenerateImageInput input)
     {
         AddAuthorizationHeader();
 
@@ -148,6 +150,17 @@ public class ReplicateService : IReplicateService
         return result ?? throw new InvalidOperationException("Failed to deserialize training status response.");
     }
 
+    public async Task<GenerateImageResponse> GeGenerateImageStatusAsync(string replicateId)
+    {
+        AddAuthorizationHeader();
+
+        var response = await _httpClient.GetAsync($"https://api.replicate.com/v1/predictions/{replicateId}");
+        response.EnsureSuccessStatusCode();
+
+        var result = await response.Content.ReadFromJsonAsync<GenerateImageResponse>();
+        return result ?? throw new InvalidOperationException("Failed to deserialize generate image  status response.");
+    }
+
     public async Task<string> DownloadAndSaveImageAsync(string imageUrl)
     {
         try
@@ -177,4 +190,6 @@ public class ReplicateService : IReplicateService
             throw;
         }
     }
+
+ 
 }

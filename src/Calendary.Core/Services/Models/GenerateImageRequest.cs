@@ -8,6 +8,6 @@ namespace Calendary.Core.Services.Models
         public string Version { get; init; }
 
         [JsonPropertyName("input")]
-        public GenerateImageRequestInput Input { get; init; }
+        public GenerateImageInput Input { get; init; }
     }
 }

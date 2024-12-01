@@ -184,7 +184,7 @@ public class JobController  : BaseUserController
         }
     }
 
-    private GenerateImageRequestInput GetImageRequest(Prompt prompt)
+    private GenerateImageInput GetImageRequest(Prompt prompt)
     {
         return new()
         {
@@ -192,7 +192,7 @@ public class JobController  : BaseUserController
             Model = "dev",
             LoraScale  = 1m,
             NumOutputs = 1,
-            AspectRatio = "3:4",
+            AspectRatio = "1:1",
             OutputFormat = "jpg",
             GuidanceScale = 3.5,
             OutputQuality = 90,

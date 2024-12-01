@@ -60,7 +60,7 @@ public class TestPromptController : BaseAdminController
         }
 
         // Створюємо тест
-        var entry = await _testPromptService.CreateAsync(createTestPromptDto.PromptId, latestTraining.Id, createTestPromptDto.Text);
+        var entry = await _testPromptService.CreateAsync(createTestPromptDto.PromptId, latestTraining.Id, createTestPromptDto.Text, createTestPromptDto.Seed);
         var result = _mapper.Map<TestPromptDto>(entry);
 
         return Ok(result);
@@ -88,13 +88,17 @@ public class TestPromptController : BaseAdminController
             if (testPrompt.Status == "prepared")
             {
                 // Sending request to ReplicateService to generate image
-                var imageRequest = GenerateImageRequestInput.GetImageRequest(testPrompt.Text);
+                var imageRequest = GenerateImageInput.GetImageRequest(testPrompt.Text, testPrompt.Seed);
                 var result = await _replicateService.GenerateImageAsync(fluxModel.Version, imageRequest);
 
                 if (result is not null && result.Output.Count > 0)
                 {
+                    var info = await _replicateService.GeGenerateImageStatusAsync(result.Id);
                     var imagePath = result.Output[0];
                     // Updating task status and result
+                    var seed = info.ExtractSeedFromLogs();
+                    testPrompt.ReplicateId = result.Id;
+                    testPrompt.OutputSeed = seed; 
                     testPrompt.Status = "completed";
                     testPrompt.ProcessedImageUrl = imagePath;
                     testPrompt.ImageUrl = await _replicateService.DownloadAndSaveImageAsync(imagePath);
@@ -111,5 +115,5 @@ public class TestPromptController : BaseAdminController
             return BadRequest($"Error while running Job: {ex.Message}");
         }
     }
-             
+
 }

@@ -97,4 +97,17 @@ public class PromptController : ControllerBase
         await _promptService.DeleteAsync(id);
         return NoContent();
     }
+    [HttpPost("assign")]
+    public async Task<IActionResult> AssignSeed([FromBody] PromptSeedDto seedDto)
+    {
+        await _promptService.AssignSeedAsync(seedDto.PromptId, seedDto.Seed);
+        return NoContent();
+    }
+
+    [HttpPost("deassign")]
+    public async Task<IActionResult> DeassignSeed([FromBody] PromptSeedDto seedDto)
+    {
+        await _promptService.DeassignSeedAsync(seedDto.PromptId, seedDto.Seed);
+        return NoContent();
+    }
 }

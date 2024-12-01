@@ -3,7 +3,7 @@
 namespace Calendary.Core.Services.Models;
 
 
-public class TrainModelUrls
+public class Urls
 {
     [JsonPropertyName("cancel")]
     public string Cancel { get; set; }
@@ -13,4 +13,9 @@ public class TrainModelUrls
 
     [JsonPropertyName("stream")]
     public string Stream { get; set; }
+
+    public string GetReplicateId()
+    {
+        return Get.Split("/").Last();
+    }
 }

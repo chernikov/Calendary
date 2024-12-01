@@ -2,13 +2,17 @@
 
 namespace Calendary.Core.Services.Models;
 
-public record GenerateImageRequestInput
+public record GenerateImageInput
 {
     [JsonPropertyName("model")]
     public string Model { get; init; }
 
     [JsonPropertyName("prompt")]
     public string Prompt { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("seed")]
+    public int? Seed { get; set; }
 
     [JsonPropertyName("lora_scale")]
     public decimal LoraScale { get; init; }
@@ -37,15 +41,16 @@ public record GenerateImageRequestInput
     [JsonPropertyName("extra_lora_scale")]
     public decimal ExtraLoraScale { get; init; }
 
-    public static GenerateImageRequestInput GetImageRequest(string text)
+    public static GenerateImageInput GetImageRequest(string text, int? seed)
     {
         return new()
         {
             Prompt = text,
+            Seed = seed,    
             Model = "dev",
             LoraScale = 1m,
             NumOutputs = 1,
-            AspectRatio = "3:4",
+            AspectRatio = "1:1",
             OutputFormat = "jpg",
             GuidanceScale = 3.5,
             OutputQuality = 90,

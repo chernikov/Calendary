@@ -13,6 +13,8 @@ public interface IJobService
 
 public class JobService : IJobService
 {
+
+    private readonly static Random Rand = new Random(DateTime.UtcNow.Millisecond);
     private readonly IJobRepository _jobRepository;
     private readonly IJobTaskRepository _jobTaskRepository;
     private readonly IFluxModelRepository _fluxModelRepository;
@@ -87,7 +89,8 @@ public class JobService : IJobService
         var jobTasks = genderPrompts.Select(prompt => new JobTask
         {
             JobId = job.Id,
-            PromptId = prompt.Id,
+            PromptId = prompt.Id, 
+            Seed = GetRandSeed(prompt.Seeds),
             FluxModelId = fluxModelId,
             Status = "Pending",
             CreatedAt = DateTime.UtcNow
@@ -95,6 +98,17 @@ public class JobService : IJobService
 
         await _jobTaskRepository.AddRangeAsync(jobTasks);
         return job;
+    }
+
+    private int? GetRandSeed(ICollection<PromptSeed> seeds)
+    {
+        if (seeds == null || seeds.Count == 0)
+        {
+            return null;
+        }
+
+        int index = Rand.Next(seeds.Count);
+        return seeds.ElementAt(index).Seed;
     }
 
     public Task<Job?> GetJobWithTasksAsync(int id)
