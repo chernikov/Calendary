@@ -26,7 +26,7 @@ public interface IFluxModelService
 
     Task<FluxModel?> GetFullAsync(int id);
 
-    Task<IEnumerable<FluxModel>> GetByAgeGenderAsync(int ageGender);
+    Task<IEnumerable<FluxModel>> GetByCategoryIdAsync(int categoryId);
 }
 
 public class FluxModelService : IFluxModelService
@@ -70,7 +70,6 @@ public class FluxModelService : IFluxModelService
 
     public async Task UpdateStatusAsync(FluxModel model)
     {
-
         var entityDb = await fluxModelRepository.GetByIdAsync(model.Id);
         if (entityDb is null)
         {
@@ -82,7 +81,6 @@ public class FluxModelService : IFluxModelService
 
     public async Task UpdateArchiveUrlAsync(FluxModel model)
     {
-
         var entityDb = await fluxModelRepository.GetByIdAsync(model.Id);
         if (entityDb is null)
         {
@@ -127,12 +125,8 @@ public class FluxModelService : IFluxModelService
     }
 
     public Task<FluxModel?> GetFullAsync(int id)
-    {
-        return fluxModelRepository.GetFullAsync(id);
-    }
+        => fluxModelRepository.GetFullAsync(id);
 
-    public Task<IEnumerable<FluxModel>> GetByAgeGenderAsync(int ageGender)
-        => fluxModelRepository.GetByAgeGenderAsync(ageGender);
-
- 
+    public Task<IEnumerable<FluxModel>> GetByCategoryIdAsync(int categoryId)
+        => fluxModelRepository.GetByCategoryIdAsync(categoryId);
 }

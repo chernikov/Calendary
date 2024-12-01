@@ -37,10 +37,10 @@ public class FluxModelController : BaseAdminController
         return Ok(models);
     }
 
-    [HttpGet("age/{ageGender:int}")]
-    public async Task<IActionResult> GetByAgeGender(int ageGender)
+    [HttpGet("category/{categoryId:int}")]
+    public async Task<IActionResult> GetByCategory(int categoryId)
     {
-        var models = await _fluxModelService.GetByAgeGenderAsync(ageGender);
+        var models = await _fluxModelService.GetByCategoryIdAsync(categoryId);
         var entities = _mapper.Map<List<FluxModel>>(models);
         return Ok(entities);
     }

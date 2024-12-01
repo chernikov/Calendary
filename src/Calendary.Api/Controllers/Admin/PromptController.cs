@@ -22,11 +22,9 @@ public class PromptController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] int? themeId = null, int? ageGender = null)
+    public async Task<IActionResult> GetAll([FromQuery] int? themeId = null, int? categoryId = null)
     {
-        IEnumerable<Prompt> prompts;
-
-        prompts = await _promptService.GetFullAllAsync(themeId, ageGender);
+        var prompts = await _promptService.GetFullAllAsync(themeId, categoryId);
         var result = _mapper.Map<List<PromptDto>>(prompts);
         return Ok(result);
     }

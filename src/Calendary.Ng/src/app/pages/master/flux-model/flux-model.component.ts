@@ -3,6 +3,8 @@ import { FluxModelService } from '../../../../services/flux-model.service';
 import { FluxModel } from '../../../../models/flux-model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CategoryService } from '../../../../services/category.service';
+import { Category } from '../../../../models/category';
 
 @Component({
   selector: 'app-flux-model',
@@ -12,13 +14,16 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './flux-model.component.scss'
 })
 export class FluxModelComponent {
-  ageGender: number | null = null;
+  categoryId: number | null = null;
   fluxModel: FluxModel | null = null;
+  categories: Category[] = [];
 
   @Output() 
   onUpdate = new EventEmitter<FluxModel>();
 
-  constructor(private fluxModelService: FluxModelService) {
+  constructor(private fluxModelService: FluxModelService, 
+               private categoryService: CategoryService
+  ) {
     this.init();
   }
 
@@ -33,16 +38,25 @@ export class FluxModelComponent {
         console.error('Помилка завантаження поточного FluxModel:', err);
       }
     });
+
+    this.categoryService.getAll().subscribe({
+      next: (result) => {
+        this.categories = result.filter(c => c.isAlive);
+      },
+      error: (err) => {
+        console.error('Помилка завантаження поточного FluxModel:', err);
+      }
+    });
   }
 
   createFluxModel(): void {
-    if (!this.ageGender) 
+    if (!this.categoryId) 
     {
       alert('Оберіть категорію.');
       return;
     }
 
-    this.fluxModelService.create(this.ageGender).subscribe({
+    this.fluxModelService.create(this.categoryId).subscribe({
       next: (model) => {
         this.fluxModel = model;
         this.onUpdate.emit(model);

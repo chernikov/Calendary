@@ -1,6 +1,4 @@
-﻿using Calendary.Model.Enums;
-
-namespace Calendary.Model;
+﻿namespace Calendary.Model;
 
 public class FluxModel
 {
@@ -14,7 +12,6 @@ public class FluxModel
     public string Status { get; set; } = "prepared"; // ENUM: prepared, inprogress, failed, ready
 
     public int? CategoryId { get; set; } 
-    public AgeGenderEnum AgeGender { get; set; } = AgeGenderEnum.Male; 
     public string? ArchiveUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }

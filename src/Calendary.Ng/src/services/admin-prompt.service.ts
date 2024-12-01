@@ -14,7 +14,7 @@ export class AdminPromptService {
 
   getAll(
     themeId: number | null,
-    ageGender: number | null
+    categoryId: number | null
   ): Observable<Prompt[]> {
     let url = this.apiUrl;
     const params: string[] = [];
@@ -23,8 +23,8 @@ export class AdminPromptService {
     if (themeId !== null && themeId !== undefined) {
       params.push(`themeId=${themeId}`);
     }
-    if (ageGender !== null && ageGender !== undefined) {
-      params.push(`ageGender=${ageGender}`);
+    if (categoryId !== null && categoryId !== undefined) {
+      params.push(`categoryId=${categoryId}`);
     }
 
     // Формуємо URL з параметрами, якщо вони є

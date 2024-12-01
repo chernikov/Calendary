@@ -13,22 +13,7 @@
         <strong>📋 Статус:</strong> <span>{{ fluxModel.status }}</span>
       </p>
       <p>
-        <strong>🧑‍⚖️ Категорія:</strong> 
-        <span>
-          {{
-            fluxModel.ageGender === 0 ? 'Чоловік 🚹' :
-            fluxModel.ageGender === 1 ? 'Жінка 🚺' :
-            fluxModel.ageGender === 2 ? 'Хлопчик 👶🚹' :
-            fluxModel.ageGender === 3 ? 'Дівчинка 👶🚺' :
-            fluxModel.ageGender === 4 ? 'Хлопчик 🧒🚹' :
-            fluxModel.ageGender === 5 ? 'Дівчинка 🧒🚺' :
-            fluxModel.ageGender === 6 ? 'Чоловік середнього віку 🧑🚹' :
-            fluxModel.ageGender === 7 ? 'Жінка середнього віку 🧑🚺' :
-            fluxModel.ageGender === 8 ? 'Чоловік похилого віку 👴🚹' :
-            fluxModel.ageGender === 9 ? 'Жінка похилого віку 👵🚺' :
-            'Невідомо 🤷'
-          }}
-        </span>
+        <strong>🧑‍⚖️ Категорія:</strong> <span> {{ fluxModel.category.name}} </span>
       </p>
       <p *ngIf="fluxModel.archiveUrl">
         <strong>📦 Архів:</strong> 

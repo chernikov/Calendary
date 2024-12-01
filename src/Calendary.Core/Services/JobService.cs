@@ -61,8 +61,8 @@ public class JobService : IJobService
             throw new Exception($"FluxModel with ID {fluxModelId} not found.");
         }
 
-        // Визначаємо тему і гендер
-        var ageGender = fluxModel.AgeGender;
+        // Визначаємо тему і категорію
+        var categoryId = fluxModel.CategoryId;
         var promptTheme = await _promptThemeRepository.GetByIdAsync(promptThemeId);
 
         if (promptTheme is null)
@@ -83,7 +83,7 @@ public class JobService : IJobService
 
         await _jobRepository.AddAsync(job);
 
-        var genderPrompts = await _promptRepository.GetFullAllAsync(promptTheme.Id, (int)ageGender);
+        var genderPrompts = await _promptRepository.GetFullAllAsync(promptTheme.Id, categoryId);
         
         // Створюємо JobTasks на основі prompt
         var jobTasks = genderPrompts.Select(prompt => new JobTask

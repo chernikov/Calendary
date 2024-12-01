@@ -1,6 +1,5 @@
-﻿using Calendary.Model.Enums;
+﻿namespace Calendary.Model;
 
-namespace Calendary.Model;
 public class Prompt
 {
     public int Id { get; set; }
@@ -8,7 +7,6 @@ public class Prompt
 
     public int? CategoryId { get; set; }
 
-    public AgeGenderEnum AgeGender { get; set; } = AgeGenderEnum.Male;
     public string Text { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -19,4 +17,3 @@ public class Prompt
 
     public ICollection<PromptSeed> Seeds { get; set; } = [];
 }
-

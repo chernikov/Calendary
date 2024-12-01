@@ -2,5 +2,5 @@
 
 public class CreateFluxModelDto
 {
-    public int AgeGender { get; set; }
+    public int CategoryId { get; set; }
 }
