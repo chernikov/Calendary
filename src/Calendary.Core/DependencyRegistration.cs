@@ -21,6 +21,7 @@ public static class DependencyRegistration
         services.AddScoped<ILanguageService, LanguageService>();
         services.AddScoped<IEventDateService, EventDateService>();
         services.AddScoped<ICalendarService, CalendarService>();
+        services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IHolidayService, HolidayService>();
         services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
@@ -36,6 +37,7 @@ public static class DependencyRegistration
         services.AddScoped<IJobService, JobService>();
         services.AddScoped<IJobTaskService, JobTaskService>();
         services.AddScoped<ITestPromptService, TestPromptService>();
+
 
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ISmsService, SmsService>();
