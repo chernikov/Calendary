@@ -6,7 +6,7 @@ namespace Calendary.Repos.Repositories;
 public interface IFluxModelRepository : IRepository<FluxModel>
 {
     Task<IReadOnlyCollection<FluxModel>> GetAllAsync(int page, int pageSize);
-    Task<IEnumerable<FluxModel>> GetByAgeGenderAsync(int ageGender);
+    Task<IEnumerable<FluxModel>> GetByCategoryIdAsync(int categoryId);
     Task<FluxModel?> GetCurrentByUserIdAsync(int useId);
     Task<FluxModel?> GetFullAsync(int id);
 }
@@ -31,6 +31,7 @@ public class FluxModelRepository : IFluxModelRepository
     {
         return await _context.FluxModels
             .Include(fm => fm.User)
+            .Include(p => p.Category)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -44,6 +45,7 @@ public class FluxModelRepository : IFluxModelRepository
     public async Task<FluxModel?> GetCurrentByUserIdAsync(int userId)
     {
         return await _context.FluxModels
+            .Include(p => p.Category)
             .Include(p => p.Trainings)
             .Include(p => p.Jobs)
                 .ThenInclude(p => p.Tasks)
@@ -79,6 +81,7 @@ public class FluxModelRepository : IFluxModelRepository
     {
         return _context.FluxModels
             .Include(p => p.User)
+            .Include(p => p.Category)
             .Include(p => p.Photos)
             .Include(p => p.Trainings)
             .Include(p => p.Jobs)
@@ -86,11 +89,12 @@ public class FluxModelRepository : IFluxModelRepository
             .FirstOrDefaultAsync(fm => fm.Id == id);
     }
 
-    public async Task<IEnumerable<FluxModel>> GetByAgeGenderAsync(int ageGender)
+    public async Task<IEnumerable<FluxModel>> GetByCategoryIdAsync(int categoryId)
     {
         return await _context.FluxModels
             .Include(p => p.User)
-            .Where(fm => (int)fm.AgeGender == ageGender)
+            .Include(p => p.Category)
+            .Where(fm => fm.CategoryId == categoryId)
             .ToListAsync();
     }
 }

@@ -3,7 +3,6 @@ using Calendary.Api.Dtos;
 using Calendary.Core.Services;
 using Calendary.Core.Services.Models;
 using Calendary.Model;
-using Calendary.Model.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -77,7 +76,7 @@ public class FluxModelController : BaseUserController
         var fluxModel = new FluxModel
         {
             UserId = user.Id,
-            AgeGender =(AgeGenderEnum)model.AgeGender,
+            CategoryId = model.CategoryId,
             Status = "creating",
             Name = randomName,
             IsPaid = true

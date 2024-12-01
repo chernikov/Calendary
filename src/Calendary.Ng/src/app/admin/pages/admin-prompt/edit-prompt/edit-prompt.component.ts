@@ -13,6 +13,8 @@ import { AdminPromptService } from '../../../../../services/admin-prompt.service
 import { AdminPromptThemeService } from '../../../../../services/admin-prompt-theme.service';
 import { PromptTheme } from '../../../../../models/prompt-theme';
 import { PromptSeed } from '../../../../../models/promt-seed';
+import { Category } from '../../../../../models/category';
+import { AdminCategoryService } from '../../../../../services/admin-category.service';
 
 @Component({
   selector: 'app-edit-prompt',
@@ -29,6 +31,7 @@ export class EditPromptComponent implements OnInit {
   promptId!: number;
   isEditMode = false;
   themes: PromptTheme[] = [];
+  categories : Category[] = [];
   isTextChanged: boolean = false; // Прапорець для відображення попередження
   newSeed: number | null = null;
   assignedSeeds: number[] = []; // Список призначених Seed
@@ -38,7 +41,8 @@ export class EditPromptComponent implements OnInit {
     private router: Router,
     private fb: FormBuilder,
     private adminPromptService: AdminPromptService,
-    private adminPromptThemeService: AdminPromptThemeService
+    private adminPromptThemeService: AdminPromptThemeService,
+    private adminCategoryService : AdminCategoryService
   ) {}
 
   ngOnInit(): void {
@@ -52,13 +56,14 @@ export class EditPromptComponent implements OnInit {
       this.loadPrompt();
     }
     this.loadThemes();
+    this.loadCategories();
   }
 
   initializeForm(): void {
     this.promptForm = this.fb.group({
       id: [null],
       themeId: [null, Validators.required],
-      ageGender: [0, Validators.required],
+      categoryId: [0, Validators.required],
       text: ['', [Validators.required]],
       newSeed: [null] // Обов'язково додайте це поле тут
     });
@@ -114,6 +119,19 @@ export class EditPromptComponent implements OnInit {
       }
     );
   }
+
+  // Завантажуємо теми через promptThemeService
+  loadCategories(): void {
+    this.adminCategoryService.getAll().subscribe(
+      (categories) => {
+        this.categories = categories;
+      },
+      error => {
+        console.error('Failed to load categories:', error);
+      }
+    );
+  }
+
 
   onSubmit(): void {
     if (this.promptForm.invalid) {

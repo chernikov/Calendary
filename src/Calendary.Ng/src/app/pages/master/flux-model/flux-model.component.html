@@ -1,28 +1,19 @@
 <div class="flux-model">
   <h2 class="title">Створення FluxModel</h2>
 
-  <div *ngIf="!fluxModel" class="form-container">
+  <div *ngIf="!fluxModel && categories" class="form-container">
     <!-- Вибір статі -->
     <div class="age-gender-selection">
-      <label for="ageGender">Оберіть категорію:</label>
-      <select id="ageGender" [(ngModel)]="ageGender">
-        <option value="0">Чоловік</option>
-        <option value="1">Жінка</option>
-        <option value="2">Хлопчик</option>
-        <option value="3">Дівчинка</option>
-        <option value="4">Хлопчик (старший)</option>
-        <option value="5">Дівчинка (старша)</option>
-        <option value="6">Чоловік середнього віку</option>
-        <option value="7">Жінка середнього віку</option>
-        <option value="8">Чоловік похилого віку</option>
-        <option value="9">Жінка похилого віку</option>
+      <label for="category">Оберіть категорію:</label>
+      <select id="category" [(ngModel)]="categoryId">
+        <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
       </select>
     </div>
     <!-- Кнопка створення -->
     <button 
       class="create-button" 
       (click)="createFluxModel()" 
-      [disabled]="!ageGender">
+      [disabled]="!categoryId">
       Створити
     </button>
   </div>

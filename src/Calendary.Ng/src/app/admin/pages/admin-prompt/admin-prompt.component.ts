@@ -7,13 +7,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
+import { MatSelectModule } from '@angular/material/select';
 import { Prompt } from '../../../../models/prompt';
 import { AdminPromptService } from '../../../../services/admin-prompt.service';
-import { AgeGenderDisplayPipe } from '../../../pipes/age-gender-display';
 import { TestPromptDialogComponent } from './test-prompt-dialog/test-prompt-dialog.component';
 import { AdminPromptThemeService } from '../../../../services/admin-prompt-theme.service';
 import { PromptTheme } from '../../../../models/prompt-theme';
-import { MatSelectModule } from '@angular/material/select';
 @Component({
   selector: 'app-admin-prompt',
   standalone: true,
@@ -25,9 +24,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatButtonModule,
     MatFormFieldModule,
     MatSelectModule,
-    MatOptionModule,
-    AgeGenderDisplayPipe,
-  ],
+    MatOptionModule],
   templateUrl: './admin-prompt.component.html',
   styleUrl: './admin-prompt.component.scss',
 })
@@ -37,7 +34,7 @@ export class AdminPromptComponent {
   themes: PromptTheme[] = []; // Завантажені теми
 
   filterThemeId : number | null = null;
-  filterAgeGender : number | null = null;
+  filterCategoryId : number | null = null;
 
   constructor(
     private adminPromptService: AdminPromptService,
@@ -66,8 +63,8 @@ export class AdminPromptComponent {
   loadPrompts(): void 
   {
     const themeId = this.filterThemeId || null;
-    const ageGender = this.filterAgeGender;
-    this.adminPromptService.getAll(themeId, ageGender).subscribe(
+    const categoryId = this.filterCategoryId || null;
+    this.adminPromptService.getAll(themeId, categoryId).subscribe(
       (data) => {
         this.dataSource.data = data;
       },

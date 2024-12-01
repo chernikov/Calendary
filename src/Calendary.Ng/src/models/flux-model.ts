@@ -1,3 +1,4 @@
+import { Category } from "./category";
 import { Job } from "./job";
 import { Training } from "./training";
 
@@ -7,11 +8,12 @@ export class FluxModel {
     version: string = '';
     description: string = '';
     status: string = '';
-    ageGender: number = 0;
+    categoryId: number = 0;
     archiveUrl?: string;
     createdAt: Date = new Date();
     completedAt?: Date;
     isPaid: boolean = false;
     trainings : Training[] = [];
     jobs: Job[] = [];
+    category : Category = new Category();
   }

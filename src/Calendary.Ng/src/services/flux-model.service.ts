@@ -16,8 +16,8 @@ export class FluxModelService {
     return this.http.get<FluxModel>(this.apiUrl);
   }
   // Створення нового FluxModel
-  create(ageGender: number): Observable<FluxModel> {
-    return this.http.post<FluxModel>(this.apiUrl, { ageGender });
+  create(categoryId: number): Observable<FluxModel> {
+    return this.http.post<FluxModel>(this.apiUrl, { categoryId });
   }
 
   // Отримання FluxModel за ID

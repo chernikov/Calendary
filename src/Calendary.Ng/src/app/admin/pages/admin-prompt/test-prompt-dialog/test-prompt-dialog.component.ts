@@ -11,7 +11,6 @@ import { MatDividerModule } from '@angular/material/divider';
 import { AdminFluxModelService } from '../../../../../services/admin-flux-model.service';
 import { AdminTestPromptService } from '../../../../../services/admin-test-prompot.service';
 import { AdminFluxModel } from '../../../../../models/admin-flux-model';
-import { AgeGenderDisplayPipe } from '../../../../pipes/age-gender-display';
 import { CreateTestPrompt } from '../../../../../models/create-test-prompt';
 import { AdminPromptService } from '../../../../../services/admin-prompt.service';
 import { Prompt } from '../../../../../models/prompt';
@@ -21,8 +20,7 @@ import { PromptSeed } from '../../../../../models/promt-seed';
   standalone: true,
   imports: [CommonModule, FormsModule,
     MatDialogModule, MatInputModule, MatFormFieldModule, MatSelectModule, 
-    MatButtonModule, MatProgressSpinnerModule, MatDividerModule,
-    AgeGenderDisplayPipe],
+    MatButtonModule, MatProgressSpinnerModule, MatDividerModule],
   templateUrl: './test-prompt-dialog.component.html',
   styleUrl: './test-prompt-dialog.component.scss'
 })
@@ -56,7 +54,7 @@ export class TestPromptDialogComponent implements OnInit {
   }
 
   loadModels(): void {
-    this.fluxModelService.getByAgeGender(this.data.prompt.ageGender).subscribe(
+    this.fluxModelService.getByCategoryId(this.data.prompt.categoryId).subscribe(
       (models) => {
         this.models = models;
       },

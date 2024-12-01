@@ -1,7 +1,4 @@
-﻿using Calendary.Model.Enums;
-
-namespace Calendary.Api.Dtos;
-
+﻿namespace Calendary.Api.Dtos;
 public class AdminFluxModelDto
 {
     public int Id { get; set; }
@@ -14,7 +11,7 @@ public class AdminFluxModelDto
 
     public string Status { get; set; } = "prepared"; // ENUM: prepared, inprogress, failed, ready
 
-    public AgeGenderEnum AgeGender { get; set; } = AgeGenderEnum.Male;
+    public int CategoryId { get; set; }
 
     public string? ArchiveUrl { get; set; }
 
@@ -25,6 +22,8 @@ public class AdminFluxModelDto
     public bool IsPaid { get; set; } // Поле оплати
 
     public UserInfoDto User { get; set; } = null!;
+
+    public CategoryDto Category { get; set; } = null!;
 
     public List<PhotoDto> Photos { get; set; } = [];
     

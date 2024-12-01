@@ -9,7 +9,7 @@
     <p><strong>Версія:</strong> {{ fluxModel.version }}</p>
     <p><strong>Опис:</strong> {{ fluxModel.description }}</p>
     <p><strong>Статус:</strong> {{ fluxModel.status }}</p>
-    <p><strong>Вікова категорія:</strong> {{ fluxModel.ageGender | ageGenderDisplay }}</p>
+    <p><strong>Категорія:</strong> {{ fluxModel.category.name }}</p>
     <p><strong>Автор:</strong> {{ fluxModel.user!.userName || 'Невідомо' }}</p>
     <p><strong>Створено:</strong> {{ fluxModel.createdAt | date: 'short' }}</p>
     <p><strong>Завершено:</strong> {{ (fluxModel.completedAt | date: 'short') || 'Не доступно' }}</p>

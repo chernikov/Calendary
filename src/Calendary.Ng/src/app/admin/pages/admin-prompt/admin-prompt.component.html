@@ -13,7 +13,7 @@
     
       <mat-form-field appearance="fill" class="filter-field">
         <mat-label>Категорія</mat-label>
-        <mat-select [(ngModel)]="filterAgeGender" (ngModelChange)="applyFilters()" placeholder="Введіть тему"  >
+        <mat-select [(ngModel)]="filterCategoryId" (ngModelChange)="applyFilters()" placeholder="Введіть тему"  >
           <mat-option [value]="">Всі</mat-option>
           <mat-option [value]="0">Чоловік</mat-option>
           <mat-option [value]="1">Жінка</mat-option>
@@ -46,7 +46,7 @@
       <!-- Age Gender Column -->
       <ng-container matColumnDef="age-gender">
         <th mat-header-cell *matHeaderCellDef>Категорія</th>
-        <td mat-cell *matCellDef="let element">{{ element.ageGender  | ageGenderDisplay }}
+        <td mat-cell *matCellDef="let element">{{ element.category.name }}
          
         </td>
       </ng-container>

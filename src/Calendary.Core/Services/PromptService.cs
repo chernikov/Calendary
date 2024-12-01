@@ -4,7 +4,7 @@ using Calendary.Repos.Repositories;
 namespace Calendary.Core.Services;
 public interface IPromptService
 {
-    Task<IEnumerable<Prompt>> GetFullAllAsync(int? themeId, int? ageGender);
+    Task<IEnumerable<Prompt>> GetFullAllAsync(int? themeId, int? categoryId);
     Task<Prompt?> GetByIdAsync(int id);
     Task CreateAsync(Prompt prompt);
     Task UpdateAsync(Prompt prompt);
@@ -26,8 +26,8 @@ public class PromptService : IPromptService
         _promptRepository = promptRepository;
     }
 
-    public Task<IEnumerable<Prompt>> GetFullAllAsync(int? themeId, int? ageGender)
-        => _promptRepository.GetFullAllAsync(themeId, ageGender); 
+    public Task<IEnumerable<Prompt>> GetFullAllAsync(int? themeId, int? categoryId)
+        => _promptRepository.GetFullAllAsync(themeId, categoryId); 
    
     public async Task<Prompt?> GetByIdAsync(int id)
     {
@@ -48,7 +48,7 @@ public class PromptService : IPromptService
             return;
         }
         entity.ThemeId = prompt.ThemeId;
-        entity.AgeGender = prompt.AgeGender;
+        entity.CategoryId = prompt.CategoryId;
 
         if (entity.Text != prompt.Text)
         {

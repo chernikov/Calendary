@@ -1,12 +1,12 @@
 <h2 mat-dialog-title>Вибір моделі</h2>
 <mat-dialog-content>
-    <p>Виберіть модель для категорії: {{ data.prompt.ageGender | ageGenderDisplay }}</p>
+    <p>Виберіть модель для категорії: {{ data.prompt.category.name }}</p>
 
     <mat-form-field appearance="fill" class="full-width">
         <mat-label>Модель</mat-label>
         <mat-select [(value)]="selectedModel">
             <mat-option *ngFor="let model of models" [value]="model">
-                {{ model.name }} {{model.ageGender | ageGenderDisplay }} {{model.user!.userName}}
+                {{ model.name }} {{model.category.name }} {{model.user!.userName}}
             </mat-option>
         </mat-select>
     </mat-form-field>

@@ -3,6 +3,7 @@ import { Job } from './job';
 import { Training } from './training';
 import { Photo } from './photo';
 import { UserInfo } from './user';
+import { Category } from './category';
 
 export class AdminFluxModel {
   id: number = 0;
@@ -10,7 +11,7 @@ export class AdminFluxModel {
   version: string = '';
   description: string = '';
   status: string = ''; 
-  ageGender: number = 0;
+  categoryId: number = 0;
   archiveUrl?: string;
   createdAt: Date = new Date();
   completedAt?: Date;
@@ -19,4 +20,5 @@ export class AdminFluxModel {
   photos: Photo[] = [];
   trainings: Training[] = [];
   jobs: Job[] = [];
+  category: Category = new Category();
 }

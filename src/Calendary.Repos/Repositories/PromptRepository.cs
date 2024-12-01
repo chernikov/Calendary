@@ -5,7 +5,7 @@ namespace Calendary.Repos.Repositories;
 
 public interface IPromptRepository : IRepository<Prompt>
 {
-    Task<IEnumerable<Prompt>> GetFullAllAsync(int? themeId, int? ageGender);
+    Task<IEnumerable<Prompt>> GetFullAllAsync(int? themeId, int? categoryId);
 
     Task AssignSeedAsync(int promptId, int seed);
 
@@ -34,19 +34,21 @@ public class PromptRepository : IPromptRepository
             .Include(p => p.Theme).ToListAsync();
     }
 
-    public async Task<IEnumerable<Prompt>> GetFullAllAsync(int? themeId, int? ageGender)
+    public async Task<IEnumerable<Prompt>> GetFullAllAsync(int? themeId, int? categoryId)
     {
         return await _context.Prompts
             .Include(p => p.Theme)
+            .Include(p => p.Category)
             .Include(p => p.Seeds)
             .Where(p => (!themeId.HasValue || p.ThemeId == themeId.Value) &&
-             (!ageGender.HasValue || (int)p.AgeGender == ageGender.Value)).ToListAsync();
+             (!categoryId.HasValue || p.CategoryId == categoryId.Value)).ToListAsync();
     }
 
     public async Task<Prompt?> GetByIdAsync(int id)
     {
         return await _context.Prompts
             .Include(p => p.Seeds)
+            .Include(p => p.Category)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
