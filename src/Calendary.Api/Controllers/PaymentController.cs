@@ -1,7 +1,6 @@
 ﻿using Calendary.Api.Dtos.Requests;
 using Calendary.Api.Tools;
 using Calendary.Core.Services;
-using Calendary.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -124,7 +123,13 @@ public class PaymentController : BaseUserController
 
                 if (paymentInfo.FluxModelId is not null)
                 {
-                    //TODO: Update flux model status
+                    var fluxModel = await _fluxModelService.GetByIdAsync(paymentInfo.FluxModelId.Value);
+                    if (fluxModel is not null)
+                    {
+                        fluxModel.Status = "prepare";
+                        fluxModel.IsPaid = true;
+                        await _fluxModelService.UpdateStatusAsync(fluxModel);
+                    }
                 }
             }
 
