@@ -86,7 +86,7 @@ public class ImageService(IImageRepository imageRepository, IPathProvider pathPr
     public async Task<string> CreateCombinedThumbnailAsync(string[] imagePaths, string fileName,
         int thumbnailWidth, int thumbnailHeight)
     {
-        int imagesPerRow = 6; // Наприклад, 4 зображення в рядку
+        int imagesPerRow = 6; // Наприклад, 6 зображень в рядку
         int rows = (int)Math.Ceiling(imagePaths.Length / (double)imagesPerRow);
 
         // Розраховуємо розмір фінального зображення
