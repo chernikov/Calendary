@@ -86,7 +86,7 @@ public class CalendarService(
     public async Task<Calendar?> GetCurrentAsync(int userId)
     {
         var userCalendars = await calendarRepository.GetCalendarsByUserAsync(userId);
-        return userCalendars.ToList().FirstOrDefault(p => p.IsCurrent);
+        return userCalendars.ToList().OrderByDescending(p => p.Id).FirstOrDefault(p => p.IsCurrent);
     }
 
     public async Task MakeCurrentAsync(int userId, int calendarId)

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Calendar } from '../models/calendar'; // Модель Calendar
+import { FillCalendar } from '../models/requests/fill-calendar';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,7 @@ export class CalendarService {
     return this.http.post<Calendar>(this.apiUrl, calendar);
   }
 
-  // Отримання календаря за ID
+  // Отримання поточного календаря
   getCalendar(): Observable<Calendar> {
     return this.http.get<Calendar>(`${this.apiUrl}`);
   }
@@ -30,11 +31,20 @@ export class CalendarService {
   }
 
 
-  generatePdf(calendarId : number) : Observable<Calendar> {
-    return this.http.get<Calendar>(`${this.apiGenerateUrl}/${calendarId}`);
+  generatePdf(calendarId : number, fluxModelId : number | null) : Observable<Calendar> 
+  {
+    if (fluxModelId) {
+      return this.http.get<Calendar>(`${this.apiGenerateUrl}/${calendarId}?fluxModelId=${fluxModelId}`);
+    } else {
+      return this.http.get<Calendar>(`${this.apiGenerateUrl}/${calendarId}`);
+    }
   }
 
   addToCart(calendar: Calendar): Observable<Calendar> {
     return this.http.post<Calendar>(`${this.apiAddToCartUrl}/${calendar.id}`, null);
+  }
+
+  fill(fillCalendar : FillCalendar) : Observable<any> {
+    return this.http.post(`${this.apiUrl}/fill`, fillCalendar);
   }
 }

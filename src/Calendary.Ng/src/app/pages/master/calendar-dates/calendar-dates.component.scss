@@ -1,0 +1,155 @@
+.container {
+    max-width: 1000px;
+    padding: 30px;
+    margin: 20px auto;
+  }
+  
+  h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .event-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .event-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed #ddd;
+    flex-wrap: wrap; /* Дозволяє елементам переноситися на новий рядок */
+  }
+  
+  .event-details {
+    display: flex;
+    gap: 20px;
+    margin-left: 15px;
+    flex-wrap: wrap; /* Дозволяє переносити текст, якщо не вистачає місця */
+  }
+  
+  
+  .event-date {
+    font-weight: bold;
+    font-size: 16px;
+    min-width: 100px; /* Мінімальна ширина, щоб не стискати текст надто сильно */
+  }
+  
+  .event-description {
+    font-size: 16px;
+    flex-grow: 1; /* Забезпечує зайняття залишкового простору */
+  }
+  
+  .delete-button {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0; /* Не дозволяє кнопці стискатися */
+  }
+  
+  .delete-button:hover {
+    background-color: #e04344;
+  }
+  
+  .add-event-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap; /* Дозволяє переносити елементи форми */
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .inputs-wrapper {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    flex-grow: 1;
+  }
+  
+  
+  .date-input, .description-input, .add-button {
+    flex: 1; /* Розтягує елементи на всю ширину форми */
+  }
+  
+  .add-button {
+    flex: 0; /* Залишає фіксовану ширину для кнопки додавання */
+    width: auto; /* Надає кнопці автоширину, щоб вона не розтягувалась */
+  }
+  
+  .date-input {
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 10px;
+    font-size: 16px;
+    flex-grow: 1;
+  }
+  
+  .description-input {
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 10px;
+    font-size: 16px;
+    flex-grow: 2;
+  }
+  
+  .add-button {
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .add-button:hover {
+    background-color: #1976d2;
+  }
+
+  .save-button {
+    margin-top: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding: 10px;
+      max-width: 100%;
+    }
+  
+    .event-details {
+      margin-left: 5px;
+      flex-direction: column; /* Переклад на колонку на маленьких екранах */
+      gap: 5px;
+    }
+  
+    .delete-button {
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+  
+    .inputs-wrapper {
+      flex-grow: 0;
+      flex-direction: column; /* Переклад на колонку на маленьких екранах */
+    }
+  
+    .date-input, .description-input {
+      padding: 8px;
+      font-size: 14px;
+    }
+  
+    .add-button {
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+  }

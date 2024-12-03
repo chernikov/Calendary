@@ -15,6 +15,7 @@ import { TrainingResultsComponent } from './training-results/training-results.co
 import { ImageGenerationComponent } from './image-generation/image-generation.component';
 import { PhotoSelectionComponent } from './photo-selection/photo-selection.component';
 import { CalendarReadyComponent } from './calendar-ready/calendar-ready.component';
+import { CalendarComponent } from "../calendar/calendar.component";
 
 @Component({
   selector: 'app-master',
@@ -22,19 +23,17 @@ import { CalendarReadyComponent } from './calendar-ready/calendar-ready.componen
   imports: [
     CommonModule,
     MatCardModule,
-    
     FluxModelComponent,
     PhotoUploadComponent,
     GenerationComponent,
     PromptSelectionComponent,
     PaymentComponent,
-    TrainingResultsComponent,
     ImageGenerationComponent,
-    PhotoSelectionComponent,
     CalendarMonthsComponent,
     CalendarDatesComponent,
-    CalendarReadyComponent
-  ],
+    CalendarReadyComponent,
+    CalendarComponent
+],
   templateUrl: './master.component.html',
   styleUrl: './master.component.scss',
 })

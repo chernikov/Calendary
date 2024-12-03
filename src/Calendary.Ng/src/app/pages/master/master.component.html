@@ -68,7 +68,7 @@
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'dated'">
       <mat-card-title>Важливі дати</mat-card-title>
       <mat-card-content>
-        <!-- Тут компонент важливих дат -->
+        <app-calendar-dates *ngIf="fluxModel.status === 'dated'" [fluxModel]="fluxModel"></app-calendar-dates>
       </mat-card-content>
     </mat-card>
 
@@ -76,7 +76,7 @@
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'ready'">
       <mat-card-title>Календар готовий</mat-card-title>
       <mat-card-content>
-        <!-- Тут компонент готового календаря -->
+        <app-calendar-ready *ngIf="fluxModel.status === 'ready'" [fluxModel]="fluxModel"></app-calendar-ready>
       </mat-card-content>
     </mat-card>
   </ng-container>

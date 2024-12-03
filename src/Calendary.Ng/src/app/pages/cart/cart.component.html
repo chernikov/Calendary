@@ -5,14 +5,14 @@
       <span class="title">#{{ item.calendar?.id }}</span>
       <img *ngIf="item.calendar?.previewPath" [src]="item.calendar?.previewPath" class="thumbnail" (mousedown)="openPreview(item.calendar?.previewPath)"
         (mouseup)="closePreview()">
-      <a *ngIf="!item.calendar?.previewPath" [routerLink]="['/calendar']">Продовжити редагування</a>
+      <a *ngIf="!item.calendar?.previewPath" [routerLink]="['/master']">Продовжити редагування</a>
       <input class="input" type="number" [(ngModel)]="item.quantity" min="1" (change)="onUpdateItem(item)">
       <span>{{ item.price }} грн</span>
       <button (click)="removeItem(item.id)" class="delete-button">видалити</button>
     </div>
   </div>
   
-  <button class="secondary-button" [routerLink]="['/calendar']">
+  <button class="secondary-button" [routerLink]="['/master']">
     Додати ще календар
   </button>
 

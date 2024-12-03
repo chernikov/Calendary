@@ -147,7 +147,7 @@ public class FluxModelController : BaseUserController
 
     // Оновлення статусу FluxModel
     [HttpPost("archive/{id}")]
-    public async Task<IActionResult> UpdateStatus(int id)
+    public async Task<IActionResult> Archive(int id)
     {
         var fluxModel = await _fluxModelService.GetByIdAsync(id);
         if (fluxModel == null)

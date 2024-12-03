@@ -2,76 +2,111 @@
     max-width: 900px;
     margin: 20px auto;
     padding: 10px;
-  
+
     h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-  
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      border : 1px solid red;
-  
-      .month-container {
-        border: 2px dashed #ccc;
-        border-radius: 10px;
-        padding: 10px;
         text-align: center;
-        min-height: 150px;
-        background-color: #f9f9f9;
-        transition: background-color 0.3s;
-  
-        &:hover {
-          background-color: #f0f8ff;
-        }
-  
-        h3 {
-          font-size: 1.2rem;
-          margin-bottom: 10px;
-        }
-  
-        .image-slot {
-          img {
-            max-width: 100%;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          }
-        }
-  
-        .empty-slot {
-          font-size: 0.9rem;
-          color: #888;
-          font-style: italic;
-        }
-      }
+        margin-bottom: 20px;
     }
-  
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+
+
+        .month-container {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            min-height: 150px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s;
+
+            &:hover {
+                background-color: #f0f8ff;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+                margin-bottom: 10px;
+            }
+
+            .image-slot {
+                position: relative;
+
+                img {
+                    max-width: 100%;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                .remove-button {
+                    position: absolute;
+                    top: 5px;
+                    right: 5px;
+                    display: inline-block;
+                    margin-top: 5px;
+                    padding: 2px 5px;
+                    font-size: 0.8rem;
+                    color: #fff;
+                    background-color: #ff4d4d;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: background-color 0.3s;
+
+                    &:hover {
+                        background-color: #ff1a1a;
+                    }
+                }
+            }
+
+            .empty-slot {
+                font-size: 0.9rem;
+                color: #888;
+                font-style: italic;
+            }
+        }
+    }
+
     .images-gallery {
-      margin-top: 30px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-  
-      .gallery-image {
-        width: 100px;
-        height: 100px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: grab;
-  
-        &:hover {
-          border-color: #007bff;
+        margin-top: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+
+        .gallery-image {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: grab;
+
+            &:hover {
+                border-color: #007bff;
+            }
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
         }
-  
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-      }
     }
-  }
+
+    .auto-place-button {
+        display: flex;
+        justify-content: center;
+        margin: 20px;
+    }
+
+    .save-button {
+        margin-top: 20px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+}

@@ -1,1 +1,18 @@
-<p>calendar-ready works!</p>
+<div *ngIf="calendar" class="calendar-ready-container">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-subtitle>Ознайомтеся з попереднім виглядом і завантажте PDF</mat-card-subtitle>
+      </mat-card-header>
+  
+      <mat-card-content>
+        <img [src]="calendar.previewPath" alt="Calendar Preview" class="calendar-preview" />
+      </mat-card-content>
+  
+      <mat-card-actions>
+        <a [href]="calendar.filePath" download mat-raised-button color="primary">
+          Завантажити PDF
+        </a>
+        <button mat-raised-button color="accent" (click)="addToCart()">Додати до кошика</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
