@@ -2,34 +2,35 @@
     <h2>Місяці календаря</h2>
     <div class="calendar-grid">
       <div
+        *ngFor="let month of months; let i = index"
         class="month-container"
         cdkDropList
-        id="monthes"
+        id="monthes_{{ i }}"
         #monthes="cdkDropList"
         [cdkDropListData]="calendarImages"
         [cdkDropListConnectedTo]="['images']"
-        (cdkDropListDropped)="onDrop($event)"
+        (cdkDropListDropped)="onDrop($event, i)"
       >
-      <div *ngFor="let month of months; let i = index">
         <h3>{{ month }}</h3>
         <div class="image-slot" *ngIf="calendarImages[i]; else emptySlot">
-          <img [src]="calendarImages[i]" alt="Image for {{ month }}" />
+          <img [src]="calendarImages[i]!.imageUrl" alt="Image for {{ month }}" />
+           <button class="remove-button" (click)="removeImage(i)">x</button>
         </div>
         <ng-template #emptySlot>
             <p class="empty-slot">Перетягніть зображення сюди</p>
           </ng-template>
       </div>
-        
-      </div>
     </div>
   
+    <div class="auto-place-button">
+        <button mat-raised-button color="primary" (click)="autoPlaceImages()">Розташувати всі</button>
+      </div>
+
     <div class="images-gallery" 
         cdkDropList 
         #images="cdkDropList"
         [cdkDropListData]="jobTasks"
-        [cdkDropListConnectedTo]="['monthes']" 
-        (cdkDropListDropped)="onDrop($event)"
-        >
+        [cdkDropListConnectedTo]="['monthes_11', 'monthes_10', 'monthes_9', 'monthes_8', 'monthes_7', 'monthes_6', 'monthes_5', 'monthes_4', 'monthes_3', 'monthes_2', 'monthes_1', 'monthes_0']">
 
       <div class="gallery-image"
         *ngFor="let jobTask of jobTasks"
@@ -37,4 +38,6 @@
         <img [src]="jobTask.imageUrl" alt="Gallery Image" />
       </div>
     </div>
+
+    <button mat-raised-button color="primary" (click)="saveCalendar()" class="save-button" [disabled]="!isCalendarFilled()">Зберегти</button>
   </div>

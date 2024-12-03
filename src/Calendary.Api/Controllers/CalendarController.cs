@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Calendary.Api.Dtos;
+using Calendary.Api.Dtos.Requests;
 using Calendary.Core.Services;
 using Calendary.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static iText.IO.Util.IntHashtable;
 
 namespace Calendary.Api.Controllers
 {
@@ -14,6 +16,7 @@ namespace Calendary.Api.Controllers
         IUserSettingService userSettingService,
         ICalendarService calendarService,
         IImageService imageService,
+        IFluxModelService fluxModelService,
         IMapper mapper) : BaseUserController(userService)
     {
 
@@ -114,7 +117,7 @@ namespace Calendary.Api.Controllers
 
 
         [HttpGet("generate/{calendarId:int}")]
-        public async Task<IActionResult> GeneratePdf(int calendarId)
+        public async Task<IActionResult> GeneratePdf(int calendarId, [FromQuery] int? fluxModelId)
         {
             var user = await CurrentUser.Value;
 
@@ -126,7 +129,52 @@ namespace Calendary.Api.Controllers
             await calendarService.GeneratePdfAsync(user.Id, calendarId);
            
             await CreateThumnail(calendarId);
+
+            if (fluxModelId is not null)
+            {
+                var fluxModel = await fluxModelService.GetByIdAsync(fluxModelId.Value);
+                if (fluxModel is not null)
+                {
+                    fluxModel.Status = "ready";
+                    await fluxModelService.UpdateStatusAsync(fluxModel);
+                }
+            }
             return Ok();
+        }
+
+
+        [HttpPost("fill")]
+        public async Task<IActionResult> FillCalendar([FromBody] FillCalendarRequest request)
+        {
+            var user = await CurrentUser.Value;
+            if (user is null)
+            {
+                return Unauthorized();
+            }
+
+            var calendar = new Calendar();
+            await FillSettingsAsync(calendar, user);
+
+            await calendarService.CreateAsync(user.Id, calendar);
+
+            foreach (var imageDto in request.Images)
+            {
+                var image = new Image
+                {
+                    CalendarId = calendar.Id,
+                    ImageUrl = imageDto.ImageUrl,
+                    MonthNumber = imageDto.MonthNumber
+                };
+                await imageService.SaveAsync(image);
+            }
+
+            var fluxModel = await fluxModelService.GetByIdAsync(request.FluxModelId);
+            if (fluxModel is not null)
+            {
+                fluxModel.Status = "dated";
+                await fluxModelService.UpdateStatusAsync(fluxModel);
+            }
+            return Ok(new { calendarId = calendar.Id });
         }
 
         private async Task CreateThumnail(int calendarId)
@@ -135,7 +183,7 @@ namespace Calendary.Api.Controllers
 
             var imagePaths = images.Select(p => p.ImageUrl).ToList().ToArray();
             var fileName = $"{Guid.NewGuid()}.jpg";
-            var thumbnailPath = await imageService.CreateCombinedThumbnailAsync(imagePaths, fileName, 117, 156);
+            var thumbnailPath = await imageService.CreateCombinedThumbnailAsync(imagePaths, fileName, 120, 120);
             await calendarService.UpdatePreviewPathAsync(calendarId, thumbnailPath);
         }
     }

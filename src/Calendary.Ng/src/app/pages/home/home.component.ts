@@ -23,7 +23,7 @@ export class HomeComponent {
         if (response) {
           this.tokenService.saveToken(response!.token);
         }
-        this.router.navigate(['/calendar']).then(() => {
+        this.router.navigate(['/master']).then(() => {
           window.location.reload();
         });
       },
