@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { FluxModelService } from '../../../../services/flux-model.service';
@@ -12,13 +12,19 @@ import { TrainingService } from '../../../../services/training.service';
   templateUrl: './generation.component.html',
   styleUrl: './generation.component.scss',
 })
-export class GenerationComponent {
+export class GenerationComponent implements OnChanges{
   @Input() fluxModel: FluxModel | null = null;
 
   constructor(
     private fluxModelService: FluxModelService,
     private trainingService: TrainingService
   ) {}
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['fluxModel'] && changes['fluxModel'].currentValue) {
+      this.fluxModel = changes['fluxModel'].currentValue;
+    }
+  }
 
   generateModel(): void {
     if (!this.fluxModel) {
