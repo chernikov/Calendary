@@ -132,7 +132,7 @@ export class CartComponent implements OnInit {
   }
   
   redirectToPayment(redirect: PaymentRedirect) {
-    window.open(redirect.paymentPage, '_blank');
+    window.location.href = redirect.paymentPage;
   }
 
 
