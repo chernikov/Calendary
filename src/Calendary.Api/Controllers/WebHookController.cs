@@ -40,7 +40,6 @@ public class WebHookController(IWebHookService webHookService,
                     await trainingService.UpdateStatusAsync(training.Id, newStatus);
                     await trainingService.UpdateVersionAsync(training.Id, version);
 
-
                     var fluxModel = await fluxModelService.GetByIdAsync(training.FluxModelId);
                     if (fluxModel is not null)
                     {
@@ -52,7 +51,6 @@ public class WebHookController(IWebHookService webHookService,
                         // run default job
                         await defaultJobHelper.RunAsync(fluxModel.Id);
                     }
-
                 }
             }
         }
