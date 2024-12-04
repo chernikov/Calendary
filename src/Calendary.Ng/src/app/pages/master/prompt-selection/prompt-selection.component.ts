@@ -83,6 +83,7 @@ export class PromptSelectionComponent implements OnChanges, OnInit {
             this.lastJob = job; // Зберігаємо створений Job
             this.errorMessage = null; // Очищення помилок
             this.onUpdate.emit(); // Відправляємо подію onUpdate
+            window.location.reload(); // Перезавантаження сторінки
           },
           (error) => {
             console.error('Error generating Job:', error);
