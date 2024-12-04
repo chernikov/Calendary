@@ -4,6 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminPromptThemeService } from '../../../../../services/admin-prompt-theme.service';
 import { PromptTheme } from '../../../../../models/prompt-theme';
@@ -13,7 +14,8 @@ import { PromptTheme } from '../../../../../models/prompt-theme';
   templateUrl: './prompt-theme-dialog.component.html',
   styleUrls: ['./prompt-theme-dialog.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule]
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule,
+     MatDialogModule, MatFormFieldModule, MatInputModule, MatSlideToggleModule]
 
 })
 export class PromptThemeDialogComponent {
@@ -27,6 +29,7 @@ export class PromptThemeDialogComponent {
   ) {
     this.promptThemeForm = this.fb.group({
       name: [data?.name || '', [Validators.required, Validators.maxLength(50)]],
+      isPublished: [data?.isPublished || false, [Validators.required]],
     });
   }
 
@@ -34,7 +37,6 @@ export class PromptThemeDialogComponent {
     if (this.promptThemeForm.invalid) return;
 
     const formData = this.promptThemeForm.value;
-
     if (this.data?.id) {
       formData.id = this.data.id;
       this.adminPromptThemeService.update(formData).subscribe(() => {

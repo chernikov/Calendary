@@ -5,6 +5,7 @@ namespace Calendary.Repos.Repositories;
 
 public interface IPromptThemeRepository : IRepository<PromptTheme>
 {
+    Task<IEnumerable<PromptTheme>> GetAllPublishedAsync();
     Task<PromptTheme?> GetByNameAsync(string name);
 }
 
@@ -22,6 +23,12 @@ public class PromptThemeRepository : IPromptThemeRepository
         return await _context.PromptThemes.ToListAsync();
     }
 
+
+    public async Task<IEnumerable<PromptTheme>> GetAllPublishedAsync()
+    {
+        return await _context.PromptThemes.
+            Where(p => p.IsPublished).ToListAsync();
+    }
     public async Task<PromptTheme?> GetByIdAsync(int id)
     {
         return await _context.PromptThemes.FindAsync(id);
@@ -32,6 +39,8 @@ public class PromptThemeRepository : IPromptThemeRepository
         await _context.PromptThemes.AddAsync(entity);
         await _context.SaveChangesAsync();
     }
+
+  
 
     public async Task UpdateAsync(PromptTheme entity)
     {
@@ -51,4 +60,6 @@ public class PromptThemeRepository : IPromptThemeRepository
 
     public Task<PromptTheme?> GetByNameAsync(string name)
         => _context.PromptThemes.FirstOrDefaultAsync(p => p.Name == name);
+
+  
 }

@@ -6,6 +6,8 @@ namespace Calendary.Core.Services;
 public interface IPromptThemeService
 {
     Task<IEnumerable<PromptTheme>> GetAllAsync();
+
+    Task<IEnumerable<PromptTheme>> GetAllPublishedAsync();
     Task CreateAsync(PromptTheme theme);
     Task UpdateAsync(PromptTheme theme);
     Task DeleteAsync(int id);
@@ -27,6 +29,11 @@ public class PromptThemeService : IPromptThemeService
         return await _promptThemeRepository.GetAllAsync();
     }
 
+    public async Task<IEnumerable<PromptTheme>> GetAllPublishedAsync()
+    {
+        return await _promptThemeRepository.GetAllPublishedAsync();
+    }
+
     public Task<PromptTheme?> GetByIdAsync(int id)
         => _promptThemeRepository.GetByIdAsync(id); 
     
@@ -41,11 +48,12 @@ public class PromptThemeService : IPromptThemeService
             return;
         }
         entity.Name = theme.Name;
+        entity.IsPublished = theme.IsPublished;   
         await _promptThemeRepository.UpdateAsync(entity);
     }
 
     public  Task DeleteAsync(int id)
         => _promptThemeRepository.DeleteAsync(id);
 
-   
+  
 }

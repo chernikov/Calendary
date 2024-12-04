@@ -9,4 +9,6 @@ public class PromptThemeDto
     [Required]
     [StringLength(50, ErrorMessage = "Theme name cannot exceed 50 characters.")]
     public string Name { get; set; } = null!;
+
+    public bool IsPublished { get; set; }
 }
