@@ -67,7 +67,7 @@ public class JobTaskController : Controller
                     task.ReplicateId = result.Id;
                     task.OutputSeed = seed;
                     // Оновлення статусу завдання та результату
-                    task.Status = "Completed";
+                    task.Status = "completed";
                     task.ProcessedImageUrl = imagePath;
                     task.ImageUrl = await _replicateService.DownloadAndSaveImageAsync(imagePath);
 
