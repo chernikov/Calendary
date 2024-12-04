@@ -92,7 +92,7 @@ public class JobService : IJobService
             PromptId = prompt.Id, 
             Seed = GetRandSeed(prompt.Seeds),
             FluxModelId = fluxModelId,
-            Status = "Pending",
+            Status = "pending",
             CreatedAt = DateTime.UtcNow
         }).ToList();
 

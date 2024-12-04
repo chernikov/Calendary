@@ -37,7 +37,7 @@ public class CalendarService(
     public async Task<Calendar> CreateAsync(int userId, Calendar calendar)
     {
         // Перевіряємо, чи є існуюче замовлення зі статусом "Creating"
-        var currentOrder = await orderRepository.GetOrderByStatusAsync(userId, "Creating");
+        var currentOrder = await orderRepository.GetOrderByStatusAsync(userId, "creating");
 
         // Якщо замовлення немає, створюємо нове
         if (currentOrder is null)

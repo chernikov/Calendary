@@ -51,7 +51,7 @@ public class JobTaskController : Controller
             }
 
 
-            if (task.Status == "Pending")
+            if (task.Status == "pending")
             {
                 // Відправка запиту до ReplicateService для генерації зображення
 

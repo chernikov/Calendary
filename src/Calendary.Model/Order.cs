@@ -19,7 +19,7 @@ public class Order
     public bool IsPaid { get; set; }
 
     [MaxLength(10)]
-    public string Status { get; set; } = "Creating"; // e.g., "Pending", "Completed", "Shipped"
+    public string Status { get; set; } = "creating";
 
     [MaxLength(1000)]
     public string? DeliveryAddress { get; set; } = null!;   // saved in text city, postOffice

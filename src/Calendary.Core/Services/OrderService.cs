@@ -58,7 +58,7 @@ internal class OrderService(IOrderRepository orderRepository, IOrderItemReposito
 
     public async Task<int> OrderItemsCountAsync(int userId)
     {
-        var order = await orderRepository.GetOrderWithItemsAsync(userId, "Creating");
+        var order = await orderRepository.GetOrderWithItemsAsync(userId, "creating");
         if (order is null)
         {
             return 0;

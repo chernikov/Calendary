@@ -83,7 +83,7 @@ public class JobController : BaseUserController
             }
             foreach (var task in jobWithTasks.Tasks)
             {
-                if (task.Status == "Pending")
+                if (task.Status == "pending")
                 {
                     var taskDto = _mapper.Map<JobTaskMessage>(task);
                     var jsonTask = JsonSerializer.Serialize(taskDto);
@@ -126,7 +126,7 @@ public class JobController : BaseUserController
 
             foreach (var task in job.Tasks)
             {
-                if (task.Status == "Pending")
+                if (task.Status == "pending")
                 {
                     var taskDto = _mapper.Map<JobTaskMessage>(task);
                     var jsonTask = JsonSerializer.Serialize(taskDto);
