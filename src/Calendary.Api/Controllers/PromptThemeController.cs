@@ -28,11 +28,10 @@ public class PromptThemeController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         // Отримання всіх тем (фільтруємо default)
-        var themes = await _promptThemeService.GetAllAsync();
-        var filteredThemes = themes.Where(t => t.Name.ToLower() != "default").ToList();
-
+        var themes = await _promptThemeService.GetAllPublishedAsync();
+        
         // Маппінг до DTO
-        var result = _mapper.Map<List<PromptThemeDto>>(filteredThemes);
+        var result = _mapper.Map<List<PromptThemeDto>>(themes);
         return Ok(result);
     }
 }
