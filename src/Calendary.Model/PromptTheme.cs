@@ -6,6 +6,8 @@ public class PromptTheme
     public string Description { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    public bool IsPublished { get; set; } = false;
+
     // Навігаційні властивості
     public ICollection<Prompt> Prompts { get; set; } = new List<Prompt>();
 }

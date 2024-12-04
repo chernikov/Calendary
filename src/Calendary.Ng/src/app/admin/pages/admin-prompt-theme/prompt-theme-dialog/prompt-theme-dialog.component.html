@@ -6,6 +6,12 @@
     <mat-error *ngIf="promptThemeForm.get('name')?.hasError('required')">Введіть назву</mat-error>
     <mat-error *ngIf="promptThemeForm.get('name')?.hasError('maxlength')">Максимально 50 символів</mat-error>
   </mat-form-field>
+
+  <!-- Опубліковано -->
+  <mat-slide-toggle style="margin-left: 16px;" formControlName="isPublished" color="primary">
+    Опубліковано
+  </mat-slide-toggle>
+  
   <div mat-dialog-actions>
     <button mat-button (click)="onCancel()">Скасувати</button>
     <button mat-raised-button color="primary" type="submit" [disabled]="promptThemeForm.invalid">

@@ -18,7 +18,7 @@ import { PromptTheme } from '../../../../models/prompt-theme';
   styleUrl: './admin-prompt-theme.component.scss'
 })
 export class AdminPromptThemeComponent {
-  displayedColumns: string[] = ['id', 'name', 'actions'];
+  displayedColumns: string[] = ['id', 'name', 'isPublished', 'actions'];
   dataSource: any[] = [];
 
   constructor(private adminPromptThemeService: AdminPromptThemeService, private dialog: MatDialog) {}
