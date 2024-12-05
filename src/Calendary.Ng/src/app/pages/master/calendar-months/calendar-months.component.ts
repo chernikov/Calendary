@@ -51,6 +51,7 @@ export class CalendarMonthsComponent implements OnChanges {
 
   calendarImages: (JobTask | null)[] = new Array(12).fill(null); // Массив для зображень місяців
   jobTasks: JobTask[] = []; // Масив для доступних зображень
+  selectedImage: string | null = null; // Для прев'ю
 
   constructor(private calendarService: CalendarService) 
   {
@@ -120,6 +121,16 @@ export class CalendarMonthsComponent implements OnChanges {
     }
   }
 
+   // Відкрити зображення у модальному вікні
+   openPreview(imageUrl: string): void {
+    this.selectedImage = imageUrl;
+  }
+
+  // Закрити модальне вікно
+  closePreview(): void {
+    this.selectedImage = null;
+  }
+  
   isCalendarFilled(): boolean {
     return this.calendarImages.every((image) => !!image);
   }
