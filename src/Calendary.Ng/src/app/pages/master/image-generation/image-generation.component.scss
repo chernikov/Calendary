@@ -2,31 +2,105 @@
     max-width: 800px;
     margin: 0 auto;
     text-align: center;
-  
+
     .image-gallery {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
     }
-  
+
     .image-container {
-      width: 200px; /* Розмір контейнера */
-      height: 200px;
-      overflow: hidden;
-      border-radius: 8px;
-      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        width: 200px;
+        /* Розмір контейнера */
+        height: 200px;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     }
-  
+
     .generated-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover; /* Масштабування зображення */
-      border-radius: 8px;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* Масштабування зображення */
+        border-radius: 8px;
     }
-  
+
     .no-images-message {
-      font-size: 1.2rem;
-      color: #888;
+        font-size: 1.2rem;
+        color: #888;
     }
-  }
+}
+
+
+.flux-model-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.image-gallery .image-container {
+    cursor: pointer;
+}
+
+.generated-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.generated-image:hover {
+    transform: scale(1.1);
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 80vh;
+    margin-bottom: 15px;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.download-button {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.download-button:hover {
+    background: #0056b3;
+}

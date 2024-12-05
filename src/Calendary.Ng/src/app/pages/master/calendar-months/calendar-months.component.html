@@ -1,5 +1,8 @@
 <div class="calendar-container">
-    <h2>Місяці календаря</h2>
+    <div class="drag-hint">
+        <p>Перетягніть зображення на бажаний місяць</p>
+      </div>
+
     <div class="calendar-grid">
       <div
         *ngFor="let month of months; let i = index"
@@ -13,7 +16,8 @@
       >
         <h3>{{ month }}</h3>
         <div class="image-slot" *ngIf="calendarImages[i]; else emptySlot">
-          <img [src]="calendarImages[i]!.imageUrl" alt="Image for {{ month }}" />
+          <img [src]="calendarImages[i]!.imageUrl" alt="Image for {{ month }}" 
+          (click)="openPreview(calendarImages[i]!.imageUrl)"/>
            <button class="remove-button" (click)="removeImage(i)">x</button>
         </div>
         <ng-template #emptySlot>
@@ -35,9 +39,20 @@
       <div class="gallery-image"
         *ngFor="let jobTask of jobTasks"
         cdkDrag>
-        <img [src]="jobTask.imageUrl" alt="Gallery Image" />
+        <img [src]="jobTask.imageUrl" alt="Gallery Image" 
+        (click)="openPreview(jobTask.imageUrl)"
+        />
       </div>
     </div>
 
     <button mat-raised-button color="primary" (click)="saveCalendar()" class="save-button" [disabled]="!isCalendarFilled()">Зберегти</button>
+
+     <!-- Модальне вікно для збільшення -->
+  <div *ngIf="selectedImage" class="modal">
+    <div class="modal-content">
+      <span class="close" (click)="closePreview()">&times;</span>
+      <img [src]="selectedImage" alt="Preview Image" class="preview-image" />
+      <a [href]="selectedImage" download="calendar-image.jpg" class="download-button">Завантажити</a>
+    </div>
+  </div>
   </div>

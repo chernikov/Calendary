@@ -1,10 +1,20 @@
 <div class="flux-model-images">
     <div *ngIf="imageUrls.length > 0; else noImages" class="image-gallery">
-      <div *ngFor="let imageUrl of imageUrls" class="image-container">
-        <img [src]="imageUrl" alt="Generated Image" class="generated-image" />
-      </div>
+        <div *ngFor="let imageUrl of imageUrls" class="image-container">
+            <img [src]="imageUrl" alt="Generated Image" class="generated-image"  (click)="openPreview(imageUrl)"/>
+        </div>
     </div>
     <ng-template #noImages>
-      <p class="no-images-message">Зображень ще немає.</p>
+        <p class="no-images-message">Зображень ще немає.</p>
     </ng-template>
+</div>
+
+
+<!-- Модальне вікно -->
+<div *ngIf="selectedImage" class="modal">
+    <div class="modal-content">
+      <span class="close" (click)="closePreview()">&times;</span>
+      <img [src]="selectedImage" alt="Preview Image" class="preview-image" />
+      <a [href]="selectedImage" download="image.jpg" class="download-button">Завантажити</a>
+    </div>
   </div>

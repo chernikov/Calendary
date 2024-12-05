@@ -14,10 +14,12 @@ import { CommonModule } from '@angular/common';
 export class ImageGenerationComponent implements OnChanges, OnDestroy {
   @Input()
   fluxModel: FluxModel | null = null;
-  imageUrls: string[] = [];
   @Output() 
   onUpdate = new EventEmitter<FluxModel>();
 
+  imageUrls: string[] = [];
+  selectedImage: string | null = null; // Обране зображення для прев'ю
+  
   private pollingSubscription: Subscription | null = null;
   
   constructor(private fluxModelService: FluxModelService) {
@@ -84,5 +86,15 @@ export class ImageGenerationComponent implements OnChanges, OnDestroy {
         this.imageUrls = lastJob.tasks.map(task => task.imageUrl).filter(url => !!url);
       }
     }
+  }
+
+   // Відкрити прев'ю
+   openPreview(imageUrl: string): void {
+    this.selectedImage = imageUrl;
+  }
+
+  // Закрити прев'ю
+  closePreview(): void {
+    this.selectedImage = null;
   }
 }
