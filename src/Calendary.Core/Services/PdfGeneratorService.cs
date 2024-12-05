@@ -12,6 +12,7 @@ using ImagePdf = iText.Layout.Element.Image;
 using CalendarModel = Calendary.Model.Calendar;
 using Calendary.Core.Providers;
 using iText.Layout.Borders;
+using iText.Kernel.Pdf.Canvas;
 
 namespace Calendary.Core.Services;
 
@@ -59,6 +60,9 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
                 pdf.SetDefaultPageSize(PageSize.A3);
                 using (Document document = new Document(pdf))
                 {
+                    // Додаємо обкладинку
+                    AddCoverPage(pdf, document);
+
                     // Додаємо по сторінці для кожного місяця
                     for (int i = 0; i < months.Length; i++)
                     {
@@ -77,6 +81,38 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
         }
         return savedPath;
     }
+
+
+    private void AddCoverPage(PdfDocument pdf, Document document)
+    {
+        // Завантажуємо обкладинку
+        var coverPath = "images/cover.png";
+        var imageData = iText.IO.Image.ImageDataFactory.Create(coverPath);
+        var coverImage = new ImagePdf(imageData);
+
+        // Отримуємо розміри сторінки
+        var pageSize = pdf.GetDefaultPageSize();
+        float pageWidth = pageSize.GetWidth();
+        float pageHeight = pageSize.GetHeight();
+
+        // Масштабуємо зображення, щоб воно вписувалося у розмір сторінки
+        float scaleFactor = Math.Min(pageWidth / coverImage.GetImageWidth(), pageHeight / coverImage.GetImageHeight());
+        coverImage.Scale(scaleFactor, scaleFactor);
+
+        // Встановлюємо координати для центрованого розташування
+        float x = (pageWidth - coverImage.GetImageScaledWidth()) / 2;
+        float y = (pageHeight - coverImage.GetImageScaledHeight()) / 2;
+
+        // Встановлюємо позицію зображення
+        coverImage.SetFixedPosition(x, y);
+
+        // Додаємо зображення на першу сторінку
+        document.Add(coverImage);
+
+        // Додаємо перерву сторінки
+        document.Add(new AreaBreak());
+    }
+
 
     private Table CreateTable(CalendarModel calendar, string[] days, int monthIndex)
     {
