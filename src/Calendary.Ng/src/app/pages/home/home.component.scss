@@ -1,92 +1,135 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* Загальні стилі */
 body {
   font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
 }
 
-button {
-  padding: 10px 20px;
-  font-size: 20pt;
-  background-color: #2F9606;
-  color: white;
-  border: none;
-  border-radius: 7px;
-  margin-top: 20px;
-  cursor: pointer;
-  &:hover {
-    background-color: #1E6404;
-  }
-}
-
-section {
-  &.background-white {
-    background-color: #fff;
-  }
-  &.background-gray {
-    background-color: #f5f5f5;
-  }
-  padding: 40px 20px;
-
-  .content {
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-
-    h2 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-    ol {
-      margin-left: 150px;
-      width : 600px;
-      li {
-        text-align: left;
-      }
-    }
-    p,
-    li {
-      font-size: 1.1rem;
-      line-height: 1.6;
-    }
-
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
-
-    li {
-      margin-bottom: 0.5rem;
-    }
-
-    blockquote {
-      font-style: italic;
-      margin: 10px 0;
-    }
-  }
-}
-
-.illustration {
-  max-width: 40%;
-  /* Зменшуємо ширину до 25% */
-  height: auto;
-  display: block;
-  margin: 20px auto;
-  /* Центруємо ілюстрацію */
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.footer {
-  background-color: #343a40;
-  color: white;
-  padding: 10px;
+h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #333;
   text-align: center;
+}
+
+p {
+  font-size: 1rem;
+  color: #555;
+  text-align: center;
+}
+
+
+ul, ol {
+  margin: 20px auto;
+  padding: 0 20px;
+  list-style-type: none;
+  max-width: 800px;
+  color: #555;
+}
+
+ul li, ol li {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+/* Секції */
+.hero {
+  padding: 50px 20px;
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.background-gray {
+  background-color: #f8f9fa;
+  padding: 50px 20px;
+}
+
+.background-white {
+  background-color: #ffffff;
+  padding: 50px 20px;
+}
+
+.content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Зображення */
+.illustration {
+  max-width: 100%;
+  height: auto;
+  margin-top: 20px;
+}
+
+/* Футер */
+.footer {
+  text-align: center;
+  background-color: #333;
+  color: white;
+  padding: 20px 0;
+}
+
+.footer p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+/* Кнопки */
+button, .btn-primary {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #007BFF;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    margin: 20px auto; /* Відступи зверху та знизу */
+}
+
+button:hover, .btn-primary:hover {
+    background-color: #0056b3;
+}
+
+/* Центрування кнопок */
+button, .btn-primary {
+    display: block;
+    width: fit-content;
+    margin: 20px auto; /* Вирівнювання по центру сторінки */
+}
+
+/* Адаптивність */
+@media (max-width: 768px) {
+  h2 {
+      font-size: 1.8rem;
+  }
 
   p {
-    margin: 0;
+      font-size: 0.9rem;
+  }
+
+  button {
+      font-size: 0.9rem;
+      padding: 8px 16px;
+  }
+
+  ul li, ol li {
+      font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  h2 {
+      font-size: 1.5rem;
+  }
+
+  p {
+      font-size: 0.8rem;
+  }
+
+  button {
+      font-size: 0.8rem;
+      padding: 6px 12px;
   }
 }
