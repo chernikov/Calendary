@@ -9,6 +9,12 @@ export class UserLogin {
   password: string = '';
 }
 
+export class UserRegister {
+  email: string = '';
+  password: string = '';
+  confirmPassword: string = '';
+}
+
 export class UserInfo {
   userName : string = '';
   email : string = '';

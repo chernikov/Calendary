@@ -31,7 +31,7 @@ public class SmsClubSender : ISmsSender
         {
             phone = new[] { phoneNumber },
             message,
-            src_addr = "Zamovlennia"
+            src_addr = "calendary"
         };
 
         var json = JsonSerializer.Serialize(payload);

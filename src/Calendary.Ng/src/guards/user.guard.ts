@@ -1,33 +1,30 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { TokenService } from '../services/token.service';
-import { jwtDecode } from 'jwt-decode';
-
 
 @Injectable({
   providedIn: 'root',
 })
-export class AdminGuard implements CanActivate {
+export class UserGuard implements CanActivate {
   constructor(private tokenService: TokenService, 
     private router: Router) {}
 
   canActivate(): boolean {
     const token = this.tokenService.getToken();
     if (!token) {
-      this.redirectToHome();
+      this.redirectRegister();
       return false;
     }
-
     const role = this.tokenService.getRole(token);
-    if (role === 'Admin') {
+    if (role === 'User') {
       return true;
     } else {
-      this.redirectToHome();
+      this.redirectRegister();
       return false;
     }
   }
 
-  private redirectToHome() {
-    this.router.navigate(['/']);
+  private redirectRegister() {
+    this.router.navigate(['/register']);
   }
 }

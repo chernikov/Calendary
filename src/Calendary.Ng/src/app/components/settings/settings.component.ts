@@ -73,10 +73,12 @@ export class SettingsComponent implements OnInit {
   }
 
   validateEmail() {
+    this.updateInfo();
     this.isEmailValid = this.settingsForm.controls['email'].valid;
   }
 
   validatePhone() {
+    this.updateInfo();
     this.isPhoneValid = this.settingsForm.controls['phone'].valid;
   }
 

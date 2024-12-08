@@ -8,11 +8,14 @@
     </div>
     <!-- Icons aligned to the right -->
     <div class="navbar-icons" *ngIf="isInited">
-      <button *ngIf="isLoggedIn && cartCount" mat-icon-button [routerLink]="['/cart']" aria-label="Кошик">
+      <button *ngIf="isLoggedIn && cartCount && role === 'User'" mat-icon-button [routerLink]="['/cart']" aria-label="Кошик">
         <mat-icon>shopping_cart</mat-icon>
       </button>
-      <button *ngIf="isLoggedIn" mat-icon-button [routerLink]="['/profile']" aria-label="Профіль">
+      <button *ngIf="isLoggedIn && role == 'User'" mat-icon-button [routerLink]="['/profile']" aria-label="Профіль">
         <mat-icon>account_circle</mat-icon>
+      </button>
+      <button *ngIf="isLoggedIn && role == 'Admin'" mat-raised-button [routerLink]="['/admin']"  aria-label="Адмінка">
+        Адмінка
       </button>
       <button *ngIf="isLoggedIn" mat-icon-button (click)="logout()" aria-label="Вихід">
         <mat-icon>logout</mat-icon>
