@@ -17,6 +17,7 @@ public class CartController : BaseUserController
     private readonly IOrderService _orderService;
     private readonly IImageService _imageService;
     private readonly ICalendarService _calendarService;
+    private readonly IEventDateService _eventDateService;
     private readonly IMapper _mapper;
 
     public CartController(IUserService userService,
@@ -24,12 +25,14 @@ public class CartController : BaseUserController
         IOrderService orderService,
         IImageService imageService,
         ICalendarService calendarService,
+        IEventDateService eventDateService,
         IMapper mapper) : base(userService)
     {
         _userSettingService = userSettingService;
         _orderService = orderService;
         _imageService = imageService;
         _calendarService = calendarService;
+        _eventDateService = eventDateService;
         _mapper = mapper;
     }
 
@@ -94,6 +97,8 @@ public class CartController : BaseUserController
 
         // Видаляємо всі зображення, пов'язані з календарем
         await _imageService.DeleteImagesByCalendarIdAsync(orderItem.CalendarId);
+
+        await _eventDateService.DeleteEventDatesByCalendarIdAsync(user.Id, orderItem.CalendarId);
 
         // Видаляємо календар
         await _calendarService.DeleteAsync(orderItem.CalendarId);

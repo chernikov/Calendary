@@ -68,7 +68,7 @@ export class LoginComponent {
         },
         error: (error) => {
           console.error('Error logging in user:', error);
-          this.errorMessage = 'Failed to log in. Please check your credentials.';
+          this.errorMessage = error.error.message;
         }
       });
   }

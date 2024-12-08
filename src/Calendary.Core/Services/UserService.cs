@@ -242,7 +242,7 @@ public class UserService(IUserRepository userRepository,
         }
         var user = await userRepository.GetByIdAsync(resetToken.UserId);
 
-      //  await resetTokenRepository.DeleteAsync(resetToken.Id);
+        await resetTokenRepository.DeleteAsync(resetToken.Id);
         return user;
     }
 

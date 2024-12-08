@@ -5,6 +5,8 @@ namespace Calendary.Repos.Repositories;
 
 public interface IEventDateRepository : IRepository<EventDate>
 {
+    Task<IEnumerable<EventDate>> GetAllByCalendarIdAsync(int calendarId);
+
     Task<IEnumerable<EventDate>> GetAllByUserIdAsync(int userId);
 }
 
@@ -31,6 +33,12 @@ public class EventDateRepository : IEventDateRepository
             return await _context.EventDates.Where(p => p.UserSettingId == setting.Id).ToListAsync();
         }
         return Array.Empty<EventDate>();
+    }
+
+    public async Task<IEnumerable<EventDate>> GetAllByCalendarIdAsync(int calendarId)
+    {
+        return await _context.EventDates.Where(p => p.CalendarId == calendarId).ToListAsync();
+        
     }
 
     public async Task<EventDate?> GetByIdAsync(int id)

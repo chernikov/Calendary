@@ -10,9 +10,9 @@ namespace Calendary.Core.Services;
 
 public interface IPaymentService
 {
-    Task<string> CreateOrderInvoiceAsync(int orderId, decimal amount);
+    Task<string> CreateOrderInvoiceAsync(int orderId);
 
-    Task<string> CreateFluxInvoiceAsync(int fluxId, decimal amount);
+    Task<string> CreateFluxInvoiceAsync(int fluxId);
 
     Task SaveWebhookAsync(string webHookData, string xSign);
 
@@ -37,6 +37,8 @@ public class MonoPaymentService : IPaymentService
     private readonly static string MonoPublicKeyUrl = "https://api.monobank.ua/api/merchant/pubkey";
     private readonly string _merchantToken;
 
+    private readonly int _priceModel;
+
     private readonly HttpClient _httpClient;
 
     private readonly IMemoryCache _cache;
@@ -44,9 +46,11 @@ public class MonoPaymentService : IPaymentService
 
     private readonly IPaymentInfoRepository _paymentInfoRepository;
     private readonly IMonoWebhookEventRepository _monoWebhookEventRepository;
+    private readonly IOrderItemRepository _orderItemRepository;
 
     public MonoPaymentService(HttpClient httpClient, 
         IConfiguration configuration,
+        IOrderItemRepository orderItemRepository,
         IPaymentInfoRepository paymentInfoRepository,
         IMonoWebhookEventRepository monoWebhookEventRepository,
         IMemoryCache cache)
@@ -55,37 +59,43 @@ public class MonoPaymentService : IPaymentService
         _httpClient = httpClient;
         _paymentInfoRepository = paymentInfoRepository;
         _monoWebhookEventRepository = monoWebhookEventRepository;
+        _orderItemRepository = orderItemRepository;
         _merchantToken = configuration["MonoBank:MerchantToken"]!;
+        _priceModel = int.Parse(configuration["Price:Model"]!);
         _cache = cache;
     }
 
   
 
-    public async Task<string> CreateOrderInvoiceAsync(int orderId, decimal amount)
+    public async Task<string> CreateOrderInvoiceAsync(int orderId)
     {
+        var orderItems = await _orderItemRepository.GetByOrderIdAsync(orderId);
+        var sum = orderItems.Sum(p => p.Price * p.Quantity);
+
         return await CreateInvoiceInnerAsync(
-            amount,
+            sum,
             redirectUrl: $"https://calendary.com.ua/order/{orderId}",
             orderId: orderId
         );
     }
 
-    public async Task<string> CreateFluxInvoiceAsync(int fluxModelId, decimal amount)
+    public async Task<string> CreateFluxInvoiceAsync(int fluxModelId)
     {
+        var price = _priceModel;
         return await CreateInvoiceInnerAsync(
-            amount,
+            price,
             redirectUrl: $"https://calendary.com.ua/master",
             fluxModelId: fluxModelId
         );
     }
 
 
-    private async Task<string> CreateInvoiceInnerAsync(decimal amount, string redirectUrl, int? orderId = null, int? fluxModelId = null)
+    private async Task<string> CreateInvoiceInnerAsync(decimal sum, string redirectUrl, int? orderId = null, int? fluxModelId = null)
     {
         // Формування тіла запиту для створення рахунку
         var requestBody = new
         {
-            amount = (int)(amount * 100), // в копійках
+            amount = (int)(sum * 100), // в копійках
             ccy = 980, // Код валюти UAH
             redirectUrl, // посилання на замовлення чи розробку
             webHookUrl = $"https://calendary.com.ua/api/pay/mono/callback" // посилання на обробник платежу

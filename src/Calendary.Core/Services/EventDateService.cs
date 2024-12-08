@@ -11,6 +11,9 @@ public interface IEventDateService
     Task<EventDate?> CreateEventDateAsync(int userId, EventDate eventDate);
     Task<EventDate?> GetEventDateByIdAsync(int userId, int id);
     Task<EventDate?> UpdateEventDateAsync(int userId, EventDate eventDate);
+
+    Task DeleteEventDatesByCalendarIdAsync(int userId, int calendarId);
+
     Task DeleteEventDateAsync(int userId, int id);
 }
 
@@ -94,5 +97,14 @@ public class EventDateService(IEventDateRepository eventDateRepository,
         existingEventDate.Description = eventDate.Description;
         await eventDateRepository.UpdateAsync(existingEventDate);
         return existingEventDate;
+    }
+
+    public async Task DeleteEventDatesByCalendarIdAsync(int userId, int calendarId)
+    {
+        var images = await eventDateRepository.GetAllByCalendarIdAsync(calendarId);
+        foreach (var image in images)
+        {
+            await DeleteEventDateAsync(userId, image.Id);
+        }
     }
 }

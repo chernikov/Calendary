@@ -42,9 +42,7 @@ public class PaymentController : BaseUserController
             return NotFound();
         }
 
-        var totalAmount = order.OrderItems.Sum(p => p.Quantity * p.Price);
-        var count = order.OrderItems.Sum(p => p.Quantity);
-        var pageUrl = await _paymentService.CreateOrderInvoiceAsync(order.Id, totalAmount);
+        var pageUrl = await _paymentService.CreateOrderInvoiceAsync(order.Id);
 
         return Ok(new { paymentPage = pageUrl });
     }
@@ -71,8 +69,7 @@ public class PaymentController : BaseUserController
             await _fluxModelService.UpdateStatusAsync(fluxModel);
         }
 
-        var totalAmount = 100;
-        var pageUrl = await _paymentService.CreateFluxInvoiceAsync(fluxModel.Id, totalAmount);
+        var pageUrl = await _paymentService.CreateFluxInvoiceAsync(fluxModel.Id);
 
         return Ok(new { paymentPage = pageUrl });
     }

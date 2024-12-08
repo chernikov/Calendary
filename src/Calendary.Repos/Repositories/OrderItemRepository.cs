@@ -5,7 +5,7 @@ namespace Calendary.Repos.Repositories;
 
 public interface IOrderItemRepository : IRepository<OrderItem>
 {
-
+    Task<IEnumerable<OrderItem>> GetByOrderIdAsync(int orderId);
 }
 
 public class OrderItemRepository : IOrderItemRepository
@@ -47,5 +47,10 @@ public class OrderItemRepository : IOrderItemRepository
             _context.OrderItems.Remove(entity);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<IEnumerable<OrderItem>> GetByOrderIdAsync(int orderId)
+    {
+          return await _context.OrderItems.Where(p => p.OrderId == orderId).ToListAsync();
     }
 }
