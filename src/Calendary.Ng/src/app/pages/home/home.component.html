@@ -1,76 +1,57 @@
 <section class="hero background-white">
-    <div class="content">
-        <h2>Створіть ваш персональний календар</h2>
-        <p>Додавайте власні фотографії, важливі дати та створюйте унікальні календарі для кожного місяця.</p>
-        <img [src]="'/images/pic_2.png'" alt="Poster Calendar Example" class="illustration">
-        <br />
-        <button (click)="goToCreateCalendar()">Створити календар</button>
+    <div class="content" style="text-align: center;">
+        <img [src]="'/images/bg_title.jpg'" alt="Calendary Background" class="illustration" style="max-width: 100%; height: auto;">
+        <h2>Ваш персональний календар – спогади на кожен день!</h2>
+        <p>
+            <strong>Calendary</strong> – це не просто сервіс для створення календарів. Ми перетворюємо ваші спогади на справжні витвори мистецтва 
+            за допомогою передових технологій штучного інтелекту.
+        </p>
+        <button (click)="goToMaster()" class="btn-primary">Створити календар</button>
     </div>
 </section>
 
-<section class="about background-gray">
+<section class="how-it-works background-gray">
     <div class="content">
-        <h2>Хто ми?</h2>
-        <p>Calendary – це сервіс для створення індивідуальних календарів із власними фотографіями та подіями. Наші
-            календарі – це більше, ніж просто дати, це спогади!</p>
-    </div>
-</section>
-
-<section class="features background-white">
-    <div class="content">
-        <h2>Наші переваги</h2>
-        <ul>
-            <li>Персоналізація кожної сторінки календаря</li>
-            <li>Можливість додавання важливих дат та подій</li>
-            <li>Вибір дизайну та тем оформлення</li>
-        </ul>
-        <button (click)="goToCreateCalendar()">Створити календар</button>
-    </div>
-</section>
-
-<section class="how-it-works  background-gray">
-    <div class="content">
-        <h2>Як працює наш сервіс?</h2>
+        <h2>Як це працює?</h2>
         <ol>
-            <li>Завантажте фотографії для кожного місяця
+            <li>
+                <strong>Завантажте свої улюблені фотографії:</strong> Оберіть 12-20 найкращих знімків, які відображають ваші спогади, стиль або мрії. 
+                Ми використаємо їх, щоб створити унікальну AI-модель саме для вас.
             </li>
             <li>
-                Додайте події
+                <strong>Обирайте фантастичні ілюстрації:</strong> На основі вашої моделі ми генеруємо приголомшливі ілюстрації для кожного місяця. 
+                Оберіть тему і насолоджуйтесь унікальним результатом.
             </li>
             <li>
-                Оплатіть замовлення 
-                
+                <strong>Додавайте важливі дати:</strong> Укажіть особливі моменти – дні народження, ювілеї чи свята. Ми гарно підкреслимо їх у вашому календарі.
             </li>
             <li>
-                Отримайте календар поштою
+                <strong>Оберіть стиль та тему оформлення:</strong> Виберіть один із наших професійних дизайнів, що гармонійно доповнюють ваш календар.
+            </li>
+            <li>
+                <strong>Оплачуйте зручно:</strong> Завершіть замовлення через швидку та безпечну інтеграцію з платіжними системами.
+            </li>
+            <li>
+                <strong>Отримуйте свій шедевр:</strong> Ми надрукуємо ваш календар і доставимо його прямо до вашого дому чи офісу. 
+                Насолоджуйтесь ілюстраціями та спогадами щодня!
             </li>
         </ol>
-        <button (click)="goToCreateCalendar()">Створити календар</button>
+        <button (click)="goToMaster()" class="btn-primary">Створити календар</button>
     </div>
 </section>
 
-<section class="testimonials  background-white">
+<section class="ai-features background-white">
     <div class="content">
-        <h2>Що кажуть наші клієнти</h2>
-        <blockquote>
-            <p>"Замовила календар для подарунку – вийшло ідеально!"</p>
-            <cite>– Марина, Київ</cite>
-        </blockquote>
-        <img [src]="'/images/pic_3.png'" alt="Happy customers with calendar" class="illustration">
-        <blockquote>
-            <p>"Простий у користуванні сервіс та чудовий результат!"</p>
-            <cite>– Андрій, Львів</cite>
-        </blockquote>
-    </div>
-</section>
-
-<section class="pricing  background-gray">
-    <div class="content">
-        <h2>Обирайте свій календар</h2>
+        <h2>Переваги Calendary</h2>
+        <p>Чому обрати нас?</p>
         <ul>
-            <li>Друкований календар – 500 грн</li>
+            <li><strong>Штучний інтелект на службі ваших спогадів:</strong> Ми створюємо персоналізовані ілюстрації, які вас вразять.</li>
+            <li><strong>Персоналізація в кожній деталі:</strong> Календар відображає ваш стиль, мрії та найважливіші моменти.</li>
+            <li><strong>Простота і задоволення:</strong> Легкий процес створення, який приносить радість.</li>
         </ul>
-        <button (click)="goToCreateCalendar()">Створити календар</button>
+        <p>Ваш календар стане справжнім витвором мистецтва, який буде надихати кожного дня!</p>
+        <img [src]="'/images/example.jpg'" alt="Calendar Example" class="illustration" style="max-width: 100%; height: auto; margin-top: 20px;">
+        <button (click)="goToMaster()" class="btn-primary">Створити календар</button>
     </div>
 </section>
 

@@ -12,7 +12,7 @@ import { HeaderComponent } from '../../components/header/header.component';
 export class HomeComponent {
   constructor(private router: Router) { }
 
-  goToCreateCalendar() {
+  goToMaster() {
     this.router.navigate(['/master']).then(() => {
       window.location.reload();
     });
