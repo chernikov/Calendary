@@ -1,6 +1,6 @@
 .register-container {
     max-width: 400px;
-    margin: 0 auto;
+    margin: 20px auto;
     padding: 20px;
     background-color: #f9f9f9;
     border: 1px solid #e0e0e0;
@@ -66,4 +66,19 @@
   button:focus {
     outline: none;
     box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+  }
+
+
+  .register-link {
+    margin-top: 10px;
+    text-align: center;
+  }
+  
+  .register-link a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .register-link a:hover {
+    text-decoration: underline;
   }

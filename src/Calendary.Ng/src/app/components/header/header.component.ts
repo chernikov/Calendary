@@ -20,6 +20,7 @@ export class HeaderComponent implements OnInit {
   email: string | null = null;
 
   cartCount = 0;
+  role: string = "";
  
   constructor(
     private tokenService: TokenService,
@@ -34,6 +35,7 @@ export class HeaderComponent implements OnInit {
 
     if (token) {
       this.isLoggedIn = true;
+      this.role = this.tokenService.getRole(token); // Парсимо роль з токена
       this.email = this.parseTokenEmail(token); // Парсимо email з токена
       this.checkCart();
     } else {
@@ -45,6 +47,10 @@ export class HeaderComponent implements OnInit {
   {
     this.cartService.itemsInCart().subscribe((count) => {
       this.cartCount = count;
+      this.isInited = true;
+    }, 
+    (error) => {
+      console.error('Error getting cart count:', error);
       this.isInited = true;
     });
   }

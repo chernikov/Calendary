@@ -5,7 +5,7 @@ import { Page404Component } from './pages/page404/page404.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { LoginComponent } from './pages/login/login.component';
 import { CalendarComponent } from './pages/calendar/calendar.component';
-import { AuthGuard } from '../guards/admin.guard';
+import { AdminGuard } from '../guards/admin.guard';
 import { MainComponent } from './main.component';
 import { AdminComponent } from './admin/admin.component';
 import { HolidayComponent } from './admin/pages/holiday/holiday.component';
@@ -22,12 +22,13 @@ import { MasterComponent } from './pages/master/master.component';
 import { FluxModelComponent } from './admin/pages/flux-model/flux-model.component';
 import { ViewFluxModelComponent } from './admin/pages/flux-model/view-flux-model/view-flux-model.component';
 import { AdminCategoryComponent } from './admin/pages/admin-category/admin-category.component';
+import { UserGuard } from '../guards/user.guard';
 
 
 export const routes: Routes = [
   {
     path: 'admin',
-    canActivate: [AuthGuard],
+    canActivate: [AdminGuard],
     children : [{
         path: '',
         component: AdminComponent,
@@ -43,8 +44,6 @@ export const routes: Routes = [
           { path: 'prompts/:id/history', component: PromptHistoryComponent },
           { path: 'flux-models', component: FluxModelComponent },
           { path: 'flux-models/view/:id', component: ViewFluxModelComponent }
-
-          
         ],
       }
     ],
@@ -54,18 +53,15 @@ export const routes: Routes = [
     component: MainComponent,
     children: [
       { path: '', component: HomeComponent },
-      { path: 'calendar', component: CalendarComponent },
-      { path: 'profile', component: ProfileComponent },
-      { path: 'cart', component: CartComponent },
-      { path: 'order/:orderId', component: OrderComponent },
-      { path: 'master', component: MasterComponent },
-
-      /* to refine **/
       { path: 'register', component: RegisterComponent },
       { path: 'login', component: LoginComponent },
-      
+      { path: 'profile', component: ProfileComponent, canActivate: [UserGuard] },
+      { path: 'cart', component: CartComponent, canActivate: [UserGuard]  },
+      { path: 'order/:orderId', component: OrderComponent },
+      { path: 'master', component: MasterComponent, canActivate: [UserGuard]  },
+
       /* to remove */
-      { path: 'settings', component: SettingsComponent },
+      { path: 'settings', component: SettingsComponent, canActivate: [UserGuard]  },
     ],
   },
   { path: '**', component: Page404Component },

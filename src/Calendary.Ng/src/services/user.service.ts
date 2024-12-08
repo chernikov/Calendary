@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { User, UserInfo, UserLogin } from '../models/user';
+import { User, UserInfo, UserLogin, UserRegister } from '../models/user';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
@@ -12,7 +12,7 @@ export class UserService {
   constructor(private http: HttpClient) {}
 
   // Метод для реєстрації користувача
-  register(user: UserLogin): Observable<any> {
+  register(user: UserRegister): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, user);
   }
 

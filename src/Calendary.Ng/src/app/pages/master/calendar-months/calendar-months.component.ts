@@ -152,7 +152,6 @@ export class CalendarMonthsComponent implements OnChanges {
       }
     });
 
-    debugger;
     this.calendarService.fill(fillCalendar).subscribe({
       next: () => {
         alert('Календар збережено успішно!');

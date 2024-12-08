@@ -107,7 +107,6 @@ export class TestPromptDialogComponent implements OnInit {
   }
 
   applyPrompt(): void {
-    debugger;
     this.saveUpdatedPrompt(this.promptText, null);
     this.dialogRef.close(this.promptText);
   }
@@ -115,7 +114,6 @@ export class TestPromptDialogComponent implements OnInit {
 
   
   applyPromptWithSeed(): void {
-    debugger;
     this.saveUpdatedPrompt(this.promptText, this.outputSeed ?? this.seed);
     this.dialogRef.close(this.promptText);
   }
