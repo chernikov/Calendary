@@ -1,0 +1,38 @@
+.verify-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .error-message {
+    color: red;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .success-message {
+    color: green;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+  }
+
+
+  .change-password-card {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+  }
+  
+  .full-width {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .button-container {
+    display: flex;
+    justify-content: flex-end;
+  }
+  

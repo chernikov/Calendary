@@ -25,6 +25,8 @@ public interface ICalendaryDbContext
     DbSet<Prompt> Prompts { get; set; }
     DbSet<PromptSeed> PromptSeeds { get; set; }
     DbSet<PromptTheme> PromptThemes { get; set; }
+    DbSet<ResetToken> ResetTokens { get; set; }
+
     DbSet<Role> Roles { get; set; }
 
     DbSet<TestPrompt> TestPrompts { get; set; }

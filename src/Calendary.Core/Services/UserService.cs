@@ -1,7 +1,9 @@
 ﻿using Calendary.Model;
 using Calendary.Repos.Repositories;
+using iText.Barcodes.Dmcode;
 using System.Security.Cryptography;
 using System.Text;
+using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
 namespace Calendary.Core.Services;
 public interface IUserService
@@ -30,12 +32,19 @@ public interface IUserService
     Task ConfirmUserEmailAsync(int userId);
     Task<VerificationPhoneCode?> GetLatestVerificationPhoneCodeAsync(int userId);
     Task ConfirmUserPhoneAsync(int userId);
+    Task<bool> ChangePasswordAsync(int id, string currentPassword, string newPassword);
+
+    Task<bool> NewPasswordAsync(int id, string newPassword);
+    Task<ResetToken?> CreateResetTokenAsync(int userId);
+    Task<User?> FindAndDeleteResetTokenAsync(string token);
+
 }
 
 public class UserService(IUserRepository userRepository,
     IUserSettingRepository userSettingRepository,
     IVerificationEmailCodeRepository verificationEmailCodeRepository,
-    IVerificationPhoneCodeRepository verificationPhoneCodeRepository) : IUserService
+    IVerificationPhoneCodeRepository verificationPhoneCodeRepository,
+    IResetTokenRepository resetTokenRepository) : IUserService
 {
     public async Task<User> RegisterUserAsync(User user, string password)
     {
@@ -143,22 +152,8 @@ public class UserService(IUserRepository userRepository,
        => userRepository.GetByIdentityAsync(userIdentity);
 
 
-    private static string GetMd5Hash(string password)
-    {
-        using var md5 = MD5.Create();
-        byte[] inputBytes = Encoding.UTF8.GetBytes(password);
-        byte[] hashBytes = md5.ComputeHash(inputBytes);
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < hashBytes.Length; i++)
-        {
-            sb.Append(hashBytes[i].ToString("x2"));
-        }
-        return sb.ToString();
-    }
-
     public Task<bool> ValidateEmailAsync(int id, string email)
-        => userRepository.ValidateEmailAsync(id, email);
+      => userRepository.ValidateEmailAsync(id, email);
 
     public Task<VerificationEmailCode?> GetLatestVerificationEmailCodeAsync(int userId)
         => verificationEmailCodeRepository.GetLatestVerificationEmailCodeAsync(userId);
@@ -185,4 +180,93 @@ public class UserService(IUserRepository userRepository,
             await userRepository.UpdateAsync(entity);
         }
     }
+
+    public async Task<bool> ChangePasswordAsync(int id, string currentPassword, string newPassword)
+    {
+        var user = await userRepository.GetByIdAsync(id);
+        if (user is null)
+        {
+            return false;
+        }
+
+        var hashPassword = GetMd5Hash(currentPassword);
+        if (user.PasswordHash != hashPassword)
+        {
+            return false;
+        }
+        var newHashPassword = GetMd5Hash(newPassword);
+
+        user.PasswordHash = newHashPassword;
+        await userRepository.UpdateAsync(user);
+        return true;
+    }
+
+    public async Task<bool> NewPasswordAsync(int id, string newPassword)
+    {
+        var user = await userRepository.GetByIdAsync(id);
+        if (user is null)
+        {
+            return false;
+        }
+        var newHashPassword = GetMd5Hash(newPassword);
+        user.PasswordHash = newHashPassword;
+        await userRepository.UpdateAsync(user);
+        return true;
+    }
+
+    public async Task<ResetToken?> CreateResetTokenAsync(int userId)
+    {
+        var user = await userRepository.GetByIdAsync(userId);
+        if (user is null)
+        {
+            return null;
+        }
+        var token = GenerateToken();
+
+        var resetToken = new ResetToken
+        {
+            Token = token,
+            UserId = user.Id
+        };
+
+        await resetTokenRepository.AddAsync(resetToken);
+        return resetToken;
+    }
+
+    public async Task<User?> FindAndDeleteResetTokenAsync(string token)
+    {
+        var resetToken = await resetTokenRepository.GetByTokenAsync(token);
+        if (resetToken is null)
+        {
+            return null;
+        }
+        var user = await userRepository.GetByIdAsync(resetToken.UserId);
+
+      //  await resetTokenRepository.DeleteAsync(resetToken.Id);
+        return user;
+    }
+
+    private string GenerateToken()
+    {
+        const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        var random = new Random();
+        return new string(Enumerable.Repeat(chars, 20)
+            .Select(s => s[random.Next(s.Length)]).ToArray());
+    }
+
+    private static string GetMd5Hash(string password)
+    {
+        using var md5 = MD5.Create();
+        byte[] inputBytes = Encoding.UTF8.GetBytes(password);
+        byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < hashBytes.Length; i++)
+        {
+            sb.Append(hashBytes[i].ToString("x2"));
+        }
+        return sb.ToString();
+    }
+
+  
 }

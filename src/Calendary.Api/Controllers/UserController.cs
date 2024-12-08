@@ -4,6 +4,9 @@ using Calendary.Core.Services;
 using Calendary.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Crypto.Generators;
+using System.Security.Claims;
 
 namespace Calendary.Api.Controllers;
 
@@ -128,6 +131,111 @@ public class UserController : BaseUserController
         var updatedUser = await _userService.UpdateAsync(user.Id, entity);
 
         var result = _mapper.Map<UserDto>(updatedUser);
+        result.Token = await _authService.GenerateJwtTokenAsync(user);
+        return Ok(result);
+    }
+
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+
+        if (dto == null || string.IsNullOrWhiteSpace(dto.CurrentPassword) || string.IsNullOrWhiteSpace(dto.NewPassword))
+        {
+            return BadRequest();
+        }
+
+        var result = await _userService.ChangePasswordAsync(user.Id, dto.CurrentPassword, dto.NewPassword);
+
+        if (result)
+        {
+            return Ok(new { message = "Пароль успішно змінено." });
+        }
+        else
+        {
+            return BadRequest(new { message = "Поточний пароль не співпадає" });
+        }
+    }
+
+
+    [HttpPost("new-password")]
+    public async Task<IActionResult> NewPassword([FromBody] NewPasswordDto dto)
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+        if (dto == null || string.IsNullOrWhiteSpace(dto.NewPassword))
+        {
+            return BadRequest();
+        }
+
+        var result = await _userService.NewPasswordAsync(user.Id, dto.NewPassword);
+
+        if (result)
+        {
+            return Ok(new { message = "Пароль успішно змінено." });
+        }
+        else
+        {
+            return BadRequest(new { message = "Пароль не вдалось змінити." });
+        }
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email))
+        {
+            return BadRequest("Email є обов'язковим.");
+        }
+
+        var user = await _userService.GetUserByEmailAsync(dto.Email);
+        if (user == null)
+        {
+            return BadRequest(new { message = "Користувач із таким email не знайдений." });
+        }                                                                                
+
+        var resetToken = await _userService.CreateResetTokenAsync(user.Id);
+
+
+        if (resetToken is null)
+        {
+            return BadRequest(new { message = "Токен не створився." });
+        }
+        
+        // Відправка email (псевдокод)
+        await _emailService.SendResetPasswordEmail(user.Email!, resetToken);
+
+        return Ok(new { message = "Посилання для відновлення паролю надіслано." });
+
+    }
+
+
+    [HttpGet("verify")]
+    public async Task<IActionResult> Verify([FromQuery] string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return BadRequest("Токен не може бути порожнім.");
+        }
+
+        // Шукаємо токен у базі даних
+        var user = await _userService.FindAndDeleteResetTokenAsync(token);
+
+        if (user is null)
+        {
+            return BadRequest(new { message = "Невірний токен." });
+        }
+    
+
+        var result = _mapper.Map<UserDto>(user);
         result.Token = await _authService.GenerateJwtTokenAsync(user);
         return Ok(result);
     }

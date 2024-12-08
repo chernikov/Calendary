@@ -1,0 +1,47 @@
+<div class="verify-container" *ngIf="isLoading; else loaded">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</div>
+
+<ng-template #loaded>
+  <div *ngIf="errorMessage">
+    <p class="error-message">{{ errorMessage }}</p>
+  </div>
+</ng-template>
+<mat-card class="change-password-card" *ngIf="!isLoading && isInChangePassword">
+  <h2>Зміна паролю</h2>
+
+  <form [formGroup]="changePasswordForm" (ngSubmit)="onSubmit()">
+    <!-- Новий пароль -->
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Новий пароль</mat-label>
+      <input matInput type="password" formControlName="newPassword" placeholder="Введіть новий пароль" />
+      <mat-error *ngIf="submitted && changePasswordForm.controls['newPassword'].errors">
+        Новий пароль є обов'язковим
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Підтвердження пароля -->
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Підтвердіть новий пароль</mat-label>
+      <input matInput type="password" formControlName="confirmPassword" placeholder="Підтвердіть новий пароль" />
+      <mat-error *ngIf="submitted && changePasswordForm.controls['confirmPassword'].errors">
+        <span *ngIf="changePasswordForm.controls['confirmPassword'].errors['required']">
+          Підтвердження паролю є обов'язковим
+        </span>
+        <span *ngIf="changePasswordForm.controls['confirmPassword'].errors['mustMatch']">
+          Паролі не співпадають
+        </span>
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Кнопка -->
+    <div class="button-container">
+      <button mat-raised-button color="primary" type="submit">Змінити пароль</button>
+    </div>
+  </form>
+
+  <mat-card-content>
+    <p class="success-message" *ngIf="successMessage">{{ successMessage }}</p>
+    <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+  </mat-card-content>
+</mat-card>
