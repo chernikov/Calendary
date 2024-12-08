@@ -4,6 +4,11 @@
   padding: 20px;
 }
 
+mat-card {
+  margin-bottom: 10px;
+  position: relative;
+}
+
 .stages {
   display: flex;
   flex-direction: column;
@@ -20,4 +25,48 @@
 .stage-card.active {
   border: 2px solid #3f51b5;
   background-color: #f3f6fc;
+}
+
+.result {
+  margin: 20px auto;
+}
+
+
+mat-icon {
+  position: absolute;
+  top : 10px;
+  right : 10px;
+}
+
+.task-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.image-container {
+  width: 200px;
+  /* Розмір контейнера */
+  height: 200px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.generated-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Масштабування зображення */
+  border-radius: 8px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Масштабування зображення */
+    border-radius: 8px;
+  }
 }

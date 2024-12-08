@@ -49,6 +49,8 @@ public class FluxModelRepository : IFluxModelRepository
             .Include(p => p.Category)
             .Include(p => p.Trainings)
             .Include(p => p.Jobs)
+                .ThenInclude(p => p.Theme)
+            .Include(p => p.Jobs)
                 .ThenInclude(p => p.Tasks)
             .Where(fm => fm.UserId == userId && !fm.IsArchive)
             .OrderByDescending(fm => fm.Id)

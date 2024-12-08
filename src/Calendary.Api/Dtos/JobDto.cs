@@ -8,4 +8,6 @@ public class JobDto
     public DateTime? CompletedAt { get; set; }
 
     public List<JobTaskDto> Tasks { get; set; } = [];
+
+    public PromptThemeDto? Theme { get; set; }
 }
