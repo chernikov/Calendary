@@ -2,57 +2,107 @@
   <h1>Календар Мрій</h1>
   <!-- Обрати категорію -->
   <mat-card class="stage-card" [class.active]="!fluxModel">
-    <mat-card-title>Обрати категорію</mat-card-title>
+    <mat-card-title (click)="fluxModelResult = toggleCard(fluxModelResult)">
+      Категорія
+      <mat-icon class="toggle-icon">{{ fluxModelResult ? 'expand_less' : 'expand_more' }}</mat-icon>
+    </mat-card-title>
     <mat-card-content>
       <app-flux-model *ngIf="!fluxModel" (onUpdate)="updateFluxModel($event)"></app-flux-model>
+      <div class="result" *ngIf="fluxModelResult">
+        <p *ngIf="fluxModel && fluxModel.category">Ви обрали категорію: {{ fluxModel.category.name }}</p>
+        <p *ngIf="fluxModel == null">Ви ще не обрали категорію</p>
+      </div>
     </mat-card-content>
+
   </mat-card>
   <ng-container *ngIf="fluxModel">
     <!-- Завантажити фото -->
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'uploading'">
-      <mat-card-title>Завантажити фото</mat-card-title>
+      <mat-card-title (click)="uploadPhotoResult = toggleCard(uploadPhotoResult)">
+        Фото
+        <mat-icon class="toggle-icon">{{ uploadPhotoResult ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </mat-card-title>
       <mat-card-content>
         <app-photo-upload *ngIf="fluxModel.status === 'uploading'" [fluxModel]="fluxModel"></app-photo-upload>
+        <div class="result" *ngIf="uploadPhotoResult">
+          <a *ngIf="fluxModel.archiveUrl" [href]="fluxModel.archiveUrl" download>Скачати архів</a>
+          <p *ngIf="!fluxModel.archiveUrl">Тут буде архів</p>
+        </div>
       </mat-card-content>
     </mat-card>
 
     <!-- Оплатити модель -->
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'pay_model'">
-      <mat-card-title>Оплатити модель</mat-card-title>
+      <mat-card-title (click)="payedModelResult = toggleCard(payedModelResult)">Оплатити модель
+        <mat-icon class="toggle-icon">{{ payedModelResult ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </mat-card-title>
       <mat-card-content>
         <app-payment *ngIf="fluxModel.status === 'pay_model'" [fluxModel]="fluxModel"></app-payment>
+        <div class="result" *ngIf="payedModelResult">
+          <p>{{ fluxModel.isPaid ? 'Оплачено' : 'Не оплачено' }}</p>
+        </div>
       </mat-card-content>
     </mat-card>
 
     <!-- Генерація моделі -->
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'prepare' || fluxModel.status === 'inprocess'">
-      <mat-card-title>Генерація моделі</mat-card-title>
+      <mat-card-title>Генерація моделі </mat-card-title>
       <mat-card-content>
-        <app-generation *ngIf="fluxModel.status === 'prepare' || fluxModel.status === 'inprocess'" [fluxModel]="fluxModel"></app-generation>
+        <app-generation *ngIf="fluxModel.status === 'prepare' || fluxModel.status === 'inprocess'"
+          [fluxModel]="fluxModel"></app-generation>
       </mat-card-content>
     </mat-card>
 
     <!-- Результати тренування -->
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'processed'">
-      <mat-card-title>Результати</mat-card-title>
+      <mat-card-title (click)="generationModelResult = toggleCard(generationModelResult)">Результати
+        <mat-icon class="toggle-icon">{{ generationModelResult ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </mat-card-title>
       <mat-card-content>
         <p *ngIf="fluxModel.status === 'processed'"> Готуємо приклади...</p>
+        <div class="result" *ngIf="generationModelResult">
+          <div *ngIf="fluxModel.jobs && fluxModel.jobs[0] && fluxModel.jobs[0].tasks">
+            <div *ngFor="let task of fluxModel.jobs[0].tasks" class="image-container">
+              <img [src]="task.imageUrl" class="generated-image" alt="Task Image">
+            </div>
+          </div>
+          <p *ngIf="fluxModel.jobs == null || fluxModel.jobs[0] == null">Тут будуть результати генерації моделі</p>
+        </div>
       </mat-card-content>
     </mat-card>
 
     <!-- Обрати тему -->
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'exampled'">
-      <mat-card-title>Обрати тему</mat-card-title>
+      <mat-card-title (click)="promptSelectionResult = toggleCard(promptSelectionResult)">Обрати тему
+        <mat-icon class="toggle-icon">{{ promptSelectionResult ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </mat-card-title>
       <mat-card-content>
         <app-prompt-selection *ngIf="fluxModel.status === 'exampled'" [fluxModel]="fluxModel"></app-prompt-selection>
       </mat-card-content>
+      <div class="result task-images" *ngIf="promptSelectionResult">
+        <p *ngIf="fluxModel.jobs != null && fluxModel.jobs.length > 1">Ви обрали тему: {{ fluxModel.jobs[1].theme.name
+          }}</p>
+
+        <p *ngIf="fluxModel.jobs == null || fluxModel.jobs.length < 1">Тут буде обрана тема ШІ зображень</p>
+      </div>
     </mat-card>
 
     <!-- Генерація зображень -->
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'image_generating'">
-      <mat-card-title>Генерація зображень</mat-card-title>
+      <mat-card-title (click)="imageGenerationResult = toggleCard(imageGenerationResult)">Генерація зображень
+        <mat-icon class="toggle-icon">{{ imageGenerationResult ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </mat-card-title>
       <mat-card-content>
-        <app-image-generation *ngIf="fluxModel.status === 'image_generating'" [fluxModel]="fluxModel" (onUpdate)="updateFluxModel($event)"></app-image-generation>
+        <app-image-generation *ngIf="fluxModel.status === 'image_generating'" [fluxModel]="fluxModel"
+          (onUpdate)="updateFluxModel($event)"></app-image-generation>
+        <div class="result task-images" *ngIf="imageGenerationResult">
+          <div *ngIf="fluxModel.jobs && fluxModel.jobs.length > 1">
+            <div *ngFor="let task of fluxModel.jobs[1].tasks" class="image-container">
+              <img [src]="task.imageUrl" class="generated-image" alt="Task Image">
+            </div>
+          </div>
+          <p *ngIf="fluxModel.jobs == null || fluxModel.jobs.length < 1">Тут будуть ШІ зображення</p>
+        </div>
       </mat-card-content>
     </mat-card>
 
@@ -60,7 +110,8 @@
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'ready_selected'">
       <mat-card-title>Місяці календаря</mat-card-title>
       <mat-card-content>
-        <app-calendar-months *ngIf="fluxModel.status === 'ready_selected'" [fluxModel]="fluxModel" (onUpdate)="updateFluxModel($event)"></app-calendar-months>
+        <app-calendar-months *ngIf="fluxModel.status === 'ready_selected'" [fluxModel]="fluxModel"
+          (onUpdate)="updateFluxModel($event)"></app-calendar-months>
       </mat-card-content>
     </mat-card>
 

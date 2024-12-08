@@ -101,7 +101,6 @@ public class UserController : BaseUserController
         return Ok(result);
     }
 
-
     [HttpPut]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]

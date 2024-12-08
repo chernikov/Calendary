@@ -11,6 +11,7 @@ import { MatCardModule } from '@angular/material/card';
 import { PaymentComponent } from './payment/payment.component';
 import { ImageGenerationComponent } from './image-generation/image-generation.component';
 import { CalendarReadyComponent } from './calendar-ready/calendar-ready.component';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-master',
@@ -27,6 +28,7 @@ import { CalendarReadyComponent } from './calendar-ready/calendar-ready.componen
     CalendarMonthsComponent,
     CalendarDatesComponent,
     CalendarReadyComponent,
+    MatIconModule,
 ],
   templateUrl: './master.component.html',
   styleUrl: './master.component.scss',
@@ -34,7 +36,19 @@ import { CalendarReadyComponent } from './calendar-ready/calendar-ready.componen
 export class MasterComponent {
   fluxModel: any = null; // Поточна FluxModel
 
+  fluxModelResult : boolean = false; 
+  uploadPhotoResult : boolean = false;
+  payedModelResult : boolean = false;
+  generationModelResult : boolean = false;
+  promptSelectionResult : boolean = false;
+  imageGenerationResult : boolean = false;
+
   updateFluxModel($event: FluxModel) {
     this.fluxModel = $event;
   }
+
+  toggleCard(toggle: boolean) : boolean {
+    return !toggle;
+  }
+
 }

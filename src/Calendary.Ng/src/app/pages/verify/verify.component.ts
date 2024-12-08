@@ -12,6 +12,7 @@ import { TokenService } from '../../../services/token.service';
 import { NewPassword } from '../../../models/new-password';
 
 
+
 @Component({
   selector: 'app-verify',
   standalone: true,
