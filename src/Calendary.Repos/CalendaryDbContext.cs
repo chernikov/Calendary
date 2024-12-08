@@ -45,6 +45,8 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     public DbSet<PromptTheme> PromptThemes { get; set; }
 
+    public DbSet<ResetToken> ResetTokens { get; set; }
+
     public DbSet<Role> Roles { get; set; }
 
     public DbSet<TestPrompt> TestPrompts { get; set; }

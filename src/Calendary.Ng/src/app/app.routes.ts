@@ -23,6 +23,8 @@ import { FluxModelComponent } from './admin/pages/flux-model/flux-model.componen
 import { ViewFluxModelComponent } from './admin/pages/flux-model/view-flux-model/view-flux-model.component';
 import { AdminCategoryComponent } from './admin/pages/admin-category/admin-category.component';
 import { UserGuard } from '../guards/user.guard';
+import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
+import { VerifyComponent } from './pages/verify/verify.component';
 
 
 export const routes: Routes = [
@@ -55,6 +57,8 @@ export const routes: Routes = [
       { path: '', component: HomeComponent },
       { path: 'register', component: RegisterComponent },
       { path: 'login', component: LoginComponent },
+      { path: 'forgot-password', component: ForgotPasswordComponent },
+      { path: 'verify/:token', component: VerifyComponent },
       { path: 'profile', component: ProfileComponent, canActivate: [UserGuard] },
       { path: 'cart', component: CartComponent, canActivate: [UserGuard]  },
       { path: 'order/:orderId', component: OrderComponent },
