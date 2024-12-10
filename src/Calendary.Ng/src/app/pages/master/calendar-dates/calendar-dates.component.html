@@ -17,5 +17,10 @@
       <button class="add-button" (click)="addEventDate(newEventDate)">Додати</button>
     </div>
 
-    <button mat-raised-button color="primary" (click)="generateCalendar()" class="save-button">Згенерувати календар</button>
+    <button mat-raised-button color="primary" 
+        (click)="generateCalendar()" 
+        class="save-button" 
+        [disabled]="isGenerating">
+  Згенерувати календар
+</button>
   </div>
