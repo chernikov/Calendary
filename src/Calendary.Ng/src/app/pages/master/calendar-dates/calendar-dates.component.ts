@@ -20,6 +20,7 @@ export class CalendarDatesComponent implements OnInit, OnChanges{
   @Input()
   fluxModel: FluxModel | null = null;
   calendar: Calendar | null = null;
+  isGenerating = false;
   
   eventDates: EventDate[] = [];
   newEventDate : EventDate = new EventDate();
@@ -106,12 +107,17 @@ export class CalendarDatesComponent implements OnInit, OnChanges{
   }
 
   generateCalendar() {
+    // Блокування кнопки
+    this.isGenerating = true;
+  
     this.calendarService.generatePdf(this.calendar!.id, this.fluxModel!.id).subscribe(
       () => {
-        this.getCurrentCalendar();
+        this.isGenerating = false; // Розблокувати кнопку після завершення
+        window.location.reload(); // Перезавантаження сторінки
       }, 
-      () => {
-        console.error('Error generating calendar');
+      (error) => {
+        this.isGenerating = false; // Розблокувати кнопку навіть у разі помилки
+        console.error('Error generating calendar', error);
       }
     );   
   }

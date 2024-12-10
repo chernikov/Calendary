@@ -89,18 +89,17 @@
 
     <!-- Генерація зображень -->
     <mat-card class="stage-card" [class.active]="fluxModel.status === 'image_generating'">
-      <mat-card-title (click)="imageGenerationResult = toggleCard(imageGenerationResult)">Генерація зображень
+      <mat-card-title (click)="imageGenerationResult = toggleCard(imageGenerationResult)">
+        Генерація зображень
         <mat-icon class="toggle-icon">{{ imageGenerationResult ? 'expand_less' : 'expand_more' }}</mat-icon>
       </mat-card-title>
       <mat-card-content>
         <app-image-generation *ngIf="fluxModel.status === 'image_generating'" [fluxModel]="fluxModel"
           (onUpdate)="updateFluxModel($event)"></app-image-generation>
-        <div class="result task-images" *ngIf="imageGenerationResult">
-          <div *ngIf="fluxModel.jobs && fluxModel.jobs.length > 1">
+        <div class="result task-images" *ngIf="imageGenerationResult && fluxModel.jobs && fluxModel.jobs.length > 1">
             <div *ngFor="let task of fluxModel.jobs[1].tasks" class="image-container">
               <img [src]="task.imageUrl" class="generated-image" alt="Task Image">
             </div>
-          </div>
           <p *ngIf="fluxModel.jobs == null || fluxModel.jobs.length < 1">Тут будуть ШІ зображення</p>
         </div>
       </mat-card-content>
