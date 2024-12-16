@@ -15,16 +15,7 @@
         <mat-label>Категорія</mat-label>
         <mat-select [(ngModel)]="filterCategoryId" (ngModelChange)="applyFilters()" placeholder="Введіть тему"  >
           <mat-option [value]="">Всі</mat-option>
-          <mat-option [value]="0">Чоловік</mat-option>
-          <mat-option [value]="1">Жінка</mat-option>
-          <mat-option [value]="2">Хлопчик (малюк)</mat-option>
-          <mat-option [value]="3">Дівчинка (малюк)</mat-option>
-          <mat-option [value]="4">Хлопчик</mat-option>
-          <mat-option [value]="5">Дівчинка</mat-option>
-          <mat-option [value]="6">Чоловік середнього віку</mat-option>
-          <mat-option [value]="7">Жінка середнього віку</mat-option>
-          <mat-option [value]="8">Чоловік похилого віку</mat-option>
-          <mat-option [value]="9">Жінка похилого віку</mat-option>
+            <mat-option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
