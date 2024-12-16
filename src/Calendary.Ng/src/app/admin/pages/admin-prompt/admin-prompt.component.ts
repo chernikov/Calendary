@@ -13,6 +13,8 @@ import { AdminPromptService } from '../../../../services/admin-prompt.service';
 import { TestPromptDialogComponent } from './test-prompt-dialog/test-prompt-dialog.component';
 import { AdminPromptThemeService } from '../../../../services/admin-prompt-theme.service';
 import { PromptTheme } from '../../../../models/prompt-theme';
+import { AdminCategoryService } from '../../../../services/admin-category.service';
+import { Category } from '../../../../models/category';
 @Component({
   selector: 'app-admin-prompt',
   standalone: true,
@@ -32,6 +34,7 @@ export class AdminPromptComponent {
   displayedColumns: string[] = ['id', 'theme', 'age-gender', 'text', 'actions'];
   dataSource = new MatTableDataSource<Prompt>();
   themes: PromptTheme[] = []; // Завантажені теми
+  categories: Category[] = [];
 
   filterThemeId : number | null = null;
   filterCategoryId : number | null = null;
@@ -39,6 +42,7 @@ export class AdminPromptComponent {
   constructor(
     private adminPromptService: AdminPromptService,
     private adminPromptThemeService: AdminPromptThemeService,
+    private adminCategoryService: AdminCategoryService,
     private dialog: MatDialog,
     private router: Router
   ) {}
@@ -46,6 +50,7 @@ export class AdminPromptComponent {
   ngOnInit(): void {
     this.loadThemes();
     this.loadPrompts();
+    this.loadCategories();
 
   }
 
@@ -70,6 +75,18 @@ export class AdminPromptComponent {
       },
       (error) => {
         console.error('Failed to load prompts:', error);
+      }
+    );
+  }
+
+  loadCategories(): void 
+  {
+    this.adminCategoryService.getAll().subscribe(
+      (data) => {
+        this.categories = data;
+      },
+      (error) => {
+        console.error('Failed to load categories:', error);
       }
     );
   }
