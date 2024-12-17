@@ -1,10 +1,16 @@
 <div class="upload-photos" *ngIf="fluxModel">
-  
   <h2>📸 Завантаження фотографій</h2>
 
+   <!-- Кнопка для відкриття інструкції -->
+   <button (click)="openModal()" class="instruction-btn">
+    Які мають бути фото?
+  </button>
+
+  
   <p class="upload-info">
     Завантажте <strong>мінімум 12 фото</strong> для створення моделі.
   </p>
+
   <!-- File uploader -->
   <div class="file-input-container">
     <input
@@ -37,4 +43,8 @@
   </div>
 
   <p *ngIf="uploadSuccess" class="success-message">✅ Завантаження завершено!</p>
+
+ 
+  <!-- Модальне вікно -->
+  <app-photo-instructions *ngIf="isModalOpen" (close)="closeModal()"></app-photo-instructions>
 </div>
