@@ -7,6 +7,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FileUploader, FileUploadModule } from 'ng2-file-upload';
+import { PhotoInstructionsComponent } from '../photo-instructions/photo-instructions.component';
 import { FluxModel } from '../../../../models/flux-model';
 import { FluxModelService } from '../../../../services/flux-model.service';
 import { UploadPhotoService } from '../../../../services/upload-photo.service';
@@ -14,12 +15,14 @@ import { UploadPhotoService } from '../../../../services/upload-photo.service';
 @Component({
   selector: 'app-photo-upload',
   standalone: true,
-  imports: [CommonModule, FormsModule, FileUploadModule],
+  imports: [CommonModule, FormsModule, FileUploadModule, PhotoInstructionsComponent],
   templateUrl: './photo-upload.component.html',
   styleUrl: './photo-upload.component.scss',
 })
 export class PhotoUploadComponent implements OnChanges {
   @Input() fluxModel: FluxModel | null = null;
+  isModalOpen = false;
+
 
   uploader: FileUploader;
   uploading: boolean = false;
@@ -79,5 +82,14 @@ export class PhotoUploadComponent implements OnChanges {
 
     console.log('Uploader queue:', this.uploader.queue);
     this.uploader.uploadAll();
+  }
+
+  
+  openModal() {
+    this.isModalOpen = true;
+  }
+
+  closeModal() {
+    this.isModalOpen = false;
   }
 }

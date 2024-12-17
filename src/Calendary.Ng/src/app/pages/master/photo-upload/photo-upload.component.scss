@@ -91,3 +91,27 @@
   font-size: 16px;
   color: #28a745;
 }
+
+
+.instruction-btn {
+  background-color: #28a745; /* Зелений колір */
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  outline: none;
+  margin-bottom: 20px;
+}
+
+.instruction-btn:hover {
+  background-color: #218838; /* Темніший зелений при наведенні */
+  transform: translateY(-2px); /* Легке підняття кнопки */
+}
+
+.instruction-btn:active {
+  background-color: #1e7e34; /* Ще темніший при кліку */
+  transform: translateY(0); /* Повернення до нормального стану */
+}
