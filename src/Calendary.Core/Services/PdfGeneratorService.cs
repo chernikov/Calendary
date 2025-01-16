@@ -86,7 +86,7 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
     private void AddCoverPage(PdfDocument pdf, Document document)
     {
         // Завантажуємо обкладинку
-        var coverPath = "images/cover.png";
+        var coverPath = "images/chernikova.png";
         var imageData = iText.IO.Image.ImageDataFactory.Create(coverPath);
         var coverImage = new ImagePdf(imageData);
 
@@ -95,8 +95,8 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
         float pageWidth = pageSize.GetWidth();
         float pageHeight = pageSize.GetHeight();
 
-        // Масштабуємо зображення, щоб воно вписувалося у розмір сторінки
-        float scaleFactor = Math.Min(pageWidth / coverImage.GetImageWidth(), pageHeight / coverImage.GetImageHeight());
+        // Масштабуємо зображення, щоб воно вписувалося у розмір сторінки та було в 3 рази меншим
+        float scaleFactor = Math.Min(pageWidth / coverImage.GetImageWidth(), pageHeight / coverImage.GetImageHeight()) / 3;
         coverImage.Scale(scaleFactor, scaleFactor);
 
         // Встановлюємо координати для центрованого розташування

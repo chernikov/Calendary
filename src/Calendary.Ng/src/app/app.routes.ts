@@ -64,6 +64,7 @@ export const routes: Routes = [
       { path: 'order/:orderId', component: OrderComponent },
       { path: 'master', component: MasterComponent, canActivate: [UserGuard]  },
 
+      { path: 'calendar', component: CalendarComponent, canActivate: [UserGuard]  },
       /* to remove */
       { path: 'settings', component: SettingsComponent, canActivate: [UserGuard]  },
     ],
