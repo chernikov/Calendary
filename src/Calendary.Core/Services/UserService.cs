@@ -1,9 +1,7 @@
 ﻿using Calendary.Model;
 using Calendary.Repos.Repositories;
-using iText.Barcodes.Dmcode;
 using System.Security.Cryptography;
 using System.Text;
-using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
 namespace Calendary.Core.Services;
 public interface IUserService
@@ -38,6 +36,8 @@ public interface IUserService
     Task<ResetToken?> CreateResetTokenAsync(int userId);
     Task<User?> FindAndDeleteResetTokenAsync(string token);
 
+    Task<IEnumerable<User>> GetAllAsync();
+
 }
 
 public class UserService(IUserRepository userRepository,
@@ -59,21 +59,21 @@ public class UserService(IUserRepository userRepository,
 
         var hashPassword = GetMd5Hash(password);
 
-        user = new User
+        var newUser = new User
         {
             Email = user.Email,
             UserName = user.UserName,
             PasswordHash = hashPassword,
             IsEmailConfirmed = false,
             IsPhoneNumberConfirmed = false,
-            IsTemporary = user.IsTemporary
-
+            IsTemporary = user.IsTemporary,
+            CreatedByAdmin = user.CreatedByAdmin   
         };
 
-        await userRepository.AddAsync(user);
-        await userRepository.AddRole(user.Id, Role.UserRole.Id);
-        await userSettingRepository.AddAsync(new UserSetting { UserId = user.Id });
-        return user;
+        await userRepository.AddAsync(newUser);
+        await userRepository.AddRole(newUser.Id, Role.UserRole.Id);
+        await userSettingRepository.AddAsync(new UserSetting { UserId = newUser.Id });
+        return newUser;
     }
 
     public async Task<User?> LoginAsync(string email, string password)
@@ -268,5 +268,6 @@ public class UserService(IUserRepository userRepository,
         return sb.ToString();
     }
 
-  
+    public Task<IEnumerable<User>> GetAllAsync()
+        => userRepository.GetAllAsync();
 }

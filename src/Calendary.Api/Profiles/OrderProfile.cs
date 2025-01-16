@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Calendary.Api.Dtos;
+using Calendary.Api.Dtos.Admin;
 using Calendary.Model;
 
 namespace Calendary.Api.Profiles;

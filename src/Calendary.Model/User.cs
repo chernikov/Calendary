@@ -24,6 +24,8 @@ public class User
 
     public DateTime Created { get; set; } = DateTime.UtcNow;
 
+    public bool CreatedByAdmin { get; set; }
+
     public ICollection<UserRole> UserRoles { get; set; } = [];
     public ICollection<Order> Orders { get; set; } = [];
     public UserSetting Settings { get; set; } = null!;
