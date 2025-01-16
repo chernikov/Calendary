@@ -2,10 +2,8 @@ using Calendary.Repos;
 using Calendary.Core;
 using Microsoft.EntityFrameworkCore;
 using Calendary.Api;
-using Calendary.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 // Retrieve the connection string from appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
@@ -30,7 +28,6 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
-
 app.UseHttpsRedirection();
 
 app.UseAuthentication(); 
@@ -38,4 +35,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
