@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>Додати користувача</h2>
+<mat-dialog-content class="mat-typography">
+  <mat-form-field appearance="outline" fullWidth>
+    <mat-label>Ім'я</mat-label>
+    <input matInput [(ngModel)]="data.user.userName" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" fullWidth>
+    <mat-label>Email</mat-label>
+    <input matInput type="email" [(ngModel)]="data.user.email" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" fullWidth>
+    <mat-label>Телефон</mat-label>
+    <input matInput [(ngModel)]="data.user.phoneNumber" />
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onNoClick()">Скасувати</button>
+  <button mat-raised-button color="primary" (click)="onSave()">Зберегти</button>
+</mat-dialog-actions>

@@ -7,8 +7,11 @@ namespace Calendary.Core.Services;
 public interface IUserService
 {
     Task<User> RegisterUserAsync(User user, string password);
+    
     Task<User?> GetUserByEmailAsync(string email);
+
     Task<User?> LoginAsync(string email, string password);
+    
     Task<User?> UpdateAsync(int userId, User entity);
 
     Task<User?> GetUserByIdentityAsync(Guid userIdentity);
@@ -31,13 +34,11 @@ public interface IUserService
     Task<VerificationPhoneCode?> GetLatestVerificationPhoneCodeAsync(int userId);
     Task ConfirmUserPhoneAsync(int userId);
     Task<bool> ChangePasswordAsync(int id, string currentPassword, string newPassword);
-
     Task<bool> NewPasswordAsync(int id, string newPassword);
     Task<ResetToken?> CreateResetTokenAsync(int userId);
     Task<User?> FindAndDeleteResetTokenAsync(string token);
-
     Task<IEnumerable<User>> GetAllAsync();
-
+    Task<IEnumerable<User>> GetAllForAdminAsync();
 }
 
 public class UserService(IUserRepository userRepository,
@@ -66,7 +67,7 @@ public class UserService(IUserRepository userRepository,
             PasswordHash = hashPassword,
             IsEmailConfirmed = false,
             IsPhoneNumberConfirmed = false,
-            IsTemporary = user.IsTemporary,
+            IsTemporary = false,
             CreatedByAdmin = user.CreatedByAdmin   
         };
 
@@ -270,4 +271,7 @@ public class UserService(IUserRepository userRepository,
 
     public Task<IEnumerable<User>> GetAllAsync()
         => userRepository.GetAllAsync();
+
+    public Task<IEnumerable<User>> GetAllForAdminAsync()
+           => userRepository.GetAllForAdminAsync();
 }

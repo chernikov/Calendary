@@ -26,7 +26,7 @@ public class UserController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var users = await _userService.GetAllAsync();
+        var users = await _userService.GetAllForAdminAsync();
         var userDtos = _mapper.Map<List<AdminUserDto>>(users);
         return Ok(userDtos);
     }
