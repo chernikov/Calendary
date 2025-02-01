@@ -20,6 +20,9 @@ public interface ICalendarService
     Task DeleteAsync(int calendarId);
 
     Task UpdatePreviewPathAsync(int calendarId, string thumbnailPath);
+
+
+    Task<IList<Calendar>> GetByUserIdAsync(int userId);
 }
 
 public class CalendarService(
@@ -164,4 +167,8 @@ public class CalendarService(
 
     public Task UpdatePreviewPathAsync(int calendarId, string thumbnailPath)
         => calendarRepository.UpdatePreviewPathAsync(calendarId, thumbnailPath);
+
+    public Task<IList<Calendar>> GetByUserIdAsync(int userId)
+        => calendarRepository.GetByUserIdAsync(userId);
+    
 }

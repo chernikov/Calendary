@@ -1,0 +1,34 @@
+<h3>Календарі</h3>
+<table mat-table [dataSource]="calendars" class="mat-elevation-z8 calendar-table">
+  <!-- Колонка ID -->
+  <ng-container matColumnDef="id">
+    <th mat-header-cell *matHeaderCellDef> ID </th>
+    <td mat-cell *matCellDef="let calendar"> {{ calendar.id }} </td>
+  </ng-container>
+
+  <!-- Колонка Прев'ю -->
+  <ng-container matColumnDef="preview">
+    <th mat-header-cell *matHeaderCellDef> Прев'ю </th>
+    <td mat-cell *matCellDef="let calendar">
+      <ng-container *ngIf="calendar.previewPath; else noPreview">
+        <img [src]="calendar.previewPath" alt="Preview" width="100">
+      </ng-container>
+      <ng-template #noPreview>
+        <span>Немає прев'ю</span>
+      </ng-template>
+    </td>
+  </ng-container>
+
+  <!-- Колонка Дій -->
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef> Дії </th>
+    <td mat-cell *matCellDef="let calendar">
+      <a mat-raised-button color="primary" [href]="calendar.filePath" download>
+        Скачати PDF
+      </a>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>

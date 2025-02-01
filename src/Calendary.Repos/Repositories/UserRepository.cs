@@ -7,8 +7,9 @@ public interface IUserRepository : IRepository<User>
 {
     Task<User?> GetUserByEmailAsync(string email);
 
+    Task<User?> GetUserByIdentityAsync(Guid identity);
+
     Task AddRole(int userId, int roleId);
-    Task<User?> GetByIdentityAsync(Guid userIdentity);
     Task<bool> ValidateEmailAsync(int id, string email);
 
     Task<IEnumerable<User>> GetAllForAdminAsync();
@@ -31,6 +32,11 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByIdAsync(int id)
     {
         return await _context.Users.FindAsync(id);
+    }
+
+    public async Task<User?> GetUserByIdentityAsync(Guid identity)
+    {
+        return await _context.Users.FirstOrDefaultAsync(p => p.Identity == identity);    
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)
@@ -68,9 +74,6 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
-    public Task<User?> GetByIdentityAsync(Guid userIdentity)
-        => _context.Users.FirstOrDefaultAsync(u => u.Identity == userIdentity);
-
     public async Task<bool> ValidateEmailAsync(int id, string email)
     {
         return !(await _context.Users.AnyAsync(u => u.Id != id && u.Email == email && !u.IsTemporary));
@@ -82,4 +85,6 @@ public class UserRepository : IUserRepository
             .Where(u => !u.IsTemporary && _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == Role.UserRole.Id))
             .ToListAsync();
     }
+
+    
 }

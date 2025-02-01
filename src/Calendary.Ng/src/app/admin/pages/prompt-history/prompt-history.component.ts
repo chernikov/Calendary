@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { AdminTestPromptService } from '../../../../services/admin-test-prompot.service';
+import { AdminTestPromptService } from '../../../../services/admin/test-prompt.service';
 import { AdminTestPrompt } from '../../../../models/admin-test-prompt';
 
 @Component({

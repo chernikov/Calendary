@@ -9,11 +9,11 @@ import { MatOptionModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { Prompt } from '../../../../models/prompt';
-import { AdminPromptService } from '../../../../services/admin-prompt.service';
+import { AdminPromptService } from '../../../../services/admin/prompt.service';
 import { TestPromptDialogComponent } from './test-prompt-dialog/test-prompt-dialog.component';
-import { AdminPromptThemeService } from '../../../../services/admin-prompt-theme.service';
+import { AdminPromptThemeService } from '../../../../services/admin/prompt-theme.service';
 import { PromptTheme } from '../../../../models/prompt-theme';
-import { AdminCategoryService } from '../../../../services/admin-category.service';
+import { AdminCategoryService } from '../../../../services/admin/category.service';
 import { Category } from '../../../../models/category';
 @Component({
   selector: 'app-admin-prompt',

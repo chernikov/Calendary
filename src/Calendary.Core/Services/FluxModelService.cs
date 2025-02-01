@@ -27,7 +27,11 @@ public interface IFluxModelService
     Task<FluxModel?> GetFullAsync(int id);
 
     Task<IEnumerable<FluxModel>> GetByCategoryIdAsync(int categoryId);
-    Task<FluxModel> GetUserFluxModelAsync(int userId, int fluxModelId);
+    Task<FluxModel?> GetUserFluxModelAsync(int userId, int fluxModelId);
+
+    Task<IList<FluxModel>> GetListByUserIdAsync(int userId);
+
+    Task SoftDeleteAsync(int id);
 }
 
 public class FluxModelService : IFluxModelService
@@ -91,7 +95,6 @@ public class FluxModelService : IFluxModelService
         await fluxModelRepository.UpdateAsync(entityDb);
     }
 
-
     public async Task UpdateReplicateIdAsync(FluxModel model)
     {
         var entityDb = await fluxModelRepository.GetByIdAsync(model.Id);
@@ -131,6 +134,24 @@ public class FluxModelService : IFluxModelService
     public Task<IEnumerable<FluxModel>> GetByCategoryIdAsync(int categoryId)
         => fluxModelRepository.GetByCategoryIdAsync(categoryId);
 
-    public Task<FluxModel> GetUserFluxModelAsync(int userId, int fluxModelId)
+    public Task<FluxModel?> GetUserFluxModelAsync(int userId, int fluxModelId)
               => fluxModelRepository.GetUserFluxModelAsync(userId, fluxModelId);
+
+
+    public async Task<IList<FluxModel>> GetListByUserIdAsync(int userId)
+    {
+        var list = await fluxModelRepository.GetListByUserIdAsync(userId);
+        return list.Where(p => !p.IsDeleted).ToList();
+    }
+
+    public async Task SoftDeleteAsync(int id)
+    {
+        var entityDb = await fluxModelRepository.GetByIdAsync(id);
+        if (entityDb is null)
+        {
+            return;
+        }
+        entityDb.IsDeleted = true;
+        await fluxModelRepository.UpdateAsync(entityDb);
+    }
 }

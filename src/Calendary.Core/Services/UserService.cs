@@ -14,7 +14,9 @@ public interface IUserService
     
     Task<User?> UpdateAsync(int userId, User entity);
 
-    Task<User?> GetUserByIdentityAsync(Guid userIdentity);
+    Task<User?> GetUserByIdentityAsync(Guid identity);
+
+    Task<User?> GetUserByIdAsync(int userId);
 
     Task CreateVerificationEmailCodeAsync(int userId, string code, DateTime expiryDate);
 
@@ -149,8 +151,11 @@ public class UserService(IUserRepository userRepository,
         return dbUser;
     }
 
-    public Task<User?> GetUserByIdentityAsync(Guid userIdentity)
-       => userRepository.GetByIdentityAsync(userIdentity);
+
+    public Task<User?> GetUserByIdentityAsync(Guid identity)
+            => userRepository.GetUserByIdentityAsync(identity);
+    public Task<User?> GetUserByIdAsync(int userId)
+       => userRepository.GetByIdAsync(userId);
 
 
     public Task<bool> ValidateEmailAsync(int id, string email)

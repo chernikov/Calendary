@@ -20,6 +20,8 @@ public class FluxModel
 
     public bool IsArchive { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     // Навігаційні властивості
 
     public WebHook? WebHook { get; set; }

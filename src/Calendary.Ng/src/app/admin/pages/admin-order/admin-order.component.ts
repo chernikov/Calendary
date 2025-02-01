@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { AdminOrderService } from '../../../../services/admin-order.service';
+import { AdminOrderService } from '../../../../services/admin/order.service';
 import { AdminOrder } from '../../../../models/admin-order';
 import { OrderStatusDialogComponent } from '../../components/order-status-dialog/order-status-dialog.component';
 

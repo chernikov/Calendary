@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AdminCategoryService } from '../../../../services/admin-category.service';
+import { AdminCategoryService } from '../../../../services/admin/category.service';
 import { CategoryDialogComponent } from './category-dialog/category-dialog.component';
 
 @Component({
