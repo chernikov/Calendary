@@ -25,6 +25,8 @@ import { AdminCategoryComponent } from './admin/pages/admin-category/admin-categ
 import { UserGuard } from '../guards/user.guard';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { VerifyComponent } from './pages/verify/verify.component';
+import { AdminUserComponent } from './admin/pages/admin-user/admin-user.component';
+import { AdminUserViewComponent } from './admin/pages/admin-user/admin-user-view/admin-user-view.component';
 
 
 export const routes: Routes = [
@@ -45,7 +47,10 @@ export const routes: Routes = [
           { path: 'prompts/create', component: EditPromptComponent },
           { path: 'prompts/:id/history', component: PromptHistoryComponent },
           { path: 'flux-models', component: FluxModelComponent },
-          { path: 'flux-models/view/:id', component: ViewFluxModelComponent }
+          { path: 'flux-models/view/:id', component: ViewFluxModelComponent },
+          { path: 'users', component: AdminUserComponent },
+          { path: 'users/view/:id', component: AdminUserViewComponent },
+          
         ],
       }
     ],

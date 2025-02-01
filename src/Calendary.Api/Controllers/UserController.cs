@@ -4,9 +4,6 @@ using Calendary.Core.Services;
 using Calendary.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Crypto.Generators;
-using System.Security.Claims;
 
 namespace Calendary.Api.Controllers;
 

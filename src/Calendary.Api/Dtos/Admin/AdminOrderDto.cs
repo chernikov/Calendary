@@ -1,4 +1,4 @@
-﻿namespace Calendary.Api.Dtos;
+﻿namespace Calendary.Api.Dtos.Admin;
 
 public class AdminOrderDto
 {

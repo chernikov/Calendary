@@ -1,0 +1,52 @@
+.admin-user-container {
+  .actions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .search-input {
+    width: 70%;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  .user-list {
+    h2 {
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th {
+        text-align: left;
+        padding: 10px;
+        background-color: #e0e0e0;
+        font-weight: bold;
+      }
+
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      tr:hover {
+        background-color: #f1f1f1;
+      }
+    }
+  }
+
+  .action-button {
+    margin-right: 10px;
+  }
+
+  .action-button:last-child {
+    margin-right: 0;
+  }
+}

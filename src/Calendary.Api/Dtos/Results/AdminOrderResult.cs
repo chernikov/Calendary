@@ -1,4 +1,6 @@
-﻿namespace Calendary.Api.Dtos.Results
+﻿using Calendary.Api.Dtos.Admin;
+
+namespace Calendary.Api.Dtos.Results
 {
     public class AdminOrderResult
     {
