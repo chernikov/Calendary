@@ -9,12 +9,12 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { Prompt } from '../../../../../models/prompt';
-import { AdminPromptService } from '../../../../../services/admin-prompt.service';
-import { AdminPromptThemeService } from '../../../../../services/admin-prompt-theme.service';
+import { AdminPromptService } from '../../../../../services/admin/prompt.service';
+import { AdminPromptThemeService } from '../../../../../services/admin/prompt-theme.service';
 import { PromptTheme } from '../../../../../models/prompt-theme';
 import { PromptSeed } from '../../../../../models/promt-seed';
 import { Category } from '../../../../../models/category';
-import { AdminCategoryService } from '../../../../../services/admin-category.service';
+import { AdminCategoryService } from '../../../../../services/admin/category.service';
 
 @Component({
   selector: 'app-edit-prompt',

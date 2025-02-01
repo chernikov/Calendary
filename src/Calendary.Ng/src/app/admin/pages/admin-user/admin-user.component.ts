@@ -7,10 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { AdminUserService } from '../../../../services/admin-user.service';
+import { AdminUserService } from '../../../../services/admin/user.service';
 import { AdminCreateUser, AdminUser } from '../../../../models/admin-user';
 import { CreateUserDialogComponent } from './create-user-dialog/create-user-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-user',
@@ -37,7 +38,9 @@ export class AdminUserComponent {
   isCreateMode: boolean = false;
 
   constructor(private adminUserService: AdminUserService, 
-    private dialog: MatDialog) {}
+    private dialog: MatDialog,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -50,7 +53,7 @@ export class AdminUserComponent {
     });
   }
 
-  selectUser(user: AdminUser): void {
+  editUser(user: AdminUser): void {
     this.selectedUser = { ...user };
     this.isEditMode = true;
     this.isCreateMode = false;
@@ -91,6 +94,10 @@ export class AdminUserComponent {
         this.loadUsers();
       });
     }
+  }
+
+  viewUser(user: AdminUser): void {
+    this.router.navigate(['/admin', 'users', 'view', user.id]);
   }
 
   cancel(): void {

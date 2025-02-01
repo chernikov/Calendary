@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatInputModule } from '@angular/material/input';
 import { Category } from '../../../../../models/category';
-import { AdminCategoryService } from '../../../../../services/admin-category.service';
+import { AdminCategoryService } from '../../../../../services/admin/category.service';
 
 @Component({
   selector: 'app-category-dialog',

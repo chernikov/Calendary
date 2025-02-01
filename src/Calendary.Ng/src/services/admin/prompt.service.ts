@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Prompt } from '../models/prompt';
-import { PromptSeed } from '../models/promt-seed';
+import { Prompt } from '../../models/prompt';
+import { PromptSeed } from '../../models/promt-seed';
 
 @Injectable({
   providedIn: 'root',

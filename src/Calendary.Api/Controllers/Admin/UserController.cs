@@ -31,11 +31,11 @@ public class UserController : ControllerBase
         return Ok(userDtos);
     }
 
-    // GET: api/admin/user/{identity}
-    [HttpGet("{identity}")]
-    public async Task<IActionResult> Get(Guid identity)
+    // GET: api/admin/user/{userId}
+    [HttpGet("{userId:int}")]
+    public async Task<IActionResult> Get(int userId)
     {
-        var user = await _userService.GetUserByIdentityAsync(identity);
+        var user = await _userService.GetUserByIdAsync(userId);
         if (user == null)
         {
             return NotFound();
@@ -63,16 +63,16 @@ public class UserController : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = createdUser.Id }, createdUserDto);
     }
 
-    // PUT: api/admin/user/{identity}
-    [HttpPut("{identity}")]
-    public async Task<IActionResult> Update(Guid identity, [FromBody] AdminUserDto userDto)
+    // PUT: api/admin/user/{userId}
+    [HttpPut("{userId:int}")]
+    public async Task<IActionResult> Update(int userId, [FromBody] AdminUserDto userDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var user = await _userService.GetUserByIdentityAsync(identity);
+        var user = await _userService.GetUserByIdAsync(userId);
         if (user == null)
         {
             return NotFound();

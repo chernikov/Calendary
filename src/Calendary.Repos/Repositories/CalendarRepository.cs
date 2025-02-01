@@ -8,6 +8,7 @@ public interface ICalendarRepository : IRepository<Calendar>
 {
     Task AssignEventDatesAsync(int calendarId, IEnumerable<EventDate> eventDates);
     Task AssignHolidays(int calendarId, IEnumerable<Holiday> holidays);
+    Task<IList<Calendar>> GetByUserIdAsync(int userId);
     Task<IEnumerable<Calendar>> GetCalendarsByUserAsync(int userId);
 
     Task<Calendar?> GetFullCalendarAsync(int id);
@@ -32,6 +33,11 @@ public class CalendarRepository : ICalendarRepository
     public async Task<Calendar?> GetByIdAsync(int id)
     {
         return await _context.Calendars.FindAsync(id);
+    }
+
+    public async Task<IList<Calendar>> GetByUserIdAsync(int userId)
+    {
+        return await _context.Calendars.Where(c => c.UserId == userId).ToListAsync();
     }
 
     public async Task AddAsync(Calendar entity)
@@ -123,4 +129,6 @@ public class CalendarRepository : ICalendarRepository
             await _context.SaveChangesAsync();
         }
     }
+
+   
 }

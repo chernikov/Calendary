@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AdminTestPrompt } from '../models/admin-test-prompt';
-import { CreateTestPrompt } from '../models/create-test-prompt';
+import { AdminTestPrompt } from '../../models/admin-test-prompt';
+import { CreateTestPrompt } from '../../models/create-test-prompt';
 
 @Injectable({
   providedIn: 'root',

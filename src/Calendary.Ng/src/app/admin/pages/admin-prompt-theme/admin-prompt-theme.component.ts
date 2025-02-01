@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { AdminPromptThemeService } from '../../../../services/admin-prompt-theme.service';
+import { AdminPromptThemeService } from '../../../../services/admin/prompt-theme.service';
 import { MatDialog } from '@angular/material/dialog';
 import { PromptThemeDialogComponent } from './prompt-theme-dialog/prompt-theme-dialog.component';
 import {  MatIconModule } from '@angular/material/icon';

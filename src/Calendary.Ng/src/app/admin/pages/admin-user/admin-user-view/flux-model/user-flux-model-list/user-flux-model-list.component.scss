@@ -1,0 +1,28 @@
+.flux-model-table {
+    width: 100%;
+    margin-top: 15px;
+    
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    
+    tr {
+      transition: background-color 0.3s;
+      &:hover {
+        background-color: #fafafa;
+      }
+    }
+  }
+  
+  .training-info {
+    line-height: 1.4;
+    div {
+      margin-bottom: 4px;
+    }
+  }

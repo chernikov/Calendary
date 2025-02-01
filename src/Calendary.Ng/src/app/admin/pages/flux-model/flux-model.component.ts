@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { AdminFluxModelService } from '../../../../services/admin-flux-model.service';
+import { AdminFluxModelService } from '../../../../services/admin/flux-model.service';
 import { AdminFluxModel } from '../../../../models/admin-flux-model';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';

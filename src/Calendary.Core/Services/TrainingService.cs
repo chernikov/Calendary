@@ -14,6 +14,7 @@ public interface ITrainingService
     Task<IEnumerable<Training>> GetByModelIdAsync(int modelId);
     Task UpdateStatusAsync(int trainingId, string status);
     Task UpdateVersionAsync(int trainingId, string version);
+    Task SoftDeleteAsync(int id);
 }
 
 public class TrainingService : ITrainingService
@@ -103,8 +104,19 @@ public class TrainingService : ITrainingService
 
         training.Version = version;
         await _trainingRepository.UpdateAsync(training);
-        
     }
 
-    
+
+    public async Task SoftDeleteAsync(int id)
+    {
+        var entityDb = await _trainingRepository.GetByIdAsync(id);
+        if (entityDb is null)
+        {
+            return;
+        }
+        entityDb.IsDeleted = true;
+        await _trainingRepository.UpdateAsync(entityDb);
+    }
+
+
 }

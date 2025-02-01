@@ -8,11 +8,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
-import { AdminFluxModelService } from '../../../../../services/admin-flux-model.service';
-import { AdminTestPromptService } from '../../../../../services/admin-test-prompot.service';
+import { AdminFluxModelService } from '../../../../../services/admin/flux-model.service';
+import { AdminTestPromptService } from '../../../../../services/admin/test-prompt.service';
 import { AdminFluxModel } from '../../../../../models/admin-flux-model';
 import { CreateTestPrompt } from '../../../../../models/create-test-prompt';
-import { AdminPromptService } from '../../../../../services/admin-prompt.service';
+import { AdminPromptService } from '../../../../../services/admin/prompt.service';
 import { Prompt } from '../../../../../models/prompt';
 import { PromptSeed } from '../../../../../models/promt-seed';
 @Component({

@@ -7,9 +7,12 @@ public interface IFluxModelRepository : IRepository<FluxModel>
 {
     Task<IReadOnlyCollection<FluxModel>> GetAllAsync(int page, int pageSize);
     Task<IEnumerable<FluxModel>> GetByCategoryIdAsync(int categoryId);
+    Task<IList<FluxModel>> GetListByUserIdAsync(int userId);
     Task<FluxModel?> GetCurrentByUserIdAsync(int useId);
     Task<FluxModel?> GetFullAsync(int id);
     Task<FluxModel?> GetUserFluxModelAsync(int userId, int fluxModelId);
+
+    Task<FluxModel?> GetFullByIdAsync(int id);
 }
 
 public class FluxModelRepository : IFluxModelRepository
@@ -20,8 +23,6 @@ public class FluxModelRepository : IFluxModelRepository
     {
         _context = context;
     }
-
-  
 
     public async Task<IEnumerable<FluxModel>> GetAllAsync()
     {
@@ -43,6 +44,21 @@ public class FluxModelRepository : IFluxModelRepository
         return await _context.FluxModels.FindAsync(id);
     }
 
+
+    public async Task<FluxModel?> GetFullByIdAsync(int id)
+    {
+        return await _context.FluxModels
+            .Include(p => p.Category)
+            .Include(p => p.Trainings)
+            .Include(p => p.Jobs)
+                .ThenInclude(p => p.Theme)
+            .Include(p => p.Jobs)
+                .ThenInclude(p => p.Tasks)
+            .FirstOrDefaultAsync(p => p.Id == id);
+            
+            
+    }
+
     public async Task<FluxModel?> GetCurrentByUserIdAsync(int userId)
     {
         return await _context.FluxModels
@@ -57,6 +73,13 @@ public class FluxModelRepository : IFluxModelRepository
             .FirstOrDefaultAsync();
     }
 
+    public async Task<IList<FluxModel>> GetListByUserIdAsync(int userId)
+    {
+        return await _context.FluxModels
+            .Include(fm => fm.Trainings.Where(t => !t.IsDeleted))
+            .Where(f => f.UserId == userId)
+            .ToListAsync();
+    }
 
     public async Task AddAsync(FluxModel entity)
     {

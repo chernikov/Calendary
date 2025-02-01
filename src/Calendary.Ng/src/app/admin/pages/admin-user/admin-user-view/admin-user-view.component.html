@@ -1,1 +1,26 @@
-<p>admin-user-view works!</p>
+<div class="user-view-container" *ngIf="user">
+    <button mat-raised-button color="primary" (click)="goBack()">Назад</button>
+  
+    <h2>Інформація про користувача</h2>
+    <div class="user-details">
+      <p><strong>ID:</strong> {{ user.id }}</p>
+      <p><strong>Ім'я:</strong> {{ user.userName }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Телефон:</strong> {{ user.phoneNumber || 'N/A' }}</p>
+      <!-- Можна додати іншу інформацію про користувача -->
+    </div>
+  
+    <!-- Контейнер для колонок -->
+    <div class="content-columns">
+      <!-- Ліва колонка: Flux моделі -->
+      <div class="left-column">
+        <app-user-flux-model-list [userId]="user!.id"></app-user-flux-model-list>
+      </div>
+  
+      <!-- Права колонка: Календарі користувача (у вужчій колонці) -->
+      <div class="right-column">
+        <app-user-calendar-list [userId]="user!.id"></app-user-calendar-list>
+      </div>
+    </div>
+  </div>
+  

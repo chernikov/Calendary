@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AdminPromptThemeService } from '../../../../../services/admin-prompt-theme.service';
+import { AdminPromptThemeService } from '../../../../../services/admin/prompt-theme.service';
 import { PromptTheme } from '../../../../../models/prompt-theme';
 
 @Component({

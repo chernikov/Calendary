@@ -1,0 +1,26 @@
+.user-view-container {
+    // Загальні стилі, як раніше
+    button {
+      margin-bottom: 20px;
+    }
+  
+    .user-details {
+      margin-bottom: 20px;
+      p {
+        margin: 4px 0;
+      }
+    }
+  
+    .content-columns {
+      display: flex;
+      gap: 20px;
+  
+      .left-column {
+        flex: 2; // Ліва колонка займає більше простору
+      }
+  
+      .right-column {
+        flex: 1; // Права колонка – вужча
+      }
+    }
+  }
