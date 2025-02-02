@@ -1,0 +1,22 @@
+<h2 mat-dialog-title>Створити Flux Model</h2>
+<mat-dialog-content>
+  <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Назва</mat-label>
+    <input matInput [(ngModel)]="model.name" placeholder="Введіть назву" />
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Категорія (не обов'язково)</mat-label>
+    <mat-select [(ngModel)]="model.categoryId">
+      <mat-option [value]="null">Без категорії</mat-option>
+      <mat-option *ngFor="let cat of categories" [value]="cat.id">
+        {{ cat.name }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Скасувати</button>
+  <button mat-button color="primary" (click)="onSave()">Зберегти</button>
+</mat-dialog-actions>

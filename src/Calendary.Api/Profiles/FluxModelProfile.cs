@@ -15,9 +15,11 @@ public class FluxModelProfile : Profile
             .ForMember(dest => dest.Trainings, opt => opt.Ignore())
             .ForMember(dest => dest.Jobs, opt => opt.Ignore());
 
-
-
-
         CreateMap<FluxModel, AdminFluxModelDto>();
+
+        CreateMap<CreateFluxModelDto, FluxModel>()
+            .ForMember(dest => dest.Category, opt => opt.Ignore())
+            .ForMember(dest => dest.Trainings, opt => opt.Ignore())
+            .ForMember(dest => dest.Jobs, opt => opt.Ignore());
     }
 }

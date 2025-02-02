@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { AdminFluxModel } from '../../../../../models/admin-flux-model';
+import { AdminFluxModel } from '../../../../../models/flux-model';
 import { AdminFluxModelService } from '../../../../../services/admin/flux-model.service';
 
 @Component({
