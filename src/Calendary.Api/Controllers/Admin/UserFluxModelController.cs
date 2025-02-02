@@ -44,6 +44,18 @@ namespace Calendary.Api.Controllers.Admin
             return NoContent();
         }
 
+        // POST: api/admin/user/{userId}/flux-models
+        [HttpPost]
+        public async Task<IActionResult> Create(int userId, [FromBody] CreateFluxModelDto model)
+        {
+            var fluxModel = _mapper.Map<FluxModel>(model);
+            fluxModel.UserId = userId;    
+            await _fluxModelService.CreateAsync(fluxModel);
+            var entity = await _fluxModelService.GetByIdAsync(fluxModel.Id);
+            var result = _mapper.Map<FluxModelDto>(entity);
+            return Ok(result);
+        }
+
         // GET: api/admin/user/{userId}/flux-models/{fluxModelId}/photos
         [HttpGet("{fluxModelId:int}/photos")]
         public async Task<IActionResult> GetPhotos(int userId, int fluxModelId)
@@ -64,5 +76,7 @@ namespace Calendary.Api.Controllers.Admin
             await _fluxModelService.ChangeNameAsync(entry);
             return NoContent();
         }
+
+       
     }
 }

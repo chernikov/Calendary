@@ -5,11 +5,10 @@ public class FluxModel
     public int Id { get; set; }
     public int UserId { get; set; }
     public string Name { get; set; } = string.Empty;
-
     public string Version { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string ReplicateId { get; set; } = string.Empty;
-    public string Status { get; set; } = "prepared"; // ENUM: prepared, inprogress, failed, ready
+    public string Status { get; set; } = "prepared"; 
 
     public int? CategoryId { get; set; } 
     public string? ArchiveUrl { get; set; }

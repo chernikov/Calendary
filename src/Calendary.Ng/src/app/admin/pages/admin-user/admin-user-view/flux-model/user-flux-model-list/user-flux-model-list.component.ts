@@ -7,14 +7,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { FluxModel } from '../../../../../../../models/flux-model';
+import { CreateFluxModel, FluxModel } from '../../../../../../../models/flux-model';
 import { UserFluxModelService } from '../../../../../../../services/admin/user-flux-model.service';
 import { Training } from '../../../../../../../models/training';
 import { TrainingService } from '../../../../../../../services/admin/training.service';
 import { UserPhotoGalleryComponent } from '../user-photo-gallery/user-photo-gallery.component';
-
-
-
+import { CreateFluxModelDialogComponent } from '../create-flux-model-dialog/create-flux-model-dialog.component';
 
 @Component({
   selector: 'app-user-flux-model-list',
@@ -42,7 +40,7 @@ export class UserFluxModelListComponent implements OnInit {
 
   loadFluxModels(): void {
     this.fluxModelService.getUserFluxModels(this.userId).subscribe({
-      next: (models) => this.fluxModels = models,
+      next: (models) => this.fluxModels = models.sort(p => -p.id),
       error: (err) => console.error('Помилка завантаження flux моделей', err)
     });
   }
@@ -80,9 +78,10 @@ export class UserFluxModelListComponent implements OnInit {
   }
 
   openPhotoGallery(fluxModelId: number): void {
+    const fluxModel = this.fluxModels.find(p => p.id === fluxModelId);
     this.dialog.open(UserPhotoGalleryComponent, {
       width: '80%',
-      data: { userId: this.userId, fluxModelId: fluxModelId }
+      data: { userId: this.userId, fluxModel: fluxModel }
     });
   }
 
@@ -108,5 +107,37 @@ export class UserFluxModelListComponent implements OnInit {
   cancelEditing(): void {
     this.editingFluxModelId = null;
     this.tempName = '';
+  }
+
+
+  openCreateDialog(): void {
+    const dialogRef = this.dialog.open(CreateFluxModelDialogComponent, {
+      width: '400px',
+      data: { 
+        // При необхідності можна передати категорії:
+        categories: [
+          { id: 1, name: 'Category 1' },
+          { id: 2, name: 'Category 2' },
+          // додайте інші категорії
+        ]
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result: CreateFluxModel) => {
+      if (result && result.name.trim()) 
+      {
+        this.fluxModelService.create(this.userId, result)
+          .pipe(finalize(() => this.loadFluxModels()))
+          .subscribe({
+            next: () => console.log('Flux Model створено'),
+            error: (err) => console.error('Помилка створення flux моделі', err)
+          });
+      }
+    });
+  }
+
+  launchTraining(fluxModelId : number)
+  {
+    console.log('Запуск тренування для моделі', fluxModelId);
   }
 }

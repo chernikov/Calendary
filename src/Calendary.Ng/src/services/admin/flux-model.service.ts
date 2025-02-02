@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AdminFluxModel } from '../../models/admin-flux-model';
+import { AdminFluxModel } from '../../models/flux-model';
 
 @Injectable({
   providedIn: 'root',

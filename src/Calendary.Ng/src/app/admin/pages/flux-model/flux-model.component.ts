@@ -1,12 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { AdminFluxModelService } from '../../../../services/admin/flux-model.service';
-import { AdminFluxModel } from '../../../../models/admin-flux-model';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
+import { AdminFluxModelService } from '../../../../services/admin/flux-model.service';
+import { AdminFluxModel } from '../../../../models/flux-model';
 
 @Component({
   selector: 'app-flux-model',

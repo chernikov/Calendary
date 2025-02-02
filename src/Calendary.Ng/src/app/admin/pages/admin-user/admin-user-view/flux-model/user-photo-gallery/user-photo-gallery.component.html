@@ -1,14 +1,33 @@
 <h2 mat-dialog-title>Фото</h2>
 
-<mat-dialog-content>
-  <div class="photo-gallery">
-    <div *ngFor="let photo of photos" class="photo-item">
-      <img [src]="photo.imageUrl" alt="Photo" class="photo-image" />
-      <p class="photo-caption">{{ photo.caption }}</p>
+<mat-dialog-content *ngIf="fluxModel">
+  <!-- Якщо є фото, показуємо галерею -->
+  <div *ngIf="photos && photos.length; else noPhotos">
+    <div class="photo-gallery">
+      <div *ngFor="let photo of photos" class="photo-item">
+        <!-- Фото у рамочці одного розміру (thumbnail) -->
+        <div class="photo-frame" (click)="openFullScreen(photo)">
+          <img [src]="photo.imageUrl" alt="Photo" class="photo-image" />
+        </div>
+        <p class="photo-caption">{{ photo.caption }}</p>
+      </div>
     </div>
+  </div>
+  <ng-template #noPhotos>
+    <div>
+      <p>Немає фото для відображення.</p>
+    </div>
+  </ng-template>
+
+  <!-- Форма завантаження фото, якщо ArchiveUrl відсутній -->
+  <div *ngIf="!fluxModel?.archiveUrl">
+    <app-upload-photo [fluxModelId]="fluxModel.id" (uploadComplete)="onUploadComplete()"></app-upload-photo>
   </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
+  <button mat-button *ngIf="!fluxModel?.archiveUrl" color="accent" (click)="complete()" [disabled]="photoDisabled()">
+    Закінчити завантаження
+  </button>
   <button mat-button color="primary" (click)="close()">Закрити</button>
 </mat-dialog-actions>
