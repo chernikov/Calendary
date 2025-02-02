@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { Prompt } from '../../../../models/prompt';
 import { AdminPromptService } from '../../../../services/admin/prompt.service';
-import { TestPromptDialogComponent } from './test-prompt-dialog/test-prompt-dialog.component';
+import { SynthesisDialogComponent } from './synthesis-dialog/synthesis-dialog.component';
 import { AdminPromptThemeService } from '../../../../services/admin/prompt-theme.service';
 import { PromptTheme } from '../../../../models/prompt-theme';
 import { AdminCategoryService } from '../../../../services/admin/category.service';
@@ -118,7 +118,7 @@ export class AdminPromptComponent {
   }
 
   openTestDialog(prompt: Prompt): void {
-    const dialogRef = this.dialog.open(TestPromptDialogComponent, {
+    const dialogRef = this.dialog.open(SynthesisDialogComponent, {
       panelClass: 'custom-dialog-container', 
       width: '800px', // Задаємо ширину
       height: '800px', // Задаємо висоту

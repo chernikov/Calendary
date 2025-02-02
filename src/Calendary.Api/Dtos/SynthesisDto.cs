@@ -1,6 +1,6 @@
 ﻿namespace Calendary.Api.Dtos;
 
-public class TestPromptDto 
+public class SynthesisDto 
 {
     public int Id { get; set; }
     public int PromptId { get; set; }

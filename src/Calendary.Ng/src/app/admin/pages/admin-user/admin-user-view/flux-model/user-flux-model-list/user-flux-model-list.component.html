@@ -38,13 +38,13 @@
         <td mat-cell *matCellDef="let model">
             <ng-container *ngIf="getTrainingInfo(model) as training; else noTraining">
                 <div class="training-info">
-                    <div><strong>ID:</strong> {{ training.id }}</div>
+                    <div><strong>ID:</strong> {{ training.id }}
+                        <button mat-icon-button color="warn" (click)="deleteTraining(training.id); $event.stopPropagation()">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </div>
                     <div><strong>ReplicateId:</strong> {{ training.replicateId }}</div>
                     <div><strong>Status:</strong> {{ training.status }}</div>
-                    <button mat-icon-button color="warn"
-                        (click)="deleteTraining(training.id); $event.stopPropagation()">
-                        <mat-icon>delete</mat-icon>
-                    </button>
                     <!-- CTA кнопка для переходу на сторінку тренування -->
                     <button mat-raised-button color="primary" [routerLink]="['/admin/training', training.id]"
                         (click)="$event.stopPropagation()">
@@ -64,7 +64,7 @@
         <td mat-cell *matCellDef="let model">
             <ng-container *ngIf="model.archiveUrl; else noArchive">
                 <a color="primary" class="photo-btn" [href]="model.archiveUrl" download>
-                    Скачати фото
+                    Скачати архів
                 </a>
             </ng-container>
             <ng-template #noArchive>

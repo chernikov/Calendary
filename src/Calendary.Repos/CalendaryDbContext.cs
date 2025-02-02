@@ -49,7 +49,7 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     public DbSet<Role> Roles { get; set; }
 
-    public DbSet<TestPrompt> TestPrompts { get; set; }
+    public DbSet<Synthesis> Synthesises { get; set; }
 
     public DbSet<Training> Trainings { get; set; }
 

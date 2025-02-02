@@ -37,7 +37,7 @@ public static class DependencyRegistration
         services.AddScoped<ITrainingService, TrainingService>();
         services.AddScoped<IJobService, JobService>();
         services.AddScoped<IJobTaskService, JobTaskService>();
-        services.AddScoped<ITestPromptService, TestPromptService>();
+        services.AddScoped<ISynthesisService, SynthesisService>();
 
 
         services.AddScoped<IEmailService, EmailService>();

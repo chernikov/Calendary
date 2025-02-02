@@ -1,7 +1,7 @@
 <h2>Історія тестів для промпту #{{ promptId }}</h2>
 
-<div *ngIf="testPrompts.length > 0; else noHistory">
-  <div *ngFor="let test of testPrompts" class="test-item">
+<div *ngIf="synthesises.length > 0; else noHistory">
+  <div *ngFor="let test of synthesises" class="test-item">
     
     <p><strong>Текст:</strong> {{ test.text }}</p>
     <p><strong>Заданий seed:</strong> {{ test.seed }}</p>

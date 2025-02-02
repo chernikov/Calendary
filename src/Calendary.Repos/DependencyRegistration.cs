@@ -39,7 +39,7 @@ namespace Calendary.Repos
             services.AddScoped<IPromptRepository, PromptRepository>();
             services.AddScoped<IPromptThemeRepository, PromptThemeRepository>();
             services.AddScoped<ITrainingRepository, TrainingRepository>();
-            services.AddScoped<ITestPromptRepository, TestPromptRepository>();
+            services.AddScoped<ISynthesisRepository, SynthesisRepository>();
 
 
             services.ApplyMigrationDb();

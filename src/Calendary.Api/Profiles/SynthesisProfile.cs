@@ -4,10 +4,10 @@ using Calendary.Model;
 
 namespace Calendary.Api.Profiles;
 
-public class TestPromptProfile : Profile
+public class SynthesisProfile : Profile
 {
-    public TestPromptProfile()
+    public SynthesisProfile()
     {
-        CreateMap<TestPrompt, TestPromptDto>();
+        CreateMap<Synthesis, SynthesisDto>();
     }
 }

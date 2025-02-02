@@ -1,6 +1,6 @@
 ﻿namespace Calendary.Model;
 
-public class TestPrompt
+public class Synthesis
 {
     public int Id { get; set; }
     public int PromptId { get; set; }
