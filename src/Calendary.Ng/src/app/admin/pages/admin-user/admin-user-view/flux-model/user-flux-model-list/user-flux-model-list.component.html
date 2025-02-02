@@ -9,28 +9,27 @@
     <!-- Колонка Назва -->
     <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef> Назва </th>
-        <td mat-cell *matCellDef="let model"> {{ model.name }} </td>
+        <td mat-cell *matCellDef="let model">
+            <ng-container *ngIf="editingFluxModelId === model.id; else viewName">
+                <input matInput [(ngModel)]="tempName" placeholder="Введіть нове ім'я"
+                    (click)="$event.stopPropagation()">
+                <button mat-icon-button color="primary" (click)="saveName(model); $event.stopPropagation()">
+                    <mat-icon>check</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="cancelEditing(); $event.stopPropagation()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </ng-container>
+            <ng-template #viewName>
+                <span (click)="onNameClick(model)" style="cursor: pointer;">{{ model.name }}</span>
+            </ng-template>
+        </td>
     </ng-container>
 
     <!-- Колонка Статус -->
     <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef> Статус </th>
         <td mat-cell *matCellDef="let model"> {{ model.status }} </td>
-    </ng-container>
-
-    <!-- Колонка Архів -->
-    <ng-container matColumnDef="archive">
-        <th mat-header-cell *matHeaderCellDef> Архів </th>
-        <td mat-cell *matCellDef="let model">
-            <ng-container *ngIf="model.archiveUrl; else noArchive">
-                <a mat-raised-button color="primary" [href]="model.archiveUrl" download>
-                    Скачати фото
-                </a>
-            </ng-container>
-            <ng-template #noArchive>
-                <span>Немає архіву</span>
-            </ng-template>
-        </td>
     </ng-container>
 
     <!-- Колонка Тренування -->
@@ -46,11 +45,36 @@
                         (click)="deleteTraining(training.id); $event.stopPropagation()">
                         <mat-icon>delete</mat-icon>
                     </button>
+                    <!-- CTA кнопка для переходу на сторінку тренування -->
+                    <button mat-raised-button color="primary" [routerLink]="['/admin/training', training.id]"
+                        (click)="$event.stopPropagation()">
+                        Переглянути тренування
+                    </button>
                 </div>
             </ng-container>
             <ng-template #noTraining>
                 <span>Немає тренувань</span>
             </ng-template>
+        </td>
+    </ng-container>
+
+    <!-- Нова колонка Фото -->
+    <ng-container matColumnDef="photos">
+        <th mat-header-cell *matHeaderCellDef style="width: 150px;"> Фото </th>
+        <td mat-cell *matCellDef="let model">
+            <ng-container *ngIf="model.archiveUrl; else noArchive">
+                <a color="primary" class="photo-btn" [href]="model.archiveUrl" download>
+                    Скачати фото
+                </a>
+            </ng-container>
+            <ng-template #noArchive>
+                <span>Немає архіву</span>
+            </ng-template>
+
+            <button mat-raised-button color="primary" class="photo-btn"
+                (click)="openPhotoGallery(model.id); $event.stopPropagation()">
+                Показати фото
+            </button>
         </td>
     </ng-container>
 

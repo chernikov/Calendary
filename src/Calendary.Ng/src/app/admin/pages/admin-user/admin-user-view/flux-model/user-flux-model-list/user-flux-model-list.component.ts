@@ -4,10 +4,14 @@ import { MatTableModule } from '@angular/material/table';
 import { finalize } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { FluxModel } from '../../../../../../../models/flux-model';
 import { UserFluxModelService } from '../../../../../../../services/admin/user-flux-model.service';
 import { Training } from '../../../../../../../models/training';
 import { TrainingService } from '../../../../../../../services/admin/training.service';
+import { UserPhotoGalleryComponent } from '../user-photo-gallery/user-photo-gallery.component';
 
 
 
@@ -15,17 +19,22 @@ import { TrainingService } from '../../../../../../../services/admin/training.se
 @Component({
   selector: 'app-user-flux-model-list',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, FormsModule, RouterModule, MatTableModule, MatButtonModule, MatIconModule],
   templateUrl: './user-flux-model-list.component.html',
   styleUrls: ['./user-flux-model-list.component.scss']
 })
 export class UserFluxModelListComponent implements OnInit {
   @Input() userId!: number;
   fluxModels: FluxModel[] = [];
-  displayedColumns: string[] = ['id', 'name', 'status', 'archive', 'trainings', 'createdAt', 'actions'];
+  displayedColumns: string[] = ['id', 'name', 'status', 'trainings', 'photos', 'createdAt', 'actions'];
+
+  // Для редагування імені
+  editingFluxModelId: number | null = null;
+  tempName: string = '';
 
   constructor(private fluxModelService: UserFluxModelService,    
-     private trainingService: TrainingService) {}
+     private trainingService: TrainingService,
+     private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.loadFluxModels();
@@ -68,5 +77,36 @@ export class UserFluxModelListComponent implements OnInit {
         next: () => console.log(`Тренування ${trainingId} видалено`),
         error: (err) => console.error('Помилка видалення тренування', err)
       });
+  }
+
+  openPhotoGallery(fluxModelId: number): void {
+    this.dialog.open(UserPhotoGalleryComponent, {
+      width: '80%',
+      data: { userId: this.userId, fluxModelId: fluxModelId }
+    });
+  }
+
+  // Редагування імені
+  onNameClick(model: FluxModel): void {
+    this.editingFluxModelId = model.id;
+    this.tempName = model.name;
+  }
+
+  saveName(model: FluxModel): void {
+    const updatedModel: FluxModel = { ...model, name: this.tempName };
+    this.fluxModelService.changeName(this.userId, updatedModel)
+      .pipe(finalize(() => this.loadFluxModels()))
+      .subscribe({
+        next: () => {
+          console.log(`Ім'я flux моделі ${model.id} змінено`);
+          this.cancelEditing();
+        },
+        error: (err) => console.error('Помилка зміни імені flux моделі', err)
+      });
+  }
+
+  cancelEditing(): void {
+    this.editingFluxModelId = null;
+    this.tempName = '';
   }
 }

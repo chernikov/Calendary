@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>Фото</h2>
+
+<mat-dialog-content>
+  <div class="photo-gallery">
+    <div *ngFor="let photo of photos" class="photo-item">
+      <img [src]="photo.imageUrl" alt="Photo" class="photo-image" />
+      <p class="photo-caption">{{ photo.caption }}</p>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button color="primary" (click)="close()">Закрити</button>
+</mat-dialog-actions>

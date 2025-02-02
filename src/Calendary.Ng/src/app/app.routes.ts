@@ -27,6 +27,7 @@ import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password
 import { VerifyComponent } from './pages/verify/verify.component';
 import { AdminUserComponent } from './admin/pages/admin-user/admin-user.component';
 import { AdminUserViewComponent } from './admin/pages/admin-user/admin-user-view/admin-user-view.component';
+import { TrainingComponent } from './admin/pages/admin-user/admin-user-view/flux-model/training/training.component';
 
 
 export const routes: Routes = [
@@ -50,7 +51,7 @@ export const routes: Routes = [
           { path: 'flux-models/view/:id', component: ViewFluxModelComponent },
           { path: 'users', component: AdminUserComponent },
           { path: 'users/view/:id', component: AdminUserViewComponent },
-          
+          { path: 'training/:id', component: TrainingComponent },
         ],
       }
     ],

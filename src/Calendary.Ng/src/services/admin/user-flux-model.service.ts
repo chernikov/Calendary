@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { FluxModel } from '../../models/flux-model';
+import { Photo } from '../../models/photo';
 
 @Injectable({
   providedIn: 'root'
@@ -20,5 +21,16 @@ export class UserFluxModelService {
   
   delete(userId: number, fluxModelId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${userId}/flux-models/${fluxModelId}`);
+  }
+
+   // Додаємо метод для отримання фотографій, пов'язаних із flux моделлю
+   getPhotos(userId: number, fluxModelId: number): Observable<Photo[]> {
+    const url = `${this.apiUrl}/${userId}/flux-models/${fluxModelId}/photos`;
+    return this.http.get<Photo[]>(url);
+  }
+
+  changeName(userId: number, updatedModel: FluxModel): Observable<void> {
+    const url = `${this.apiUrl}/${userId}/flux-models/change-name`;
+    return this.http.put<void>(url, updatedModel);
   }
 }

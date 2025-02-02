@@ -1,0 +1,21 @@
+.photo-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  
+  .photo-item {
+    width: 200px;
+    text-align: center;
+    img {
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+  }
+  
+  .actions {
+    margin-top: 20px;
+    text-align: center;
+  }
