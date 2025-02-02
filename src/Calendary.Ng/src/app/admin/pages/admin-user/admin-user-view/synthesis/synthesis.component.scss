@@ -1,0 +1,19 @@
+.thumbnail-image {
+    max-width: 100px;
+    max-height: 100px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 2px;
+  
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+  }
+  
+
+.text-column {
+    width: 50%;
+}

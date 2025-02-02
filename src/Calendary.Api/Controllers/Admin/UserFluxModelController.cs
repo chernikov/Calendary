@@ -10,15 +10,17 @@ namespace Calendary.Api.Controllers.Admin;
 [ApiController]
 [Authorize(Roles = "Admin")]
 [Route("api/admin/user/{userId:int}/flux-models")]
-public class UserFluxModelController : ControllerBase
+public class UserFluxModelController : BaseAdminController
 {
     private readonly IFluxModelService _fluxModelService;
     private readonly IPhotoService _photoService;
     private readonly IMapper _mapper;
 
-    public UserFluxModelController(IFluxModelService fluxModelService, 
+    public UserFluxModelController(
+        IUserService userService,
+        IFluxModelService fluxModelService, 
         IPhotoService photoService,  
-        IMapper mapper)
+        IMapper mapper) : base(userService)
     {
         _fluxModelService = fluxModelService;
         _photoService = photoService;

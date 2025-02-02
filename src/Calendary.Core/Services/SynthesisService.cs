@@ -1,11 +1,14 @@
 ﻿using Calendary.Model;
 using Calendary.Repos.Repositories;
+using Microsoft.Identity.Client;
 
 namespace Calendary.Core.Services;
 
 public interface ISynthesisService
 {
     Task<IEnumerable<Synthesis>> GetByPromptIdAsync(int idPrompt);
+
+    Task<IEnumerable<Synthesis>> GetByTrainingIdAsync(int trainingId);
 
     Task<Synthesis> CreateAsync(int promptId, int trainingId, string? text, int? seed);
 
@@ -90,4 +93,7 @@ public class SynthesisService : ISynthesisService
     {
         await _synthesisRepository.DeleteAsync(id);
     }
+
+    public Task<IEnumerable<Synthesis>> GetByTrainingIdAsync(int trainingId)
+         => _synthesisRepository.GetByTrainingIdAsync(trainingId);
 }

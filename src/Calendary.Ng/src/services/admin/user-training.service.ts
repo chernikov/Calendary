@@ -12,6 +12,11 @@ export class UserTrainingService {
 
   constructor(private http: HttpClient) {}
 
+
+  get(userId: number, trainingId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${userId}/training/${trainingId}`);
+  }
+  
   /**
    * Викликає endpoint для генерації тренування для заданої flux моделі.
    * URL форматується як: /api/admin/user/{userId}/training/generate/{fluxModelId}

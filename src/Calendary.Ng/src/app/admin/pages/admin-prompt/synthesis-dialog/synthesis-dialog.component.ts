@@ -10,7 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
 import { AdminFluxModelService } from '../../../../../services/admin/flux-model.service';
 import { AdminSynthesisService } from '../../../../../services/admin/synthesis.service';
-import { CreateSynthesis } from '../../../../../models/create-synthesis';
+import { CreateSynthesis } from '../../../../../models/synthesis';
 import { AdminPromptService } from '../../../../../services/admin/prompt.service';
 import { Prompt } from '../../../../../models/prompt';
 import { PromptSeed } from '../../../../../models/promt-seed';
