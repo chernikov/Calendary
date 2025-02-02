@@ -1,4 +1,4 @@
-export class AdminTestPrompt
+export class AdminSynthesis
 {
     id: number = 0;
     promptId: number = 0;

@@ -29,7 +29,7 @@ public interface ICalendaryDbContext
 
     DbSet<Role> Roles { get; set; }
 
-    DbSet<TestPrompt> TestPrompts { get; set; }
+    DbSet<Synthesis> Synthesises { get; set; }
     DbSet<Training> Trainings { get; set; }
     DbSet<UserRole> UserRoles { get; set; }
     DbSet<User> Users { get; set; }

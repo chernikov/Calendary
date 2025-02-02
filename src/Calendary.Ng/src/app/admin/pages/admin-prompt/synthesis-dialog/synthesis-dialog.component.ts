@@ -9,23 +9,23 @@ import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
 import { AdminFluxModelService } from '../../../../../services/admin/flux-model.service';
-import { AdminTestPromptService } from '../../../../../services/admin/test-prompt.service';
+import { AdminSynthesisService } from '../../../../../services/admin/synthesis.service';
 import { AdminFluxModel } from '../../../../../models/admin-flux-model';
-import { CreateTestPrompt } from '../../../../../models/create-test-prompt';
+import { CreateSynthesis } from '../../../../../models/create-synthesis';
 import { AdminPromptService } from '../../../../../services/admin/prompt.service';
 import { Prompt } from '../../../../../models/prompt';
 import { PromptSeed } from '../../../../../models/promt-seed';
 @Component({
-  selector: 'app-test-prompt-dialog',
+  selector: 'app-synthesis-dialog',
   standalone: true,
   imports: [CommonModule, FormsModule,
     MatDialogModule, MatInputModule, MatFormFieldModule, MatSelectModule, 
     MatButtonModule, MatProgressSpinnerModule, MatDividerModule],
-  templateUrl: './test-prompt-dialog.component.html',
-  styleUrl: './test-prompt-dialog.component.scss'
+  templateUrl: './synthesis-dialog.component.html',
+  styleUrl: './synthesis-dialog.component.scss'
 })
 
-export class TestPromptDialogComponent implements OnInit {
+export class SynthesisDialogComponent implements OnInit {
   models: AdminFluxModel[] = []; // Список моделей, завантажений з API
   selectedModel: AdminFluxModel | null = null; // Обрана модель
   promptText : string = '';
@@ -35,9 +35,9 @@ export class TestPromptDialogComponent implements OnInit {
 
 
   constructor(
-    private dialogRef: MatDialogRef<TestPromptDialogComponent>,
+    private dialogRef: MatDialogRef<SynthesisDialogComponent>,
     private fluxModelService: AdminFluxModelService,
-    private testPromptService: AdminTestPromptService,
+    private synthesisService: AdminSynthesisService,
     private promptService: AdminPromptService,
     @Inject(MAT_DIALOG_DATA) public data: { 
       prompt: Prompt
@@ -73,17 +73,17 @@ export class TestPromptDialogComponent implements OnInit {
     if (!this.selectedModel) return;
 
     this.loading = true;
-    const newTestPrompt = new CreateTestPrompt() ;
-    newTestPrompt.promptId = this.data.prompt.id;
-    newTestPrompt.fluxModelId = this.selectedModel.id;
-    newTestPrompt.text = this.promptText;
-    newTestPrompt.seed = this.seed;
+    const newSynthesis = new CreateSynthesis() ;
+    newSynthesis.promptId = this.data.prompt.id;
+    newSynthesis.fluxModelId = this.selectedModel.id;
+    newSynthesis.text = this.promptText;
+    newSynthesis.seed = this.seed;
 
-    // Створити TestPrompt
-    this.testPromptService.create(newTestPrompt).subscribe(
-      (testPrompt) => {
+    // Створити Synthesis
+    this.synthesisService.create(newSynthesis).subscribe(
+      (synthesis) => {
         // Після створення запускати
-        this.testPromptService.runTestPrompt(testPrompt.id).subscribe(
+        this.synthesisService.runSynthesis(synthesis.id).subscribe(
           (result) => {
             this.loading = false;
             this.imageUrl = result.imageUrl!; // Відображаємо результат
@@ -97,7 +97,7 @@ export class TestPromptDialogComponent implements OnInit {
       },
       (error) => {
         this.loading = false;
-        console.error('Помилка при створенні TestPrompt:', error);
+        console.error('Помилка при створенні Synthesis:', error);
       }
     );
   }

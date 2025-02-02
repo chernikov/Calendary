@@ -9,24 +9,24 @@ namespace Calendary.Api.Controllers.Admin;
 
 [Authorize(Roles = "Admin")]
 [ApiController]
-[Route("api/admin/test-prompt")]
-public class TestPromptController : BaseAdminController
+[Route("api/admin/synthesis")]
+public class SynthesisController : BaseAdminController
 {
     private readonly ITrainingService _trainingService;
-    private readonly ITestPromptService _testPromptService;
+    private readonly ISynthesisService _synthesisService;
     private readonly IFluxModelService _fluxModelService;
     private readonly IReplicateService _replicateService;
     private readonly IMapper _mapper;
 
-    public TestPromptController(IUserService userService,
+    public SynthesisController(IUserService userService,
         IFluxModelService fluxModelService,
         ITrainingService trainingService,
-        ITestPromptService testPromptService, 
+        ISynthesisService synthesisService, 
         IReplicateService replicateService,
         IMapper mapper) : base(userService)
     {
-        _trainingService = trainingService; 
-        _testPromptService = testPromptService;
+        _trainingService = trainingService;
+        _synthesisService = synthesisService;
         _fluxModelService = fluxModelService;
         _replicateService = replicateService;
         _mapper = mapper;
@@ -36,32 +36,35 @@ public class TestPromptController : BaseAdminController
     [HttpGet("{idPrompt:int}")]
     public async Task<IActionResult> Get(int idPrompt)
     {
-        var testPrompts = await _testPromptService.GetByPromptIdAsync(idPrompt);
-        var result =  _mapper.Map<IEnumerable<TestPromptDto>>(testPrompts);
+        var synthesises = await _synthesisService.GetByPromptIdAsync(idPrompt);
+        var result =  _mapper.Map<IEnumerable<SynthesisDto>>(synthesises);
         return Ok(result);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateTestPromptDto createTestPromptDto)
+    public async Task<IActionResult> Create([FromBody] CreateSynthesisDto createSynthesisDto)
     {
         // Отримуємо модель
-        var model = await _fluxModelService.GetByIdAsync(createTestPromptDto.FluxModelId);
+        var model = await _fluxModelService.GetByIdAsync(createSynthesisDto.FluxModelId);
         if (model == null)
         {
-            return NotFound($"Model with ID {createTestPromptDto.FluxModelId} not found.");
+            return NotFound($"Model with ID {createSynthesisDto.FluxModelId} not found.");
         }
 
-        var trainings = await _trainingService.GetByModelIdAsync(createTestPromptDto.FluxModelId);
+        var trainings = await _trainingService.GetByModelIdAsync(createSynthesisDto.FluxModelId);
         // Вибираємо останній доступний TrainingId
         var latestTraining = trainings.OrderByDescending(t => t.CreatedAt).FirstOrDefault();
         if (latestTraining == null)
         {
-            return NotFound($"No available training for model ID {createTestPromptDto.FluxModelId}.");
+            return NotFound($"No available training for model ID {createSynthesisDto.FluxModelId}.");
         }
 
         // Створюємо тест
-        var entry = await _testPromptService.CreateAsync(createTestPromptDto.PromptId, latestTraining.Id, createTestPromptDto.Text, createTestPromptDto.Seed);
-        var result = _mapper.Map<TestPromptDto>(entry);
+        var entry = await _synthesisService.CreateAsync(createSynthesisDto.PromptId, 
+                latestTraining.Id, 
+                createSynthesisDto.Text,
+                createSynthesisDto.Seed);
+        var result = _mapper.Map<SynthesisDto>(entry);
 
         return Ok(result);
     }
@@ -72,23 +75,23 @@ public class TestPromptController : BaseAdminController
     {
         try
         {
-            var testPrompt = await _testPromptService.GetByIdAsync(id);
+            var synthesis = await _synthesisService.GetByIdAsync(id);
 
-            if (testPrompt is null)
+            if (synthesis is null)
             {
-                return NotFound($"TestPrompt with ID {id} not found.");
+                return NotFound($"Synthesis with ID {id} not found.");
             }
 
-            var fluxModel = await _fluxModelService.GetByTrainingIdAsync(testPrompt.TrainingId);
+            var fluxModel = await _fluxModelService.GetByTrainingIdAsync(synthesis.TrainingId);
             if (fluxModel is null)
             {
                 return NotFound($"FluxModel not found.");
             }
 
-            if (testPrompt.Status == "prepared")
+            if (synthesis.Status == "prepared")
             {
                 // Sending request to ReplicateService to generate image
-                var imageRequest = GenerateImageInput.GetImageRequest(testPrompt.Text, testPrompt.Seed);
+                var imageRequest = GenerateImageInput.GetImageRequest(synthesis.Text, synthesis.Seed);
                 var result = await _replicateService.GenerateImageAsync(fluxModel.Version, imageRequest);
 
                 if (result is not null && result.Output.Count > 0)
@@ -97,17 +100,17 @@ public class TestPromptController : BaseAdminController
                     var imagePath = result.Output[0];
                     // Updating task status and result
                     var seed = info.ExtractSeedFromLogs();
-                    testPrompt.ReplicateId = result.Id;
-                    testPrompt.OutputSeed = seed; 
-                    testPrompt.Status = "completed";
-                    testPrompt.ProcessedImageUrl = imagePath;
-                    testPrompt.ImageUrl = await _replicateService.DownloadAndSaveImageAsync(imagePath);
+                    synthesis.ReplicateId = result.Id;
+                    synthesis.OutputSeed = seed; 
+                    synthesis.Status = "completed";
+                    synthesis.ProcessedImageUrl = imagePath;
+                    synthesis.ImageUrl = await _replicateService.DownloadAndSaveImageAsync(imagePath);
 
-                    await _testPromptService.UpdateResultAsync(testPrompt);
+                    await _synthesisService.UpdateResultAsync(synthesis);
                 }
             }
 
-            var output = _mapper.Map<TestPromptDto>(testPrompt);
+            var output = _mapper.Map<SynthesisDto>(synthesis);
             return Ok(output);
         }
         catch (Exception ex)
