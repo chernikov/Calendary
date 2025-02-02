@@ -32,6 +32,8 @@ public interface IFluxModelService
     Task<IList<FluxModel>> GetListByUserIdAsync(int userId);
 
     Task SoftDeleteAsync(int id);
+
+    Task ChangeNameAsync(FluxModel fluxModel);
 }
 
 public class FluxModelService : IFluxModelService
@@ -153,5 +155,21 @@ public class FluxModelService : IFluxModelService
         }
         entityDb.IsDeleted = true;
         await fluxModelRepository.UpdateAsync(entityDb);
+    }
+
+    public async Task ChangeNameAsync(FluxModel fluxModel)
+    {
+        // Отримати flux модель з репозиторію за її Id
+        var existingEntry = await fluxModelRepository.GetByIdAsync(fluxModel.Id);
+        if (existingEntry == null)
+        {
+            throw new Exception("Flux модель не знайдена");
+        }
+
+        // Оновити лише поле Name
+        existingEntry.Name = fluxModel.Name;
+
+        // Зберегти зміни в базі даних
+        await fluxModelRepository.UpdateAsync(existingEntry);
     }
 }

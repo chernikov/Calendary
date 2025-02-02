@@ -9,7 +9,14 @@ public class FluxModelProfile : Profile
 {
     public FluxModelProfile()
     {
-        CreateMap<FluxModel, FluxModelDto>().ReverseMap();
+        CreateMap<FluxModel, FluxModelDto>();
+        CreateMap<FluxModelDto, FluxModel>()
+            .ForMember(dest => dest.Category, opt => opt.Ignore())
+            .ForMember(dest => dest.Trainings, opt => opt.Ignore())
+            .ForMember(dest => dest.Jobs, opt => opt.Ignore());
+
+
+
 
         CreateMap<FluxModel, AdminFluxModelDto>();
     }
