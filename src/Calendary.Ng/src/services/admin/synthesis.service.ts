@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AdminSynthesis } from '../../models/admin-synthesis';
-import { CreateSynthesis } from '../../models/create-synthesis';
+import { CreateSynthesis } from '../../models/synthesis';
 
 @Injectable({
   providedIn: 'root',

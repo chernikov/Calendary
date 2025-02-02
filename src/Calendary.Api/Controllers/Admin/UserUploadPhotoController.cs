@@ -9,7 +9,7 @@ namespace Calendary.Api.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/user-upload-photo")]
-public class UserUploadPhotoController : BaseUserController
+public class UserUploadPhotoController : BaseAdminController
 {
     private readonly string _uploadDirectory = "uploads";
     private readonly IPathProvider _pathProvider;

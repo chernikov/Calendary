@@ -11,8 +11,8 @@ import { UploadPhotoComponent } from '../upload-photo/upload-photo.component';
 import { Photo } from '../../../../../../../models/photo';
 import { UserFluxModelService } from '../../../../../../../services/admin/user-flux-model.service';
 import { AdminFluxModel } from '../../../../../../../models/flux-model';
-import { FullScreenPhotoComponent } from './full-screen-photo.component';
 import { UploadPhotoService } from '../../../../../../../services/admin/upload-photo.service';
+import { FullScreenPhotoComponent } from '../../../../../components/full-screen-photo.component';
 
 export interface UserPhotoGalleryData {
   userId: number;

@@ -10,22 +10,38 @@ namespace Calendary.Api.Controllers.Admin;
 [ApiController]
 [Authorize(Roles = "Admin")]
 [Route("api/admin/user/{userId:int}/training")]
-public class UserTrainingController : ControllerBase
+public class UserTrainingController : BaseAdminController
 {
     private readonly IFluxModelService _fluxModelService;
     private readonly IReplicateService _replicateService;
     private readonly ITrainingService _trainingService;
     private readonly IMapper _mapper;
 
-    public UserTrainingController(IFluxModelService fluxModelService, 
+    public UserTrainingController(IUserService userService, 
+        IFluxModelService fluxModelService, 
         IReplicateService replicateService, 
         ITrainingService trainingService,
-        IMapper mapper)
+        IMapper mapper) : base(userService)
     {
         _fluxModelService = fluxModelService;
         _replicateService = replicateService;
         _trainingService = trainingService;
         _mapper = mapper;
+    }
+
+    
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> Get(int id)
+    {
+        var training = await _trainingService.GetByIdAsync(id);
+        if (training == null)
+        {
+            return NotFound($"Training with ID {id} not found.");
+        }
+
+        var result = _mapper.Map<TrainingDto>(training);
+
+        return Ok(result);
     }
 
     [HttpGet("generate/{fluxModelId:int}")]

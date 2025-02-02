@@ -1,11 +1,13 @@
 ﻿using Calendary.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace Calendary.Repos.Repositories;
 
 
 public interface ISynthesisRepository : IRepository<Synthesis>
 {
+    Task<IEnumerable<Synthesis>> GetByTrainingIdAsync(int fluxModelId);
     Task<IEnumerable<Synthesis>> GetByPromptIdAsync(int idPrompt);
 }
 
@@ -37,6 +39,11 @@ public class SynthesisRepository : ISynthesisRepository
     public async Task<IEnumerable<Synthesis>> GetAllAsync()
     {
         return await _context.Synthesises.ToListAsync();
+    }
+
+    public async Task<IEnumerable<Synthesis>> GetByTrainingIdAsync(int trainingId)
+    {
+        return await _context.Synthesises.Where(p => p.TrainingId == trainingId).ToListAsync();
     }
 
     public async Task<Synthesis?> GetByIdAsync(int id)
