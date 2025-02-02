@@ -8,13 +8,13 @@ public interface ITrainingService
 {
     Task<Training> SaveAsync(int fluxModelId, TrainModelResponse response);
     Task<Training?> GetByIdAsync(int id);
-
     Task<Training?> GetByReplicateIdAsync(string replicateId);
     Task<IEnumerable<Training>> GetAllAsync();
     Task<IEnumerable<Training>> GetByModelIdAsync(int modelId);
     Task UpdateStatusAsync(int trainingId, string status);
     Task UpdateVersionAsync(int trainingId, string version);
     Task SoftDeleteAsync(int id);
+
 }
 
 public class TrainingService : ITrainingService

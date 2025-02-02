@@ -48,4 +48,27 @@ public record TrainModelRequestInput
 
     [JsonPropertyName("wandb_sample_interval")]
     public int WandbSampleInterval { get; init; }
+
+
+    public static TrainModelRequestInput GetTrainingRequest(string archiveUrl)
+    {
+        return new TrainModelRequestInput()
+        {
+            Steps = 1000,
+            LoraRank = 16,
+            Optimizer = "adamw8bit",
+            BatchSize = 1,
+            Resolution = "512,768,1024",
+            Autocaption = true,
+            AutocaptionPrefix = "a photo of TOK",
+            InputImages = $"https://calendary.com.ua/{archiveUrl}",
+            TriggerWord = "TOK",
+            LearningRate = 0.0004,
+            WandbProject = "flux_train_replicate",
+            WandbSaveInterval = 100,
+            WandbSampleInterval = 100,
+            CaptionDropoutRate = 0.05,
+            CacheLatentsToDisk = false
+        };
+    }
 }

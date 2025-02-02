@@ -13,6 +13,7 @@ import { Training } from '../../../../../../../models/training';
 import { TrainingService } from '../../../../../../../services/admin/training.service';
 import { UserPhotoGalleryComponent } from '../user-photo-gallery/user-photo-gallery.component';
 import { CreateFluxModelDialogComponent } from '../create-flux-model-dialog/create-flux-model-dialog.component';
+import { UserTrainingService } from '../../../../../../../services/admin/user-training.service';
 
 @Component({
   selector: 'app-user-flux-model-list',
@@ -32,6 +33,7 @@ export class UserFluxModelListComponent implements OnInit {
 
   constructor(private fluxModelService: UserFluxModelService,    
      private trainingService: TrainingService,
+     private userTrainingService: UserTrainingService,
      private dialog: MatDialog) {}
 
   ngOnInit(): void {
@@ -112,16 +114,7 @@ export class UserFluxModelListComponent implements OnInit {
 
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(CreateFluxModelDialogComponent, {
-      width: '400px',
-      data: { 
-        // При необхідності можна передати категорії:
-        categories: [
-          { id: 1, name: 'Category 1' },
-          { id: 2, name: 'Category 2' },
-          // додайте інші категорії
-        ]
-      }
-    });
+      width: '400px' });
 
     dialogRef.afterClosed().subscribe((result: CreateFluxModel) => {
       if (result && result.name.trim()) 
@@ -138,6 +131,24 @@ export class UserFluxModelListComponent implements OnInit {
 
   launchTraining(fluxModelId : number)
   {
-    console.log('Запуск тренування для моделі', fluxModelId);
+    this.userTrainingService.generateTraining(this.userId, fluxModelId).subscribe({
+      next: () => {
+        console.log('Запуск тренування для моделі', fluxModelId);
+        this.loadFluxModels();
+      },
+      error: (err) => console.error('Помилка запуску тренування', err)
+    });
+  }
+
+  getStatus(trainingId: number) {
+    
+    this.userTrainingService.getStatus(this.userId, trainingId).subscribe({
+      next: (training) => {
+        console.log('Статус тренування:', training.status);
+        alert(`Статус тренування: ${training.status}`);
+        this.loadFluxModels();
+      },
+      error: (err) => console.error('Помилка отримання статусу тренування', err)
+    });
   }
 }

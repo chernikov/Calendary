@@ -43,38 +43,41 @@
     <ng-container matColumnDef="trainings">
         <th mat-header-cell *matHeaderCellDef> Тренування </th>
         <td mat-cell *matCellDef="let model">
-            <ng-container *ngIf="getTrainingInfo(model) as training; else noTraining">
-                <div class="training-info">
-                    <div>
-                        <strong>ID:</strong> {{ training.id }}
-                        <button mat-icon-button color="warn"
-                                (click)="deleteTraining(training.id); $event.stopPropagation()"
-                                class="text-height-button">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                    </div>
-                    <div><strong>ReplicateId:</strong> {{ training.replicateId }}</div>
-                    <div><strong>Status:</strong> {{ training.status }}</div>
-                    <!-- CTA кнопка для переходу на сторінку тренування -->
-                    <button mat-raised-button color="primary" [routerLink]="['/admin/training', training.id]"
-                        (click)="$event.stopPropagation()">
-                        Переглянути тренування
-                    </button>
-                </div>
+          <ng-container *ngIf="getTrainingInfo(model) as training; else noTraining">
+            <div class="training-info">
+              <div>
+                <strong>ID:</strong> {{ training.id }}
+                <button mat-icon-button color="warn"
+                        (click)="deleteTraining(training.id); $event.stopPropagation()"
+                        class="text-height-button">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+              <div>
+                <strong>ReplicateId:</strong> {{ training.replicateId }}
+              </div>
+              <div>
+                <strong>Status:</strong> {{ training.status }}
+                <button mat-raised-button color="primary"
+                        (click)="getStatus(training.id); $event.stopPropagation()">
+                  Статус
+                </button>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #noTraining>
+            <ng-container *ngIf="model.archiveUrl; else noTrainingText">
+              <button mat-raised-button color="primary"
+                      (click)="launchTraining(model.id); $event.stopPropagation()">
+                Запустити тренування
+              </button>
             </ng-container>
-            <ng-template #noTraining>
-                <ng-container *ngIf="model.archiveUrl; else noTrainingText">
-                  <button mat-raised-button color="primary"
-                          (click)="launchTraining(model.id); $event.stopPropagation()">
-                    Запустити тренування
-                  </button>
-                </ng-container>
-                <ng-template #noTrainingText>
-                  <span>Немає тренувань</span>
-                </ng-template>
-              </ng-template>
+            <ng-template #noTrainingText>
+              <span>Немає тренувань</span>
+            </ng-template>
+          </ng-template>
         </td>
-    </ng-container>
+      </ng-container>
 
     <!-- Нова колонка Фото -->
     <ng-container matColumnDef="photos">
