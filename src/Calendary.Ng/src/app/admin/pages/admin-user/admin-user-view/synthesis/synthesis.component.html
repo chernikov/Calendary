@@ -1,4 +1,9 @@
 <h3>Генерація</h3>
+<div class="actions-header">
+  <button mat-raised-button color="primary" (click)="openCreateSynthesisDialog()">
+    <mat-icon>add</mat-icon> Додати
+  </button>
+</div>
 <table mat-table [dataSource]="synthesises" class="mat-elevation-z8">
   <!-- Колонка Text -->
   <ng-container matColumnDef="text">

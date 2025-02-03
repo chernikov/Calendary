@@ -3,7 +3,7 @@
 public class SynthesisDto 
 {
     public int Id { get; set; }
-    public int PromptId { get; set; }
+    public int? PromptId { get; set; }
 
     public int TrainingId { get; set; }
     public string Text { get; set; } = string.Empty;
@@ -20,3 +20,18 @@ public class SynthesisDto
     public DateTime? CompletedAt { get; set; }
     public PromptDto Prompt { get; set; } = null!;
 }
+
+public class CreateSynthesisDto
+{
+    public int? PromptId { get; set; }
+
+    public int FluxModelId { get; set; }
+
+    public int TrainingId { get; set; }
+
+    public string? Text { get; set; }
+
+    public int? Seed { get; set; }
+}
+
+
