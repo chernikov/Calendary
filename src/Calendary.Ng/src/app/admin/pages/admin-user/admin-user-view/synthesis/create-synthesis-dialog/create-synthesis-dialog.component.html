@@ -1,0 +1,18 @@
+<h2 mat-dialog-title>Генерація Synthesis</h2>
+<mat-dialog-content>
+  <form [formGroup]="synthesisForm">
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>Текст</mat-label>
+      <textarea matInput formControlName="text" placeholder="Введіть текст" rows="5"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>Seed</mat-label>
+      <input matInput type="number" formControlName="seed" placeholder="Введіть seed" />
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Скасувати</button>
+  <button mat-button color="primary" (click)="onSave()">Запустити</button>
+</mat-dialog-actions>

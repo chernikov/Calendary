@@ -3,7 +3,9 @@
 public class TrainingDto
 {
     public int Id { get; set; }
+    public int FluxModelId { get; set; }
     public string ReplicateId { get; set; } = string.Empty;
+
     public string Status { get; set; } = "starting"; // ENUM: starting, inprogress, completed, failed
 
     public string Version { get; set; } = string.Empty;

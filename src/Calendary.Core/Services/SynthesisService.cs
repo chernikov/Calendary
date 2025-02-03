@@ -10,7 +10,7 @@ public interface ISynthesisService
 
     Task<IEnumerable<Synthesis>> GetByTrainingIdAsync(int trainingId);
 
-    Task<Synthesis> CreateAsync(int promptId, int trainingId, string? text, int? seed);
+    Task<Synthesis> CreateAsync(int? promptId, int trainingId, string? text, int? seed);
 
     Task<IEnumerable<Synthesis>> GetFullAllAsync();
 
@@ -40,26 +40,25 @@ public class SynthesisService : ISynthesisService
      => _synthesisRepository.GetByPromptIdAsync(idPrompt);
 
 
-    public async Task<Synthesis> CreateAsync(int promptId, int trainingId, string? text, int? seed)
+    public async Task<Synthesis> CreateAsync(int? promptId, int trainingId, string? text, int? seed)
     {
-        var prompt = await _promptRepository.GetByIdAsync(promptId);
+        if (promptId is null && text is null)
+        {
+            throw new ArgumentException("Invalid promptId or text id");
+        }
         var training = await _trainingRepository.GetByIdAsync(trainingId);
 
-        if (prompt == null || training == null)
-        {
-            throw new ArgumentException("Invalid promptId or trainingId");
-        }
+        var prompt = promptId is not null ? await _promptRepository.GetByIdAsync(promptId.Value) : null;
 
         var synthesis = new Synthesis
         {
             PromptId = promptId,
             TrainingId = trainingId,
-            Text = text ?? prompt.Text,
+            Text = prompt?.Text ?? text!,
             Seed = seed,
             Status = "prepared",
             CreatedAt = DateTime.UtcNow,
-            Prompt = prompt,
-            Training = training
+            Training = training!
         };
 
         await _synthesisRepository.AddAsync(synthesis);

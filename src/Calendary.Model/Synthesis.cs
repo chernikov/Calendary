@@ -3,7 +3,7 @@
 public class Synthesis
 {
     public int Id { get; set; }
-    public int PromptId { get; set; }
+    public int? PromptId { get; set; }
     public int TrainingId { get; set; }
     public string Text { get; set; } = string.Empty;
 
@@ -19,7 +19,7 @@ public class Synthesis
     public int RetryCount { get; set; } = 0;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
-    public Prompt Prompt { get; set; } = null!;
+    public Prompt? Prompt { get; set; } = null!;
     public Training Training { get; set; } = null!;
 
 }

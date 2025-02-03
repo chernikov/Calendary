@@ -1,5 +1,6 @@
 export class CreateSynthesis {
-    promptId: number = 0;
+    promptId: number | null = null;
+    trainingId: number = 0;
     fluxModelId: number = 0;
     text: string = '';
     seed: number | null = null;
@@ -7,7 +8,7 @@ export class CreateSynthesis {
 
 export class Synthesis {
   id: number = 0;
-  promptId: number= 0;
+  promptId: number| null = null;
   trainingId: number = 0;
   text: string = '';
   seed: number | null = null;

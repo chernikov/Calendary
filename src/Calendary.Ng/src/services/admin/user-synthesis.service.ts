@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Synthesis } from '../../models/synthesis';
+import { CreateSynthesis, Synthesis } from '../../models/synthesis';
 
 @Injectable({
   providedIn: 'root'
@@ -24,4 +24,19 @@ export class UserSynthesisService {
     const url = `${this.apiUrl}/${userId}/synthesis/${trainingId}`;
     return this.http.get<Synthesis[]>(url);
   }
+
+
+  /**
+   * Викликає endpoint для створення synthesis і запуску процесу.
+   * URL: /api/admin/user/{userId}/synthesis
+   *
+   * @param userId - ідентифікатор користувача (для якого створюється synthesis)
+   * @param createSynthesis - дані для створення synthesis
+   * @returns Observable з відповіддю сервера
+   */
+  createAndRun(userId: number, createSynthesis: CreateSynthesis): Observable<Synthesis> {
+    const url = `${this.apiUrl}/${userId}/synthesis`;
+    return this.http.post<Synthesis>(url, createSynthesis);
+  }
+
 }
