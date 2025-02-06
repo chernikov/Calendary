@@ -25,7 +25,6 @@ export class UserSynthesisService {
     return this.http.get<Synthesis[]>(url);
   }
 
-
   /**
    * Викликає endpoint для створення synthesis і запуску процесу.
    * URL: /api/admin/user/{userId}/synthesis

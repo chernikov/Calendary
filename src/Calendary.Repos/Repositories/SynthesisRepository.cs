@@ -43,7 +43,10 @@ public class SynthesisRepository : ISynthesisRepository
 
     public async Task<IEnumerable<Synthesis>> GetByTrainingIdAsync(int trainingId)
     {
-        return await _context.Synthesises.Where(p => p.TrainingId == trainingId).ToListAsync();
+        return await _context.Synthesises
+                .Include(p => p.Prompt)
+                .Where(p => p.TrainingId == trainingId)
+                .ToListAsync();
     }
 
     public async Task<Synthesis?> GetByIdAsync(int id)

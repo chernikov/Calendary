@@ -3,7 +3,7 @@
 public class Prompt
 {
     public int Id { get; set; }
-    public int ThemeId { get; set; }
+    public int? ThemeId { get; set; }
 
     public int? CategoryId { get; set; }
 
@@ -11,7 +11,7 @@ public class Prompt
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Навігаційні властивості
-    public PromptTheme Theme { get; set; } = null!;
+    public PromptTheme? Theme { get; set; }
 
     public Category? Category { get; set; }
 

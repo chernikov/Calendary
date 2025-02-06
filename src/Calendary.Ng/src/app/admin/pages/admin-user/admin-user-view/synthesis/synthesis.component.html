@@ -1,37 +1,44 @@
 <h3>Генерація</h3>
 <div class="actions-header">
-  <button mat-raised-button color="primary" (click)="openCreateSynthesisDialog()">
+  <button mat-raised-button color="primary" (click)="openCreateSynthesisDialog()" class="add-btn">
     <mat-icon>add</mat-icon> Додати
   </button>
 </div>
-<table mat-table [dataSource]="synthesises" class="mat-elevation-z8">
+
+<div class="loading-overlay" *ngIf="isLoading">
+  <mat-spinner></mat-spinner>
+</div>
+
+<table mat-table [dataSource]="prompts" class="mat-elevation-z8">
   <!-- Колонка Text -->
   <ng-container matColumnDef="text">
     <th mat-header-cell *matHeaderCellDef class="text-column"> Текст </th>
-    <td mat-cell *matCellDef="let synthesis" class="text-column"> {{ synthesis.text }} </td>
+    <td mat-cell *matCellDef="let prompt" class="text-column"> {{ prompt.text }} </td>
   </ng-container>
+  <!-- Combined Column for Image and Seed -->
+  <ng-container matColumnDef="synthData">
+    <th mat-header-cell *matHeaderCellDef> Зображення & Seed </th>
+    <td mat-cell *matCellDef="let group">
 
-<!-- Колонка ImageUrl -->
-<ng-container matColumnDef="imageUrl">
-    <th mat-header-cell *matHeaderCellDef> Зображення </th>
-    <td mat-cell *matCellDef="let synthesis">
-      <img [src]="synthesis.imageUrl" alt="Image" class="thumbnail-image" (click)="openFullScreen(synthesis.imageUrl)" />
+      <!-- Iterate over the synthesises in the current group -->
+      <div *ngFor="let synthesis of group.synthesises" class="synthesis-item">
+        <img [src]="synthesis.imageUrl" alt="Image" class="thumbnail-image"
+          title="{{ synthesis.outputSeed }}"
+          (click)="openFullScreen(synthesis.imageUrl)" />
+
+      </div>
     </td>
   </ng-container>
-  
 
-  <!-- Колонка Status -->
-  <ng-container matColumnDef="status">
-    <th mat-header-cell *matHeaderCellDef> Status </th>
-    <td mat-cell *matCellDef="let synthesis"> {{ synthesis.status }} </td>
+  <!-- Колонка Actions -->
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef> Дії </th>
+    <td mat-cell *matCellDef="let prompt">
+      <button mat-button color="primary" (click)="runAgain(prompt.id, prompt.text)">
+        Перегенерувати
+      </button>
+    </td>
   </ng-container>
-
-  <!-- Колонка Seed -->
-  <ng-container matColumnDef="seed">
-    <th mat-header-cell *matHeaderCellDef> Seed </th>
-    <td mat-cell *matCellDef="let synthesis"> {{ synthesis.outputSeed }} </td>
-  </ng-container>
-
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>
