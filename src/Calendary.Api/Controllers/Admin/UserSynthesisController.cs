@@ -14,6 +14,7 @@ public class UserSynthesisController : BaseAdminController
     private readonly IFluxModelService _fluxModelService;
     private readonly IReplicateService _replicateService;
     private readonly ITrainingService _trainingService;
+    private readonly IPromptService _promptService;   
     private readonly IMapper _mapper;
 
     public UserSynthesisController(IUserService userService,
@@ -21,12 +22,14 @@ public class UserSynthesisController : BaseAdminController
         IFluxModelService fluxModelService,
         IReplicateService replicateService,
         ITrainingService trainingService,
+        IPromptService promptService, 
         IMapper mapper) : base(userService)
     {
         _synthesisService = synthesisService;
         _fluxModelService = fluxModelService;
         _replicateService = replicateService;
         _trainingService = trainingService;
+        _promptService = promptService;
         _mapper = mapper;
     }
 
@@ -39,6 +42,8 @@ public class UserSynthesisController : BaseAdminController
         var result = _mapper.Map<List<SynthesisDto>>(synthesises);
         return Ok(synthesises);
     }
+
+
 
     [HttpPost]
     public async Task<IActionResult> CreateAndRun(int userId, [FromBody] CreateSynthesisDto createSynthesisDto)
@@ -56,6 +61,8 @@ public class UserSynthesisController : BaseAdminController
         {
             return NotFound($"Training with ID {createSynthesisDto.TrainingId} not found.");
         }
+
+        var prompt = await _promptService.GetOrCreateByIdAsync(createSynthesisDto.PromptId, createSynthesisDto.Text ?? "");
 
         // Створюємо тест
         var synthesis = await _synthesisService.CreateAsync(createSynthesisDto.PromptId,
@@ -92,4 +99,5 @@ public class UserSynthesisController : BaseAdminController
             return BadRequest($"Error while running Job: {ex.Message}");
         }
     }
+
 }

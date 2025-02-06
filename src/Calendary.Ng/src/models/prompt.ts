@@ -1,5 +1,6 @@
 import { Category } from "./category";
 import { PromptSeed } from "./promt-seed";
+import { Synthesis } from "./synthesis";
 
 export class Prompt {
     id: number = 0;
@@ -8,5 +9,6 @@ export class Prompt {
     text: string = '';
     themeName: string = '';
     seeds: PromptSeed[] = [];
+    synthesises: Synthesis[] = [];
     category : Category = new Category();
 }

@@ -11,10 +11,9 @@ public interface IPromptService
     Task DeleteAsync(int id);
 
     Task AssignSeedAsync(int promptId, int seed);
-
     Task DeassignSeedAsync(int promptId, int seed);
-
     Task ClearSeedsAsync(int promptId);
+    Task<Prompt> GetOrCreateByIdAsync(int? promptId, string text);
 }
 
 public class PromptService : IPromptService
@@ -71,4 +70,23 @@ public class PromptService : IPromptService
     
     public Task ClearSeedsAsync(int promptId)
         => _promptRepository.ClearSeedsAsync(promptId);
+
+    public async Task<Prompt> GetOrCreateByIdAsync(int? promptId, string text)
+    {
+        Prompt? existingPrompt = null;
+        if (promptId is not null)
+        {
+            existingPrompt = await _promptRepository.GetByIdAsync(promptId.Value);
+        }
+        if (existingPrompt is not null)
+        {
+            return existingPrompt;
+        }
+        var prompt = new Prompt()
+        {
+            Text = text
+        };
+        await _promptRepository.AddAsync(prompt);
+        return prompt;
+    }
 }
