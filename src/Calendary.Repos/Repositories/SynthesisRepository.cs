@@ -1,6 +1,5 @@
 ﻿using Calendary.Model;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 
 namespace Calendary.Repos.Repositories;
 

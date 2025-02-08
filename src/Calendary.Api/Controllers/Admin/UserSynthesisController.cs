@@ -65,7 +65,8 @@ public class UserSynthesisController : BaseAdminController
         var prompt = await _promptService.GetOrCreateByIdAsync(createSynthesisDto.PromptId, createSynthesisDto.Text ?? "");
 
         // Створюємо тест
-        var synthesis = await _synthesisService.CreateAsync(createSynthesisDto.PromptId,
+        var synthesis = await _synthesisService.CreateAsync(
+                prompt.Id,
                 training.Id,
                 createSynthesisDto.Text,
                 createSynthesisDto.Seed);
