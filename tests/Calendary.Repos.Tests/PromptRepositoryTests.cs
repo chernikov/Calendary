@@ -25,7 +25,7 @@ namespace Calendary.Repos.Tests
             using (var context = new CalendaryDbContext(_options))
             {
                 var repository = new PromptRepository(context);
-                var prompt = new Prompt { Name = "Test Prompt", Text = "Test Prompt Text" };
+                var prompt = new Prompt { Text = "Test Prompt Text", ThemeId = 1, CategoryId = 1 };
 
                 // Act
                 await repository.AddAsync(prompt);
@@ -36,7 +36,7 @@ namespace Calendary.Repos.Tests
             {
                 Assert.Equal(1, await context.Prompts.CountAsync());
                 var prompt = await context.Prompts.FirstAsync();
-                Assert.Equal("Test Prompt", prompt.Name);
+                Assert.Equal("Test Prompt Text", prompt.Text);
             }
         }
     }

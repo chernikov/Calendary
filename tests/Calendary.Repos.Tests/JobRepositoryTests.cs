@@ -25,7 +25,7 @@ namespace Calendary.Repos.Tests
             using (var context = new CalendaryDbContext(_options))
             {
                 var repository = new JobRepository(context);
-                var job = new Job { Name = "Test Job", UserId = 1 };
+                var job = new Job { UserId = 1, ThemeId = 1, FluxModelId = 1, Status = "prepared" };
 
                 // Act
                 await repository.AddAsync(job);
@@ -36,7 +36,7 @@ namespace Calendary.Repos.Tests
             {
                 Assert.Equal(1, await context.Jobs.CountAsync());
                 var job = await context.Jobs.FirstAsync();
-                Assert.Equal("Test Job", job.Name);
+                Assert.Equal("prepared", job.Status);
             }
         }
     }

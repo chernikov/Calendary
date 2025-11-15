@@ -25,7 +25,7 @@ namespace Calendary.Repos.Tests
             using (var context = new CalendaryDbContext(_options))
             {
                 var repository = new CalendarRepository(context);
-                var calendar = new Calendar { Name = "Test Calendar", UserId = 1, Year = 2025 };
+                var calendar = new Calendar { UserId = 1, Year = 2025, LanguageId = 1, CountryId = 1, IsCurrent = true };
 
                 // Act
                 await repository.AddAsync(calendar);
@@ -36,7 +36,7 @@ namespace Calendary.Repos.Tests
             {
                 Assert.Equal(1, await context.Calendars.CountAsync());
                 var calendar = await context.Calendars.FirstAsync();
-                Assert.Equal("Test Calendar", calendar.Name);
+                Assert.Equal(2025, calendar.Year);
             }
         }
     }
