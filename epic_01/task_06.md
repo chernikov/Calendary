@@ -193,3 +193,4 @@ public async Task<IActionResult> GenerateImage([FromBody] GenerateImageRequest r
 
 **Створено**: 2025-11-15
 **Оновлено**: 2025-11-15
+**Виконано**: 2025-11-15
