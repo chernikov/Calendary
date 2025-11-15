@@ -18,6 +18,8 @@ public interface IReplicateService
 
     Task<GenerateImageResponse> GenerateImageAsync(string predictionId);
 
+    Task<GenerateImageResponse> GenerateImageAsync(string predictionId, Func<ProgressUpdate, Task>? onProgress);
+
     Task CancelTrainingAsync(string replicateId);
 
     Task<TrainModelResponse> GetTrainingStatusAsync(string replicateId);
@@ -123,18 +125,73 @@ public class ReplicateService : IReplicateService
 
     public async Task<GenerateImageResponse> GenerateImageAsync(string predictionId)
     {
+        return await GenerateImageAsync(predictionId, null);
+    }
+
+    public async Task<GenerateImageResponse> GenerateImageAsync(string predictionId, Func<ProgressUpdate, Task>? onProgress)
+    {
         var attempts = 0;
+        var startTime = DateTime.UtcNow;
+
+        // Відправити початковий прогрес
+        if (onProgress != null)
+        {
+            await onProgress(new ProgressUpdate
+            {
+                Progress = 0,
+                Status = "Starting...",
+                EstimatedTime = null
+            });
+        }
+
         while (attempts < _settings.MaxRetries)
         {
             var status = await GetImageGenerationStatusAsync(predictionId);
 
+            // Розрахунок прогресу на основі статусу
+            var progress = CalculateProgress(status.Status, attempts, _settings.MaxRetries);
+            var elapsed = (DateTime.UtcNow - startTime).TotalSeconds;
+            var estimatedTotal = attempts > 0 ? (elapsed / attempts) * _settings.MaxRetries : null;
+            var estimatedRemaining = estimatedTotal.HasValue ? (int)(estimatedTotal.Value - elapsed) : null;
+
+            // Відправити оновлення прогресу
+            if (onProgress != null)
+            {
+                await onProgress(new ProgressUpdate
+                {
+                    Progress = progress,
+                    Status = GetStatusMessage(status.Status),
+                    EstimatedTime = estimatedRemaining
+                });
+            }
+
             if (status.Status == "succeeded")
             {
+                // Відправити фінальний прогрес
+                if (onProgress != null)
+                {
+                    await onProgress(new ProgressUpdate
+                    {
+                        Progress = 100,
+                        Status = "Completed!",
+                        EstimatedTime = 0
+                    });
+                }
                 return status;
             }
 
             if (status.Status == "failed")
             {
+                // Відправити повідомлення про помилку
+                if (onProgress != null)
+                {
+                    await onProgress(new ProgressUpdate
+                    {
+                        Progress = 0,
+                        Status = "Failed",
+                        Error = status.Logs
+                    });
+                }
                 throw new Exception($"Image generation failed: {status.Logs}");
             }
 
@@ -143,6 +200,28 @@ public class ReplicateService : IReplicateService
         }
 
         throw new TimeoutException("Image generation timed out.");
+    }
+
+    private int CalculateProgress(string status, int attempts, int maxRetries)
+    {
+        return status switch
+        {
+            "starting" => 10,
+            "processing" => 10 + (int)((attempts / (double)maxRetries) * 80),
+            _ => 5
+        };
+    }
+
+    private string GetStatusMessage(string status)
+    {
+        return status switch
+        {
+            "starting" => "Starting generation...",
+            "processing" => "Processing image...",
+            "succeeded" => "Completed!",
+            "failed" => "Failed",
+            _ => "Waiting..."
+        };
     }
 
 

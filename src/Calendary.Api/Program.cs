@@ -2,11 +2,12 @@ using Calendary.Repos;
 using Calendary.Core;
 using Microsoft.EntityFrameworkCore;
 using Calendary.Api;
+using Calendary.Api.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Retrieve the connection string from appsettings.json
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new Exception("Can't find connection string with name DefaultConnection");
 builder.Services.AddCalendaryRepositories(connectionString);
 
@@ -15,6 +16,8 @@ builder.Services.RegisterPathProvider();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddCoreServices(builder.Configuration);
 
+// Add SignalR for real-time progress updates
+builder.Services.AddSignalR();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -30,9 +33,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ImageGenerationHub>("/hubs/image-generation");
 
 await app.RunAsync();
