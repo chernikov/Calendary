@@ -14,6 +14,9 @@ public static class DependencyRegistration
         services.AddMemoryCache();
 
         services.Configure<ReplicateSettings>(configuration.GetSection("ReplicateSettings"));
+        services.Configure<OpenAISettings>(configuration.GetSection("OpenAI"));
+        services.Configure<AnthropicSettings>(configuration.GetSection("Anthropic"));
+        services.Configure<PromptEnhancerSettings>(configuration.GetSection("PromptEnhancer"));
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
@@ -32,6 +35,7 @@ public static class DependencyRegistration
         services.AddScoped<IWebHookService, WebHookService>();
         services.AddScoped<IPromptThemeService, PromptThemeService>();
         services.AddScoped<IPromptService, PromptService>();
+        services.AddHttpClient<IPromptEnhancerService, PromptEnhancerService>();
         services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IFluxModelService, FluxModelService>();
         services.AddScoped<ITrainingService, TrainingService>();
