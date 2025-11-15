@@ -34,6 +34,8 @@ public interface IFluxModelService
     Task SoftDeleteAsync(int id);
 
     Task ChangeNameAsync(FluxModel fluxModel);
+
+    Task SetActiveAsync(int userId, int fluxModelId);
 }
 
 public class FluxModelService : IFluxModelService
@@ -166,10 +168,45 @@ public class FluxModelService : IFluxModelService
             throw new Exception("Flux модель не знайдена");
         }
 
+        // Перевірити унікальність назви для користувача
+        var isUnique = await fluxModelRepository.IsNameUniqueForUserAsync(existingEntry.UserId, fluxModel.Name, fluxModel.Id);
+        if (!isUnique)
+        {
+            throw new Exception("Модель з такою назвою вже існує");
+        }
+
         // Оновити лише поле Name
         existingEntry.Name = fluxModel.Name;
 
         // Зберегти зміни в базі даних
         await fluxModelRepository.UpdateAsync(existingEntry);
+    }
+
+    public async Task SetActiveAsync(int userId, int fluxModelId)
+    {
+        // Отримати модель, яку потрібно зробити активною
+        var fluxModel = await fluxModelRepository.GetUserFluxModelAsync(userId, fluxModelId);
+        if (fluxModel == null)
+        {
+            throw new Exception("Flux модель не знайдена або не належить користувачу");
+        }
+
+        // Деактивувати всі інші моделі користувача
+        var allUserModels = await fluxModelRepository.GetListByUserIdAsync(userId);
+        foreach (var model in allUserModels)
+        {
+            if (model.IsActive && model.Id != fluxModelId)
+            {
+                model.IsActive = false;
+                await fluxModelRepository.UpdateAsync(model);
+            }
+        }
+
+        // Активувати вибрану модель
+        if (!fluxModel.IsActive)
+        {
+            fluxModel.IsActive = true;
+            await fluxModelRepository.UpdateAsync(fluxModel);
+        }
     }
 }

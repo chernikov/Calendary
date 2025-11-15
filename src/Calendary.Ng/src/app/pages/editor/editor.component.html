@@ -56,25 +56,17 @@
 
       <!-- Right Sidebar: Models, Gallery and Properties -->
       <aside class="editor-right-sidebar">
-        <div class="sidebar-panel models-panel">
-          <h3>Мої моделі</h3>
-          <p *ngIf="loadError" class="error">{{ loadError }}</p>
-          <ul class="models-list" *ngIf="userModels.length; else emptyModels">
-            <li
-              *ngFor="let model of userModels"
-              (click)="selectModel(model)"
-              [class.active]="model === activeModel"
-            >
-              <div class="model-name">{{ model.name || ('FluxModel #' + model.id) }}</div>
-              <div class="model-status">
-                <mat-icon>fiber_manual_record</mat-icon>
-                {{ model.status || 'unknown' }}
-              </div>
-            </li>
-          </ul>
-          <ng-template #emptyModels>
-            <p class="muted">Створи Flux модель у майстрі, щоб розпочати.</p>
-          </ng-template>
+        <div class="sidebar-panel">
+          <app-models-panel
+            [models]="userModels"
+            [activeModel]="activeModel"
+            [isLoading]="isLoading"
+            [loadError]="loadError"
+            (modelSelected)="selectModel($event)"
+            (modelDeleted)="onModelDeleted($event)"
+            (modelRenamed)="onModelRenamed($event)"
+            (modelsRefresh)="loadUserModels()"
+          ></app-models-panel>
         </div>
 
         <div class="sidebar-panel gallery-panel" *ngIf="activeModel">

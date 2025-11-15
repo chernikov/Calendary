@@ -198,13 +198,52 @@
       border-color: #4058ff;
       background: rgba(64, 88, 255, 0.08);
     }
+
+    &.is-active-model {
+      border-color: #10b981;
+    }
+  }
+
+  .model-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+
+    .active-indicator {
+      font-size: 16px;
+      height: 16px;
+      width: 16px;
+      color: #10b981;
+    }
   }
 
   .model-name {
     font-size: 14px;
     font-weight: 500;
     color: #1f2937;
-    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .edit-name-btn {
+      opacity: 0;
+      transition: opacity 0.2s;
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+      }
+    }
+  }
+
+  li:hover .edit-name-btn {
+    opacity: 1;
   }
 
   .model-status {

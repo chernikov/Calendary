@@ -20,6 +20,7 @@ import { JobService } from '../../../../../services/job.service';
 import { Job } from '../../../../../models/job';
 import { ImageGenerationSignalRService, ProgressUpdate } from '../../services/image-generation-signalr.service';
 import { Observable } from 'rxjs';
+import { SettingService } from '../../../../../services/setting.service';
 
 export interface GenerateModalData {
   fluxModelId: number;
@@ -61,6 +62,7 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
   showAdvancedOptions = false;
   progress$: Observable<ProgressUpdate | null>;
   currentJobId: number | null = null;
+  useImprovedPrompt = false;
 
   // Image dimension presets
   imageSizePresets = [
@@ -76,6 +78,7 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
     private promptThemeService: PromptThemeService,
     private jobService: JobService,
     private signalRService: ImageGenerationSignalRService,
+    private settingService: SettingService,
     private dialogRef: MatDialogRef<GenerateModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: GenerateModalData
   ) {
@@ -108,6 +111,7 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.loadPromptThemes();
+    this.loadUserSettings();
     this.updateValidators(this.generationMode);
 
     // Підключитися до SignalR при ініціалізації
@@ -122,6 +126,19 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
   async ngOnDestroy(): Promise<void> {
     // Відключитися від SignalR при знищенні компонента
     await this.signalRService.disconnect();
+  }
+
+  loadUserSettings(): void {
+    this.settingService.getSettings().subscribe({
+      next: (settings) => {
+        this.useImprovedPrompt = settings.useImprovedPrompt || false;
+      },
+      error: (err) => {
+        console.error('Помилка завантаження налаштувань користувача:', err);
+        // Default to false if settings can't be loaded
+        this.useImprovedPrompt = false;
+      }
+    });
   }
 
   loadPromptThemes(): void {

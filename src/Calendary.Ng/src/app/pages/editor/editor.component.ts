@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject, takeUntil, take } from 'rxjs';
 import { FluxModel } from '../../../models/flux-model';
 import { FluxModelService } from '../../../services/flux-model.service';
@@ -23,6 +24,7 @@ import { JobTaskService } from '../../../services/job-task.service';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { HistoryComponent } from './components/history/history.component';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
+import { ModelsPanelComponent } from './components/models-panel/models-panel.component';
 import { EditorStateService } from './services/editor-state.service';
 
 @Component({
@@ -36,13 +38,15 @@ import { EditorStateService } from './services/editor-state.service';
         MatProgressSpinnerModule,
         MatSnackBarModule,
         MatDialogModule,
+        MatTooltipModule,
         ImageGalleryComponent,
         ImageCanvasComponent,
         PropertiesPanelComponent,
         CalendarPreviewComponent,
         SidebarComponent,
         HistoryComponent,
-        ToolbarComponent
+        ToolbarComponent,
+        ModelsPanelComponent
     ],
     templateUrl: './editor.component.html',
     styleUrl: './editor.component.scss'
@@ -97,11 +101,23 @@ export class EditorComponent implements OnInit, OnDestroy {
 
   loadUserModels(): void {
     this.isLoading = true;
-    this.fluxModelService.current().subscribe({
-      next: (model) => {
-        const hasModel = model && model.id;
-        this.userModels = hasModel ? [model] : [];
-        this.activeModel = hasModel ? model : null;
+    this.loadError = '';
+    this.fluxModelService.getList().subscribe({
+      next: (models) => {
+        this.userModels = models || [];
+        // Select the active model or first model as active if there's any and no active model yet
+        const activeModel = models.find(m => m.isActive);
+        if (activeModel) {
+          this.activeModel = activeModel;
+        } else if (this.userModels.length > 0 && !this.activeModel) {
+          this.activeModel = this.userModels[0];
+        } else if (this.activeModel) {
+          // Refresh the active model from the list
+          const updatedActive = this.userModels.find(m => m.id === this.activeModel!.id);
+          this.activeModel = updatedActive || this.userModels[0] || null;
+        } else {
+          this.activeModel = null;
+        }
         this.isLoading = false;
       },
       error: () => {
@@ -114,8 +130,45 @@ export class EditorComponent implements OnInit, OnDestroy {
   }
 
   selectModel(model: FluxModel): void {
-    this.activeModel = model;
-    this.selectedImage = null;
+    if (this.activeModel?.id === model.id) {
+      return; // Модель вже активна
+    }
+
+    // Викликаємо API для встановлення активної моделі
+    this.fluxModelService.setActive(model.id).subscribe({
+      next: () => {
+        // Оновлюємо локальний стан
+        this.userModels.forEach(m => m.isActive = false);
+        model.isActive = true;
+        this.activeModel = model;
+        this.selectedImage = null;
+        this.snackBar.open(`Модель "${model.name}" встановлена як активна`, 'OK', {
+          duration: 2000
+        });
+      },
+      error: () => {
+        this.snackBar.open('Не вдалося встановити активну модель', 'OK', {
+          duration: 3000
+        });
+      }
+    });
+  }
+
+  onModelDeleted(modelId: number): void {
+    this.userModels = this.userModels.filter(m => m.id !== modelId);
+    if (this.activeModel?.id === modelId) {
+      this.activeModel = this.userModels.length > 0 ? this.userModels[0] : null;
+    }
+  }
+
+  onModelRenamed(updatedModel: FluxModel): void {
+    const index = this.userModels.findIndex(m => m.id === updatedModel.id);
+    if (index !== -1) {
+      this.userModels[index] = updatedModel;
+    }
+    if (this.activeModel?.id === updatedModel.id) {
+      this.activeModel = updatedModel;
+    }
   }
 
   onImageSelected(image: JobTask): void {

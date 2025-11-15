@@ -5,6 +5,10 @@
       <div>
         <h2 mat-dialog-title>Генерація зображень</h2>
         <p class="model-name">Модель: {{ data.fluxModelName }}</p>
+        <p class="prompt-mode-indicator" *ngIf="useImprovedPrompt">
+          <mat-icon class="indicator-icon">star</mat-icon>
+          Покращені промпти активовані
+        </p>
       </div>
     </div>
     <button mat-icon-button (click)="onCancel()" [disabled]="isGenerating">
