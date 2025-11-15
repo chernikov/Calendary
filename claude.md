@@ -35,7 +35,7 @@
 
 - **Calendary.Repos** - Data Access Layer
   - Entity Framework Core
-  - PostgreSQL (або SQL Server)
+  - MS SQL Server
   - Repository pattern
   - Migrations
 
