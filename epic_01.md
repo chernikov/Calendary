@@ -76,6 +76,7 @@
 ### Тестування та QA
 - [29. E2E тести для /editor](./epic_01/task_29.md) - **QA/Claude** ⏱️ 4-5 год
 - [30. Тестування генерації PDF](./epic_01/task_30.md) - **QA/Claude** ⏱️ 3-4 год
+- [31. Оновлення пакетів та Angular](./epic_01/task_31.md) - **DevOps/Claude** ⏱️ 4-6 год
 
 **Примітка**: Навантажувальне тестування перенесено в [backlog](./backlog/backlog.md)
 
