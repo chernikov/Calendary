@@ -20,6 +20,7 @@ import { LanguageService } from '../../../services/language.service';
 import { Calendar } from '../../../models/calendar';
 
 @Component({
+    standalone: true,
     selector: 'app-additional-settings',
     imports: [CommonModule, FormsModule, ReactiveFormsModule],
     templateUrl: './additional-settings.component.html',

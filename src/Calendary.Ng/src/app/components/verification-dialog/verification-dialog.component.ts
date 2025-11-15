@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { VerificationService } from '../../../services/verification.service';
 @Component({
+    standalone: true,
     selector: 'app-verification-dialog',
     imports: [
         CommonModule,

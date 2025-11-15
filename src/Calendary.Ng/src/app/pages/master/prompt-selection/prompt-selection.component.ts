@@ -22,6 +22,7 @@ import { JobTaskService } from '../../../../services/job-task.service';
 import { JobTask } from '../../../../models/job-task';
 
 @Component({
+    standalone: true,
     selector: 'app-prompt-selection',
     imports: [CommonModule, FormsModule, MatCardModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
     templateUrl: './prompt-selection.component.html',

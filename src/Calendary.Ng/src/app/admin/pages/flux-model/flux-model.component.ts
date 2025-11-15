@@ -9,6 +9,7 @@ import { AdminFluxModelService } from '../../../../services/admin/flux-model.ser
 import { AdminFluxModel } from '../../../../models/flux-model';
 
 @Component({
+    standalone: true,
     selector: 'app-flux-model',
     imports: [CommonModule, MatTableModule, MatPaginatorModule, MatIconModule, MatButtonModule],
     templateUrl: './flux-model.component.html',

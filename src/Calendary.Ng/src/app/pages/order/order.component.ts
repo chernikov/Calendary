@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
+    standalone: true,
     selector: 'app-order',
     imports: [CommonModule, MatButtonModule, MatIconModule],
     templateUrl: './order.component.html',

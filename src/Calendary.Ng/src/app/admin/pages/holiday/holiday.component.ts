@@ -6,6 +6,7 @@ import { HolidayService } from '../../../../services/holiday.service';
 
 
 @Component({
+    standalone: true,
     selector: 'app-holidays',
     imports: [CommonModule, FormsModule],
     templateUrl: './holiday.component.html',

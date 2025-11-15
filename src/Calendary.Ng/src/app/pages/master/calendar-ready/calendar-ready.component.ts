@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { FluxModelService } from '../../../../services/flux-model.service';
 
 @Component({
+    standalone: true,
     selector: 'app-calendar-ready',
     imports: [CommonModule, MatCardModule, MatButtonModule],
     templateUrl: './calendar-ready.component.html',

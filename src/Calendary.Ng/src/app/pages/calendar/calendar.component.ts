@@ -7,6 +7,7 @@ import { EventDatesComponent } from '../../components/event-date/event-dates.com
 import { Router, RouterModule } from '@angular/router';
 
 @Component({
+    standalone: true,
     selector: 'app-calendar',
     imports: [
         CommonModule,

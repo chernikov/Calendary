@@ -12,6 +12,7 @@ import { CreateFluxModel } from '../../../../../../../models/flux-model';
 
 
 @Component({
+    standalone: true,
     selector: 'app-create-flux-model-dialog',
     imports: [CommonModule, FormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule],
     templateUrl: './create-flux-model-dialog.component.html',

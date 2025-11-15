@@ -26,6 +26,7 @@ export interface GenerateModalData {
 export type GenerationMode = 'default' | 'theme' | 'custom';
 
 @Component({
+    standalone: true,
     selector: 'app-generate-modal',
     imports: [
         CommonModule,
@@ -44,7 +45,7 @@ export type GenerationMode = 'default' | 'theme' | 'custom';
         MatTooltipModule
     ],
     templateUrl: './generate-modal.component.html',
-    styleUrl: './generate-modal.component.scss'
+    styleUrls: ['./generate-modal.component.scss', './generate-modal-advanced.component.scss']
 })
 export class GenerateModalComponent implements OnInit {
   generateForm: FormGroup;

@@ -1,0 +1,81 @@
+<div class="calendar-preview">
+  <header class="preview-header">
+    <div>
+      <p class="eyebrow">Calendar preview</p>
+      <h3>Призначення місяців</h3>
+      <div class="status-row" [class.complete]="isComplete">
+        <mat-icon>{{ isComplete ? 'check_circle' : 'event' }}</mat-icon>
+        <span>{{ progressLabel() }}</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button
+        mat-stroked-button
+        color="primary"
+        type="button"
+        (click)="onClearAllClick()"
+        [disabled]="!assignments.length"
+      >
+        <mat-icon>backspace</mat-icon>
+        Очистити все
+      </button>
+    </div>
+  </header>
+
+  <div class="months-grid">
+    <div
+      class="month-card"
+      *ngFor="let month of months"
+      [class.assigned]="assignmentForMonth(month.value)"
+      [class.duplicate]="isDuplicate(assignmentForMonth(month.value))"
+      draggable="true"
+      (dragstart)="onDragStart(month.value, $event)"
+      (dragover)="onDragOver($event)"
+      (drop)="onDrop(month.value, $event)"
+      (click)="onMonthClick(month.value)"
+    >
+      <div class="month-header">
+        <span class="month-name">{{ month.label }}</span>
+        <button
+          mat-icon-button
+          class="clear-btn"
+          *ngIf="assignmentForMonth(month.value)"
+          (click)="onClearMonth(month.value, $event)"
+          matTooltip="Очистити місяць"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="month-body" [class.empty]="!assignmentForMonth(month.value)">
+        <ng-container *ngIf="assignmentForMonth(month.value) as assignment; else emptyMonth">
+          <img [src]="assignment.imageUrl" [alt]="month.label" />
+        </ng-container>
+        <ng-template #emptyMonth>
+          <div class="empty-placeholder">
+            <mat-icon>image</mat-icon>
+            <span>Оберіть зображення</span>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="month-footer">
+        <ng-container *ngIf="assignmentForMonth(month.value) as assignment; else noAssignment">
+          <span class="image-id">#{{ assignment.imageId }}</span>
+          <span *ngIf="isDuplicate(assignment)" class="warning" matTooltip="Зображення використовується кілька разів">
+            <mat-icon>warning</mat-icon>
+            Дублікат
+          </span>
+        </ng-container>
+        <ng-template #noAssignment>
+          <span class="muted">Не призначено</span>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <div class="validation" [class.error]="!isComplete || duplicateImageIds.length">
+    <mat-icon>{{ duplicateImageIds.length ? 'warning' : (isComplete ? 'check_circle' : 'info') }}</mat-icon>
+    <span>{{ validationMessage() }}</span>
+  </div>
+</div>

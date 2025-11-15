@@ -6,6 +6,7 @@ import { AdminFluxModel } from '../../../../../models/flux-model';
 import { AdminFluxModelService } from '../../../../../services/admin/flux-model.service';
 
 @Component({
+    standalone: true,
     selector: 'app-view-flux-model',
     imports: [CommonModule, MatButtonModule],
     templateUrl: './view-flux-model.component.html',

@@ -10,6 +10,7 @@ import { AdminCategoryService } from '../../../../services/admin/category.servic
 import { CategoryDialogComponent } from './category-dialog/category-dialog.component';
 
 @Component({
+    standalone: true,
     selector: 'app-admin-category',
     imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule],
     templateUrl: './admin-category.component.html',

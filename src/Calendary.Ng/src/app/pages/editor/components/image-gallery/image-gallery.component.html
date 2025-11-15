@@ -13,7 +13,19 @@
     >
       <div class="image-wrapper">
         <img [src]="getImageUrl(image)" [alt]="'Image #' + image.id" />
+        <div class="assignment-badge" *ngIf="getAssignedMonth(image) as assignedMonth">
+          <mat-icon inline>event_available</mat-icon>
+          <span>{{ getMonthLabel(assignedMonth) || ('Місяць ' + assignedMonth) }}</span>
+        </div>
         <div class="image-overlay">
+          <button
+            mat-icon-button
+            class="add-btn"
+            (click)="requestAddToCalendar(image, $event)"
+            matTooltip="Додати до календаря"
+          >
+            <mat-icon>event</mat-icon>
+          </button>
           <button
             mat-icon-button
             class="delete-btn"

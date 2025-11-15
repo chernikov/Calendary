@@ -80,8 +80,10 @@
         <div class="sidebar-panel gallery-panel" *ngIf="activeModel">
           <app-image-gallery
             [jobs]="activeModel.jobs || []"
+            [assignments]="assignments"
             (imageSelected)="onImageSelected($event)"
             (imageDeleted)="onImageDeleted($event)"
+            (addToCalendar)="onAddToCalendar($event)"
           ></app-image-gallery>
         </div>
 
@@ -90,6 +92,17 @@
             [selectedImage]="selectedImage"
           ></app-properties-panel>
         </div>
+
+        <app-calendar-preview
+          *ngIf="activeModel"
+          class="calendar-panel"
+          [assignments]="assignments"
+          [duplicateImageIds]="duplicateImageIds"
+          (monthSelected)="onMonthSlotSelected($event)"
+          (clearMonth)="onMonthAssignmentCleared($event)"
+          (clearAll)="onClearAllAssignments()"
+          (swapRequested)="onMonthSwap($event)"
+        ></app-calendar-preview>
       </aside>
     </div>
   </div>

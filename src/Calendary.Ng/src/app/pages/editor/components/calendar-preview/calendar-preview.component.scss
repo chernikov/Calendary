@@ -1,0 +1,182 @@
+.calendar-preview {
+  background: #fdfdff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+h3 {
+  margin: 4px 0;
+}
+
+.status-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &.complete {
+    color: #15803d;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.months-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.month-card {
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  background: #fff;
+
+  &:hover {
+    border-color: #4058ff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+  }
+
+  &.assigned {
+    border-style: solid;
+  }
+
+  &.duplicate {
+    border-color: #f97316;
+  }
+}
+
+.month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #111827;
+}
+
+.month-body {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f3f4f6;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &.empty {
+    border: 1px dashed #d1d5db;
+  }
+}
+
+.empty-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #9ca3af;
+
+  mat-icon {
+    opacity: 0.6;
+  }
+}
+
+.month-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.image-id {
+  font-weight: 600;
+  color: #374151;
+}
+
+.warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #d97706;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.muted {
+  color: #9ca3af;
+}
+
+.clear-btn {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.month-card:hover .clear-btn {
+  opacity: 1;
+}
+
+.validation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #1e3a8a;
+
+  &.error {
+    background: #fff7ed;
+    color: #9a3412;
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}

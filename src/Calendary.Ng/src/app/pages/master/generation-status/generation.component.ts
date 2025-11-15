@@ -6,6 +6,7 @@ import { FluxModel } from '../../../../models/flux-model';
 import { TrainingService } from '../../../../services/training.service';
 
 @Component({
+    standalone: true,
     selector: 'app-generation',
     imports: [CommonModule, MatButtonModule],
     templateUrl: './generation.component.html',

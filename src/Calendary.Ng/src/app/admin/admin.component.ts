@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { MenuComponent } from './components/menu/menu.component';
 import { TokenService } from '../../services/token.service';
 @Component({
+    standalone: true,
     selector: 'app-admin',
     imports: [MenuComponent, RouterModule, MatSidenavModule],
     templateUrl: "./admin.component.html",

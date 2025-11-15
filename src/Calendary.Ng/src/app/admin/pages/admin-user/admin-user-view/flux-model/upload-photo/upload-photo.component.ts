@@ -6,6 +6,7 @@ import { UploadPhotoService } from '../../../../../../../services/admin/upload-p
 
 
 @Component({
+    standalone: true,
     selector: 'app-upload-photo',
     imports: [CommonModule, FormsModule, FileUploadModule],
     templateUrl: './upload-photo.component.html',

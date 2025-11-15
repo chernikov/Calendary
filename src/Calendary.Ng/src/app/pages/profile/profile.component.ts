@@ -5,6 +5,7 @@ import { ProfileOrdersComponent } from '../../components/profile-orders/profile-
 import { ChangePasswordComponent } from '../../components/change-password/change-password.component';
 
 @Component({
+    standalone: true,
     selector: 'app-profile',
     imports: [SettingsComponent, ProfileOrdersComponent, ChangePasswordComponent],
     templateUrl: './profile.component.html',

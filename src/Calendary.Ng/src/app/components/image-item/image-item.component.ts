@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { Image } from '../../../models/image';
 @Component({
+    standalone: true,
     selector: 'app-image-item',
     imports: [CommonModule],
     templateUrl: './image-item.component.html',

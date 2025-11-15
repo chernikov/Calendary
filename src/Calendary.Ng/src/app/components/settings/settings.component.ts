@@ -8,6 +8,7 @@ import { VerificationDialogComponent } from '../verification-dialog/verification
 import { VerificationService } from '../../../services/verification.service';
 
 @Component({
+    standalone: true,
     selector: 'app-settings',
     imports: [CommonModule, FormsModule, ReactiveFormsModule],
     templateUrl: './settings.component.html',

@@ -14,4 +14,8 @@ export class JobTaskService {
   run(taskId: number): Observable<JobTask> {
     return this.http.get<JobTask>(`${this.apiUrl}/run/${taskId}`);
   }
+
+  delete(taskId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${taskId}`);
+  }
 }

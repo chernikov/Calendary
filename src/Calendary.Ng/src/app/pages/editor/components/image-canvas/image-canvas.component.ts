@@ -11,6 +11,7 @@ import { EditorStateService } from '../../services/editor-state.service';
 import { Subscription } from 'rxjs';
 
 @Component({
+    standalone: true,
     selector: 'app-image-canvas',
     imports: [
         CommonModule,

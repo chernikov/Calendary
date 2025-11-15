@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { SummaryOrder } from '../../../models/summary-order';
 
 @Component({
+    standalone: true,
     selector: 'app-order-summary-modal',
     imports: [MatDialogModule],
     templateUrl: './order-summary-modal.component.html',

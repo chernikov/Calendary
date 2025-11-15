@@ -1,11 +1,12 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnDestroy, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Subject, takeUntil, take } from 'rxjs';
 import { FluxModel } from '../../../models/flux-model';
 import { FluxModelService } from '../../../services/flux-model.service';
 import { JobTask } from '../../../models/job-task';
@@ -14,12 +15,18 @@ import { ImageGalleryComponent } from './components/image-gallery/image-gallery.
 import { ImageCanvasComponent } from './components/image-canvas/image-canvas.component';
 import { PropertiesPanelComponent } from './components/properties-panel/properties-panel.component';
 import { GenerateModalComponent } from './components/generate-modal/generate-modal.component';
+import { CalendarPreviewComponent } from './components/calendar-preview/calendar-preview.component';
+import { CalendarBuilderService } from './services/calendar-builder.service';
+import { MonthAssignment, MONTHS } from './models/calendar-assignment.model';
+import { MonthSelectorComponent, MonthSelectorResult } from './components/month-selector/month-selector.component';
+import { JobTaskService } from '../../../services/job-task.service';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { HistoryComponent } from './components/history/history.component';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
 import { EditorStateService } from './services/editor-state.service';
 
 @Component({
+    standalone: true,
     selector: 'app-editor',
     imports: [
         CommonModule,
@@ -28,9 +35,11 @@ import { EditorStateService } from './services/editor-state.service';
         MatButtonModule,
         MatProgressSpinnerModule,
         MatSnackBarModule,
+        MatDialogModule,
         ImageGalleryComponent,
         ImageCanvasComponent,
         PropertiesPanelComponent,
+        CalendarPreviewComponent,
         SidebarComponent,
         HistoryComponent,
         ToolbarComponent
@@ -38,17 +47,22 @@ import { EditorStateService } from './services/editor-state.service';
     templateUrl: './editor.component.html',
     styleUrl: './editor.component.scss'
 })
-export class EditorComponent implements OnInit {
+export class EditorComponent implements OnInit, OnDestroy {
   isLoading = true;
   loadError = '';
   userModels: FluxModel[] = [];
   activeModel: FluxModel | null = null;
   selectedImage: JobTask | null = null;
+  assignments: MonthAssignment[] = [];
+  duplicateImageIds: string[] = [];
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fluxModelService: FluxModelService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
+    private calendarBuilder: CalendarBuilderService,
+    private jobTaskService: JobTaskService,
     private editorStateService: EditorStateService
   ) {}
 
@@ -72,7 +86,13 @@ export class EditorComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.subscribeToAssignments();
     this.loadUserModels();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadUserModels(): void {
@@ -103,10 +123,32 @@ export class EditorComponent implements OnInit {
   }
 
   onImageDeleted(image: JobTask): void {
-    // TODO: Implement actual deletion via API
-    this.snackBar.open('Видалення зображення буде реалізовано пізніше', 'OK', {
-      duration: 3000
-    });
+    const confirmed = confirm('Видалити зображення? Це також прибере його з календаря.');
+    if (!confirmed) {
+      return;
+    }
+
+    this.jobTaskService.delete(image.id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.calendarBuilder.removeAssignmentsByImageId(image.id.toString());
+          this.removeImageFromActiveModel(image.id);
+
+          if (this.selectedImage?.id === image.id) {
+            this.selectedImage = null;
+          }
+
+          this.snackBar.open('Зображення видалено та прибране з календаря', 'OK', {
+            duration: 3000
+          });
+        },
+        error: () => {
+          this.snackBar.open('Не вдалося видалити зображення. Спробуйте ще раз.', 'OK', {
+            duration: 3500
+          });
+        }
+      });
   }
 
   onImageSaved(blob: Blob): void {
@@ -170,5 +212,149 @@ export class EditorComponent implements OnInit {
     this.snackBar.open('Завантаження зображень буде реалізовано пізніше', 'OK', {
       duration: 3000
     });
+  }
+
+  onAddToCalendar(image: JobTask): void {
+    const dialogRef = this.dialog.open(MonthSelectorComponent, {
+      width: '420px',
+      data: {
+        month: this.calendarBuilder.getAssignmentByImageId(image.id.toString())?.month,
+        assignments: this.assignments,
+        selectedImageId: image.id.toString()
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result: MonthSelectorResult | undefined) => {
+      if (result?.month) {
+        this.assignImageToMonth(image, result.month);
+      }
+    });
+  }
+
+  onMonthSlotSelected(month: number): void {
+    if (!this.allImages.length) {
+      this.snackBar.open('Створіть або завантажте зображення, щоб заповнити календар', 'OK', {
+        duration: 3000
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(MonthSelectorComponent, {
+      width: '520px',
+      data: {
+        month,
+        assignments: this.assignments,
+        allowImageSelection: true,
+        images: this.allImages.map((image) => ({
+          id: image.id.toString(),
+          url: this.getImageUrl(image)
+        })),
+        selectedImageId: this.selectedImage?.id?.toString()
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result: MonthSelectorResult | undefined) => {
+      if (result?.month && result?.imageId) {
+        const image = this.allImages.find((item) => item.id.toString() === result.imageId);
+        if (image) {
+          this.assignImageToMonth(image, result.month);
+          this.selectedImage = image;
+        } else {
+          this.snackBar.open('Не вдалося знайти вибране зображення', 'OK', { duration: 2500 });
+        }
+      }
+    });
+  }
+
+  onMonthAssignmentCleared(month: number): void {
+    this.calendarBuilder.removeAssignment(month);
+    this.snackBar.open(`Призначення для ${this.getMonthName(month)} очищено`, 'OK', { duration: 2500 });
+  }
+
+  onClearAllAssignments(): void {
+    if (!this.assignments.length) {
+      return;
+    }
+
+    const confirmed = confirm('Очистити всі призначення місяців?');
+    if (!confirmed) {
+      return;
+    }
+
+    this.calendarBuilder.clear();
+    this.snackBar.open('Всі призначення очищено', 'OK', { duration: 2500 });
+  }
+
+  onMonthSwap(payload: { from: number; to: number }): void {
+    const { from, to } = payload;
+    const fromAssignment = this.calendarBuilder.getAssignment(from);
+    const toAssignment = this.calendarBuilder.getAssignment(to);
+
+    if (!fromAssignment) {
+      this.snackBar.open('Спочатку заповніть місяць, щоб перетягнути його.', 'OK', { duration: 2500 });
+      return;
+    }
+
+    if (toAssignment) {
+      this.calendarBuilder.assignImageToMonth(to, fromAssignment.imageId, fromAssignment.imageUrl);
+      this.calendarBuilder.assignImageToMonth(from, toAssignment.imageId, toAssignment.imageUrl);
+    } else {
+      this.calendarBuilder.assignImageToMonth(to, fromAssignment.imageId, fromAssignment.imageUrl);
+      this.calendarBuilder.removeAssignment(from);
+    }
+  }
+
+  get allImages(): JobTask[] {
+    return (this.activeModel?.jobs || [])
+      .flatMap(job => job.tasks || [])
+      .filter(task => task.imageUrl || task.processedImageUrl);
+  }
+
+  get isCalendarReady(): boolean {
+    return this.assignments.length === 12 && this.duplicateImageIds.length === 0;
+  }
+
+  private removeImageFromActiveModel(imageId: number): void {
+    if (!this.activeModel) {
+      return;
+    }
+
+    const updatedJobs = (this.activeModel.jobs || []).map(job => ({
+      ...job,
+      tasks: (job.tasks || []).filter(task => task.id !== imageId)
+    }));
+
+    this.activeModel = { ...this.activeModel, jobs: updatedJobs };
+    if (this.userModels.length) {
+      this.userModels = this.userModels.map(model => model.id === this.activeModel!.id ? this.activeModel! : model);
+    }
+  }
+
+  private assignImageToMonth(image: JobTask, month: number): void {
+    const imageUrl = this.getImageUrl(image);
+    if (!imageUrl) {
+      this.snackBar.open('Не вдалося отримати посилання на зображення', 'OK', { duration: 2500 });
+      return;
+    }
+
+    this.calendarBuilder.assignImageToMonth(month, image.id.toString(), imageUrl);
+    this.snackBar.open(`Додано до ${this.getMonthName(month)}`, 'OK', { duration: 2500 });
+  }
+
+  private subscribeToAssignments(): void {
+    this.calendarBuilder.assignments$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((assignments) => {
+        this.assignments = assignments;
+        this.duplicateImageIds = this.calendarBuilder.getDuplicateImageIds();
+      });
+  }
+
+  private getImageUrl(task: JobTask): string {
+    return task.processedImageUrl || task.imageUrl || '';
+  }
+
+  private getMonthName(month: number): string {
+    return MONTHS.find((item) => item.value === month)?.label || `Місяць ${month}`;
   }
 }

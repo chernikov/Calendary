@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 
 @Component({
+    standalone: true,
     selector: 'app-full-screen-photo',
     imports: [CommonModule],
     template: `

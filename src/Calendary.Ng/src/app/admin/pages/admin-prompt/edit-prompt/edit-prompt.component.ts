@@ -17,6 +17,7 @@ import { Category } from '../../../../../models/category';
 import { AdminCategoryService } from '../../../../../services/admin/category.service';
 
 @Component({
+    standalone: true,
     selector: 'app-edit-prompt',
     imports: [CommonModule, FormsModule, ReactiveFormsModule,
         MatFormFieldModule, MatInputModule, MatButtonModule, MatOptionModule, MatSelectModule,

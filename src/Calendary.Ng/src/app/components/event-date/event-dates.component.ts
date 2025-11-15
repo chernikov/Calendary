@@ -6,6 +6,7 @@ import { EventDateService } from '../../../services/event-date.service';
 
 
 @Component({
+    standalone: true,
     selector: 'app-event-dates',
     imports: [CommonModule, FormsModule],
     templateUrl: './event-dates.component.html',

@@ -14,6 +14,7 @@ import { CalendarReadyComponent } from './calendar-ready/calendar-ready.componen
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
+    standalone: true,
     selector: 'app-master',
     imports: [
         CommonModule,

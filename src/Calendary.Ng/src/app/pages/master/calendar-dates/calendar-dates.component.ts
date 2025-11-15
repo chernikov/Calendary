@@ -9,6 +9,7 @@ import { CalendarService } from '../../../../services/calendar.service';
 import { Calendar } from '../../../../models/calendar';
 
 @Component({
+    standalone: true,
     selector: 'app-calendar-dates',
     imports: [CommonModule, FormsModule, MatButtonModule],
     templateUrl: './calendar-dates.component.html',

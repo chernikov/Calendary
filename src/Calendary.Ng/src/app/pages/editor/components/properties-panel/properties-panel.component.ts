@@ -10,6 +10,7 @@ import { EditorStateService } from '../../services/editor-state.service';
 import { Subscription } from 'rxjs';
 
 @Component({
+    standalone: true,
     selector: 'app-properties-panel',
     imports: [CommonModule, MatIconModule, MatDividerModule, MatSliderModule, MatSelectModule, FormsModule],
     templateUrl: './properties-panel.component.html',

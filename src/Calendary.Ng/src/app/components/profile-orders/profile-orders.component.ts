@@ -8,6 +8,7 @@ import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
+    standalone: true,
     selector: 'app-profile-orders',
     imports: [CommonModule, MatTableModule, MatPaginatorModule, MatButtonModule, RouterModule],
     templateUrl: './profile-orders.component.html',

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
+    standalone: true,
     selector: 'app-confirmation-modal',
     imports: [MatDialogModule],
     templateUrl: './confirmation-modal.component.html',
