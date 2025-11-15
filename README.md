@@ -1,5 +1,10 @@
 # Calendary
 
+[![Build and Test](https://github.com/chernikov/Calendary/actions/workflows/build.yml/badge.svg)](https://github.com/chernikov/Calendary/actions/workflows/build.yml)
+[![Pull Request Tests](https://github.com/chernikov/Calendary/actions/workflows/test.yml/badge.svg)](https://github.com/chernikov/Calendary/actions/workflows/test.yml)
+[![Deploy to Staging](https://github.com/chernikov/Calendary/actions/workflows/deploy-staging.yml/badge.svg)](https://github.com/chernikov/Calendary/actions/workflows/deploy-staging.yml)
+[![Deploy to Production](https://github.com/chernikov/Calendary/actions/workflows/deploy-production.yml/badge.svg)](https://github.com/chernikov/Calendary/actions/workflows/deploy-production.yml)
+
 **Project Description: Calendary.com.ua**
 
 Calendary.com.ua is an innovative online service designed to allow users to create personalized calendar posters with ease. The platform enables users to register, select twelve custom images (one per month), add significant dates, and customize the language and start day of the week for their calendar. Once finalized, users can proceed with an order that generates a high-quality PDF sent directly to the print service, ensuring their personalized calendar is produced and delivered to their specified address.

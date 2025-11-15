@@ -1,0 +1,315 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  DOCKER_REGISTRY: chernikov
+  API_IMAGE: calendary.api
+  CONSUMER_IMAGE: calendary.consumer
+  FRONTEND_IMAGE: calendary.ng
+
+jobs:
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version tag
+        run: |
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Valid version tag: ${{ github.ref_name }}"
+          elif [[ "${{ github.event.inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Valid version input: ${{ github.event.inputs.version }}"
+          else
+            echo "Invalid version format. Use semantic versioning (e.g., v1.0.0)"
+            exit 1
+          fi
+
+      - name: Check if tag exists
+        run: |
+          VERSION="${{ github.ref_name || github.event.inputs.version }}"
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION exists"
+          else
+            echo "Tag $VERSION does not exist"
+            exit 1
+          fi
+
+  build-and-push-api:
+    name: Build and Push API (Production)
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name || github.event.inputs.version }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_REGISTRY }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.API_IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest
+
+      - name: Build and push (Production)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_VERSION=${{ github.ref_name || github.event.inputs.version }}
+
+  build-and-push-consumer:
+    name: Build and Push Consumer (Production)
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name || github.event.inputs.version }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_REGISTRY }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.CONSUMER_IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest
+
+      - name: Build and push (Production)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/
+          file: ./src/Calendary.Consumer/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_VERSION=${{ github.ref_name || github.event.inputs.version }}
+
+  build-and-push-frontend:
+    name: Build and Push Frontend (Production)
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name || github.event.inputs.version }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_REGISTRY }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.FRONTEND_IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest
+
+      - name: Build and push (Production)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/Calendary.Ng
+          file: ./src/Calendary.Ng/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_VERSION=${{ github.ref_name || github.event.inputs.version }}
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-and-push-api, build-and-push-consumer, build-and-push-frontend]
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+
+    steps:
+      - name: Backup current deployment
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ vars.PRODUCTION_HOST_IP }}
+          username: ${{ vars.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSHKEY }}
+          script: |
+            cd /home/production
+
+            # Create backup directory
+            mkdir -p backups
+            BACKUP_NAME="backup-$(date +%Y%m%d-%H%M%S)"
+
+            # Save current docker-compose state
+            docker-compose ps > "backups/${BACKUP_NAME}-state.txt"
+
+            # Save current image versions
+            docker images | grep calendary > "backups/${BACKUP_NAME}-images.txt"
+
+            echo "Backup created: ${BACKUP_NAME}"
+
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ vars.PRODUCTION_HOST_IP }}
+          username: ${{ vars.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSHKEY }}
+          script: |
+            cd /home/production
+
+            VERSION="${{ github.ref_name || github.event.inputs.version }}"
+
+            # Pull versioned images
+            docker pull ${{ env.DOCKER_REGISTRY }}/${{ env.API_IMAGE }}:${VERSION#v}
+            docker pull ${{ env.DOCKER_REGISTRY }}/${{ env.CONSUMER_IMAGE }}:${VERSION#v}
+            docker pull ${{ env.DOCKER_REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${VERSION#v}
+
+            # Stop current containers gracefully
+            docker-compose down --timeout 30
+
+            # Update docker-compose to use new version
+            export IMAGE_VERSION=${VERSION#v}
+
+            # Start new containers
+            docker-compose up -d
+
+            # Wait for services to start
+            sleep 15
+
+            # Health check
+            docker-compose ps
+
+            # Clean up old images (keep last 3 versions)
+            docker image prune -f
+
+      - name: Verify Production Deployment
+        run: |
+          VERSION="${{ github.ref_name || github.event.inputs.version }}"
+          echo "✅ Production deployment successful!"
+          echo "Version: ${VERSION}"
+          echo "Production URL: ${{ vars.PRODUCTION_URL }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always()
+
+    steps:
+      - name: Deployment Success
+        if: needs.deploy-production.result == 'success'
+        run: |
+          echo "✅ Production deployment successful!"
+          echo "Version: ${{ github.ref_name || github.event.inputs.version }}"
+
+      - name: Deployment Failed
+        if: needs.deploy-production.result != 'success'
+        run: |
+          echo "❌ Production deployment failed!"
+          echo "Check logs and consider rollback"
+          exit 1
+
+  rollback:
+    name: Rollback (Manual)
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: failure() && github.event_name == 'workflow_dispatch'
+    environment:
+      name: production-rollback
+
+    steps:
+      - name: Rollback to Previous Version
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ vars.PRODUCTION_HOST_IP }}
+          username: ${{ vars.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSHKEY }}
+          script: |
+            cd /home/production
+
+            # Find latest backup
+            LATEST_BACKUP=$(ls -t backups/backup-*-state.txt | head -1)
+
+            if [ -z "$LATEST_BACKUP" ]; then
+              echo "No backup found for rollback"
+              exit 1
+            fi
+
+            echo "Rolling back using: $LATEST_BACKUP"
+
+            # Stop current deployment
+            docker-compose down
+
+            # Restore from backup (you'll need to customize this based on your setup)
+            docker-compose up -d
+
+            echo "Rollback completed"

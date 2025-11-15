@@ -1,0 +1,63 @@
+# Dockerfile.production - Оптимізований для API
+# Multi-stage build для мінімального розміру образу
+
+# Stage 1: Build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+WORKDIR /src
+
+# Копіюємо тільки файли проектів для кешування залежностей
+COPY ["src/Calendary.Api/Calendary.Api.csproj", "Calendary.Api/"]
+COPY ["src/Calendary.Core/Calendary.Core.csproj", "Calendary.Core/"]
+COPY ["src/Calendary.Model/Calendary.Model.csproj", "Calendary.Model/"]
+COPY ["src/Calendary.Repos/Calendary.Repos.csproj", "Calendary.Repos/"]
+
+# Restore залежностей (цей шар буде кешуватись)
+RUN dotnet restore "Calendary.Api/Calendary.Api.csproj"
+
+# Копіюємо весь код
+COPY src/ .
+
+# Build з оптимізацією для production
+RUN dotnet publish "Calendary.Api/Calendary.Api.csproj" \
+    -c Release \
+    -o /app/publish \
+    --no-restore \
+    /p:PublishTrimmed=false \
+    /p:PublishSingleFile=false \
+    /p:EnableCompressionInSingleFile=true
+
+# Stage 2: Runtime (Alpine для меншого розміру)
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
+
+# Встановлення необхідних пакетів для ImageSharp (Alpine)
+RUN apk add --no-cache \
+    icu-libs \
+    libgdiplus \
+    jpeg \
+    libpng \
+    && rm -rf /var/cache/apk/*
+
+# Створюємо non-root користувача
+RUN addgroup -g 1000 calendary && \
+    adduser -u 1000 -G calendary -s /bin/sh -D calendary
+
+WORKDIR /app
+
+# Копіюємо тільки опубліковані файли
+COPY --from=build --chown=calendary:calendary /app/publish .
+
+# Налаштування для production
+ENV ASPNETCORE_ENVIRONMENT=Production \
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    ASPNETCORE_URLS=http://+:80
+
+# Security: Run as non-root
+USER calendary
+
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
+
+ENTRYPOINT ["dotnet", "Calendary.Api.dll"]
