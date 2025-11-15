@@ -11,8 +11,8 @@ public interface IFluxModelRepository : IRepository<FluxModel>
     Task<FluxModel?> GetCurrentByUserIdAsync(int useId);
     Task<FluxModel?> GetFullAsync(int id);
     Task<FluxModel?> GetUserFluxModelAsync(int userId, int fluxModelId);
-
     Task<FluxModel?> GetFullByIdAsync(int id);
+    Task<bool> IsNameUniqueForUserAsync(int userId, string name, int? excludeId = null);
 }
 
 public class FluxModelRepository : IFluxModelRepository
@@ -127,5 +127,17 @@ public class FluxModelRepository : IFluxModelRepository
     public async Task<FluxModel?> GetUserFluxModelAsync(int userId, int fluxModelId)
     {
         return await _context.FluxModels.FirstOrDefaultAsync(p => p.UserId == userId && p.Id == fluxModelId);
+    }
+
+    public async Task<bool> IsNameUniqueForUserAsync(int userId, string name, int? excludeId = null)
+    {
+        var query = _context.FluxModels.Where(fm => fm.UserId == userId && fm.Name == name && !fm.IsDeleted);
+
+        if (excludeId.HasValue)
+        {
+            query = query.Where(fm => fm.Id != excludeId.Value);
+        }
+
+        return !await query.AnyAsync();
     }
 }

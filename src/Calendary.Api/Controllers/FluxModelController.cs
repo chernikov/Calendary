@@ -171,9 +171,16 @@ public class FluxModelController : BaseUserController
         return Ok();
     }
 
+    // Оновлення назви FluxModel
     [HttpPut("{id}/name")]
     public async Task<IActionResult> UpdateName(int id, [FromBody] UpdateNameRequest request)
     {
+        // Валідація довжини назви
+        if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length < 3 || request.Name.Length > 50)
+        {
+            return BadRequest("Назва повинна містити від 3 до 50 символів");
+        }
+
         var user = await CurrentUser.Value;
         if (user is null)
         {
@@ -183,19 +190,27 @@ public class FluxModelController : BaseUserController
         var fluxModel = await _fluxModelService.GetByIdAsync(id);
         if (fluxModel == null)
         {
-            return NotFound();
+            return NotFound("Модель не знайдена");
         }
 
+        // Перевірка, що модель належить користувачу
         if (fluxModel.UserId != user.Id)
         {
             return Forbid();
         }
 
-        fluxModel.Name = request.Name;
-        await _fluxModelService.ChangeNameAsync(fluxModel);
+        try
+        {
+            fluxModel.Name = request.Name;
+            await _fluxModelService.ChangeNameAsync(fluxModel);
 
-        var result = _mapper.Map<FluxModelDto>(fluxModel);
-        return Ok(result);
+            var result = _mapper.Map<FluxModelDto>(fluxModel);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpDelete("{id}")]
