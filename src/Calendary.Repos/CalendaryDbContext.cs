@@ -69,84 +69,10 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserRole>()
-            .HasKey(ur => new { ur.UserId, ur.RoleId });
+        // Apply all entity configurations from the Configurations folder
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(CalendaryDbContext).Assembly);
 
-        modelBuilder.Entity<UserRole>()
-            .HasOne(ur => ur.User)
-            .WithMany(u => u.UserRoles)
-            .HasForeignKey(ur => ur.UserId);
-
-        modelBuilder.Entity<CalendarHoliday>()
-            .HasKey(ur => new { ur.CalendarId, ur.HolidayId });
-
-        modelBuilder.Entity<CalendarHoliday>()
-            .HasOne(ur => ur.Calendar)
-            .WithMany(u => u.CalendarHolidays)
-            .HasForeignKey(ur => ur.CalendarId);
-
-        modelBuilder.Entity<EventDate>()
-            .HasOne(ed => ed.UserSetting)
-            .WithMany(us => us.EventDates)
-            .HasForeignKey(ed => ed.UserSettingId);
-
-        modelBuilder.Entity<Holiday>()
-            .HasOne(h => h.Country)
-            .WithMany(c => c.Holidays)
-            .HasForeignKey(h => h.CountryId);
-
-        modelBuilder.Entity<Role>().HasData(
-            Role.AdminRole,
-            Role.UserRole
-        );
-
-        modelBuilder.Entity<Language>().HasData(
-            Language.Ukrainian,
-            Language.English
-        );
-
-        modelBuilder.Entity<Country>().HasData(
-            Country.Ukraine
-        );
-
-        modelBuilder.Entity<User>().HasData(
-            new User
-            {
-                Id = 1,
-                Identity = Guid.Parse("64F39BD1-633C-4B82-A64C-04CA94B77E90"),
-                UserName = "admin",
-                Email = "admin@calendary.com.ua",
-                PasswordHash = "21232f297a57a5a743894a0e4a801fc3",
-                IsEmailConfirmed = true,
-                IsPhoneNumberConfirmed = true,
-                IsTemporary = false,
-                Created = new DateTime(2024, 10, 15),
-            }
-        );
-
-        modelBuilder.Entity<UserRole>().HasData(
-            new UserRole
-            {
-                UserId = 1,
-                RoleId = 1
-            }
-        );
-
-        modelBuilder.Entity<OrderItem>()
-        .Property(o => o.Price)
-        .HasColumnType("decimal(18, 2)");
-
-        modelBuilder.Entity<Category>().HasData(
-          new Category { Id = 1, Name = "Чоловік", IsAlive = true },
-          new Category { Id = 2, Name = "Жінка", IsAlive = true },
-          new Category { Id = 3, Name = "Хлопчик (малюк)", IsAlive = true },
-          new Category { Id = 4, Name = "Дівчинка (малюк)", IsAlive = true },
-          new Category { Id = 5, Name = "Хлопчик", IsAlive = true },
-          new Category { Id = 6, Name = "Дівчинка", IsAlive = true },
-          new Category { Id = 7, Name = "Чоловік середнього віку", IsAlive = true },
-          new Category { Id = 8, Name = "Жінка середнього віку", IsAlive = true },
-          new Category { Id = 9, Name = "Чоловік поважного віку", IsAlive = true },
-          new Category { Id = 10, Name = "Жінка поважного віку", IsAlive = true }
-        );
+        // Seed initial data
+        DbSeeder.SeedData(modelBuilder);
     }
 }
