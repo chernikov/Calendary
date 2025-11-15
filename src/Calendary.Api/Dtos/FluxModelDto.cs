@@ -15,6 +15,8 @@ public class FluxModelDto
 
     public bool IsPaid { get; set; } // Поле оплати
 
+    public bool IsActive { get; set; } // Поле активної моделі
+
     public List<TrainingDto>? Trainings { get; set; }
 
     public List<JobDto>? Jobs { get; set; }
