@@ -15,6 +15,7 @@ export class FluxModel {
     createdAt: Date = new Date();
     completedAt?: Date;
     isPaid: boolean = false;
+    isActive: boolean = false;
     trainings : Training[] = [];
     jobs: Job[] = [];
     category : Category = new Category();

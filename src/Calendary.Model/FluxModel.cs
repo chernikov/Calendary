@@ -17,6 +17,8 @@ public class FluxModel
 
     public bool IsPaid { get; set; } // Поле оплати
 
+    public bool IsActive { get; set; } // Поле активної моделі
+
     public bool IsArchive { get; set; }
 
     public bool IsDeleted { get; set; }

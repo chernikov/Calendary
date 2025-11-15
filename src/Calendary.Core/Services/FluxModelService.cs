@@ -34,6 +34,8 @@ public interface IFluxModelService
     Task SoftDeleteAsync(int id);
 
     Task ChangeNameAsync(FluxModel fluxModel);
+
+    Task SetActiveAsync(int userId, int fluxModelId);
 }
 
 public class FluxModelService : IFluxModelService
@@ -178,5 +180,33 @@ public class FluxModelService : IFluxModelService
 
         // Зберегти зміни в базі даних
         await fluxModelRepository.UpdateAsync(existingEntry);
+    }
+
+    public async Task SetActiveAsync(int userId, int fluxModelId)
+    {
+        // Отримати модель, яку потрібно зробити активною
+        var fluxModel = await fluxModelRepository.GetUserFluxModelAsync(userId, fluxModelId);
+        if (fluxModel == null)
+        {
+            throw new Exception("Flux модель не знайдена або не належить користувачу");
+        }
+
+        // Деактивувати всі інші моделі користувача
+        var allUserModels = await fluxModelRepository.GetListByUserIdAsync(userId);
+        foreach (var model in allUserModels)
+        {
+            if (model.IsActive && model.Id != fluxModelId)
+            {
+                model.IsActive = false;
+                await fluxModelRepository.UpdateAsync(model);
+            }
+        }
+
+        // Активувати вибрану модель
+        if (!fluxModel.IsActive)
+        {
+            fluxModel.IsActive = true;
+            await fluxModelRepository.UpdateAsync(fluxModel);
+        }
     }
 }

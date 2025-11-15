@@ -64,12 +64,16 @@
               *ngFor="let model of userModels"
               (click)="selectModel(model)"
               [class.active]="model === activeModel"
+              [class.is-active-model]="model.isActive"
             >
-              <div class="model-name">
-                {{ model.name || ('FluxModel #' + model.id) }}
-                <button mat-icon-button class="edit-name-btn" (click)="editModelName($event, model)" title="Редагувати назву">
-                  <mat-icon>edit</mat-icon>
-                </button>
+              <div class="model-header">
+                <div class="model-name">
+                  {{ model.name || ('FluxModel #' + model.id) }}
+                  <button mat-icon-button class="edit-name-btn" (click)="editModelName($event, model)" title="Редагувати назву">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </div>
+                <mat-icon *ngIf="model.isActive" class="active-indicator" matTooltip="Активна модель">check_circle</mat-icon>
               </div>
               <div class="model-status">
                 <mat-icon>fiber_manual_record</mat-icon>

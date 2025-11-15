@@ -44,4 +44,14 @@ export class FluxModelService {
   updateName(id: number, name: string): Observable<FluxModel> {
     return this.http.put<FluxModel>(`${this.apiUrl}/${id}/name`, { name });
   }
+
+  // Встановлення активної моделі
+  setActive(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/set-active`, null);
+  }
+
+  // Отримання списку всіх моделей користувача
+  getList(): Observable<FluxModel[]> {
+    return this.http.get<FluxModel[]>(`${this.apiUrl}/list`);
+  }
 }

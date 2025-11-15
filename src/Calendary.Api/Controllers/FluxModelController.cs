@@ -200,6 +200,42 @@ public class FluxModelController : BaseUserController
         }
     }
 
+    // Встановлення активної моделі
+    [HttpPost("{id}/set-active")]
+    public async Task<IActionResult> SetActive(int id)
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            await _fluxModelService.SetActiveAsync(user.Id, id);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    // Отримання списку всіх моделей користувача
+    [HttpGet("list")]
+    public async Task<IActionResult> GetList()
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        var models = await _fluxModelService.GetListByUserIdAsync(user.Id);
+        var result = _mapper.Map<List<FluxModelDto>>(models);
+        return Ok(result);
+    }
+
 
     private string GenerateRandomName()
     {
