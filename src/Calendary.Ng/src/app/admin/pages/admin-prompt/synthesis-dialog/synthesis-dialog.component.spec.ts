@@ -12,16 +12,17 @@ describe('SynthesisDialogComponent', () => {
   let component: SynthesisDialogComponent;
   let fixture: ComponentFixture<SynthesisDialogComponent>;
 
-  const mockPrompt: Prompt = {
-    id: 1,
-    themeId: 1,
-    categoryId: 2,
-    text: 'Initial prompt',
-    themeName: 'Theme',
-    seeds: [{ id: 1, promptId: 1, seed: 42 }] as PromptSeed[],
-    synthesises: [],
-    category: { id: 1, name: 'Cat', description: '', isAlive: true },
-  };
+  const mockPrompt = new Prompt();
+  mockPrompt.id = 1;
+  mockPrompt.themeId = 1;
+  mockPrompt.categoryId = 2;
+  mockPrompt.text = 'Initial prompt';
+  mockPrompt.themeName = 'Theme';
+  const promptSeed = new PromptSeed();
+  promptSeed.id = 1;
+  promptSeed.promptId = 1;
+  promptSeed.seed = 42;
+  mockPrompt.seeds = [promptSeed];
 
   const fluxModelServiceSpy = jasmine.createSpyObj('AdminFluxModelService', ['getByCategoryId']);
   const synthesisServiceSpy = jasmine.createSpyObj('AdminSynthesisService', ['create', 'runSynthesis']);
