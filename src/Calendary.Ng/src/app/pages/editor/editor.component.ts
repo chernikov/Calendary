@@ -24,6 +24,7 @@ import { JobTaskService } from '../../../services/job-task.service';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { HistoryComponent } from './components/history/history.component';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
+import { ModelsPanelComponent } from './components/models-panel/models-panel.component';
 import { EditorStateService } from './services/editor-state.service';
 
 @Component({
@@ -44,7 +45,8 @@ import { EditorStateService } from './services/editor-state.service';
         CalendarPreviewComponent,
         SidebarComponent,
         HistoryComponent,
-        ToolbarComponent
+        ToolbarComponent,
+        ModelsPanelComponent
     ],
     templateUrl: './editor.component.html',
     styleUrl: './editor.component.scss'
@@ -99,10 +101,23 @@ export class EditorComponent implements OnInit, OnDestroy {
 
   loadUserModels(): void {
     this.isLoading = true;
+    this.loadError = '';
     this.fluxModelService.getList().subscribe({
       next: (models) => {
-        this.userModels = models;
-        this.activeModel = models.find(m => m.isActive) || (models.length > 0 ? models[0] : null);
+        this.userModels = models || [];
+        // Select the active model or first model as active if there's any and no active model yet
+        const activeModel = models.find(m => m.isActive);
+        if (activeModel) {
+          this.activeModel = activeModel;
+        } else if (this.userModels.length > 0 && !this.activeModel) {
+          this.activeModel = this.userModels[0];
+        } else if (this.activeModel) {
+          // Refresh the active model from the list
+          const updatedActive = this.userModels.find(m => m.id === this.activeModel!.id);
+          this.activeModel = updatedActive || this.userModels[0] || null;
+        } else {
+          this.activeModel = null;
+        }
         this.isLoading = false;
       },
       error: () => {
@@ -137,6 +152,23 @@ export class EditorComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  onModelDeleted(modelId: number): void {
+    this.userModels = this.userModels.filter(m => m.id !== modelId);
+    if (this.activeModel?.id === modelId) {
+      this.activeModel = this.userModels.length > 0 ? this.userModels[0] : null;
+    }
+  }
+
+  onModelRenamed(updatedModel: FluxModel): void {
+    const index = this.userModels.findIndex(m => m.id === updatedModel.id);
+    if (index !== -1) {
+      this.userModels[index] = updatedModel;
+    }
+    if (this.activeModel?.id === updatedModel.id) {
+      this.activeModel = updatedModel;
+    }
   }
 
   onImageSelected(image: JobTask): void {
