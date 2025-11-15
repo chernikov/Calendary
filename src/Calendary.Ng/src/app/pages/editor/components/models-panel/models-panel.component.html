@@ -1,0 +1,102 @@
+<div class="models-panel">
+  <div class="panel-header">
+    <h3>Мої моделі</h3>
+    <button
+      mat-icon-button
+      (click)="createNewModel()"
+      matTooltip="Створити нову модель"
+      class="create-button"
+    >
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
+
+  <p *ngIf="loadError" class="error">{{ loadError }}</p>
+
+  <div *ngIf="isLoading" class="loading">
+    <mat-icon class="spinner">hourglass_empty</mat-icon>
+    <p>Завантаження...</p>
+  </div>
+
+  <div *ngIf="!isLoading && models.length === 0 && !loadError" class="empty-state">
+    <mat-icon>inventory_2</mat-icon>
+    <p>Створіть Flux модель у майстрі</p>
+    <button mat-raised-button color="primary" (click)="createNewModel()">
+      <mat-icon>add</mat-icon>
+      Створити модель
+    </button>
+  </div>
+
+  <ul class="models-list" *ngIf="!isLoading && models.length > 0">
+    <li
+      *ngFor="let model of models"
+      (click)="selectModel(model)"
+      [class.active]="model.id === activeModel?.id"
+      class="model-card"
+    >
+      <div class="model-main">
+        <div class="model-info">
+          <!-- Model Name (editable) -->
+          <div class="model-name" *ngIf="renamingModelId !== model.id">
+            {{ getModelName(model) }}
+          </div>
+          <input
+            *ngIf="renamingModelId === model.id"
+            [(ngModel)]="newModelName"
+            (click)="$event.stopPropagation()"
+            (keydown.enter)="saveRename(model, $event)"
+            (keydown.escape)="cancelRename()"
+            class="rename-input"
+            type="text"
+            autofocus
+          />
+
+          <!-- Model Status and Date -->
+          <div class="model-meta">
+            <span [class]="'model-status ' + getStatusClass(model.status)">
+              <mat-icon>{{ getStatusIcon(model.status) }}</mat-icon>
+              {{ model.status || 'unknown' }}
+            </span>
+            <span class="model-date">{{ formatDate(model.createdAt) }}</span>
+          </div>
+        </div>
+
+        <!-- Actions Menu -->
+        <div class="model-actions" *ngIf="renamingModelId !== model.id">
+          <button
+            mat-icon-button
+            [matMenuTriggerFor]="menu"
+            (click)="$event.stopPropagation()"
+            matTooltip="Дії"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="selectModel(model)">
+              <mat-icon>check</mat-icon>
+              <span>Вибрати</span>
+            </button>
+            <button mat-menu-item (click)="startRename(model, $event)">
+              <mat-icon>edit</mat-icon>
+              <span>Перейменувати</span>
+            </button>
+            <button mat-menu-item (click)="deleteModel(model, $event)" class="delete-action">
+              <mat-icon>delete</mat-icon>
+              <span>Видалити</span>
+            </button>
+          </mat-menu>
+        </div>
+
+        <!-- Save/Cancel for renaming -->
+        <div class="rename-actions" *ngIf="renamingModelId === model.id">
+          <button mat-icon-button (click)="saveRename(model, $event)" matTooltip="Зберегти">
+            <mat-icon>check</mat-icon>
+          </button>
+          <button mat-icon-button (click)="cancelRename()" matTooltip="Скасувати">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>

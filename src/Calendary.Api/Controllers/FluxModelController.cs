@@ -48,6 +48,19 @@ public class FluxModelController : BaseUserController
         return Ok(result);
     }
 
+    [HttpGet("list")]
+    public async Task<IActionResult> GetList()
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+        var models = await _fluxModelService.GetListByUserIdAsync(user.Id);
+        var result = _mapper.Map<IEnumerable<FluxModelDto>>(models);
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -160,10 +173,10 @@ public class FluxModelController : BaseUserController
 
     // Оновлення назви FluxModel
     [HttpPut("{id}/name")]
-    public async Task<IActionResult> UpdateName(int id, [FromBody] UpdateFluxModelNameDto dto)
+    public async Task<IActionResult> UpdateName(int id, [FromBody] UpdateNameRequest request)
     {
         // Валідація довжини назви
-        if (string.IsNullOrWhiteSpace(dto.Name) || dto.Name.Length < 3 || dto.Name.Length > 50)
+        if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length < 3 || request.Name.Length > 50)
         {
             return BadRequest("Назва повинна містити від 3 до 50 символів");
         }
@@ -188,7 +201,7 @@ public class FluxModelController : BaseUserController
 
         try
         {
-            fluxModel.Name = dto.Name;
+            fluxModel.Name = request.Name;
             await _fluxModelService.ChangeNameAsync(fluxModel);
 
             var result = _mapper.Map<FluxModelDto>(fluxModel);
@@ -198,6 +211,30 @@ public class FluxModelController : BaseUserController
         {
             return BadRequest(ex.Message);
         }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        var fluxModel = await _fluxModelService.GetByIdAsync(id);
+        if (fluxModel == null)
+        {
+            return NotFound();
+        }
+
+        if (fluxModel.UserId != user.Id)
+        {
+            return Forbid();
+        }
+
+        await _fluxModelService.SoftDeleteAsync(id);
+        return NoContent();
     }
 
     // Встановлення активної моделі
@@ -219,21 +256,6 @@ public class FluxModelController : BaseUserController
         {
             return BadRequest(new { Message = ex.Message });
         }
-    }
-
-    // Отримання списку всіх моделей користувача
-    [HttpGet("list")]
-    public async Task<IActionResult> GetList()
-    {
-        var user = await CurrentUser.Value;
-        if (user is null)
-        {
-            return Unauthorized();
-        }
-
-        var models = await _fluxModelService.GetListByUserIdAsync(user.Id);
-        var result = _mapper.Map<List<FluxModelDto>>(models);
-        return Ok(result);
     }
 
 
