@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 /src/Calendary.Api/wwwroot/uploads
 
+# Claude Code settings
+.claude/
+
