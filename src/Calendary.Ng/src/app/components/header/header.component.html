@@ -8,6 +8,10 @@
     </div>
     <!-- Icons aligned to the right -->
     <div class="navbar-icons" *ngIf="isInited">
+      <button *ngIf="isLoggedIn" mat-stroked-button class="editor-link" [routerLink]="['/editor']" aria-label="Редактор">
+        <mat-icon>brush</mat-icon>
+        <span>Редактор</span>
+      </button>
       <button *ngIf="isLoggedIn && cartCount && role === 'User'" mat-icon-button [routerLink]="['/cart']" aria-label="Кошик">
         <mat-icon>shopping_cart</mat-icon>
       </button>

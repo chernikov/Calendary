@@ -12,19 +12,19 @@ export class UserGuard implements CanActivate {
   canActivate(): boolean {
     const token = this.tokenService.getToken();
     if (!token) {
-      this.redirectRegister();
+      this.redirectToLogin();
       return false;
     }
     const role = this.tokenService.getRole(token);
     if (role === 'User') {
       return true;
     } else {
-      this.redirectRegister();
+      this.redirectToLogin();
       return false;
     }
   }
 
-  private redirectRegister() {
-    this.router.navigate(['/register']);
+  private redirectToLogin() {
+    this.router.navigate(['/login']);
   }
 }

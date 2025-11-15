@@ -28,6 +28,7 @@ import { VerifyComponent } from './pages/verify/verify.component';
 import { AdminUserComponent } from './admin/pages/admin-user/admin-user.component';
 import { AdminUserViewComponent } from './admin/pages/admin-user/admin-user-view/admin-user-view.component';
 import { AdminUserSynthesisComponent } from './admin/pages/admin-user/admin-user-view/synthesis/synthesis.component';
+import { EditorComponent } from './pages/editor/editor.component';
 
 
 export const routes: Routes = [
@@ -70,6 +71,7 @@ export const routes: Routes = [
       { path: 'cart', component: CartComponent, canActivate: [UserGuard]  },
       { path: 'order/:orderId', component: OrderComponent },
       { path: 'master', component: MasterComponent, canActivate: [UserGuard]  },
+      { path: 'editor', component: EditorComponent, canActivate: [UserGuard]  },
 
       /* to remove */
       { path: 'settings', component: SettingsComponent, canActivate: [UserGuard]  },

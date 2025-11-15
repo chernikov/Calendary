@@ -1,0 +1,112 @@
+<section class="editor-page">
+  <div class="loading" *ngIf="isLoading">
+    <mat-progress-spinner color="primary" mode="indeterminate"></mat-progress-spinner>
+    <p>Завантаження редактора...</p>
+  </div>
+
+  <div class="editor-content" *ngIf="!isLoading">
+    <nav class="breadcrumbs">
+      <a routerLink="/">Головна</a>
+      <mat-icon>chevron_right</mat-icon>
+      <span>Редактор</span>
+    </nav>
+
+    <div class="editor-layout">
+      <aside class="editor-sidebar">
+        <h2>Мої моделі</h2>
+        <p *ngIf="loadError" class="error">{{ loadError }}</p>
+        <ul *ngIf="userModels.length; else emptyModels">
+          <li
+            *ngFor="let model of userModels"
+            (click)="selectModel(model)"
+            [class.active]="model === activeModel"
+          >
+            <div class="model-name">{{ model.name || ('FluxModel #' + model.id) }}</div>
+            <div class="model-status">
+              <mat-icon>fiber_manual_record</mat-icon>
+              {{ model.status || 'unknown' }}
+            </div>
+          </li>
+        </ul>
+        <ng-template #emptyModels>
+          <p class="muted">Створи Flux модель у майстрі, щоб розпочати.</p>
+        </ng-template>
+      </aside>
+
+      <section class="editor-canvas">
+        <header class="editor-header">
+          <div>
+            <p class="tagline">AI редактор зображень</p>
+            <h1>Полотно</h1>
+          </div>
+          <div class="header-actions">
+            <button mat-stroked-button type="button">
+              <mat-icon>upload</mat-icon>
+              Завантажити
+            </button>
+            <button mat-flat-button color="primary" type="button">
+              <mat-icon>auto_fix_high</mat-icon>
+              Нове зображення
+            </button>
+          </div>
+        </header>
+
+        <div class="canvas-area" *ngIf="activeModel; else noModel">
+          <div class="canvas-placeholder">
+            <mat-icon>brush</mat-icon>
+            <p>Полотно для моделі "{{ activeModel?.name || ('#' + activeModel?.id) }}"</p>
+            <small>Зображення з'явиться тут після генерації або завантаження.</small>
+          </div>
+        </div>
+        <ng-template #noModel>
+          <div class="canvas-empty">
+            <mat-icon>info</mat-icon>
+            <p>Оберіть модель зліва або створіть нову у розділі «Майстер».</p>
+          </div>
+        </ng-template>
+      </section>
+
+      <aside class="editor-tools">
+        <h3>Інструменти</h3>
+        <button mat-button type="button">
+          <mat-icon>crop</mat-icon>
+          Обрізати
+        </button>
+        <button mat-button type="button">
+          <mat-icon>tune</mat-icon>
+          Налаштування
+        </button>
+        <button mat-button type="button">
+          <mat-icon>layers</mat-icon>
+          Шари
+        </button>
+        <button mat-button type="button">
+          <mat-icon>palette</mat-icon>
+          Фільтри
+        </button>
+      </aside>
+    </div>
+
+    <footer class="editor-footer">
+      <div class="status">
+        <mat-icon>info</mat-icon>
+        <span *ngIf="activeModel; else inactive">Модель готова до редагування</span>
+        <ng-template #inactive>Виберіть модель для початку редагування</ng-template>
+      </div>
+      <div class="footer-actions">
+        <button mat-button type="button">
+          <mat-icon>undo</mat-icon>
+          Скасувати
+        </button>
+        <button mat-button type="button">
+          <mat-icon>redo</mat-icon>
+          Повторити
+        </button>
+        <button mat-raised-button color="primary" type="button">
+          <mat-icon>save</mat-icon>
+          Зберегти зміни
+        </button>
+      </div>
+    </footer>
+  </div>
+</section>

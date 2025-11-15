@@ -28,6 +28,12 @@
   align-items: center;
 }
 
+.editor-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .icon {
   font-size: 1.5em;
   cursor: pointer;
