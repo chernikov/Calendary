@@ -69,38 +69,8 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Configure composite keys
-        modelBuilder.Entity<UserRole>()
-            .HasKey(ur => new { ur.UserId, ur.RoleId });
-
-        modelBuilder.Entity<CalendarHoliday>()
-            .HasKey(ur => new { ur.CalendarId, ur.HolidayId });
-
-        // Configure relationships
-        modelBuilder.Entity<UserRole>()
-            .HasOne(ur => ur.User)
-            .WithMany(u => u.UserRoles)
-            .HasForeignKey(ur => ur.UserId);
-
-        modelBuilder.Entity<CalendarHoliday>()
-            .HasOne(ur => ur.Calendar)
-            .WithMany(u => u.CalendarHolidays)
-            .HasForeignKey(ur => ur.CalendarId);
-
-        modelBuilder.Entity<EventDate>()
-            .HasOne(ed => ed.UserSetting)
-            .WithMany(us => us.EventDates)
-            .HasForeignKey(ed => ed.UserSettingId);
-
-        modelBuilder.Entity<Holiday>()
-            .HasOne(h => h.Country)
-            .WithMany(c => c.Holidays)
-            .HasForeignKey(h => h.CountryId);
-
-        // Configure column types
-        modelBuilder.Entity<OrderItem>()
-            .Property(o => o.Price)
-            .HasColumnType("decimal(18, 2)");
+        // Apply all entity configurations from the Configurations folder
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(CalendaryDbContext).Assembly);
 
         // Seed initial data
         DbSeeder.SeedData(modelBuilder);

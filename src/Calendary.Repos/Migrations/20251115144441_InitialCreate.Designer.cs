@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calendary.Repos.Migrations
 {
     [DbContext(typeof(CalendaryDbContext))]
-    [Migration("20251115142604_InitialCreate")]
+    [Migration("20251115144441_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1222,7 +1222,7 @@ namespace Calendary.Repos.Migrations
                     b.HasOne("Calendary.Model.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("FluxModel");
@@ -1243,7 +1243,7 @@ namespace Calendary.Repos.Migrations
                     b.HasOne("Calendary.Model.Job", "Job")
                         .WithMany("Tasks")
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Calendary.Model.Prompt", "Prompt")
