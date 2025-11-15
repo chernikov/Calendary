@@ -1,0 +1,57 @@
+.prompt-settings {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: #333;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+
+    .toggle-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+
+      label {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #555;
+        margin: 0;
+      }
+
+      mat-slide-toggle {
+        margin-left: 20px;
+      }
+    }
+
+    .description {
+      margin-top: 8px;
+      margin-bottom: 0;
+      font-size: 0.875rem;
+      color: #777;
+      line-height: 1.4;
+    }
+
+    .save-message {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      background-color: #ffebee;
+      color: #c62828;
+
+      &.success {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+<section class="prompt-settings" [formGroup]="promptForm">
+  <h2>Налаштування промптів</h2>
+  <div class="form-group">
+    <div class="toggle-container">
+      <label for="useImprovedPrompt">Використовувати покращені промпти</label>
+      <mat-slide-toggle
+        formControlName="useImprovedPrompt"
+        color="primary"
+        (change)="onToggleChange()"
+        [disabled]="isLoading">
+      </mat-slide-toggle>
+    </div>
+    <p class="description">
+      Коли активовано, система використовуватиме AI-покращені промпти для кращих результатів генерації зображень.
+    </p>
+    <div *ngIf="saveMessage" class="save-message" [class.success]="saveMessage.includes('збережено')">
+      {{ saveMessage }}
+    </div>
+  </div>
+</section>

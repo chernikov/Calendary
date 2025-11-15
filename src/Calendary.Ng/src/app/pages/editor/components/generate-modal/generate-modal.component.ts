@@ -17,6 +17,7 @@ import { PromptTheme } from '../../../../../models/prompt-theme';
 import { PromptThemeService } from '../../../../../services/prompt-theme.service';
 import { JobService } from '../../../../../services/job.service';
 import { Job } from '../../../../../models/job';
+import { SettingService } from '../../../../../services/setting.service';
 
 export interface GenerateModalData {
   fluxModelId: number;
@@ -55,6 +56,7 @@ export class GenerateModalComponent implements OnInit {
   promptThemes: PromptTheme[] = [];
   generationMode: GenerationMode = 'theme';
   showAdvancedOptions = false;
+  useImprovedPrompt = false;
 
   // Image dimension presets
   imageSizePresets = [
@@ -69,6 +71,7 @@ export class GenerateModalComponent implements OnInit {
     private fb: FormBuilder,
     private promptThemeService: PromptThemeService,
     private jobService: JobService,
+    private settingService: SettingService,
     private dialogRef: MatDialogRef<GenerateModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: GenerateModalData
   ) {
@@ -100,7 +103,21 @@ export class GenerateModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPromptThemes();
+    this.loadUserSettings();
     this.updateValidators(this.generationMode);
+  }
+
+  loadUserSettings(): void {
+    this.settingService.getSettings().subscribe({
+      next: (settings) => {
+        this.useImprovedPrompt = settings.useImprovedPrompt || false;
+      },
+      error: (err) => {
+        console.error('Помилка завантаження налаштувань користувача:', err);
+        // Default to false if settings can't be loaded
+        this.useImprovedPrompt = false;
+      }
+    });
   }
 
   loadPromptThemes(): void {
