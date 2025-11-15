@@ -1,0 +1,214 @@
+@startuml Calendary DB Schema
+
+entity "CalendarHoliday" as CalendarHoliday {
+  + CalendarId : int
+  + HolidayId : int
+}
+
+entity "Calendar" as Calendar {
+  + Id : int
+  ..
+  Year : int
+  FirstDayOfWeek : nvarchar(max)
+  LanguageId : int
+  OrderId : int
+}
+
+entity "Category" as Category {
+  + Id : int
+  ..
+  Name : nvarchar(max)
+  IsAlive : bit
+}
+
+entity "Country" as Country {
+  + Id : int
+  ..
+  Name : nvarchar(max)
+  Code : nvarchar(max)
+}
+
+entity "EventDate" as EventDate {
+  + Id : int
+  ..
+  Date : datetime2
+  Description : nvarchar(max)
+  UserSettingId : int
+}
+
+entity "FluxModel" as FluxModel {
+  + Id : int
+  ..
+}
+
+entity "Holiday" as Holiday {
+  + Id : int
+  ..
+  Date : datetime2
+  Name : nvarchar(max)
+  CountryId : int
+}
+
+entity "Image" as Image {
+  + Id : int
+  ..
+  ImageUrl : nvarchar(max)
+  CalendarId : int
+}
+
+entity "Job" as Job {
+  + Id : int
+  ..
+}
+
+entity "JobTask" as JobTask {
+  + Id : int
+  ..
+}
+
+entity "Language" as Language {
+  + Id : int
+  ..
+  Name : nvarchar(max)
+}
+
+entity "MonoWebhookEvent" as MonoWebhookEvent {
+  + Id : int
+  ..
+}
+
+entity "Order" as Order {
+  + Id : int
+  ..
+  OrderDate : datetime2
+  IsPaid : bit
+  Status : nvarchar(max)
+  DeliveryAddress : nvarchar(max)
+  UserId : int
+}
+
+entity "OrderItem" as OrderItem {
+  + Id : int
+  ..
+  Price : decimal(18, 2)
+  OrderId : int
+}
+
+entity "PaymentInfo" as PaymentInfo {
+  + Id : int
+  ..
+  PaymentMethod : nvarchar(max)
+  IsPaid : bit
+  PaymentDate : datetime2
+  OrderId : int
+}
+
+entity "Photo" as Photo {
+  + Id : int
+  ..
+}
+
+entity "Prompt" as Prompt {
+  + Id : int
+  ..
+}
+
+entity "PromptSeed" as PromptSeed {
+  + Id : int
+  ..
+}
+
+entity "PromptTheme" as PromptTheme {
+  + Id : int
+  ..
+}
+
+entity "ResetToken" as ResetToken {
+  + Id : int
+  ..
+}
+
+entity "Role" as Role {
+  + Id : int
+  ..
+  Name : nvarchar(max)
+}
+
+entity "Synthesis" as Synthesis {
+  + Id : int
+  ..
+}
+
+entity "Training" as Training {
+  + Id : int
+  ..
+}
+
+entity "UserRole" as UserRole {
+  + UserId : int
+  + RoleId : int
+}
+
+entity "User" as User {
+  + Id : int
+  ..
+  UserName : nvarchar(max)
+  Email : nvarchar(max)
+  IsEmailConfirmed : bit
+  PhoneNumber : nvarchar(max)
+  IsPhoneNumberConfirmed : bit
+  PasswordHash : nvarchar(max)
+}
+
+entity "UserSetting" as UserSetting {
+  + Id : int
+  ..
+  FirstDayOfWeek : int
+  LanguageId : int
+  CountryId : int
+  UserId : int
+}
+
+entity "VerificationEmailCode" as VerificationEmailCode {
+  + Id : int
+  ..
+}
+
+entity "VerificationPhoneCode" as VerificationPhoneCode {
+  + Id : int
+  ..
+}
+
+entity "WebHook" as WebHook {
+  + Id : int
+  ..
+}
+
+entity "WebHookFluxModel" as WebHookFluxModel {
+  + Id : int
+  ..
+}
+
+User ||--|{ UserRole : "has"
+Role ||--|{ UserRole : "has"
+
+User ||--o{ Order : "places"
+Order ||--|{ OrderItem : "contains"
+Order ||--|| PaymentInfo : "has"
+
+User ||--|| UserSetting : "has"
+UserSetting ||--o{ EventDate : "defines"
+
+Country ||--o{ Holiday : "has"
+Country ||--o{ UserSetting : "defines"
+
+Language ||--o{ Calendar : "uses"
+Language ||--o{ UserSetting : "defines"
+
+Calendar ||--|{ CalendarHoliday : "has"
+Holiday ||--|{ CalendarHoliday : "in"
+
+Calendar ||--o{ Image : "has"
+Order ||--o{ Calendar : "for"
+
+@enduml
