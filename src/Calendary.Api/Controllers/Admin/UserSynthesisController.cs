@@ -75,14 +75,14 @@ public class UserSynthesisController : BaseAdminController
         {
             // Sending request to ReplicateService to generate image
             var imageRequest = GenerateImageInput.GetImageRequest(synthesis.Text, synthesis.Seed);
-            var result = await _replicateService.GenerateImageAsync(model.Version, imageRequest);
+            var predictionId = await _replicateService.StartImageGenerationAsync(model.Version, imageRequest);
+            var result = await _replicateService.GenerateImageAsync(predictionId);
 
             if (result is not null && result.Output.Count > 0)
             {
-                var info = await _replicateService.GeGenerateImageStatusAsync(result.Id);
                 var imagePath = result.Output[0];
                 // Updating task status and result
-                var seed = info.ExtractSeedFromLogs();
+                var seed = result.ExtractSeedFromLogs();
                 synthesis.ReplicateId = result.Id;
                 synthesis.OutputSeed = seed;
                 synthesis.Status = "completed";

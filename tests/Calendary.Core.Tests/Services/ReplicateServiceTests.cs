@@ -27,7 +27,9 @@ public class ReplicateServiceTests
             Owner = "test-owner",
             TrainerModel = "test-trainer-model",
             TrainerVersion = "test-trainer-version",
-            WebhookUrl = "https://test-webhook.com"
+            WebhookUrl = "https://test-webhook.com",
+            MaxRetries = 3,
+            Timeout = 1000
         };
 
         _mockOptions.Setup(x => x.Value).Returns(_replicateSettings);
@@ -226,10 +228,10 @@ public class ReplicateServiceTests
 
     #endregion
 
-    #region GenerateImageAsync Tests
+    #region StartImageGenerationAsync Tests
 
     [Fact]
-    public async Task GenerateImageAsync_SuccessfulRequest_ReturnsGenerateImageResponse()
+    public async Task StartImageGenerationAsync_SuccessfulRequest_ReturnsPredictionId()
     {
         // Arrange
         var modelVersion = "test-version-123";
@@ -237,12 +239,7 @@ public class ReplicateServiceTests
         var expectedResponse = new GenerateImageResponse
         {
             Id = "test-prediction-id",
-            Model = "test-model",
-            Version = modelVersion,
-            Status = "succeeded",
-            Output = new List<string> { "https://test.com/image1.jpg" },
-            Urls = new Urls(),
-            Input = new GenerateImageInputResponse()
+            Status = "starting"
         };
 
         var responseJson = JsonSerializer.Serialize(expectedResponse);
@@ -251,65 +248,96 @@ public class ReplicateServiceTests
         var service = new ReplicateService(httpClient, _mockOptions.Object, _mockPathProvider.Object);
 
         // Act
-        var result = await service.GenerateImageAsync(modelVersion, input);
+        var result = await service.StartImageGenerationAsync(modelVersion, input);
+
+        // Assert
+        Assert.Equal("test-prediction-id", result);
+    }
+
+    #endregion
+
+    #region GenerateImageAsync Tests
+
+    [Fact]
+    public async Task GenerateImageAsync_PollsAndSucceeds_ReturnsGenerateImageResponse()
+    {
+        // Arrange
+        var predictionId = "test-prediction-id";
+        var startingResponse = new GenerateImageResponse { Status = "starting" };
+        var succeededResponse = new GenerateImageResponse
+        {
+            Status = "succeeded",
+            Output = new List<string> { "http://example.com/image.jpg" }
+        };
+
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .SetupSequence<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(startingResponse))
+            })
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(succeededResponse))
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object);
+        var service = new ReplicateService(httpClient, _mockOptions.Object, _mockPathProvider.Object);
+
+        // Act
+        var result = await service.GenerateImageAsync(predictionId);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("test-prediction-id", result.Id);
         Assert.Equal("succeeded", result.Status);
         Assert.Single(result.Output);
-        Assert.Equal("https://test.com/image1.jpg", result.Output[0]);
     }
 
     [Fact]
-    public async Task GenerateImageAsync_AddsPreferWaitHeader_HeaderIsPresent()
+    public async Task GenerateImageAsync_PollsAndFails_ThrowsException()
     {
         // Arrange
-        HttpRequestMessage capturedRequest = null;
+        var predictionId = "test-prediction-id";
+        var failedResponse = new GenerateImageResponse { Status = "failed", Logs = "Error" };
+
+        var mockHandler = CreateMockHttpMessageHandler(HttpStatusCode.OK, JsonSerializer.Serialize(failedResponse));
+        var httpClient = new HttpClient(mockHandler.Object);
+        var service = new ReplicateService(httpClient, _mockOptions.Object, _mockPathProvider.Object);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => service.GenerateImageAsync(predictionId));
+    }
+
+    [Fact]
+    public async Task GenerateImageAsync_TimesOut_ThrowsTimeoutException()
+    {
+        // Arrange
+        var predictionId = "test-prediction-id";
+        var processingResponse = new GenerateImageResponse { Status = "processing" };
+
         var mockHandler = new Mock<HttpMessageHandler>();
         mockHandler.Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .Callback<HttpRequestMessage, CancellationToken>((req, ct) => capturedRequest = req)
-            .ReturnsAsync(new HttpResponseMessage
+            .ReturnsAsync(() => new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonSerializer.Serialize(new GenerateImageResponse
-                {
-                    Id = "test",
-                    Status = "succeeded",
-                    Output = new List<string>(),
-                    Urls = new Urls()
-                }))
+                Content = new StringContent(JsonSerializer.Serialize(processingResponse))
             });
 
         var httpClient = new HttpClient(mockHandler.Object);
         var service = new ReplicateService(httpClient, _mockOptions.Object, _mockPathProvider.Object);
-        var input = GenerateImageInput.GetImageRequest("test prompt", null);
-
-        // Act
-        await service.GenerateImageAsync("version", input);
-
-        // Assert
-        Assert.NotNull(capturedRequest);
-        Assert.True(capturedRequest.Headers.Contains("Prefer"));
-        Assert.Equal("wait", capturedRequest.Headers.GetValues("Prefer").First());
-    }
-
-    [Fact]
-    public async Task GenerateImageAsync_HttpRequestFails_ThrowsHttpRequestException()
-    {
-        // Arrange
-        var mockHandler = CreateMockHttpMessageHandler(HttpStatusCode.InternalServerError, "Server Error");
-        var httpClient = new HttpClient(mockHandler.Object);
-        var service = new ReplicateService(httpClient, _mockOptions.Object, _mockPathProvider.Object);
-        var input = GenerateImageInput.GetImageRequest("test prompt", null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(
-            () => service.GenerateImageAsync("version", input));
+        await Assert.ThrowsAsync<TimeoutException>(() => service.GenerateImageAsync(predictionId));
     }
 
     #endregion
@@ -436,10 +464,10 @@ public class ReplicateServiceTests
 
     #endregion
 
-    #region GeGenerateImageStatusAsync Tests
+    #region GetImageGenerationStatusAsync Tests
 
     [Fact]
-    public async Task GeGenerateImageStatusAsync_SuccessfulRequest_ReturnsGenerateImageResponse()
+    public async Task GetImageGenerationStatusAsync_SuccessfulRequest_ReturnsGenerateImageResponse()
     {
         // Arrange
         var replicateId = "test-prediction-id";
@@ -459,7 +487,7 @@ public class ReplicateServiceTests
         var service = new ReplicateService(httpClient, _mockOptions.Object, _mockPathProvider.Object);
 
         // Act
-        var result = await service.GeGenerateImageStatusAsync(replicateId);
+        var result = await service.GetImageGenerationStatusAsync(replicateId);
 
         // Assert
         Assert.NotNull(result);
@@ -468,7 +496,7 @@ public class ReplicateServiceTests
     }
 
     [Fact]
-    public async Task GeGenerateImageStatusAsync_InvalidResponse_ThrowsInvalidOperationException()
+    public async Task GetImageGenerationStatusAsync_InvalidResponse_ThrowsInvalidOperationException()
     {
         // Arrange
         var mockHandler = CreateMockHttpMessageHandler(HttpStatusCode.OK, "null");
@@ -477,11 +505,11 @@ public class ReplicateServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.GeGenerateImageStatusAsync("test-id"));
+            () => service.GetImageGenerationStatusAsync("test-id"));
     }
 
     [Fact]
-    public async Task GeGenerateImageStatusAsync_HttpRequestFails_ThrowsHttpRequestException()
+    public async Task GetImageGenerationStatusAsync_HttpRequestFails_ThrowsHttpRequestException()
     {
         // Arrange
         var mockHandler = CreateMockHttpMessageHandler(HttpStatusCode.BadRequest, "Bad Request");
@@ -490,7 +518,7 @@ public class ReplicateServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<HttpRequestException>(
-            () => service.GeGenerateImageStatusAsync("invalid-id"));
+            () => service.GetImageGenerationStatusAsync("invalid-id"));
     }
 
     #endregion

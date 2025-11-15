@@ -56,14 +56,14 @@ public class JobTaskController : Controller
                 // Відправка запиту до ReplicateService для генерації зображення
 
                 var imageRequest = GenerateImageInput.GetImageRequest(task.Prompt.Text, task.Seed);
-                var result = await _replicateService.GenerateImageAsync(fluxModel.Version, imageRequest);
+                var predictionId = await _replicateService.StartImageGenerationAsync(fluxModel.Version, imageRequest);
+                var result = await _replicateService.GenerateImageAsync(predictionId);
 
                 if (result is not null && result.Output.Count > 0)
                 {
-                    var info = await _replicateService.GeGenerateImageStatusAsync(result.Id);
                     var imagePath = result.Output[0];
                     // Updating task status and result
-                    var seed = info.ExtractSeedFromLogs();
+                    var seed = result.ExtractSeedFromLogs();
                     task.ReplicateId = result.Id;
                     task.OutputSeed = seed;
                     // Оновлення статусу завдання та результату
