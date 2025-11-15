@@ -98,5 +98,17 @@ public class JobTaskController : Controller
     }
 
 
-  
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var existing = await _jobTaskService.GetByIdAsync(id);
+        if (existing is null)
+        {
+            return NotFound($"Task with ID {id} not found.");
+        }
+
+        await _jobTaskService.DeleteAsync(id);
+        return NoContent();
+    }
+
 }

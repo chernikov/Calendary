@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { JobTask } from '../../../../../models/job-task';
 import { Job } from '../../../../../models/job';
+import { MonthAssignment, MONTHS } from '../../models/calendar-assignment.model';
 
 @Component({
     selector: 'app-image-gallery',
@@ -14,8 +15,10 @@ import { Job } from '../../../../../models/job';
 })
 export class ImageGalleryComponent {
   @Input() jobs: Job[] = [];
+  @Input() assignments: MonthAssignment[] = [];
   @Output() imageSelected = new EventEmitter<JobTask>();
   @Output() imageDeleted = new EventEmitter<JobTask>();
+  @Output() addToCalendar = new EventEmitter<JobTask>();
 
   selectedImage: JobTask | null = null;
 
@@ -26,6 +29,11 @@ export class ImageGalleryComponent {
   selectImage(image: JobTask): void {
     this.selectedImage = image;
     this.imageSelected.emit(image);
+  }
+
+  requestAddToCalendar(image: JobTask, event: Event): void {
+    event.stopPropagation();
+    this.addToCalendar.emit(image);
   }
 
   deleteImage(image: JobTask, event: Event): void {
@@ -54,5 +62,17 @@ export class ImageGalleryComponent {
       default:
         return 'status-unknown';
     }
+  }
+
+  getAssignedMonth(image: JobTask): number | null {
+    const assignment = this.assignments.find((a) => a.imageId === image.id.toString());
+    return assignment?.month ?? null;
+  }
+
+  getMonthLabel(month: number | null): string | null {
+    if (!month) {
+      return null;
+    }
+    return MONTHS.find((item) => item.value === month)?.label || null;
   }
 }

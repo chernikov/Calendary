@@ -37,8 +37,10 @@
         <div class="sidebar-section" *ngIf="activeModel">
           <app-image-gallery
             [jobs]="activeModel.jobs || []"
+            [assignments]="assignments"
             (imageSelected)="onImageSelected($event)"
             (imageDeleted)="onImageDeleted($event)"
+            (addToCalendar)="onAddToCalendar($event)"
           ></app-image-gallery>
         </div>
       </aside>
@@ -73,6 +75,17 @@
             <p>Оберіть модель зліва або створіть нову у розділі «Майстер».</p>
           </div>
         </ng-template>
+
+        <app-calendar-preview
+          *ngIf="activeModel"
+          class="calendar-panel"
+          [assignments]="assignments"
+          [duplicateImageIds]="duplicateImageIds"
+          (monthSelected)="onMonthSlotSelected($event)"
+          (clearMonth)="onMonthAssignmentCleared($event)"
+          (clearAll)="onClearAllAssignments()"
+          (swapRequested)="onMonthSwap($event)"
+        ></app-calendar-preview>
       </section>
 
       <aside class="editor-tools">
@@ -97,7 +110,7 @@
           <mat-icon>redo</mat-icon>
           Повторити
         </button>
-        <button mat-raised-button color="primary" type="button">
+        <button mat-raised-button color="primary" type="button" [disabled]="!isCalendarReady">
           <mat-icon>save</mat-icon>
           Зберегти зміни
         </button>

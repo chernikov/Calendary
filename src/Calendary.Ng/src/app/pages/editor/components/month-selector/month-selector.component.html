@@ -1,0 +1,51 @@
+<h2 mat-dialog-title>Додати до календаря</h2>
+
+<mat-dialog-content class="month-selector">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Місяць</mat-label>
+    <mat-select [(value)]="selectedMonth">
+      <mat-option *ngFor="let month of months" [value]="month.value">
+        {{ month.label }}
+        <span class="option-note" *ngIf="assignmentLabel(month.value)">
+          {{ assignmentLabel(month.value) }}
+        </span>
+      </mat-option>
+    </mat-select>
+    <mat-hint>Оберіть місяць від 1 до 12</mat-hint>
+  </mat-form-field>
+
+  <section *ngIf="data.allowImageSelection" class="image-selection">
+    <header>
+      <p class="section-title">Обрати зображення</p>
+      <span class="section-hint">Клікніть по зображенню, щоб призначити</span>
+    </header>
+    <div class="image-grid" *ngIf="images.length; else noImages">
+      <button
+        type="button"
+        class="image-choice"
+        *ngFor="let image of images"
+        [class.selected]="image.id === selectedImageId"
+        (click)="onImagePicked(image.id)"
+      >
+        <img [src]="image.url" [alt]="'Image #' + image.id" />
+        <span class="image-id">#{{ image.id }}</span>
+      </button>
+    </div>
+    <ng-template #noImages>
+      <p class="muted">Немає доступних зображень для призначення.</p>
+    </ng-template>
+  </section>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()">Скасувати</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    [disabled]="!selectedMonth || (data.allowImageSelection && !selectedImageId)"
+    (click)="onConfirm()"
+  >
+    Підтвердити
+  </button>
+</mat-dialog-actions>

@@ -9,6 +9,7 @@ public interface IJobTaskService
 
     Task<JobTask?> GetByIdWithPromptAsync(int jobTaskId);
     Task UpdateResultAsync(JobTask task);
+    Task DeleteAsync(int id);
 }
 
 public  class JobTaskService : IJobTaskService
@@ -37,5 +38,10 @@ public  class JobTaskService : IJobTaskService
         entry.ImageUrl = task.ImageUrl;
         entry.Status = task.Status;
         await _jobTaskRepository.UpdateAsync(entry);
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        await _jobTaskRepository.DeleteAsync(id);
     }
 }
