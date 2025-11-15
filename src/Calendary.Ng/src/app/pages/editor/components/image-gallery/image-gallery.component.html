@@ -1,0 +1,43 @@
+<div class="image-gallery">
+  <div class="gallery-header">
+    <h3>Згенеровані зображення</h3>
+    <span class="image-count">{{ allImages.length }}</span>
+  </div>
+
+  <div class="gallery-grid" *ngIf="allImages.length > 0; else noImages">
+    <div
+      *ngFor="let image of allImages"
+      class="gallery-item"
+      [class.selected]="selectedImage === image"
+      (click)="selectImage(image)"
+    >
+      <div class="image-wrapper">
+        <img [src]="getImageUrl(image)" [alt]="'Image #' + image.id" />
+        <div class="image-overlay">
+          <button
+            mat-icon-button
+            class="delete-btn"
+            (click)="deleteImage(image, $event)"
+            matTooltip="Видалити"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="image-info">
+        <span class="image-id">#{{ image.id }}</span>
+        <span class="image-status" [ngClass]="getStatusColor(image.status)">
+          {{ image.status }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noImages>
+    <div class="empty-state">
+      <mat-icon>image</mat-icon>
+      <p>Поки що немає згенерованих зображень</p>
+      <small>Створіть нове зображення, щоб почати</small>
+    </div>
+  </ng-template>
+</div>

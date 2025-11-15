@@ -1,0 +1,142 @@
+<div class="image-canvas">
+  <div class="canvas-toolbar">
+    <div class="toolbar-section">
+      <button
+        mat-icon-button
+        (click)="zoomOut()"
+        [disabled]="zoomLevel <= 10"
+        matTooltip="Зменшити масштаб"
+      >
+        <mat-icon>zoom_out</mat-icon>
+      </button>
+      <span class="zoom-display">{{ zoomLevel }}%</span>
+      <button
+        mat-icon-button
+        (click)="zoomIn()"
+        [disabled]="zoomLevel >= 200"
+        matTooltip="Збільшити масштаб"
+      >
+        <mat-icon>zoom_in</mat-icon>
+      </button>
+    </div>
+
+    <div class="toolbar-section">
+      <button
+        mat-icon-button
+        [class.active]="showGrid"
+        (click)="toggleGrid()"
+        matTooltip="Показати сітку"
+      >
+        <mat-icon>grid_on</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        [class.active]="showRulers"
+        (click)="toggleRulers()"
+        matTooltip="Показати лінійки"
+      >
+        <mat-icon>straighten</mat-icon>
+      </button>
+    </div>
+
+    <div class="toolbar-section" *ngIf="isCropMode">
+      <button
+        mat-icon-button
+        (click)="rotateLeft()"
+        matTooltip="Повернути ліворуч"
+      >
+        <mat-icon>rotate_left</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        (click)="rotateRight()"
+        matTooltip="Повернути праворуч"
+      >
+        <mat-icon>rotate_right</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        (click)="flipHorizontal()"
+        matTooltip="Віддзеркалити горизонтально"
+      >
+        <mat-icon>flip</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        (click)="resetImage()"
+        matTooltip="Скинути зміни"
+      >
+        <mat-icon>restart_alt</mat-icon>
+      </button>
+    </div>
+
+    <div class="toolbar-section" *ngIf="isCropMode">
+      <button mat-raised-button color="primary" (click)="saveCroppedImage()">
+        <mat-icon>save</mat-icon>
+        Зберегти
+      </button>
+      <button mat-button (click)="cancelCrop()">
+        Скасувати
+      </button>
+    </div>
+  </div>
+
+  <div class="canvas-content" [class.with-grid]="showGrid" [class.with-rulers]="showRulers">
+    <div class="rulers" *ngIf="showRulers">
+      <div class="ruler-horizontal"></div>
+      <div class="ruler-vertical"></div>
+    </div>
+
+    <div class="canvas-area" *ngIf="selectedImage && !isCropMode; else cropperView">
+      <img
+        [src]="imageUrl"
+        [alt]="'Image #' + selectedImage.id"
+        [style.transform]="'scale(' + scale + ')'"
+        class="canvas-image"
+      />
+    </div>
+
+    <ng-template #cropperView>
+      <div class="cropper-container" *ngIf="isCropMode">
+        <image-cropper
+          [imageChangedEvent]="imageChangedEvent"
+          [maintainAspectRatio]="false"
+          [containWithinAspectRatio]="containWithinAspectRatio"
+          [aspectRatio]="4 / 3"
+          [resizeToWidth]="1024"
+          [cropperMinWidth]="128"
+          [onlyScaleDown]="true"
+          [roundCropper]="false"
+          [canvasRotation]="canvasRotation"
+          [transform]="transform"
+          [alignImage]="'center'"
+          [style.display]="showCropper ? null : 'none'"
+          format="png"
+          (imageCropped)="imageCropped($event)"
+          (imageLoaded)="imageLoaded($event)"
+          (cropperReady)="cropperReady()"
+          (loadImageFailed)="loadImageFailed()"
+        ></image-cropper>
+      </div>
+    </ng-template>
+
+    <div class="empty-canvas" *ngIf="!selectedImage && !isCropMode">
+      <mat-icon>image</mat-icon>
+      <p>Оберіть зображення для редагування</p>
+      <small>або створіть нове зображення</small>
+    </div>
+  </div>
+
+  <div class="canvas-zoom-slider" *ngIf="!isCropMode">
+    <mat-icon>zoom_out</mat-icon>
+    <mat-slider
+      min="10"
+      max="200"
+      step="10"
+      color="primary"
+    >
+      <input matSliderThumb [(ngModel)]="zoomLevel" (ngModelChange)="updateZoom($event)" />
+    </mat-slider>
+    <mat-icon>zoom_in</mat-icon>
+  </div>
+</div>

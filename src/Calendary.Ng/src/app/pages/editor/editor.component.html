@@ -13,24 +13,34 @@
 
     <div class="editor-layout">
       <aside class="editor-sidebar">
-        <h2>Мої моделі</h2>
-        <p *ngIf="loadError" class="error">{{ loadError }}</p>
-        <ul *ngIf="userModels.length; else emptyModels">
-          <li
-            *ngFor="let model of userModels"
-            (click)="selectModel(model)"
-            [class.active]="model === activeModel"
-          >
-            <div class="model-name">{{ model.name || ('FluxModel #' + model.id) }}</div>
-            <div class="model-status">
-              <mat-icon>fiber_manual_record</mat-icon>
-              {{ model.status || 'unknown' }}
-            </div>
-          </li>
-        </ul>
-        <ng-template #emptyModels>
-          <p class="muted">Створи Flux модель у майстрі, щоб розпочати.</p>
-        </ng-template>
+        <div class="sidebar-section">
+          <h2>Мої моделі</h2>
+          <p *ngIf="loadError" class="error">{{ loadError }}</p>
+          <ul *ngIf="userModels.length; else emptyModels">
+            <li
+              *ngFor="let model of userModels"
+              (click)="selectModel(model)"
+              [class.active]="model === activeModel"
+            >
+              <div class="model-name">{{ model.name || ('FluxModel #' + model.id) }}</div>
+              <div class="model-status">
+                <mat-icon>fiber_manual_record</mat-icon>
+                {{ model.status || 'unknown' }}
+              </div>
+            </li>
+          </ul>
+          <ng-template #emptyModels>
+            <p class="muted">Створи Flux модель у майстрі, щоб розпочати.</p>
+          </ng-template>
+        </div>
+
+        <div class="sidebar-section" *ngIf="activeModel">
+          <app-image-gallery
+            [jobs]="activeModel.jobs || []"
+            (imageSelected)="onImageSelected($event)"
+            (imageDeleted)="onImageDeleted($event)"
+          ></app-image-gallery>
+        </div>
       </aside>
 
       <section class="editor-canvas">
@@ -40,23 +50,22 @@
             <h1>Полотно</h1>
           </div>
           <div class="header-actions">
-            <button mat-stroked-button type="button">
+            <button mat-stroked-button type="button" (click)="uploadImage()">
               <mat-icon>upload</mat-icon>
               Завантажити
             </button>
-            <button mat-flat-button color="primary" type="button">
+            <button mat-flat-button color="primary" type="button" (click)="openGenerateModal()">
               <mat-icon>auto_fix_high</mat-icon>
               Нове зображення
             </button>
           </div>
         </header>
 
-        <div class="canvas-area" *ngIf="activeModel; else noModel">
-          <div class="canvas-placeholder">
-            <mat-icon>brush</mat-icon>
-            <p>Полотно для моделі "{{ activeModel?.name || ('#' + activeModel?.id) }}"</p>
-            <small>Зображення з'явиться тут після генерації або завантаження.</small>
-          </div>
+        <div class="canvas-wrapper" *ngIf="activeModel; else noModel">
+          <app-image-canvas
+            [selectedImage]="selectedImage"
+            (imageSaved)="onImageSaved($event)"
+          ></app-image-canvas>
         </div>
         <ng-template #noModel>
           <div class="canvas-empty">
@@ -67,23 +76,9 @@
       </section>
 
       <aside class="editor-tools">
-        <h3>Інструменти</h3>
-        <button mat-button type="button">
-          <mat-icon>crop</mat-icon>
-          Обрізати
-        </button>
-        <button mat-button type="button">
-          <mat-icon>tune</mat-icon>
-          Налаштування
-        </button>
-        <button mat-button type="button">
-          <mat-icon>layers</mat-icon>
-          Шари
-        </button>
-        <button mat-button type="button">
-          <mat-icon>palette</mat-icon>
-          Фільтри
-        </button>
+        <app-properties-panel
+          [selectedImage]="selectedImage"
+        ></app-properties-panel>
       </aside>
     </div>
 
