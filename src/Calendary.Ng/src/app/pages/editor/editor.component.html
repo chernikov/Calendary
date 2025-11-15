@@ -65,7 +65,12 @@
               (click)="selectModel(model)"
               [class.active]="model === activeModel"
             >
-              <div class="model-name">{{ model.name || ('FluxModel #' + model.id) }}</div>
+              <div class="model-name">
+                {{ model.name || ('FluxModel #' + model.id) }}
+                <button mat-icon-button class="edit-name-btn" (click)="editModelName($event, model)" title="Редагувати назву">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </div>
               <div class="model-status">
                 <mat-icon>fiber_manual_record</mat-icon>
                 {{ model.status || 'unknown' }}

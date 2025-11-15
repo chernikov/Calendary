@@ -39,4 +39,9 @@ export class FluxModelService {
   archive(id : number) : Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/archive/${id}`, null);
   }
+
+  // Оновлення назви FluxModel
+  updateName(id: number, name: string): Observable<FluxModel> {
+    return this.http.put<FluxModel>(`${this.apiUrl}/${id}/name`, { name });
+  }
 }

@@ -166,6 +166,13 @@ public class FluxModelService : IFluxModelService
             throw new Exception("Flux модель не знайдена");
         }
 
+        // Перевірити унікальність назви для користувача
+        var isUnique = await fluxModelRepository.IsNameUniqueForUserAsync(existingEntry.UserId, fluxModel.Name, fluxModel.Id);
+        if (!isUnique)
+        {
+            throw new Exception("Модель з такою назвою вже існує");
+        }
+
         // Оновити лише поле Name
         existingEntry.Name = fluxModel.Name;
 

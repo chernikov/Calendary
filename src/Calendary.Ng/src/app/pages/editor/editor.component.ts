@@ -118,6 +118,39 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.selectedImage = null;
   }
 
+  editModelName(event: Event, model: FluxModel): void {
+    event.stopPropagation(); // Запобігаємо вибору моделі при кліку на іконку
+
+    const currentName = model.name || `FluxModel #${model.id}`;
+    const newName = prompt('Введіть нову назву моделі (3-50 символів):', currentName);
+
+    if (!newName) {
+      return; // Користувач скасував або не ввів назву
+    }
+
+    if (newName.trim().length < 3 || newName.trim().length > 50) {
+      this.snackBar.open('Назва повинна містити від 3 до 50 символів', 'OK', {
+        duration: 3000
+      });
+      return;
+    }
+
+    this.fluxModelService.updateName(model.id, newName.trim()).subscribe({
+      next: (updatedModel) => {
+        model.name = updatedModel.name;
+        this.snackBar.open('Назву моделі оновлено', 'OK', {
+          duration: 2000
+        });
+      },
+      error: (err) => {
+        const errorMessage = err.error || 'Не вдалося оновити назву моделі';
+        this.snackBar.open(errorMessage, 'OK', {
+          duration: 3000
+        });
+      }
+    });
+  }
+
   onImageSelected(image: JobTask): void {
     this.selectedImage = image;
   }
