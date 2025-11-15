@@ -222,6 +222,27 @@ public class FluxModelController : BaseUserController
         return NoContent();
     }
 
+    // Встановлення активної моделі
+    [HttpPost("{id}/set-active")]
+    public async Task<IActionResult> SetActive(int id)
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            await _fluxModelService.SetActiveAsync(user.Id, id);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
 
     private string GenerateRandomName()
     {

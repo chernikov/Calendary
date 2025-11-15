@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject, takeUntil, take } from 'rxjs';
 import { FluxModel } from '../../../models/flux-model';
 import { FluxModelService } from '../../../services/flux-model.service';
@@ -37,6 +38,7 @@ import { EditorStateService } from './services/editor-state.service';
         MatProgressSpinnerModule,
         MatSnackBarModule,
         MatDialogModule,
+        MatTooltipModule,
         ImageGalleryComponent,
         ImageCanvasComponent,
         PropertiesPanelComponent,
@@ -103,8 +105,11 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.fluxModelService.getList().subscribe({
       next: (models) => {
         this.userModels = models || [];
-        // Select the first model as active if there's any and no active model yet
-        if (this.userModels.length > 0 && !this.activeModel) {
+        // Select the active model or first model as active if there's any and no active model yet
+        const activeModel = models.find(m => m.isActive);
+        if (activeModel) {
+          this.activeModel = activeModel;
+        } else if (this.userModels.length > 0 && !this.activeModel) {
           this.activeModel = this.userModels[0];
         } else if (this.activeModel) {
           // Refresh the active model from the list
@@ -125,8 +130,28 @@ export class EditorComponent implements OnInit, OnDestroy {
   }
 
   selectModel(model: FluxModel): void {
-    this.activeModel = model;
-    this.selectedImage = null;
+    if (this.activeModel?.id === model.id) {
+      return; // Модель вже активна
+    }
+
+    // Викликаємо API для встановлення активної моделі
+    this.fluxModelService.setActive(model.id).subscribe({
+      next: () => {
+        // Оновлюємо локальний стан
+        this.userModels.forEach(m => m.isActive = false);
+        model.isActive = true;
+        this.activeModel = model;
+        this.selectedImage = null;
+        this.snackBar.open(`Модель "${model.name}" встановлена як активна`, 'OK', {
+          duration: 2000
+        });
+      },
+      error: () => {
+        this.snackBar.open('Не вдалося встановити активну модель', 'OK', {
+          duration: 3000
+        });
+      }
+    });
   }
 
   onModelDeleted(modelId: number): void {

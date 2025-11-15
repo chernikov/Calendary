@@ -55,4 +55,9 @@ export class FluxModelService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  // Встановлення активної моделі
+  setActive(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/set-active`, null);
+  }
 }
