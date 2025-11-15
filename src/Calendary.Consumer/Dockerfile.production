@@ -1,0 +1,60 @@
+# Dockerfile.production - Оптимізований для Consumer
+# Multi-stage build для мінімального розміру образу
+
+# Stage 1: Build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+WORKDIR /src
+
+# Копіюємо тільки файли проектів для кешування залежностей
+COPY ["Calendary.Consumer/Calendary.Consumer.csproj", "Calendary.Consumer/"]
+COPY ["Calendary.Core/Calendary.Core.csproj", "Calendary.Core/"]
+COPY ["Calendary.Model/Calendary.Model.csproj", "Calendary.Model/"]
+COPY ["Calendary.Repos/Calendary.Repos.csproj", "Calendary.Repos/"]
+
+# Restore залежностей (цей шар буде кешуватись)
+RUN dotnet restore "Calendary.Consumer/Calendary.Consumer.csproj"
+
+# Копіюємо весь код
+COPY . .
+
+# Build з оптимізацією для production
+WORKDIR /src/Calendary.Consumer
+RUN dotnet publish "Calendary.Consumer.csproj" \
+    -c Release \
+    -o /app/publish \
+    --no-restore \
+    /p:PublishTrimmed=false \
+    /p:PublishSingleFile=false \
+    /p:EnableCompressionInSingleFile=true
+
+# Stage 2: Runtime (Alpine для меншого розміру)
+FROM mcr.microsoft.com/dotnet/runtime:9.0-alpine AS runtime
+
+# Встановлення необхідних пакетів
+RUN apk add --no-cache \
+    icu-libs \
+    libgdiplus \
+    jpeg \
+    libpng \
+    && rm -rf /var/cache/apk/*
+
+# Створюємо non-root користувача
+RUN addgroup -g 1000 calendary && \
+    adduser -u 1000 -G calendary -s /bin/sh -D calendary
+
+WORKDIR /app
+
+# Копіюємо тільки опубліковані файли
+COPY --from=build --chown=calendary:calendary /app/publish .
+
+# Налаштування для production
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+
+# Security: Run as non-root
+USER calendary
+
+# Health check для consumer (якщо є HTTP endpoint для моніторингу)
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+#     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+
+ENTRYPOINT ["dotnet", "Calendary.Consumer.dll"]
