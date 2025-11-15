@@ -5,11 +5,10 @@ import { interval, Subscription, switchMap, takeWhile } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-image-generation',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './image-generation.component.html',
-  styleUrl: './image-generation.component.scss'
+    selector: 'app-image-generation',
+    imports: [CommonModule],
+    templateUrl: './image-generation.component.html',
+    styleUrl: './image-generation.component.scss'
 })
 export class ImageGenerationComponent implements OnChanges, OnDestroy {
   @Input()

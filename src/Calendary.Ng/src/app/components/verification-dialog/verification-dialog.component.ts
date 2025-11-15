@@ -7,17 +7,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { VerificationService } from '../../../services/verification.service';
 @Component({
-  selector: 'app-verification-dialog',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-  ],
-  templateUrl: './verification-dialog.component.html',
-  styleUrl: './verification-dialog.component.scss',
+    selector: 'app-verification-dialog',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+    ],
+    templateUrl: './verification-dialog.component.html',
+    styleUrl: './verification-dialog.component.scss'
 })
 export class VerificationDialogComponent {
   verificationCode: string = '';

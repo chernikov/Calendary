@@ -17,14 +17,13 @@ import { Category } from '../../../../../models/category';
 import { AdminCategoryService } from '../../../../../services/admin/category.service';
 
 @Component({
-  selector: 'app-edit-prompt',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule,
-     MatFormFieldModule, MatInputModule, MatButtonModule, MatOptionModule, MatSelectModule,
-     MatError, MatIconModule
+    selector: 'app-edit-prompt',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule,
+        MatFormFieldModule, MatInputModule, MatButtonModule, MatOptionModule, MatSelectModule,
+        MatError, MatIconModule
     ],
-  templateUrl: './edit-prompt.component.html',
-  styleUrl: './edit-prompt.component.scss'
+    templateUrl: './edit-prompt.component.html',
+    styleUrl: './edit-prompt.component.scss'
 })
 export class EditPromptComponent implements OnInit {
   promptForm!: FormGroup;

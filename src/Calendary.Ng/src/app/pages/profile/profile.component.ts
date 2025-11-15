@@ -5,11 +5,10 @@ import { ProfileOrdersComponent } from '../../components/profile-orders/profile-
 import { ChangePasswordComponent } from '../../components/change-password/change-password.component';
 
 @Component({
-  selector: 'app-profile',
-  standalone: true,
-  imports: [SettingsComponent, ProfileOrdersComponent, ChangePasswordComponent],
-  templateUrl: './profile.component.html',
-  styleUrl: './profile.component.scss'
+    selector: 'app-profile',
+    imports: [SettingsComponent, ProfileOrdersComponent, ChangePasswordComponent],
+    templateUrl: './profile.component.html',
+    styleUrl: './profile.component.scss'
 })
 export class ProfileComponent {
 

@@ -9,19 +9,18 @@ import { ImageCropperComponent, ImageCroppedEvent, LoadedImage } from 'ngx-image
 import { JobTask } from '../../../../../models/job-task';
 
 @Component({
-  selector: 'app-image-canvas',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatIconModule,
-    MatButtonModule,
-    MatSliderModule,
-    MatTooltipModule,
-    ImageCropperComponent
-  ],
-  templateUrl: './image-canvas.component.html',
-  styleUrl: './image-canvas.component.scss'
+    selector: 'app-image-canvas',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatIconModule,
+        MatButtonModule,
+        MatSliderModule,
+        MatTooltipModule,
+        ImageCropperComponent
+    ],
+    templateUrl: './image-canvas.component.html',
+    styleUrl: './image-canvas.component.scss'
 })
 export class ImageCanvasComponent {
   @Input() selectedImage: JobTask | null = null;

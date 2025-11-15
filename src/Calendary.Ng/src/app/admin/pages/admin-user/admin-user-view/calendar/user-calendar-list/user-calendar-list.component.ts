@@ -6,11 +6,10 @@ import { Calendar } from '../../../../../../../models/calendar';
 
 
 @Component({
-  standalone: true,
-  imports: [CommonModule, MatTableModule],
-  selector: 'app-user-calendar-list',
-  templateUrl: './user-calendar-list.component.html',
-  styleUrls: ['./user-calendar-list.component.scss']
+    imports: [CommonModule, MatTableModule],
+    selector: 'app-user-calendar-list',
+    templateUrl: './user-calendar-list.component.html',
+    styleUrls: ['./user-calendar-list.component.scss']
 })
 export class UserCalendarListComponent implements OnInit {
   @Input() userId!: number; // Очікуємо, що userId буде передано з батьківського компонента

@@ -13,6 +13,8 @@ The platform offers a straightforward user journey, beginning with an intuitive 
 
 For added convenience, Calendary.com.ua also includes an admin panel for streamlined order management. Here, admins can view detailed order information, update statuses, and send the final files directly to printing services. Designed with flexibility and personalization in mind, this project not only meets a practical need but also brings a touch of creativity to users' everyday lives, making it a unique platform for anyone looking to capture memories and important events in a custom-designed calendar.
 
+*Last updated: November 15, 2025*
+
 ---
 
 ## Documentation

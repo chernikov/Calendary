@@ -7,7 +7,7 @@ echo ========================================
 
 echo.
 echo [1/2] Running Backend Tests...
-dotnet test Calendary.sln --configuration Release --no-build --verbosity normal
+dotnet test Calendary.sln --configuration Release --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover --collect "XPlat Code Coverage"
 if %ERRORLEVEL% neq 0 (
     echo ERROR: Backend tests failed
     exit /b %ERRORLEVEL%

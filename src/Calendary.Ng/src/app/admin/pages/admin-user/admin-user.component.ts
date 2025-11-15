@@ -14,18 +14,18 @@ import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-admin-user',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatTableModule,
-    MatButtonModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule],
-  templateUrl: './admin-user.component.html',
-  styleUrls: ['./admin-user.component.scss']
+    selector: 'app-admin-user',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatTableModule,
+        MatButtonModule,
+        MatIconModule,
+        MatFormFieldModule,
+        MatInputModule
+    ],
+    templateUrl: './admin-user.component.html',
+    styleUrls: ['./admin-user.component.scss']
 })
 export class AdminUserComponent {
 

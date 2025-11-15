@@ -2,11 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { Image } from '../../../models/image';
 @Component({
-  selector: 'app-image-item',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './image-item.component.html',
-  styleUrl: './image-item.component.scss',
+    selector: 'app-image-item',
+    imports: [CommonModule],
+    templateUrl: './image-item.component.html',
+    styleUrl: './image-item.component.scss'
 })
 export class ImageItemComponent implements OnChanges {
   @Input()

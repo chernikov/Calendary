@@ -10,11 +10,10 @@ import { CategoryService } from '../../../../services/category.service';
 import { Category } from '../../../../models/category';
 
 @Component({
-  selector: 'app-flux-model',
-  standalone: true,
-  imports: [CommonModule, FormsModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
-  templateUrl: './flux-model.component.html',
-  styleUrl: './flux-model.component.scss'
+    selector: 'app-flux-model',
+    imports: [CommonModule, FormsModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
+    templateUrl: './flux-model.component.html',
+    styleUrl: './flux-model.component.scss'
 })
 export class FluxModelComponent 
 {

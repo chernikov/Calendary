@@ -11,11 +11,10 @@ import { Prompt } from '../../../../models/prompt';
 import { PromptTheme } from '../../../../models/prompt-theme';
 
 @Component({
-  selector: 'app-admin-prompt-theme',
-  standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, MatTableModule, MatButtonModule],
-  templateUrl: './admin-prompt-theme.component.html',
-  styleUrl: './admin-prompt-theme.component.scss'
+    selector: 'app-admin-prompt-theme',
+    imports: [CommonModule, FormsModule, MatIconModule, MatTableModule, MatButtonModule],
+    templateUrl: './admin-prompt-theme.component.html',
+    styleUrl: './admin-prompt-theme.component.scss'
 })
 export class AdminPromptThemeComponent {
   displayedColumns: string[] = ['id', 'name', 'isPublished', 'actions'];

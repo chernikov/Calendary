@@ -5,11 +5,10 @@ import { MatDividerModule } from '@angular/material/divider';
 import { JobTask } from '../../../../../models/job-task';
 
 @Component({
-  selector: 'app-properties-panel',
-  standalone: true,
-  imports: [CommonModule, MatIconModule, MatDividerModule],
-  templateUrl: './properties-panel.component.html',
-  styleUrl: './properties-panel.component.scss'
+    selector: 'app-properties-panel',
+    imports: [CommonModule, MatIconModule, MatDividerModule],
+    templateUrl: './properties-panel.component.html',
+    styleUrl: './properties-panel.component.scss'
 })
 export class PropertiesPanelComponent {
   @Input() selectedImage: JobTask | null = null;

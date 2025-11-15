@@ -4,11 +4,10 @@ import { Router, RouterModule } from '@angular/router';
 import { MenuComponent } from './components/menu/menu.component';
 import { TokenService } from '../../services/token.service';
 @Component({
-  selector: 'app-admin',
-  standalone: true,
-  imports: [MenuComponent, RouterModule, MatSidenavModule],
-  templateUrl: "./admin.component.html",
-  styleUrl: "./admin.component.scss",
+    selector: 'app-admin',
+    imports: [MenuComponent, RouterModule, MatSidenavModule],
+    templateUrl: "./admin.component.html",
+    styleUrl: "./admin.component.scss"
 })
 export class AdminComponent {
 

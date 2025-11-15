@@ -8,11 +8,10 @@ import { VerificationDialogComponent } from '../verification-dialog/verification
 import { VerificationService } from '../../../services/verification.service';
 
 @Component({
-  selector: 'app-settings',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './settings.component.html',
-  styleUrl: './settings.component.scss',
+    selector: 'app-settings',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule],
+    templateUrl: './settings.component.html',
+    styleUrl: './settings.component.scss'
 })
 export class SettingsComponent implements OnInit {
   settingsForm: FormGroup;

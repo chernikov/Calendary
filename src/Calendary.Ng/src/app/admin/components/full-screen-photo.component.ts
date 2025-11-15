@@ -3,10 +3,9 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-full-screen-photo',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-full-screen-photo',
+    imports: [CommonModule],
+    template: `
     <div class="full-screen-container" (click)="onBackdropClick($event)">
       <img
         [src]="data.imageUrl"
@@ -16,8 +15,8 @@ import { CommonModule } from '@angular/common';
       />
     </div>
   `,
-  styles: [
-    `
+    styles: [
+        `
       .full-screen-container {
         position: fixed; /* фіксуємо контейнер, щоб він завжди займав екран */
         top: 0;
@@ -39,7 +38,7 @@ import { CommonModule } from '@angular/common';
         box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
       }
     `,
-  ],
+    ]
 })
 export class FullScreenPhotoComponent {
   constructor(

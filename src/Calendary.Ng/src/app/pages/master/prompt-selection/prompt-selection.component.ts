@@ -22,11 +22,10 @@ import { JobTaskService } from '../../../../services/job-task.service';
 import { JobTask } from '../../../../models/job-task';
 
 @Component({
-  selector: 'app-prompt-selection',
-  standalone: true,
-  imports: [CommonModule, FormsModule, MatCardModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
-  templateUrl: './prompt-selection.component.html',
-  styleUrl: './prompt-selection.component.scss',
+    selector: 'app-prompt-selection',
+    imports: [CommonModule, FormsModule, MatCardModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
+    templateUrl: './prompt-selection.component.html',
+    styleUrl: './prompt-selection.component.scss'
 })
 export class PromptSelectionComponent implements OnChanges, OnInit {
   @Input() fluxModel: FluxModel | null = null;

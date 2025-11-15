@@ -5,11 +5,10 @@ import { PaymentRedirect } from '../../../../models/payment-redirect';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-payment',
-  standalone: true,
-  imports: [MatButtonModule],
-  templateUrl: './payment.component.html',
-  styleUrl: './payment.component.scss'
+    selector: 'app-payment',
+    imports: [MatButtonModule],
+    templateUrl: './payment.component.html',
+    styleUrl: './payment.component.scss'
 })
 export class PaymentComponent implements OnChanges {
   @Input() fluxModel: FluxModel | null = null;

@@ -14,12 +14,11 @@ import { SummaryOrder } from '../../../models/summary-order';
 import { PaymentRedirect } from '../../../models/payment-redirect';
 import { OrderService } from '../../../services/order.service';
 @Component({
-  selector: 'app-cart',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, 
-    DeliveryComponent, RouterModule],
-  templateUrl: './cart.component.html',
-  styleUrl: './cart.component.scss'
+    selector: 'app-cart',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule,
+        DeliveryComponent, RouterModule],
+    templateUrl: './cart.component.html',
+    styleUrl: './cart.component.scss'
 })
 export class CartComponent implements OnInit {
 
