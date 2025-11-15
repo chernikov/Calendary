@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -13,10 +13,13 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { PromptTheme } from '../../../../../models/prompt-theme';
 import { PromptThemeService } from '../../../../../services/prompt-theme.service';
 import { JobService } from '../../../../../services/job.service';
 import { Job } from '../../../../../models/job';
+import { ImageGenerationSignalRService, ProgressUpdate } from '../../services/image-generation-signalr.service';
+import { Observable } from 'rxjs';
 
 export interface GenerateModalData {
   fluxModelId: number;
@@ -37,6 +40,7 @@ export type GenerationMode = 'default' | 'theme' | 'custom';
         MatSelectModule,
         MatButtonModule,
         MatProgressSpinnerModule,
+        MatProgressBarModule,
         MatIconModule,
         MatCheckboxModule,
         MatExpansionModule,
@@ -47,7 +51,7 @@ export type GenerationMode = 'default' | 'theme' | 'custom';
     templateUrl: './generate-modal.component.html',
     styleUrls: ['./generate-modal.component.scss', './generate-modal-advanced.component.scss']
 })
-export class GenerateModalComponent implements OnInit {
+export class GenerateModalComponent implements OnInit, OnDestroy {
   generateForm: FormGroup;
   isLoading = false;
   isGenerating = false;
@@ -55,6 +59,8 @@ export class GenerateModalComponent implements OnInit {
   promptThemes: PromptTheme[] = [];
   generationMode: GenerationMode = 'theme';
   showAdvancedOptions = false;
+  progress$: Observable<ProgressUpdate | null>;
+  currentJobId: number | null = null;
 
   // Image dimension presets
   imageSizePresets = [
@@ -69,9 +75,11 @@ export class GenerateModalComponent implements OnInit {
     private fb: FormBuilder,
     private promptThemeService: PromptThemeService,
     private jobService: JobService,
+    private signalRService: ImageGenerationSignalRService,
     private dialogRef: MatDialogRef<GenerateModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: GenerateModalData
   ) {
+    this.progress$ = this.signalRService.progress$;
     this.generateForm = this.fb.group({
       // Generation mode
       mode: ['theme'],
@@ -98,9 +106,22 @@ export class GenerateModalComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.loadPromptThemes();
     this.updateValidators(this.generationMode);
+
+    // Підключитися до SignalR при ініціалізації
+    try {
+      await this.signalRService.connect();
+    } catch (err) {
+      console.error('Failed to connect to SignalR:', err);
+      // Продовжуємо роботу без real-time оновлень
+    }
+  }
+
+  async ngOnDestroy(): Promise<void> {
+    // Відключитися від SignalR при знищенні компонента
+    await this.signalRService.disconnect();
   }
 
   loadPromptThemes(): void {
@@ -153,7 +174,7 @@ export class GenerateModalComponent implements OnInit {
     this.generateForm.patchValue({ seed: null });
   }
 
-  onGenerate(): void {
+  async onGenerate(): Promise<void> {
     if (this.generationMode !== 'default' && this.generateForm.invalid) {
       // Mark all fields as touched to show validation errors
       Object.keys(this.generateForm.controls).forEach(key => {
@@ -164,6 +185,7 @@ export class GenerateModalComponent implements OnInit {
 
     this.isGenerating = true;
     this.error = '';
+    this.signalRService.resetProgress();
 
     // Note: Currently the backend only supports default and theme-based generation
     // Custom prompts and advanced options are prepared for future backend support
@@ -183,15 +205,46 @@ export class GenerateModalComponent implements OnInit {
     }
 
     generateObservable.subscribe({
-      next: (job: Job) => {
+      next: async (job: Job) => {
+        this.currentJobId = job.id;
+
+        // Підписатися на прогрес для кожної задачі в Job
+        // Для простоти підписуємося на перше завдання
+        // TODO: Відстежувати прогрес всіх завдань
+        if (job.tasks && job.tasks.length > 0) {
+          const firstTaskId = job.tasks[0].id;
+          try {
+            await this.signalRService.joinTaskGroup(firstTaskId.toString());
+          } catch (err) {
+            console.error('Failed to join task group:', err);
+          }
+        }
+
         // Add job to processing queue
         this.jobService.messageJob(job.id).subscribe({
           next: () => {
-            this.isGenerating = false;
-            this.dialogRef.close(job);
+            // Не закриваємо модал одразу - чекаємо на завершення прогресу
+            // this.isGenerating = false;
+            // this.dialogRef.close(job);
           },
           error: (err) => {
             this.error = 'Не вдалося додати задачу в чергу обробки';
+            this.isGenerating = false;
+          }
+        });
+
+        // Підписатися на оновлення прогресу
+        const progressSub = this.progress$.subscribe(progress => {
+          if (progress && progress.progress === 100) {
+            // Генерація завершена
+            setTimeout(() => {
+              this.isGenerating = false;
+              this.dialogRef.close(job);
+            }, 1000); // Невелика затримка для відображення 100%
+          }
+
+          if (progress && progress.error) {
+            this.error = progress.error;
             this.isGenerating = false;
           }
         });

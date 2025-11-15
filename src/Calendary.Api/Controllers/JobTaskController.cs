@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Calendary.Model;
 using Calendary.Api.Dtos;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.SignalR;
+using Calendary.Api.Hubs;
 
 namespace Calendary.Api.Controllers;
 
@@ -17,19 +19,22 @@ public class JobTaskController : Controller
     private readonly IReplicateService _replicateService;
     private readonly IFluxModelService _fluxModelService;
     private readonly IMapper _mapper;
+    private readonly IHubContext<ImageGenerationHub> _hubContext;
 
     public JobTaskController(
         IJobService jobService,
         IJobTaskService jobTaskService,
         IReplicateService replicateService,
         IFluxModelService fluxModelService,
-        IMapper mapper)
+        IMapper mapper,
+        IHubContext<ImageGenerationHub> hubContext)
     {
         _jobService = jobService;
         _jobTaskService = jobTaskService;
         _replicateService = replicateService;
         _fluxModelService = fluxModelService;
         _mapper = mapper;
+        _hubContext = hubContext;
     }
 
     [HttpGet("run/{id:int}")]
@@ -54,10 +59,15 @@ public class JobTaskController : Controller
             if (task.Status == "pending")
             {
                 // Відправка запиту до ReplicateService для генерації зображення
-
                 var imageRequest = GenerateImageInput.GetImageRequest(task.Prompt.Text, task.Seed);
                 var predictionId = await _replicateService.StartImageGenerationAsync(fluxModel.Version, imageRequest);
-                var result = await _replicateService.GenerateImageAsync(predictionId);
+
+                // Створюємо callback для відправки прогресу через SignalR
+                var taskGroupName = $"task_{id}";
+                var result = await _replicateService.GenerateImageAsync(predictionId, async (progress) =>
+                {
+                    await _hubContext.Clients.Group(taskGroupName).SendAsync("ProgressUpdate", progress);
+                });
 
                 if (result is not null && result.Output.Count > 0)
                 {

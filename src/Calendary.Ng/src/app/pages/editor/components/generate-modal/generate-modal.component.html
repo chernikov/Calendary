@@ -324,6 +324,32 @@
           <mat-icon>error</mat-icon>
           <span>{{ error }}</span>
         </div>
+
+        <!-- Progress Display -->
+        <div class="progress-container" *ngIf="(progress$ | async) as progress">
+          <div class="progress-header">
+            <mat-icon class="progress-icon">autorenew</mat-icon>
+            <h4>Генерація зображення</h4>
+          </div>
+
+          <mat-progress-bar
+            mode="determinate"
+            [value]="progress.progress"
+            class="progress-bar">
+          </mat-progress-bar>
+
+          <div class="progress-info">
+            <div class="progress-status">
+              <span class="status-text">{{ progress.status }}</span>
+              <span class="progress-percent">{{ progress.progress }}%</span>
+            </div>
+
+            <div class="progress-time" *ngIf="progress.estimatedTime !== null && progress.estimatedTime !== undefined && progress.estimatedTime > 0">
+              <mat-icon>schedule</mat-icon>
+              <span>Приблизний час: ~{{ progress.estimatedTime }}с</span>
+            </div>
+          </div>
+        </div>
       </div>
     </form>
   </mat-dialog-content>
