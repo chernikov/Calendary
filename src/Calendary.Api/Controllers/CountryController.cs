@@ -9,9 +9,6 @@ namespace Calendary.Api.Controllers;
 [Route("api/[controller]")]
 public class CountryController(ICountryService countryService, IMapper mapper) : ControllerBase
 {
-    
- 
-
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {

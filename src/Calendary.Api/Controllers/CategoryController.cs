@@ -28,7 +28,4 @@ public class CategoryController : BaseUserController
         var result = mapper.Map<IEnumerable<CategoryDto>>(categories);
         return Ok(result);
     }
-
-
-
 }
