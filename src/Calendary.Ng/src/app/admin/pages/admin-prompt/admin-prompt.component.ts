@@ -16,19 +16,19 @@ import { PromptTheme } from '../../../../models/prompt-theme';
 import { AdminCategoryService } from '../../../../services/admin/category.service';
 import { Category } from '../../../../models/category';
 @Component({
-  selector: 'app-admin-prompt',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatDialogModule,
-    MatTableModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatOptionModule],
-  templateUrl: './admin-prompt.component.html',
-  styleUrl: './admin-prompt.component.scss',
+    selector: 'app-admin-prompt',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatDialogModule,
+        MatTableModule,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatOptionModule
+    ],
+    templateUrl: './admin-prompt.component.html',
+    styleUrl: './admin-prompt.component.scss'
 })
 export class AdminPromptComponent {
   displayedColumns: string[] = ['id', 'theme', 'age-gender', 'text', 'actions'];

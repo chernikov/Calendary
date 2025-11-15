@@ -14,11 +14,10 @@ import { NewPassword } from '../../../models/new-password';
 
 
 @Component({
-  selector: 'app-verify',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule],
-  templateUrl: './verify.component.html',
-  styleUrls: ['./verify.component.scss']
+    selector: 'app-verify',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule],
+    templateUrl: './verify.component.html',
+    styleUrls: ['./verify.component.scss']
 })
 export class VerifyComponent implements OnInit {
   isLoading = true;

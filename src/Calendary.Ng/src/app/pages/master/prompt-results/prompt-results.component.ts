@@ -5,11 +5,10 @@ import { CommonModule } from '@angular/common';
 import { JobTask } from '../../../../models/job-task';
 
 @Component({
-  selector: 'app-prompt-results',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './prompt-results.component.html',
-  styleUrl: './prompt-results.component.scss'
+    selector: 'app-prompt-results',
+    imports: [CommonModule],
+    templateUrl: './prompt-results.component.html',
+    styleUrl: './prompt-results.component.scss'
 })
 export class PromptResultsComponent implements OnChanges {
   @Input() tasks: JobTask[] = [];

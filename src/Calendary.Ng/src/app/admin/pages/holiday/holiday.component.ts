@@ -6,11 +6,10 @@ import { HolidayService } from '../../../../services/holiday.service';
 
 
 @Component({
-  selector: 'app-holidays',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './holiday.component.html',
-  styleUrls: ['./holiday.component.scss']
+    selector: 'app-holidays',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './holiday.component.html',
+    styleUrls: ['./holiday.component.scss']
 })
 export class HolidayComponent implements OnInit {
   holidays: Holiday[] = [];

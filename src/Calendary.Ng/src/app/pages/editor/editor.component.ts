@@ -16,21 +16,20 @@ import { PropertiesPanelComponent } from './components/properties-panel/properti
 import { GenerateModalComponent } from './components/generate-modal/generate-modal.component';
 
 @Component({
-  selector: 'app-editor',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatIconModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    ImageGalleryComponent,
-    ImageCanvasComponent,
-    PropertiesPanelComponent
-  ],
-  templateUrl: './editor.component.html',
-  styleUrl: './editor.component.scss'
+    selector: 'app-editor',
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatIconModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+        MatSnackBarModule,
+        ImageGalleryComponent,
+        ImageCanvasComponent,
+        PropertiesPanelComponent
+    ],
+    templateUrl: './editor.component.html',
+    styleUrl: './editor.component.scss'
 })
 export class EditorComponent implements OnInit {
   isLoading = true;

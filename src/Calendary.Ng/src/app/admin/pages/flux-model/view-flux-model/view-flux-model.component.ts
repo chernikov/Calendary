@@ -6,11 +6,10 @@ import { AdminFluxModel } from '../../../../../models/flux-model';
 import { AdminFluxModelService } from '../../../../../services/admin/flux-model.service';
 
 @Component({
-  selector: 'app-view-flux-model',
-  standalone: true,
-  imports: [CommonModule, MatButtonModule],
-  templateUrl: './view-flux-model.component.html',
-  styleUrl: './view-flux-model.component.scss'
+    selector: 'app-view-flux-model',
+    imports: [CommonModule, MatButtonModule],
+    templateUrl: './view-flux-model.component.html',
+    styleUrl: './view-flux-model.component.scss'
 })
 export class ViewFluxModelComponent {
     fluxModel?: AdminFluxModel;

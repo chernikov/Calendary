@@ -6,11 +6,10 @@ import { Image } from '../../../models/image';
 import { MatIconModule } from '@angular/material/icon';
 import { ImageItemComponent } from '../image-item/image-item.component';
 @Component({
-  selector: 'app-calendar-images',
-  standalone: true,
-  imports: [CommonModule, FileUploadModule, MatIconModule, ImageItemComponent],
-  templateUrl: './calendar-images.component.html',
-  styleUrl: './calendar-images.component.scss'
+    selector: 'app-calendar-images',
+    imports: [CommonModule, FileUploadModule, MatIconModule, ImageItemComponent],
+    templateUrl: './calendar-images.component.html',
+    styleUrl: './calendar-images.component.scss'
 })
 export class CalendarImagesComponent implements OnChanges, OnInit {
 

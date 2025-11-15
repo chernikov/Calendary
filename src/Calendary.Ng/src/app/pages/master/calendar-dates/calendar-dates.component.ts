@@ -9,11 +9,10 @@ import { CalendarService } from '../../../../services/calendar.service';
 import { Calendar } from '../../../../models/calendar';
 
 @Component({
-  selector: 'app-calendar-dates',
-  standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule],
-  templateUrl: './calendar-dates.component.html',
-  styleUrl: './calendar-dates.component.scss'
+    selector: 'app-calendar-dates',
+    imports: [CommonModule, FormsModule, MatButtonModule],
+    templateUrl: './calendar-dates.component.html',
+    styleUrl: './calendar-dates.component.scss'
 })
 export class CalendarDatesComponent implements OnInit, OnChanges{
 

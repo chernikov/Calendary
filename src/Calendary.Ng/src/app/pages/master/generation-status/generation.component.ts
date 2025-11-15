@@ -6,11 +6,10 @@ import { FluxModel } from '../../../../models/flux-model';
 import { TrainingService } from '../../../../services/training.service';
 
 @Component({
-  selector: 'app-generation',
-  standalone: true,
-  imports: [CommonModule, MatButtonModule],
-  templateUrl: './generation.component.html',
-  styleUrl: './generation.component.scss',
+    selector: 'app-generation',
+    imports: [CommonModule, MatButtonModule],
+    templateUrl: './generation.component.html',
+    styleUrl: './generation.component.scss'
 })
 export class GenerationComponent implements OnChanges{
   @Input() fluxModel: FluxModel | null = null;

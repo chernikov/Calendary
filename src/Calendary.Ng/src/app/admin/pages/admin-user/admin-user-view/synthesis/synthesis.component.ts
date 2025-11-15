@@ -17,11 +17,10 @@ import { Prompt } from '../../../../../../models/prompt';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
-  selector: 'app-synthesis',
-  standalone: true,
-  imports: [CommonModule, MatTableModule, MatIconModule, MatButtonModule, MatProgressSpinner],
-  templateUrl: './synthesis.component.html',
-  styleUrls: ['./synthesis.component.scss'],
+    selector: 'app-synthesis',
+    imports: [CommonModule, MatTableModule, MatIconModule, MatButtonModule, MatProgressSpinner],
+    templateUrl: './synthesis.component.html',
+    styleUrls: ['./synthesis.component.scss']
 })
 export class AdminUserSynthesisComponent implements OnInit {
   userId!: number;

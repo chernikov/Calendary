@@ -7,11 +7,10 @@ import { JobTask } from '../../../../../models/job-task';
 import { Job } from '../../../../../models/job';
 
 @Component({
-  selector: 'app-image-gallery',
-  standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
-  templateUrl: './image-gallery.component.html',
-  styleUrl: './image-gallery.component.scss'
+    selector: 'app-image-gallery',
+    imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
+    templateUrl: './image-gallery.component.html',
+    styleUrl: './image-gallery.component.scss'
 })
 export class ImageGalleryComponent {
   @Input() jobs: Job[] = [];

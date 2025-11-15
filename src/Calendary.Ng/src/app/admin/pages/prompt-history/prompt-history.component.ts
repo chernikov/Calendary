@@ -6,11 +6,10 @@ import { AdminSynthesisService } from '../../../../services/admin/synthesis.serv
 import { AdminSynthesis } from '../../../../models/admin-synthesis';
 
 @Component({
-  selector: 'app-prompt-history',
-  standalone: true,
-  imports: [CommonModule, MatButtonModule, RouterModule],
-  templateUrl: './prompt-history.component.html',
-  styleUrl: './prompt-history.component.scss'
+    selector: 'app-prompt-history',
+    imports: [CommonModule, MatButtonModule, RouterModule],
+    templateUrl: './prompt-history.component.html',
+    styleUrl: './prompt-history.component.scss'
 })
 export class PromptHistoryComponent  implements OnInit {
     synthesises: AdminSynthesis[] = [];

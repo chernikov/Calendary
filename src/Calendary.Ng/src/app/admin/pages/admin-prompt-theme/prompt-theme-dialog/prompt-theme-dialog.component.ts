@@ -10,13 +10,11 @@ import { AdminPromptThemeService } from '../../../../../services/admin/prompt-th
 import { PromptTheme } from '../../../../../models/prompt-theme';
 
 @Component({
-  selector: 'app-prompt-theme-dialog',
-  templateUrl: './prompt-theme-dialog.component.html',
-  styleUrls: ['./prompt-theme-dialog.component.scss'],
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule,
-     MatDialogModule, MatFormFieldModule, MatInputModule, MatSlideToggleModule]
-
+    selector: 'app-prompt-theme-dialog',
+    templateUrl: './prompt-theme-dialog.component.html',
+    styleUrls: ['./prompt-theme-dialog.component.scss'],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule,
+        MatDialogModule, MatFormFieldModule, MatInputModule, MatSlideToggleModule]
 })
 export class PromptThemeDialogComponent {
   promptThemeForm: FormGroup;

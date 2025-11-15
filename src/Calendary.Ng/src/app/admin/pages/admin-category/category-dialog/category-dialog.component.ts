@@ -10,11 +10,10 @@ import { Category } from '../../../../../models/category';
 import { AdminCategoryService } from '../../../../../services/admin/category.service';
 
 @Component({
-  selector: 'app-category-dialog',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatButtonModule,MatInputModule, MatCheckboxModule],
-  templateUrl: './category-dialog.component.html',
-  styleUrl: './category-dialog.component.scss'
+    selector: 'app-category-dialog',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatButtonModule, MatInputModule, MatCheckboxModule],
+    templateUrl: './category-dialog.component.html',
+    styleUrl: './category-dialog.component.scss'
 })
 export class CategoryDialogComponent {
   categoryForm: FormGroup;

@@ -7,11 +7,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-order',
-  standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule],
-  templateUrl: './order.component.html',
-  styleUrl: './order.component.scss'
+    selector: 'app-order',
+    imports: [CommonModule, MatButtonModule, MatIconModule],
+    templateUrl: './order.component.html',
+    styleUrl: './order.component.scss'
 })
 export class OrderComponent implements OnInit {
   order: SummaryOrder | null = null;

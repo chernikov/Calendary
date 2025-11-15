@@ -5,11 +5,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 
 @Component({
-  selector: 'app-order-status-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
-  templateUrl: './order-status-dialog.component.html',
-  styleUrl: './order-status-dialog.component.scss'
+    selector: 'app-order-status-dialog',
+    imports: [MatDialogModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
+    templateUrl: './order-status-dialog.component.html',
+    styleUrl: './order-status-dialog.component.scss'
 })
 export class OrderStatusDialogComponent {
   constructor(

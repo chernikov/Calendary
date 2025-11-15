@@ -20,11 +20,10 @@ import { LanguageService } from '../../../services/language.service';
 import { Calendar } from '../../../models/calendar';
 
 @Component({
-  selector: 'app-additional-settings',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './additional-settings.component.html',
-  styleUrl: './additional-settings.component.scss',
+    selector: 'app-additional-settings',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule],
+    templateUrl: './additional-settings.component.html',
+    styleUrl: './additional-settings.component.scss'
 })
 export class AdditionalSettingsComponent implements OnInit, OnChanges {
   calendarForm!: FormGroup;

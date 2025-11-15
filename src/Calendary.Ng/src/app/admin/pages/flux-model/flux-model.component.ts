@@ -9,11 +9,10 @@ import { AdminFluxModelService } from '../../../../services/admin/flux-model.ser
 import { AdminFluxModel } from '../../../../models/flux-model';
 
 @Component({
-  selector: 'app-flux-model',
-  standalone: true,
-  imports: [CommonModule, MatTableModule, MatPaginatorModule, MatIconModule, MatButtonModule],
-  templateUrl: './flux-model.component.html',
-  styleUrl: './flux-model.component.scss'
+    selector: 'app-flux-model',
+    imports: [CommonModule, MatTableModule, MatPaginatorModule, MatIconModule, MatButtonModule],
+    templateUrl: './flux-model.component.html',
+    styleUrl: './flux-model.component.scss'
 })
 export class FluxModelComponent implements OnInit 
 {
