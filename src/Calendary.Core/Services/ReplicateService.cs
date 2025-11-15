@@ -14,13 +14,15 @@ public interface IReplicateService
 
     Task<TrainModelResponse> TrainModelAsync(string destination, TrainModelRequestInput input);
 
-    Task<GenerateImageResponse> GenerateImageAsync(string modelVersion, GenerateImageInput input);
+    Task<string> StartImageGenerationAsync(string modelVersion, GenerateImageInput input);
+
+    Task<GenerateImageResponse> GenerateImageAsync(string predictionId);
 
     Task CancelTrainingAsync(string replicateId);
 
     Task<TrainModelResponse> GetTrainingStatusAsync(string replicateId);
 
-    Task<GenerateImageResponse> GeGenerateImageStatusAsync(string replicateId);
+    Task<GenerateImageResponse> GetImageGenerationStatusAsync(string replicateId);
 
     Task<string> DownloadAndSaveImageAsync(string imageUrl);
 }
@@ -95,7 +97,7 @@ public class ReplicateService : IReplicateService
     }
 
     // 3. Генерація зображень
-    public async Task<GenerateImageResponse> GenerateImageAsync(string modelVersion, GenerateImageInput input)
+    public async Task<string> StartImageGenerationAsync(string modelVersion, GenerateImageInput input)
     {
         AddAuthorizationHeader();
 
@@ -112,13 +114,35 @@ public class ReplicateService : IReplicateService
             Content = reqContent
         };
 
-        // Додаємо заголовок Prefer
-        request.Headers.Add("Prefer", "wait");
-
         var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<GenerateImageResponse>(content)!;
+        var result = JsonSerializer.Deserialize<GenerateImageResponse>(content)!;
+        return result.Id;
+    }
+
+    public async Task<GenerateImageResponse> GenerateImageAsync(string predictionId)
+    {
+        var attempts = 0;
+        while (attempts < _settings.MaxRetries)
+        {
+            var status = await GetImageGenerationStatusAsync(predictionId);
+
+            if (status.Status == "succeeded")
+            {
+                return status;
+            }
+
+            if (status.Status == "failed")
+            {
+                throw new Exception($"Image generation failed: {status.Logs}");
+            }
+
+            await Task.Delay(1000);
+            attempts++;
+        }
+
+        throw new TimeoutException("Image generation timed out.");
     }
 
 
@@ -150,7 +174,7 @@ public class ReplicateService : IReplicateService
         return result ?? throw new InvalidOperationException("Failed to deserialize training status response.");
     }
 
-    public async Task<GenerateImageResponse> GeGenerateImageStatusAsync(string replicateId)
+    public async Task<GenerateImageResponse> GetImageGenerationStatusAsync(string replicateId)
     {
         AddAuthorizationHeader();
 

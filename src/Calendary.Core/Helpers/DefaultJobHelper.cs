@@ -46,14 +46,14 @@ internal class DefaultJobHelper : IDefaultJobHelper
         foreach(var task in jobWithTasks.Tasks)
         {
             var imageRequest = GenerateImageInput.GetImageRequest(task.Prompt.Text, task.Seed);
-            var result = await replicateService.GenerateImageAsync(fluxModel.Version, imageRequest);
+            var predictionId = await replicateService.StartImageGenerationAsync(fluxModel.Version, imageRequest);
+            var result = await replicateService.GenerateImageAsync(predictionId);
 
             if (result is not null && result.Output.Count > 0)
             {
-                var info = await replicateService.GeGenerateImageStatusAsync(result.Id);
                 var imagePath = result.Output[0];
                 // Updating task status and result
-                var seed = info.ExtractSeedFromLogs();
+                var seed = result.ExtractSeedFromLogs();
                 task.ReplicateId = result.Id;
                 task.OutputSeed = seed;
                 // Оновлення статусу завдання та результату
