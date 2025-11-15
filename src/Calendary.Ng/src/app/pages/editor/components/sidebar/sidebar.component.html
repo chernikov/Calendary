@@ -1,0 +1,92 @@
+<div class="sidebar-container">
+  <!-- Action Buttons -->
+  <div class="sidebar-section">
+    <h3 class="section-title">Дії</h3>
+    <button
+      mat-raised-button
+      color="primary"
+      class="action-button"
+      (click)="onGenerateImage()"
+      matTooltip="Згенерувати нове зображення за допомогою AI"
+    >
+      <mat-icon>auto_fix_high</mat-icon>
+      <span>Генерація</span>
+    </button>
+
+    <button
+      mat-stroked-button
+      class="action-button"
+      (click)="onUploadImage()"
+      matTooltip="Завантажити зображення з комп'ютера"
+    >
+      <mat-icon>upload</mat-icon>
+      <span>Завантажити</span>
+    </button>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Edit Tools -->
+  <div class="sidebar-section">
+    <h3 class="section-title">Інструменти</h3>
+    <div class="tools-grid">
+      <button
+        *ngFor="let tool of tools"
+        mat-icon-button
+        class="tool-button"
+        [class.active]="selectedTool === tool.id"
+        (click)="selectTool(tool.id)"
+        [matTooltip]="tool.tooltip"
+      >
+        <mat-icon>{{ tool.icon }}</mat-icon>
+        <span class="tool-label">{{ tool.label }}</span>
+      </button>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Filter Tools -->
+  <div class="sidebar-section">
+    <h3 class="section-title">Фільтри</h3>
+    <div class="tools-grid">
+      <button
+        *ngFor="let filter of filterTools"
+        mat-icon-button
+        class="tool-button"
+        [class.active]="selectedTool === filter.id"
+        (click)="selectTool(filter.id)"
+        [matTooltip]="filter.tooltip"
+      >
+        <mat-icon>{{ filter.icon }}</mat-icon>
+        <span class="tool-label">{{ filter.label }}</span>
+      </button>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Save/Export -->
+  <div class="sidebar-section">
+    <h3 class="section-title">Експорт</h3>
+    <button
+      mat-raised-button
+      class="action-button"
+      (click)="onSaveImage()"
+      matTooltip="Зберегти зміни на сервер"
+    >
+      <mat-icon>save</mat-icon>
+      <span>Зберегти</span>
+    </button>
+
+    <button
+      mat-stroked-button
+      class="action-button"
+      (click)="onExportImage()"
+      matTooltip="Експортувати зображення на комп'ютер"
+    >
+      <mat-icon>download</mat-icon>
+      <span>Експорт</span>
+    </button>
+  </div>
+</div>

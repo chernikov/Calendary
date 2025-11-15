@@ -1,0 +1,81 @@
+<div class="toolbar-container">
+  <!-- Left section: Zoom controls -->
+  <div class="toolbar-section">
+    <button
+      mat-icon-button
+      (click)="zoomOut()"
+      matTooltip="Зменшити"
+      [disabled]="zoomLevel <= 10"
+    >
+      <mat-icon>zoom_out</mat-icon>
+    </button>
+
+    <div class="zoom-slider-container">
+      <mat-slider
+        min="10"
+        max="400"
+        step="10"
+        discrete
+      >
+        <input matSliderThumb [(ngModel)]="zoomLevel" (input)="onZoomChange(zoomLevel)" />
+      </mat-slider>
+    </div>
+
+    <span class="zoom-value">{{ zoomLevel }}%</span>
+
+    <button
+      mat-icon-button
+      (click)="zoomIn()"
+      matTooltip="Збільшити"
+      [disabled]="zoomLevel >= 400"
+    >
+      <mat-icon>zoom_in</mat-icon>
+    </button>
+  </div>
+
+  <!-- Center section: Quick actions -->
+  <div class="toolbar-section">
+    <button
+      mat-stroked-button
+      (click)="onFitToScreen()"
+      matTooltip="Вмістити на екрані"
+      class="action-button"
+    >
+      <mat-icon>fit_screen</mat-icon>
+      <span>Вмістити</span>
+    </button>
+
+    <button
+      mat-stroked-button
+      (click)="onActualSize()"
+      matTooltip="Фактичний розмір (100%)"
+      class="action-button"
+    >
+      <mat-icon>fullscreen</mat-icon>
+      <span>100%</span>
+    </button>
+  </div>
+
+  <!-- Right section: View options -->
+  <div class="toolbar-section">
+    <mat-button-toggle-group>
+      <mat-button-toggle
+        [checked]="gridEnabled"
+        (click)="toggleGrid()"
+        matTooltip="Показати/сховати сітку"
+      >
+        <mat-icon>grid_on</mat-icon>
+        <span>Сітка</span>
+      </mat-button-toggle>
+
+      <mat-button-toggle
+        [checked]="rulersEnabled"
+        (click)="toggleRulers()"
+        matTooltip="Показати/сховати лінійки"
+      >
+        <mat-icon>straighten</mat-icon>
+        <span>Лінійки</span>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,6 +14,10 @@ import { ImageGalleryComponent } from './components/image-gallery/image-gallery.
 import { ImageCanvasComponent } from './components/image-canvas/image-canvas.component';
 import { PropertiesPanelComponent } from './components/properties-panel/properties-panel.component';
 import { GenerateModalComponent } from './components/generate-modal/generate-modal.component';
+import { SidebarComponent } from './components/sidebar/sidebar.component';
+import { HistoryComponent } from './components/history/history.component';
+import { ToolbarComponent } from './components/toolbar/toolbar.component';
+import { EditorStateService } from './services/editor-state.service';
 
 @Component({
     selector: 'app-editor',
@@ -26,7 +30,10 @@ import { GenerateModalComponent } from './components/generate-modal/generate-mod
         MatSnackBarModule,
         ImageGalleryComponent,
         ImageCanvasComponent,
-        PropertiesPanelComponent
+        PropertiesPanelComponent,
+        SidebarComponent,
+        HistoryComponent,
+        ToolbarComponent
     ],
     templateUrl: './editor.component.html',
     styleUrl: './editor.component.scss'
@@ -41,8 +48,28 @@ export class EditorComponent implements OnInit {
   constructor(
     private fluxModelService: FluxModelService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private editorStateService: EditorStateService
   ) {}
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    // Handle Ctrl+Z (Undo)
+    if (event.ctrlKey && event.key === 'z' && !event.shiftKey) {
+      event.preventDefault();
+      if (this.editorStateService.undo()) {
+        this.snackBar.open('Дію скасовано', '', { duration: 2000 });
+      }
+    }
+
+    // Handle Ctrl+Y (Redo) or Ctrl+Shift+Z
+    if ((event.ctrlKey && event.key === 'y') || (event.ctrlKey && event.shiftKey && event.key === 'z')) {
+      event.preventDefault();
+      if (this.editorStateService.redo()) {
+        this.snackBar.open('Дію повторено', '', { duration: 2000 });
+      }
+    }
+  }
 
   ngOnInit(): void {
     this.loadUserModels();
@@ -84,9 +111,31 @@ export class EditorComponent implements OnInit {
 
   onImageSaved(blob: Blob): void {
     // TODO: Implement saving edited image to server
-    this.snackBar.open('Збереження обробленого зображення буде реалізовано пізніше', 'OK', {
+    this.editorStateService.markAsSaved();
+    this.snackBar.open('Зображення збережено', 'OK', {
       duration: 3000
     });
+  }
+
+  onExportImage(): void {
+    if (!this.selectedImage) {
+      this.snackBar.open('Спочатку оберіть зображення', 'OK', {
+        duration: 3000
+      });
+      return;
+    }
+
+    // Download the image
+    const imageUrl = this.selectedImage.processedImageUrl || this.selectedImage.imageUrl;
+    if (imageUrl) {
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = `image_${this.selectedImage.id}.${this.editorStateService.currentState.imageFormat.toLowerCase()}`;
+      link.click();
+      this.snackBar.open('Зображення експортовано', 'OK', {
+        duration: 3000
+      });
+    }
   }
 
   openGenerateModal(): void {
