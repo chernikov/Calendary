@@ -1,0 +1,60 @@
+<div class="history-container">
+  <div class="history-header">
+    <h3 class="section-title">Історія дій</h3>
+    <button
+      mat-icon-button
+      matTooltip="Очистити історію"
+      (click)="clearHistory()"
+      [disabled]="history.length === 0"
+    >
+      <mat-icon>delete_sweep</mat-icon>
+    </button>
+  </div>
+
+  <div class="history-controls">
+    <button
+      mat-raised-button
+      (click)="undo()"
+      [disabled]="!canUndo"
+      matTooltip="Скасувати (Ctrl+Z)"
+      class="control-button"
+    >
+      <mat-icon>undo</mat-icon>
+      <span>Скасувати</span>
+    </button>
+
+    <button
+      mat-raised-button
+      (click)="redo()"
+      [disabled]="!canRedo"
+      matTooltip="Повторити (Ctrl+Y)"
+      class="control-button"
+    >
+      <mat-icon>redo</mat-icon>
+      <span>Повторити</span>
+    </button>
+  </div>
+
+  <mat-list class="history-list">
+    <div class="empty-state" *ngIf="history.length === 0">
+      <mat-icon>history</mat-icon>
+      <p>Історія порожня</p>
+      <span>Дії з'являться тут</span>
+    </div>
+
+    <mat-list-item
+      *ngFor="let action of history; let i = index"
+      class="history-item"
+      [class.current]="isCurrentAction(i)"
+      [class.future]="isFutureAction(i)"
+    >
+      <mat-icon matListItemIcon>{{ getActionIcon(action) }}</mat-icon>
+      <div matListItemTitle class="action-description">
+        {{ action.description }}
+      </div>
+      <div matListItemLine class="action-time">
+        {{ formatTime(action.timestamp) }}
+      </div>
+    </mat-list-item>
+  </mat-list>
+</div>

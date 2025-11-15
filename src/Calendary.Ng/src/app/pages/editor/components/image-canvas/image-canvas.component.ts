@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,6 +7,8 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ImageCropperComponent, ImageCroppedEvent, LoadedImage } from 'ngx-image-cropper';
 import { JobTask } from '../../../../../models/job-task';
+import { EditorStateService } from '../../services/editor-state.service';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-image-canvas',
@@ -22,7 +24,7 @@ import { JobTask } from '../../../../../models/job-task';
     templateUrl: './image-canvas.component.html',
     styleUrl: './image-canvas.component.scss'
 })
-export class ImageCanvasComponent {
+export class ImageCanvasComponent implements OnInit, OnDestroy {
   @Input() selectedImage: JobTask | null = null;
   @Output() imageSaved = new EventEmitter<Blob>();
 
@@ -38,6 +40,31 @@ export class ImageCanvasComponent {
   zoomLevel = 100;
   showGrid = false;
   showRulers = false;
+
+  private subscription: Subscription | null = null;
+
+  constructor(private editorStateService: EditorStateService) {}
+
+  ngOnInit(): void {
+    this.subscription = this.editorStateService.state$.subscribe(state => {
+      this.zoomLevel = state.zoom;
+      this.scale = state.zoom / 100;
+      this.showGrid = state.gridEnabled;
+      this.showRulers = state.rulersEnabled;
+
+      // Handle tool changes
+      if (state.selectedTool === 'crop' && !this.isCropMode && this.selectedImage) {
+        // Auto-switch to crop mode when crop tool is selected
+        this.isCropMode = true;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
 
   get imageUrl(): string {
     if (!this.selectedImage) return '';
@@ -68,11 +95,13 @@ export class ImageCanvasComponent {
   rotateLeft(): void {
     this.canvasRotation--;
     this.flipAfterRotate();
+    this.editorStateService.addAction('rotate', { direction: 'left', angle: -90 }, 'Повернуто ліворуч');
   }
 
   rotateRight(): void {
     this.canvasRotation++;
     this.flipAfterRotate();
+    this.editorStateService.addAction('rotate', { direction: 'right', angle: 90 }, 'Повернуто праворуч');
   }
 
   private flipAfterRotate(): void {
@@ -106,28 +135,27 @@ export class ImageCanvasComponent {
   }
 
   updateZoom(value: number): void {
-    this.zoomLevel = value;
-    this.scale = value / 100;
+    this.editorStateService.setZoom(value);
   }
 
   zoomIn(): void {
     if (this.zoomLevel < 200) {
-      this.updateZoom(this.zoomLevel + 10);
+      this.editorStateService.setZoom(this.zoomLevel + 10);
     }
   }
 
   zoomOut(): void {
     if (this.zoomLevel > 10) {
-      this.updateZoom(this.zoomLevel - 10);
+      this.editorStateService.setZoom(this.zoomLevel - 10);
     }
   }
 
   toggleGrid(): void {
-    this.showGrid = !this.showGrid;
+    this.editorStateService.toggleGrid();
   }
 
   toggleRulers(): void {
-    this.showRulers = !this.showRulers;
+    this.editorStateService.toggleRulers();
   }
 
   toggleCropMode(): void {
@@ -136,7 +164,9 @@ export class ImageCanvasComponent {
 
   saveCroppedImage(): void {
     if (this.croppedImage) {
+      this.editorStateService.addAction('crop', { blob: this.croppedImage }, 'Зображення обрізано');
       this.imageSaved.emit(this.croppedImage);
+      this.isCropMode = false;
     }
   }
 

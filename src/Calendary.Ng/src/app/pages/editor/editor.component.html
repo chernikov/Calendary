@@ -12,11 +12,54 @@
     </nav>
 
     <div class="editor-layout">
-      <aside class="editor-sidebar">
-        <div class="sidebar-section">
-          <h2>Мої моделі</h2>
+      <!-- Left Sidebar: Tools and Actions -->
+      <aside class="editor-left-sidebar">
+        <app-sidebar
+          (generateImage)="openGenerateModal()"
+          (uploadImage)="uploadImage()"
+          (saveImage)="onImageSaved(null!)"
+          (exportImage)="onExportImage()"
+        ></app-sidebar>
+
+        <div class="history-panel">
+          <app-history></app-history>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <section class="editor-main">
+        <header class="editor-header">
+          <div>
+            <p class="tagline">AI редактор зображень</p>
+            <h1>Полотно</h1>
+          </div>
+        </header>
+
+        <div class="canvas-wrapper" *ngIf="activeModel; else noModel">
+          <app-image-canvas
+            [selectedImage]="selectedImage"
+            (imageSaved)="onImageSaved($event)"
+          ></app-image-canvas>
+        </div>
+        <ng-template #noModel>
+          <div class="canvas-empty">
+            <mat-icon>info</mat-icon>
+            <p>Оберіть модель або створіть нову у розділі «Майстер».</p>
+          </div>
+        </ng-template>
+
+        <!-- Bottom Toolbar -->
+        <div class="toolbar-section">
+          <app-toolbar></app-toolbar>
+        </div>
+      </section>
+
+      <!-- Right Sidebar: Models, Gallery and Properties -->
+      <aside class="editor-right-sidebar">
+        <div class="sidebar-panel models-panel">
+          <h3>Мої моделі</h3>
           <p *ngIf="loadError" class="error">{{ loadError }}</p>
-          <ul *ngIf="userModels.length; else emptyModels">
+          <ul class="models-list" *ngIf="userModels.length; else emptyModels">
             <li
               *ngFor="let model of userModels"
               (click)="selectModel(model)"
@@ -34,7 +77,7 @@
           </ng-template>
         </div>
 
-        <div class="sidebar-section" *ngIf="activeModel">
+        <div class="sidebar-panel gallery-panel" *ngIf="activeModel">
           <app-image-gallery
             [jobs]="activeModel.jobs || []"
             [assignments]="assignments"
@@ -43,38 +86,12 @@
             (addToCalendar)="onAddToCalendar($event)"
           ></app-image-gallery>
         </div>
-      </aside>
 
-      <section class="editor-canvas">
-        <header class="editor-header">
-          <div>
-            <p class="tagline">AI редактор зображень</p>
-            <h1>Полотно</h1>
-          </div>
-          <div class="header-actions">
-            <button mat-stroked-button type="button" (click)="uploadImage()">
-              <mat-icon>upload</mat-icon>
-              Завантажити
-            </button>
-            <button mat-flat-button color="primary" type="button" (click)="openGenerateModal()">
-              <mat-icon>auto_fix_high</mat-icon>
-              Нове зображення
-            </button>
-          </div>
-        </header>
-
-        <div class="canvas-wrapper" *ngIf="activeModel; else noModel">
-          <app-image-canvas
+        <div class="sidebar-panel properties-panel">
+          <app-properties-panel
             [selectedImage]="selectedImage"
-            (imageSaved)="onImageSaved($event)"
-          ></app-image-canvas>
+          ></app-properties-panel>
         </div>
-        <ng-template #noModel>
-          <div class="canvas-empty">
-            <mat-icon>info</mat-icon>
-            <p>Оберіть модель зліва або створіть нову у розділі «Майстер».</p>
-          </div>
-        </ng-template>
 
         <app-calendar-preview
           *ngIf="activeModel"
@@ -86,35 +103,7 @@
           (clearAll)="onClearAllAssignments()"
           (swapRequested)="onMonthSwap($event)"
         ></app-calendar-preview>
-      </section>
-
-      <aside class="editor-tools">
-        <app-properties-panel
-          [selectedImage]="selectedImage"
-        ></app-properties-panel>
       </aside>
     </div>
-
-    <footer class="editor-footer">
-      <div class="status">
-        <mat-icon>info</mat-icon>
-        <span *ngIf="activeModel; else inactive">Модель готова до редагування</span>
-        <ng-template #inactive>Виберіть модель для початку редагування</ng-template>
-      </div>
-      <div class="footer-actions">
-        <button mat-button type="button">
-          <mat-icon>undo</mat-icon>
-          Скасувати
-        </button>
-        <button mat-button type="button">
-          <mat-icon>redo</mat-icon>
-          Повторити
-        </button>
-        <button mat-raised-button color="primary" type="button" [disabled]="!isCalendarReady">
-          <mat-icon>save</mat-icon>
-          Зберегти зміни
-        </button>
-      </div>
-    </footer>
   </div>
 </section>

@@ -69,6 +69,43 @@
     <mat-divider></mat-divider>
 
     <div class="property-section">
+      <h4>Параметри експорту</h4>
+
+      <div class="property-row">
+        <span class="property-label">Розмір:</span>
+        <span class="property-value">
+          {{ imageWidth > 0 ? imageWidth + ' × ' + imageHeight : 'Не визначено' }}
+        </span>
+      </div>
+
+      <div class="property-row">
+        <span class="property-label">Формат:</span>
+        <mat-select [(ngModel)]="imageFormat" (selectionChange)="onFormatChange($event.value)" class="format-select">
+          <mat-option *ngFor="let format of formats" [value]="format">
+            {{ format }}
+          </mat-option>
+        </mat-select>
+      </div>
+
+      <div class="property-row quality-row">
+        <span class="property-label">Якість:</span>
+        <div class="quality-control">
+          <mat-slider
+            min="1"
+            max="100"
+            step="1"
+            discrete
+          >
+            <input matSliderThumb [(ngModel)]="imageQuality" (input)="onQualityChange(imageQuality)" />
+          </mat-slider>
+          <span class="quality-value">{{ imageQuality }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="property-section">
       <div class="thumbnail-preview" *ngIf="imageUrl">
         <img [src]="imageUrl" [alt]="'Preview of image #' + selectedImage.id" />
       </div>
