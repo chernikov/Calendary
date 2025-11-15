@@ -1,0 +1,93 @@
+version: '3'
+services:
+  calendary_db:
+    container_name: calendary_db
+    image: mcr.microsoft.com/mssql/server
+    ports:
+      - "1443:1433"
+    networks:
+      - "calendary"
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: yourStrong(!)Password
+    volumes:
+      - mssqlsystem_calendary:/var/opt/mssql
+      - mssqluser_calendary:/var/opt/sqlserver
+    restart: always
+  calendary_rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" # AMQP
+      - "15672:15672" # Панель управління RabbitMQ
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: Gz8!vLk3NpQwX@2rY4&
+    networks:
+      - "calendary"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq # Збереження даних
+  calendary_api:
+    container_name: calendary_api
+    image: chernikov/calendary.api
+    environment:
+      - "ConnectionStrings__DefaultConnection=Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;"
+      - "Jwt__Key=Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;"
+      - "NovaPost__ApiKey=" #Add here
+      - "NovaPost__EndPoint=https://api.novaposhta.ua/v2.0/json/"
+      - "SendGrid__ApiKey=" #Add here
+      - "SmsClub__ApiKey=" #Add here
+      - "MonoBank__MerchantToken=" #Add here
+      - "ReplicateSettings__ApiKey=" #Add here
+      - "RabbitMQ__Host=calendary_rabbitmq"
+      - "RabbitMQ__User=user"
+      - "RabbitMQ__Password=Gz8!vLk3NpQwX@2rY4&"
+    ports:
+     - "8080:8080"
+    volumes:
+     - "/calendary:/app/wwwroot/uploads"
+    networks:
+     - "calendary"
+    depends_on:
+     - calendary_db
+    restart: always
+  calendary_ng:
+    container_name: calendary_ng
+    image: chernikov/calendary.ng
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - "calendary"
+    depends_on:
+      - calendary_api
+    restart: always
+    volumes:
+      - ./nginx.local.conf:/etc/nginx/nginx.conf
+  calendary_consumer:
+    container_name: calendary_consumer
+    image: chernikov/calendary.consumer
+    depends_on:
+      - calendary_rabbitmq
+    environment:
+      RabbitMQ__Host: calendary_rabbitmq
+      RabbitMQ__User: user
+      RabbitMQ__Password: Gz8!vLk3NpQwX@2rY4&
+      ConnectionStrings__DefaultConnection: Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;
+    restart: always
+    networks:
+      - "calendary"
+networks:
+  calendary:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 20.0.0.0/24
+
+volumes:
+  mssqlsystem_calendary:
+    external: true
+  mssqluser_calendary:
+    external: true
+  rabbitmq_data:
+    external: true
