@@ -109,36 +109,13 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Check formatting
-        run: dotnet format --verify-no-changes --verbosity diagnostic || echo "Warning: Code formatting issues detected"
-
-  security-scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
+        run: "dotnet format --verify-no-changes --verbosity diagnostic || echo \"Warning: Code formatting issues detected\""
 
   all-tests-passed:
     name: All Tests Passed
     runs-on: ubuntu-latest
     needs: [backend-tests, frontend-tests, code-quality]
     if: always()
-
     steps:
       - name: Check if all tests passed
         run: |
@@ -155,3 +132,27 @@ jobs:
             exit 1
           fi
           echo "All tests passed! ✅"
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: [all-tests-passed]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
