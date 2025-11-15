@@ -12,12 +12,17 @@ For added convenience, Calendary.com.ua also includes an admin panel for streaml
 
 ## Documentation
 
+### Core Documents
+- **[FRAME](./FRAME.md)** - AI-Driven Architecture framework and development principles
 - [Architecture](./docs/architecture.md) - System architecture and technical stack
 - [QA Testing Plan](./docs/qa-testing-plan.md) - Comprehensive testing strategy and procedures
 - [Code Quality Rules](./docs/code-quality-rules.md) - Development standards and guidelines
 - [Process](./docs/process.md) - Development workflow
 - [Project Tasks](./todo/tasks.md) - TODO list and roadmap
 - [Financial Calculations](./docs/financial-calculations.md) - Budget and pricing
+
+### AI Assistant Guide
+- [Claude Instructions](./claude.md) - Guide for AI assistants working on Calendary
 
 ### Team Guides
 
