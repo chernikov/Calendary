@@ -1,0 +1,87 @@
+<div class="generate-modal">
+  <div class="modal-header">
+    <div class="header-content">
+      <mat-icon>auto_fix_high</mat-icon>
+      <div>
+        <h2 mat-dialog-title>Генерація зображень</h2>
+        <p class="model-name">Модель: {{ data.fluxModelName }}</p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="onCancel()" [disabled]="isGenerating">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <div class="loading-state" *ngIf="isLoading">
+      <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+      <p>Завантаження тем...</p>
+    </div>
+
+    <form [formGroup]="generateForm" *ngIf="!isLoading">
+      <div class="form-section">
+        <div class="default-toggle">
+          <mat-checkbox
+            [checked]="useDefaultGeneration"
+            (change)="onDefaultToggle($event.checked)"
+          >
+            Використати стандартну генерацію
+          </mat-checkbox>
+          <p class="help-text">
+            Стандартна генерація створить зображення для всіх 12 місяців з базовими промптами
+          </p>
+        </div>
+
+        <mat-form-field appearance="outline" *ngIf="!useDefaultGeneration">
+          <mat-label>Тема промптів</mat-label>
+          <mat-select formControlName="promptThemeId" [disabled]="useDefaultGeneration">
+            <mat-option *ngFor="let theme of promptThemes" [value]="theme.id">
+              {{ theme.name }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>palette</mat-icon>
+          <mat-hint>Оберіть тему для генерації зображень</mat-hint>
+        </mat-form-field>
+
+        <div class="info-box">
+          <mat-icon>info</mat-icon>
+          <div>
+            <p>
+              <strong>Про генерацію:</strong>
+            </p>
+            <ul>
+              <li>Для кожного місяця буде створено окреме зображення</li>
+              <li>Процес може зайняти кілька хвилин</li>
+              <li>Ви зможете відстежити прогрес у реальному часі</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="error">
+          <mat-icon>error</mat-icon>
+          <span>{{ error }}</span>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="isGenerating">
+      Скасувати
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onGenerate()"
+      [disabled]="(!useDefaultGeneration && generateForm.invalid) || isGenerating || isLoading"
+    >
+      <mat-icon *ngIf="!isGenerating">auto_fix_high</mat-icon>
+      <mat-progress-spinner
+        *ngIf="isGenerating"
+        mode="indeterminate"
+        diameter="20"
+      ></mat-progress-spinner>
+      {{ isGenerating ? 'Генерація...' : 'Розпочати генерацію' }}
+    </button>
+  </mat-dialog-actions>
+</div>

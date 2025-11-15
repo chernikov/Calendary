@@ -1,0 +1,84 @@
+<div class="properties-panel">
+  <div class="panel-header">
+    <mat-icon>info</mat-icon>
+    <h3>Властивості</h3>
+  </div>
+
+  <div class="panel-content" *ngIf="selectedImage; else noSelection">
+    <div class="property-section">
+      <h4>Загальна інформація</h4>
+
+      <div class="property-row">
+        <span class="property-label">ID:</span>
+        <span class="property-value">#{{ selectedImage.id }}</span>
+      </div>
+
+      <div class="property-row">
+        <span class="property-label">Статус:</span>
+        <span class="property-value">
+          <span class="status-badge" [ngClass]="statusBadgeClass">
+            {{ selectedImage.status }}
+          </span>
+        </span>
+      </div>
+
+      <div class="property-row">
+        <span class="property-label">Повторні спроби:</span>
+        <span class="property-value">{{ retryText }}</span>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="property-section">
+      <h4>Дати</h4>
+
+      <div class="property-row">
+        <span class="property-label">Створено:</span>
+        <span class="property-value small">{{ formattedCreatedDate }}</span>
+      </div>
+
+      <div class="property-row">
+        <span class="property-label">Завершено:</span>
+        <span class="property-value small">{{ formattedCompletedDate }}</span>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="property-section">
+      <h4>Зображення</h4>
+
+      <div class="property-row">
+        <span class="property-label">Оригінал:</span>
+        <span class="property-value url-value" [title]="selectedImage.imageUrl">
+          <mat-icon class="icon-small">image</mat-icon>
+          {{ selectedImage.imageUrl ? 'Доступне' : 'Немає' }}
+        </span>
+      </div>
+
+      <div class="property-row">
+        <span class="property-label">Оброблене:</span>
+        <span class="property-value url-value" [title]="selectedImage.processedImageUrl || ''">
+          <mat-icon class="icon-small">edit</mat-icon>
+          {{ selectedImage.processedImageUrl ? 'Доступне' : 'Немає' }}
+        </span>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="property-section">
+      <div class="thumbnail-preview" *ngIf="imageUrl">
+        <img [src]="imageUrl" [alt]="'Preview of image #' + selectedImage.id" />
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noSelection>
+    <div class="empty-state">
+      <mat-icon>info_outline</mat-icon>
+      <p>Властивості відображатимуться після вибору зображення</p>
+    </div>
+  </ng-template>
+</div>
