@@ -53,10 +53,8 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
     this.editorStateService.setImageFormat(format);
   }
 
-  onQualityChange(quality: number | null): void {
-    if (quality !== null) {
-      this.editorStateService.setImageQuality(quality);
-    }
+  onQualityChange(quality: number): void {
+    this.editorStateService.setImageQuality(quality);
   }
 
   get formattedCreatedDate(): string {

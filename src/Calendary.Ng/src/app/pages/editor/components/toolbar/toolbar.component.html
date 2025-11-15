@@ -15,12 +15,9 @@
         min="10"
         max="400"
         step="10"
-        [value]="zoomLevel"
-        (change)="onZoomChange($event.value)"
         discrete
-        [displayWith]="formatLabel"
       >
-        <input matSliderThumb />
+        <input matSliderThumb [(ngModel)]="zoomLevel" (input)="onZoomChange(zoomLevel)" />
       </mat-slider>
     </div>
 

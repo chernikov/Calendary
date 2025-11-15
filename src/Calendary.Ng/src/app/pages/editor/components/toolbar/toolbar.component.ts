@@ -50,11 +50,9 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     }
   }
 
-  onZoomChange(value: number | null): void {
-    if (value !== null) {
-      this.editorStateService.setZoom(value);
-      this.zoomChange.emit(value);
-    }
+  onZoomChange(value: number): void {
+    this.editorStateService.setZoom(value);
+    this.zoomChange.emit(value);
   }
 
   zoomIn(): void {

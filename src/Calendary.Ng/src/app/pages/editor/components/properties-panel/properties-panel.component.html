@@ -94,11 +94,9 @@
             min="1"
             max="100"
             step="1"
-            [value]="imageQuality"
-            (change)="onQualityChange($event.value)"
             discrete
           >
-            <input matSliderThumb />
+            <input matSliderThumb [(ngModel)]="imageQuality" (input)="onQualityChange(imageQuality)" />
           </mat-slider>
           <span class="quality-value">{{ imageQuality }}%</span>
         </div>
