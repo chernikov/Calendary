@@ -1,0 +1,14 @@
+.advanced-panel{margin-top:8px;box-shadow:none!important;border:1px solid #e5e7eb;border-radius:12px!important;
+mat-expansion-panel-header{padding:16px;mat-panel-title{display:flex;align-items:center;gap:8px;font-weight:600;mat-icon{color:#4058ff}}
+mat-panel-description{font-size:13px;color:#6b7280}}.advanced-content{padding:16px;display:flex;flex-direction:column;gap:24px}}
+.seed-section .seed-controls{display:flex;gap:8px;align-items:flex-start;.seed-input{flex:1}button{margin-top:4px;min-width:48px;height:48px}}
+.seed-section .help-text{margin:8px 0 0;font-size:13px;color:#6b7280}
+.dimensions-section .size-presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;
+.preset-button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 12px;font-size:12px;border:1px solid #e5e7eb;transition:all .2s;
+&:hover{border-color:#4058ff;background:#f0f4ff}&.active{border-color:#4058ff;background:#eff6ff;color:#4058ff;font-weight:500}
+.preset-dims{font-size:10px;color:#6b7280}}}
+.dimensions-section .dimension-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.slider-field label{display:flex;align-items:center;gap:4px;font-size:14px;font-weight:500;color:#374151;margin-bottom:8px;
+.info-icon{font-size:16px;width:16px;height:16px;color:#9ca3af;cursor:help}}
+.slider-field mat-slider{width:100%;margin-bottom:8px}
+.slider-field .slider-labels{display:flex;justify-content:space-between;font-size:12px;color:#6b7280}
