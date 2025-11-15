@@ -64,8 +64,12 @@
               *ngFor="let model of userModels"
               (click)="selectModel(model)"
               [class.active]="model === activeModel"
+              [class.is-active-model]="model.isActive"
             >
-              <div class="model-name">{{ model.name || ('FluxModel #' + model.id) }}</div>
+              <div class="model-header">
+                <div class="model-name">{{ model.name || ('FluxModel #' + model.id) }}</div>
+                <mat-icon *ngIf="model.isActive" class="active-indicator" matTooltip="Активна модель">check_circle</mat-icon>
+              </div>
               <div class="model-status">
                 <mat-icon>fiber_manual_record</mat-icon>
                 {{ model.status || 'unknown' }}

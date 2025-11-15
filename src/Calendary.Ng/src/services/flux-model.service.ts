@@ -39,4 +39,14 @@ export class FluxModelService {
   archive(id : number) : Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/archive/${id}`, null);
   }
+
+  // Встановлення активної моделі
+  setActive(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/set-active`, null);
+  }
+
+  // Отримання списку всіх моделей користувача
+  getList(): Observable<FluxModel[]> {
+    return this.http.get<FluxModel[]>(`${this.apiUrl}/list`);
+  }
 }
