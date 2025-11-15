@@ -20,43 +20,306 @@
 
     <form [formGroup]="generateForm" *ngIf="!isLoading">
       <div class="form-section">
-        <div class="default-toggle">
-          <mat-checkbox
-            [checked]="useDefaultGeneration"
-            (change)="onDefaultToggle($event.checked)"
-          >
-            Використати стандартну генерацію
-          </mat-checkbox>
-          <p class="help-text">
-            Стандартна генерація створить зображення для всіх 12 місяців з базовими промптами
-          </p>
+        <!-- Generation Mode Selection -->
+        <div class="mode-selection">
+          <h3 class="section-title">Режим генерації</h3>
+          <mat-radio-group formControlName="mode" class="mode-radio-group">
+            <mat-radio-button value="default">
+              <div class="radio-content">
+                <div class="radio-label">
+                  <mat-icon>auto_awesome</mat-icon>
+                  <span>Стандартна генерація</span>
+                </div>
+                <p class="radio-description">Автоматична генерація зображень для 12 місяців</p>
+              </div>
+            </mat-radio-button>
+            <mat-radio-button value="theme">
+              <div class="radio-content">
+                <div class="radio-label">
+                  <mat-icon>palette</mat-icon>
+                  <span>Генерація за темою</span>
+                </div>
+                <p class="radio-description">Оберіть готову тему промптів</p>
+              </div>
+            </mat-radio-button>
+            <mat-radio-button value="custom">
+              <div class="radio-content">
+                <div class="radio-label">
+                  <mat-icon>edit_note</mat-icon>
+                  <span>Власний промпт</span>
+                </div>
+                <p class="radio-description">Напишіть власний текст для генерації</p>
+              </div>
+            </mat-radio-button>
+          </mat-radio-group>
         </div>
 
-        <mat-form-field appearance="outline" *ngIf="!useDefaultGeneration">
-          <mat-label>Тема промптів</mat-label>
-          <mat-select formControlName="promptThemeId" [disabled]="useDefaultGeneration">
-            <mat-option *ngFor="let theme of promptThemes" [value]="theme.id">
-              {{ theme.name }}
-            </mat-option>
-          </mat-select>
-          <mat-icon matPrefix>palette</mat-icon>
-          <mat-hint>Оберіть тему для генерації зображень</mat-hint>
-        </mat-form-field>
+        <!-- Theme Selection -->
+        <div class="theme-selection" *ngIf="generationMode === 'theme'">
+          <mat-form-field appearance="outline">
+            <mat-label>Тема промптів</mat-label>
+            <mat-select formControlName="promptThemeId">
+              <mat-option *ngFor="let theme of promptThemes" [value]="theme.id">
+                {{ theme.name }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>palette</mat-icon>
+            <mat-error *ngIf="generateForm.get('promptThemeId')?.hasError('required')">
+              Оберіть тему промптів
+            </mat-error>
+          </mat-form-field>
+        </div>
 
-        <div class="info-box">
+        <!-- Custom Prompt -->
+        <div class="custom-prompt" *ngIf="generationMode === 'custom'">
+          <mat-form-field appearance="outline">
+            <mat-label>Власний промпт</mat-label>
+            <textarea
+              matInput
+              formControlName="customPrompt"
+              rows="4"
+              placeholder="Опишіть зображення, яке хочете згенерувати..."
+            ></textarea>
+            <mat-icon matPrefix>edit_note</mat-icon>
+            <mat-hint>Мінімум 3 символи. Детальний опис дає кращі результати.</mat-hint>
+            <mat-error *ngIf="generateForm.get('customPrompt')?.hasError('required')">
+              Введіть текст промпту
+            </mat-error>
+            <mat-error *ngIf="generateForm.get('customPrompt')?.hasError('minlength')">
+              Мінімум 3 символи
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Advanced Options -->
+        <mat-expansion-panel class="advanced-panel" *ngIf="generationMode !== 'default'">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>tune</mat-icon>
+              <span>Додаткові налаштування</span>
+            </mat-panel-title>
+            <mat-panel-description>
+              Seed, розміри, параметри генерації
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+
+          <div class="advanced-content">
+            <!-- Seed Control -->
+            <div class="seed-section">
+              <h4 class="subsection-title">
+                <mat-icon>casino</mat-icon>
+                Seed (зерно випадковості)
+              </h4>
+              <div class="seed-controls">
+                <mat-form-field appearance="outline" class="seed-input">
+                  <mat-label>Seed</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="seed"
+                    placeholder="Авто"
+                  />
+                  <mat-icon matPrefix>tag</mat-icon>
+                  <mat-hint>Залиште порожнім для випадкового значення</mat-hint>
+                </mat-form-field>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="generateRandomSeed()"
+                  matTooltip="Згенерувати випадковий seed"
+                >
+                  <mat-icon>shuffle</mat-icon>
+                </button>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="clearSeed()"
+                  matTooltip="Очистити seed"
+                >
+                  <mat-icon>clear</mat-icon>
+                </button>
+              </div>
+              <p class="help-text">
+                Seed дозволяє відтворювати ті самі зображення. Використовуйте однаковий seed для ідентичних результатів.
+              </p>
+            </div>
+
+            <!-- Number of Images -->
+            <div class="num-images-section">
+              <h4 class="subsection-title">
+                <mat-icon>photo_library</mat-icon>
+                Кількість зображень
+              </h4>
+              <mat-form-field appearance="outline">
+                <mat-label>Кількість</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="numImages"
+                  min="1"
+                  max="12"
+                />
+                <mat-icon matPrefix>filter_{{ generateForm.get('numImages')?.value || 4 }}</mat-icon>
+                <mat-hint>Від 1 до 12 зображень</mat-hint>
+                <mat-error *ngIf="generateForm.get('numImages')?.hasError('min')">
+                  Мінімум 1 зображення
+                </mat-error>
+                <mat-error *ngIf="generateForm.get('numImages')?.hasError('max')">
+                  Максимум 12 зображень
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <!-- Image Dimensions -->
+            <div class="dimensions-section">
+              <h4 class="subsection-title">
+                <mat-icon>aspect_ratio</mat-icon>
+                Розміри зображення
+              </h4>
+
+              <div class="size-presets">
+                <button
+                  *ngFor="let preset of imageSizePresets"
+                  mat-stroked-button
+                  type="button"
+                  (click)="applyImageSizePreset(preset)"
+                  [class.active]="generateForm.get('width')?.value === preset.width && generateForm.get('height')?.value === preset.height"
+                  class="preset-button"
+                >
+                  {{ preset.label }}
+                  <span class="preset-dims">{{ preset.width }}×{{ preset.height }}</span>
+                </button>
+              </div>
+
+              <div class="dimension-inputs">
+                <mat-form-field appearance="outline">
+                  <mat-label>Ширина</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="width"
+                    min="512"
+                    max="2048"
+                    step="64"
+                  />
+                  <mat-icon matPrefix>width</mat-icon>
+                  <span matSuffix>px</span>
+                  <mat-error *ngIf="generateForm.get('width')?.hasError('min')">
+                    Мінімум 512px
+                  </mat-error>
+                  <mat-error *ngIf="generateForm.get('width')?.hasError('max')">
+                    Максимум 2048px
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Висота</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="height"
+                    min="512"
+                    max="2048"
+                    step="64"
+                  />
+                  <mat-icon matPrefix>height</mat-icon>
+                  <span matSuffix>px</span>
+                  <mat-error *ngIf="generateForm.get('height')?.hasError('min')">
+                    Мінімум 512px
+                  </mat-error>
+                  <mat-error *ngIf="generateForm.get('height')?.hasError('max')">
+                    Максимум 2048px
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Generation Parameters -->
+            <div class="parameters-section">
+              <h4 class="subsection-title">
+                <mat-icon>settings</mat-icon>
+                Параметри генерації
+              </h4>
+
+              <div class="slider-field">
+                <label>
+                  Guidance Scale: {{ generateForm.get('guidanceScale')?.value }}
+                  <mat-icon
+                    matTooltip="Наскільки сильно модель слідує вашому промпту. Вищі значення = більша точність."
+                    class="info-icon"
+                  >
+                    info
+                  </mat-icon>
+                </label>
+                <mat-slider
+                  min="1"
+                  max="20"
+                  step="0.5"
+                  showTickMarks
+                  discrete
+                >
+                  <input matSliderThumb formControlName="guidanceScale">
+                </mat-slider>
+                <div class="slider-labels">
+                  <span>Вільно</span>
+                  <span>Точно</span>
+                </div>
+              </div>
+
+              <div class="slider-field">
+                <label>
+                  Кроки генерації: {{ generateForm.get('inferenceSteps')?.value }}
+                  <mat-icon
+                    matTooltip="Більше кроків = кращі деталі, але довша генерація."
+                    class="info-icon"
+                  >
+                    info
+                  </mat-icon>
+                </label>
+                <mat-slider
+                  min="1"
+                  max="150"
+                  step="1"
+                  showTickMarks
+                  discrete
+                >
+                  <input matSliderThumb formControlName="inferenceSteps">
+                </mat-slider>
+                <div class="slider-labels">
+                  <span>Швидко</span>
+                  <span>Якісно</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-box">
+              <mat-icon>info</mat-icon>
+              <div>
+                <p><strong>Примітка:</strong></p>
+                <p class="note-text">
+                  Деякі додаткові параметри (розміри, guidance scale, кроки) будуть доступні після оновлення серверної частини.
+                  Зараз вони збережені для майбутнього використання.
+                </p>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- Info Box for Default Mode -->
+        <div class="info-box" *ngIf="generationMode === 'default'">
           <mat-icon>info</mat-icon>
           <div>
-            <p>
-              <strong>Про генерацію:</strong>
-            </p>
+            <p><strong>Про стандартну генерацію:</strong></p>
             <ul>
-              <li>Для кожного місяця буде створено окреме зображення</li>
+              <li>Автоматично створює зображення для всіх 12 місяців</li>
+              <li>Використовує базові промпти для кожного місяця</li>
               <li>Процес може зайняти кілька хвилин</li>
               <li>Ви зможете відстежити прогрес у реальному часі</li>
             </ul>
           </div>
         </div>
 
+        <!-- Error Message -->
         <div class="error-message" *ngIf="error">
           <mat-icon>error</mat-icon>
           <span>{{ error }}</span>
@@ -73,7 +336,7 @@
       mat-raised-button
       color="primary"
       (click)="onGenerate()"
-      [disabled]="(!useDefaultGeneration && generateForm.invalid) || isGenerating || isLoading"
+      [disabled]="!isFormValid || isGenerating || isLoading"
     >
       <mat-icon *ngIf="!isGenerating">auto_fix_high</mat-icon>
       <mat-progress-spinner
