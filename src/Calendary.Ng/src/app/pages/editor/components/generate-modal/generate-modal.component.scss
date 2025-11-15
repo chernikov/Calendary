@@ -1,10 +1,11 @@
 .generate-modal {
-  min-width: 500px;
-  max-width: 600px;
+  min-width: 600px;
+  max-width: 800px;
 
-  @media (max-width: 600px) {
+  @media (max-width: 900px) {
     min-width: auto;
     width: 100%;
+    max-width: 100%;
   }
 }
 
@@ -44,7 +45,7 @@
 
 mat-dialog-content {
   padding: 24px;
-  max-height: 500px;
+  max-height: 600px;
   overflow-y: auto;
 
   &::-webkit-scrollbar {
@@ -85,26 +86,239 @@ mat-dialog-content {
   gap: 24px;
 }
 
-.default-toggle {
+// Section titles
+.section-title {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.subsection-title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #6b7280;
+  }
+}
+
+// Mode selection
+.mode-selection {
   padding: 16px;
   background: #f9fafb;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
+}
 
-  mat-checkbox {
-    font-weight: 500;
+.mode-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  mat-radio-button {
+    display: block;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #4058ff;
+      background: #f0f4ff;
+    }
+
+    &.mat-mdc-radio-checked {
+      border-color: #4058ff;
+      background: #eff6ff;
+    }
+
+    .radio-content {
+      margin-left: 8px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      color: #1f2937;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #4058ff;
+      }
+    }
+
+    .radio-description {
+      margin: 4px 0 0 28px;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+  }
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+// Advanced options panel
+.advanced-panel {
+  margin-top: 8px;
+  box-shadow: none !important;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px !important;
+
+  mat-expansion-panel-header {
+    padding: 16px;
+
+    mat-panel-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+
+      mat-icon {
+        color: #4058ff;
+      }
+    }
+
+    mat-panel-description {
+      font-size: 13px;
+      color: #6b7280;
+    }
+  }
+
+  .advanced-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+}
+
+// Seed controls
+.seed-section {
+  .seed-controls {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+
+    .seed-input {
+      flex: 1;
+    }
+
+    button {
+      margin-top: 4px;
+      min-width: 48px;
+      height: 48px;
+    }
   }
 
   .help-text {
-    margin: 8px 0 0 32px;
+    margin: 8px 0 0 0;
     font-size: 13px;
     color: #6b7280;
     line-height: 1.5;
   }
 }
 
-mat-form-field {
-  width: 100%;
+// Image dimensions
+.dimensions-section {
+  .size-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    .preset-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+      font-size: 12px;
+      border: 1px solid #e5e7eb;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #4058ff;
+        background: #f0f4ff;
+      }
+
+      &.active {
+        border-color: #4058ff;
+        background: #eff6ff;
+        color: #4058ff;
+        font-weight: 500;
+      }
+
+      .preset-dims {
+        font-size: 10px;
+        color: #6b7280;
+      }
+    }
+  }
+
+  .dimension-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+// Slider fields
+.slider-field {
+  label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+
+    .info-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #9ca3af;
+      cursor: help;
+    }
+  }
+
+  mat-slider {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #6b7280;
+  }
 }
 
 .info-box {
@@ -127,6 +341,16 @@ mat-form-field {
     margin: 0 0 8px 0;
     font-size: 14px;
     color: #1e40af;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .note-text {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 4px;
   }
 
   ul {
