@@ -12,11 +12,10 @@ import { OrderStatusDialogComponent } from '../../components/order-status-dialog
 
 
 @Component({
-  selector: 'app-admin-order',
-  standalone: true,
-  imports:[CommonModule, MatDialogModule, MatTableModule, MatPaginatorModule, MatIconModule, MatButtonModule, MatSelectModule],
-  templateUrl: './admin-order.component.html',
-  styleUrls: ['./admin-order.component.scss'],
+    selector: 'app-admin-order',
+    imports: [CommonModule, MatDialogModule, MatTableModule, MatPaginatorModule, MatIconModule, MatButtonModule, MatSelectModule],
+    templateUrl: './admin-order.component.html',
+    styleUrls: ['./admin-order.component.scss']
 })
 export class AdminOrderComponent implements OnInit {
   orders: AdminOrder[] = [];

@@ -3,22 +3,19 @@ import { CommonModule } from '@angular/common';
 import { CalendarService } from '../../../services/calendar.service';
 import { Calendar } from '../../../models/calendar';
 import { CalendarImagesComponent } from '../../components/calendar-images/calendar-images.component';
-import { AdditionalSettingsComponent } from '../../components/additional-settings/additional-settings.component';
 import { EventDatesComponent } from '../../components/event-date/event-dates.component';
 import { Router, RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-calendar',
-  standalone: true,
-  imports: [
-    CommonModule,
-    CalendarImagesComponent,
-    EventDatesComponent,
-    AdditionalSettingsComponent,
-    RouterModule
-  ],
-  templateUrl: './calendar.component.html',
-  styleUrls: ['./calendar.component.scss'],
+    selector: 'app-calendar',
+    imports: [
+        CommonModule,
+        CalendarImagesComponent,
+        EventDatesComponent,
+        RouterModule
+    ],
+    templateUrl: './calendar.component.html',
+    styleUrls: ['./calendar.component.scss']
 })
 export class CalendarComponent implements OnInit {
   calendar: Calendar | null = null;

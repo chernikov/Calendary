@@ -10,11 +10,10 @@ import { MatInputModule } from '@angular/material/input';
 
 
 @Component({
-  selector: 'app-change-password',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule],
-  templateUrl: './change-password.component.html',
-  styleUrls: ['./change-password.component.scss']
+    selector: 'app-change-password',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule],
+    templateUrl: './change-password.component.html',
+    styleUrls: ['./change-password.component.scss']
 })
 export class ChangePasswordComponent {
   changePasswordForm: FormGroup;

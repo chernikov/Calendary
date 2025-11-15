@@ -9,11 +9,10 @@ import { Router } from '@angular/router';
 import { FluxModelService } from '../../../../services/flux-model.service';
 
 @Component({
-  selector: 'app-calendar-ready',
-  standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule],
-  templateUrl: './calendar-ready.component.html',
-  styleUrls: ['./calendar-ready.component.scss']
+    selector: 'app-calendar-ready',
+    imports: [CommonModule, MatCardModule, MatButtonModule],
+    templateUrl: './calendar-ready.component.html',
+    styleUrls: ['./calendar-ready.component.scss']
 })
 export class CalendarReadyComponent implements OnChanges {
 

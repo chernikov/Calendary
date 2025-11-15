@@ -19,11 +19,10 @@ import { CartService } from '../../../services/cart.service';
 import { DeliveryInfo } from '../../../models/delivery-info';
 
 @Component({
-  selector: 'app-delivery',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './delivery.component.html',
-  styleUrls: ['./delivery.component.scss'],
+    selector: 'app-delivery',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule],
+    templateUrl: './delivery.component.html',
+    styleUrls: ['./delivery.component.scss']
 })
 export class DeliveryComponent implements OnInit {
   deliveryForm: FormGroup;

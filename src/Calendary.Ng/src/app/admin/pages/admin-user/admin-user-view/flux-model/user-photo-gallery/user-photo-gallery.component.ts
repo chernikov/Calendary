@@ -20,16 +20,15 @@ export interface UserPhotoGalleryData {
 }
 
 @Component({
-  selector: 'app-user-photo-gallery',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    UploadPhotoComponent,
-  ],
-  templateUrl: './user-photo-gallery.component.html',
-  styleUrl: './user-photo-gallery.component.scss',
+    selector: 'app-user-photo-gallery',
+    imports: [
+        CommonModule,
+        MatDialogModule,
+        MatButtonModule,
+        UploadPhotoComponent,
+    ],
+    templateUrl: './user-photo-gallery.component.html',
+    styleUrl: './user-photo-gallery.component.scss'
 })
 export class UserPhotoGalleryComponent implements OnInit {
   fluxModel: AdminFluxModel | null = null;

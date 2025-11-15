@@ -10,11 +10,10 @@ import { UserFluxModelListComponent } from './flux-model/user-flux-model-list/us
 
 
 @Component({
-  selector: 'app-admin-user-view',
-  standalone: true, 
-  imports: [CommonModule, MatTableModule, MatButtonModule, UserCalendarListComponent, UserFluxModelListComponent],
-  templateUrl: './admin-user-view.component.html',
-  styleUrls: ['./admin-user-view.component.scss']
+    selector: 'app-admin-user-view',
+    imports: [CommonModule, MatTableModule, MatButtonModule, UserCalendarListComponent, UserFluxModelListComponent],
+    templateUrl: './admin-user-view.component.html',
+    styleUrls: ['./admin-user-view.component.scss']
 })
 export class AdminUserViewComponent implements OnInit {
   user: AdminUser | null = null;

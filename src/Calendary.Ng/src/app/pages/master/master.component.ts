@@ -14,24 +14,23 @@ import { CalendarReadyComponent } from './calendar-ready/calendar-ready.componen
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-master',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    FluxModelComponent,
-    PhotoUploadComponent,
-    GenerationComponent,
-    PromptSelectionComponent,
-    PaymentComponent,
-    ImageGenerationComponent,
-    CalendarMonthsComponent,
-    CalendarDatesComponent,
-    CalendarReadyComponent,
-    MatIconModule,
-],
-  templateUrl: './master.component.html',
-  styleUrl: './master.component.scss',
+    selector: 'app-master',
+    imports: [
+        CommonModule,
+        MatCardModule,
+        FluxModelComponent,
+        PhotoUploadComponent,
+        GenerationComponent,
+        PromptSelectionComponent,
+        PaymentComponent,
+        ImageGenerationComponent,
+        CalendarMonthsComponent,
+        CalendarDatesComponent,
+        CalendarReadyComponent,
+        MatIconModule,
+    ],
+    templateUrl: './master.component.html',
+    styleUrl: './master.component.scss'
 })
 export class MasterComponent {
   fluxModel: any = null; // Поточна FluxModel

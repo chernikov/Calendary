@@ -16,11 +16,10 @@ import { CreateFluxModelDialogComponent } from '../create-flux-model-dialog/crea
 import { UserTrainingService } from '../../../../../../../services/admin/user-training.service';
 
 @Component({
-  selector: 'app-user-flux-model-list',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, MatTableModule, MatButtonModule, MatIconModule],
-  templateUrl: './user-flux-model-list.component.html',
-  styleUrls: ['./user-flux-model-list.component.scss']
+    selector: 'app-user-flux-model-list',
+    imports: [CommonModule, FormsModule, RouterModule, MatTableModule, MatButtonModule, MatIconModule],
+    templateUrl: './user-flux-model-list.component.html',
+    styleUrls: ['./user-flux-model-list.component.scss']
 })
 export class UserFluxModelListComponent implements OnInit {
   @Input() userId!: number;

@@ -6,11 +6,10 @@ import { UploadPhotoService } from '../../../../../../../services/admin/upload-p
 
 
 @Component({
-  selector: 'app-upload-photo',
-  standalone: true,
-  imports: [CommonModule, FormsModule, FileUploadModule],
-  templateUrl: './upload-photo.component.html',
-  styleUrl: './upload-photo.component.scss',
+    selector: 'app-upload-photo',
+    imports: [CommonModule, FormsModule, FileUploadModule],
+    templateUrl: './upload-photo.component.html',
+    styleUrl: './upload-photo.component.scss'
 })
 export class UploadPhotoComponent implements OnChanges {
   @Input() fluxModelId: number | null = null;

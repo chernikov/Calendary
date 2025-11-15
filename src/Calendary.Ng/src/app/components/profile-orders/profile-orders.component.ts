@@ -8,11 +8,10 @@ import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-profile-orders',
-  standalone: true,
-  imports: [CommonModule, MatTableModule, MatPaginatorModule, MatButtonModule, RouterModule],
-  templateUrl: './profile-orders.component.html',
-  styleUrls: ['./profile-orders.component.scss'],
+    selector: 'app-profile-orders',
+    imports: [CommonModule, MatTableModule, MatPaginatorModule, MatButtonModule, RouterModule],
+    templateUrl: './profile-orders.component.html',
+    styleUrls: ['./profile-orders.component.scss']
 })
 export class ProfileOrdersComponent implements OnInit {
 

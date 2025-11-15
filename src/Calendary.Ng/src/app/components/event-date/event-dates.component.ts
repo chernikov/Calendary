@@ -6,11 +6,10 @@ import { EventDateService } from '../../../services/event-date.service';
 
 
 @Component({
-  selector: 'app-event-dates',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './event-dates.component.html',
-  styleUrls: ['./event-dates.component.scss']
+    selector: 'app-event-dates',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './event-dates.component.html',
+    styleUrls: ['./event-dates.component.scss']
 })
 export class EventDatesComponent implements OnInit {
   eventDates: EventDate[] = [];

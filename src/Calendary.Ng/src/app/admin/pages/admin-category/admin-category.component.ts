@@ -10,11 +10,10 @@ import { AdminCategoryService } from '../../../../services/admin/category.servic
 import { CategoryDialogComponent } from './category-dialog/category-dialog.component';
 
 @Component({
-  selector: 'app-admin-category',
-  standalone: true,
-  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule],
-  templateUrl: './admin-category.component.html',
-  styleUrls: ['./admin-category.component.scss']
+    selector: 'app-admin-category',
+    imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule],
+    templateUrl: './admin-category.component.html',
+    styleUrls: ['./admin-category.component.scss']
 })
 export class AdminCategoryComponent {
   displayedColumns: string[] = ['id', 'name', 'isAlive', 'actions'];

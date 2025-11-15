@@ -2,11 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
-  selector: 'app-photo-instructions',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './photo-instructions.component.html',
-  styleUrl: './photo-instructions.component.scss'
+    selector: 'app-photo-instructions',
+    imports: [CommonModule],
+    templateUrl: './photo-instructions.component.html',
+    styleUrl: './photo-instructions.component.scss'
 })
 export class PhotoInstructionsComponent {
   @Output() close = new EventEmitter<void>();

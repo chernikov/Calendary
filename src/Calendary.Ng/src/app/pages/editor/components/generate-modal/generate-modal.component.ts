@@ -20,22 +20,21 @@ export interface GenerateModalData {
 }
 
 @Component({
-  selector: 'app-generate-modal',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    MatIconModule,
-    MatCheckboxModule
-  ],
-  templateUrl: './generate-modal.component.html',
-  styleUrl: './generate-modal.component.scss'
+    selector: 'app-generate-modal',
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+        MatIconModule,
+        MatCheckboxModule
+    ],
+    templateUrl: './generate-modal.component.html',
+    styleUrl: './generate-modal.component.scss'
 })
 export class GenerateModalComponent implements OnInit {
   generateForm: FormGroup;

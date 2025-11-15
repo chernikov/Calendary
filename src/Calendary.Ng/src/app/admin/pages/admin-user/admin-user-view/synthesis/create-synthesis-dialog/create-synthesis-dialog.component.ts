@@ -13,12 +13,10 @@ export interface CreateSynthesisDialogData {
 }
 
 @Component({
-  selector: 'app-create-synthesis-dialog',
-  standalone: true,
-  imports : [CommonModule, MatDialogModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatInputModule],
-  templateUrl: './create-synthesis-dialog.component.html',
-  styleUrls: ['./create-synthesis-dialog.component.scss'],
-  
+    selector: 'app-create-synthesis-dialog',
+    imports: [CommonModule, MatDialogModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatInputModule],
+    templateUrl: './create-synthesis-dialog.component.html',
+    styleUrls: ['./create-synthesis-dialog.component.scss']
 })
 export class CreateSynthesisDialogComponent {
   synthesisForm: FormGroup;

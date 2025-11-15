@@ -13,11 +13,10 @@ import { FluxModelService } from '../../../../services/flux-model.service';
 import { UploadPhotoService } from '../../../../services/upload-photo.service';
 
 @Component({
-  selector: 'app-photo-upload',
-  standalone: true,
-  imports: [CommonModule, FormsModule, FileUploadModule, PhotoInstructionsComponent],
-  templateUrl: './photo-upload.component.html',
-  styleUrl: './photo-upload.component.scss',
+    selector: 'app-photo-upload',
+    imports: [CommonModule, FormsModule, FileUploadModule, PhotoInstructionsComponent],
+    templateUrl: './photo-upload.component.html',
+    styleUrl: './photo-upload.component.scss'
 })
 export class PhotoUploadComponent implements OnChanges {
   @Input() fluxModel: FluxModel | null = null;

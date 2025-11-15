@@ -17,13 +17,12 @@ import { PromptSeed } from '../../../../../models/promt-seed';
 import { AdminFluxModel } from '../../../../../models/flux-model';
 
 @Component({
-  selector: 'app-synthesis-dialog',
-  standalone: true,
-  imports: [CommonModule, FormsModule,
-    MatDialogModule, MatInputModule, MatFormFieldModule, MatSelectModule, 
-    MatButtonModule, MatProgressSpinnerModule, MatDividerModule],
-  templateUrl: './synthesis-dialog.component.html',
-  styleUrl: './synthesis-dialog.component.scss'
+    selector: 'app-synthesis-dialog',
+    imports: [CommonModule, FormsModule,
+        MatDialogModule, MatInputModule, MatFormFieldModule, MatSelectModule,
+        MatButtonModule, MatProgressSpinnerModule, MatDividerModule],
+    templateUrl: './synthesis-dialog.component.html',
+    styleUrl: './synthesis-dialog.component.scss'
 })
 
 export class SynthesisDialogComponent implements OnInit {

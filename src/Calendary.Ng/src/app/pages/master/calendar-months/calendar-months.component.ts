@@ -21,11 +21,10 @@ import { FillCalendar } from '../../../../models/requests/fill-calendar';
 
 import { Image } from '../../../../models/image';
 @Component({
-  selector: 'app-calendar-months',
-  standalone: true,
-  imports: [CommonModule, DragDropModule, CdkDropList, CdkDrag, MatButtonModule],
-  templateUrl: './calendar-months.component.html',
-  styleUrls: ['./calendar-months.component.scss'],
+    selector: 'app-calendar-months',
+    imports: [CommonModule, DragDropModule, CdkDropList, CdkDrag, MatButtonModule],
+    templateUrl: './calendar-months.component.html',
+    styleUrls: ['./calendar-months.component.scss']
 })
 export class CalendarMonthsComponent implements OnChanges {
   @Input()
