@@ -15,6 +15,12 @@ export class FluxModelService {
   current(): Observable<FluxModel> {
     return this.http.get<FluxModel>(this.apiUrl);
   }
+
+  // Отримати всі моделі користувача
+  getList(): Observable<FluxModel[]> {
+    return this.http.get<FluxModel[]>(`${this.apiUrl}/list`);
+  }
+
   // Створення нового FluxModel
   create(categoryId: number): Observable<FluxModel> {
     return this.http.post<FluxModel>(this.apiUrl, { categoryId });
@@ -38,5 +44,15 @@ export class FluxModelService {
 
   archive(id : number) : Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/archive/${id}`, null);
+  }
+
+  // Перейменування моделі
+  updateName(id: number, name: string): Observable<FluxModel> {
+    return this.http.put<FluxModel>(`${this.apiUrl}/${id}/name`, { name });
+  }
+
+  // Видалення моделі (soft delete)
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

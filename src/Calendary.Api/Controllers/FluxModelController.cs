@@ -48,6 +48,19 @@ public class FluxModelController : BaseUserController
         return Ok(result);
     }
 
+    [HttpGet("list")]
+    public async Task<IActionResult> GetList()
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+        var models = await _fluxModelService.GetListByUserIdAsync(user.Id);
+        var result = _mapper.Map<IEnumerable<FluxModelDto>>(models);
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -156,6 +169,57 @@ public class FluxModelController : BaseUserController
         }
         await _fluxModelService.ArchiveAsync(fluxModel);
         return Ok();
+    }
+
+    [HttpPut("{id}/name")]
+    public async Task<IActionResult> UpdateName(int id, [FromBody] UpdateNameRequest request)
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        var fluxModel = await _fluxModelService.GetByIdAsync(id);
+        if (fluxModel == null)
+        {
+            return NotFound();
+        }
+
+        if (fluxModel.UserId != user.Id)
+        {
+            return Forbid();
+        }
+
+        fluxModel.Name = request.Name;
+        await _fluxModelService.ChangeNameAsync(fluxModel);
+
+        var result = _mapper.Map<FluxModelDto>(fluxModel);
+        return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var user = await CurrentUser.Value;
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        var fluxModel = await _fluxModelService.GetByIdAsync(id);
+        if (fluxModel == null)
+        {
+            return NotFound();
+        }
+
+        if (fluxModel.UserId != user.Id)
+        {
+            return Forbid();
+        }
+
+        await _fluxModelService.SoftDeleteAsync(id);
+        return NoContent();
     }
 
 

@@ -1,0 +1,272 @@
+.models-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .create-button {
+    color: #4058ff;
+  }
+}
+
+.error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 0;
+  padding: 8px 12px;
+  background: #fee2e2;
+  border-radius: 8px;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: #9ca3af;
+
+  .spinner {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    animation: spin 2s linear infinite;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: #9ca3af;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+  }
+
+  button {
+    margin-top: 8px;
+  }
+}
+
+.models-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  max-height: 400px;
+  padding-right: 4px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+}
+
+.model-card {
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #ffffff;
+
+  &:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  &.active {
+    border-color: #4058ff;
+    background: #f0f4ff;
+    box-shadow: 0 0 0 3px rgba(64, 88, 255, 0.1);
+  }
+}
+
+.model-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.model-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.model-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rename-input {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid #4058ff;
+  border-radius: 6px;
+  outline: none;
+  margin-bottom: 6px;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(64, 88, 255, 0.1);
+  }
+}
+
+.model-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.model-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+
+  &.status-ready {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &.status-training {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  &.status-failed {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &.status-uploading {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.status-unknown {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+}
+
+.model-date {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.model-actions {
+  display: flex;
+  align-items: center;
+
+  button {
+    color: #6b7280;
+
+    &:hover {
+      color: #1f2937;
+    }
+  }
+}
+
+.rename-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  button {
+    &:first-child {
+      color: #059669;
+
+      &:hover {
+        background: #d1fae5;
+      }
+    }
+
+    &:last-child {
+      color: #dc2626;
+
+      &:hover {
+        background: #fee2e2;
+      }
+    }
+  }
+}
+
+.delete-action {
+  color: #dc2626 !important;
+}
