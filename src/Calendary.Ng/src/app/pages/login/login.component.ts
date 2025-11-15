@@ -7,6 +7,7 @@ import { UserLogin } from '../../../models/user';
 import { TokenService } from '../../../services/token.service';
 
 @Component({
+    standalone: true,
     selector: 'app-login',
     imports: [ReactiveFormsModule, CommonModule, RouterModule],
     templateUrl: './login.component.html',

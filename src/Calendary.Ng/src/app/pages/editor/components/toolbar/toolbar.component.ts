@@ -1,4 +1,10 @@
-import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  Output,
+  EventEmitter,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,6 +16,7 @@ import { EditorStateService } from '../../services/editor-state.service';
 import { Subscription } from 'rxjs';
 
 @Component({
+  standalone: true,
   selector: 'app-toolbar',
   imports: [
     CommonModule,
@@ -18,10 +25,10 @@ import { Subscription } from 'rxjs';
     MatButtonModule,
     MatSliderModule,
     MatTooltipModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
   ],
   templateUrl: './toolbar.component.html',
-  styleUrl: './toolbar.component.scss'
+  styleUrl: './toolbar.component.scss',
 })
 export class ToolbarComponent implements OnInit, OnDestroy {
   @Output() zoomChange = new EventEmitter<number>();
@@ -37,7 +44,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   constructor(private editorStateService: EditorStateService) {}
 
   ngOnInit(): void {
-    this.subscription = this.editorStateService.state$.subscribe(state => {
+    this.subscription = this.editorStateService.state$.subscribe((state) => {
       this.zoomLevel = state.zoom;
       this.gridEnabled = state.gridEnabled;
       this.rulersEnabled = state.rulersEnabled;

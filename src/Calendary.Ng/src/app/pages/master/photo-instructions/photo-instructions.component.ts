@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
+    standalone: true,
     selector: 'app-photo-instructions',
     imports: [CommonModule],
     templateUrl: './photo-instructions.component.html',

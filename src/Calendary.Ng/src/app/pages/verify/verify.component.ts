@@ -14,6 +14,7 @@ import { NewPassword } from '../../../models/new-password';
 
 
 @Component({
+    standalone: true,
     selector: 'app-verify',
     imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule],
     templateUrl: './verify.component.html',

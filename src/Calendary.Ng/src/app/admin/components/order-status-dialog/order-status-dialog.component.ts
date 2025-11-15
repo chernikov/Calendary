@@ -5,6 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 
 @Component({
+    standalone: true,
     selector: 'app-order-status-dialog',
     imports: [MatDialogModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
     templateUrl: './order-status-dialog.component.html',

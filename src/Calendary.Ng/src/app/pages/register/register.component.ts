@@ -9,6 +9,7 @@ import {  UserRegister } from '../../../models/user';
 import { TokenService } from '../../../services/token.service';
 import { VerificationDialogComponent } from '../../components/verification-dialog/verification-dialog.component';
 @Component({
+    standalone: true,
     selector: 'app-register',
     imports: [ReactiveFormsModule, CommonModule, MatDialogModule, RouterModule],
     templateUrl: './register.component.html',

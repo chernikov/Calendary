@@ -16,6 +16,7 @@ import { PromptTheme } from '../../../../models/prompt-theme';
 import { AdminCategoryService } from '../../../../services/admin/category.service';
 import { Category } from '../../../../models/category';
 @Component({
+    standalone: true,
     selector: 'app-admin-prompt',
     imports: [
         CommonModule,

@@ -4,20 +4,24 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { EditorStateService, EditorAction } from '../../services/editor-state.service';
+import {
+  EditorStateService,
+  EditorAction,
+} from '../../services/editor-state.service';
 import { Subscription } from 'rxjs';
 
 @Component({
+  standalone: true,
   selector: 'app-history',
   imports: [
     CommonModule,
     MatIconModule,
     MatButtonModule,
     MatListModule,
-    MatTooltipModule
+    MatTooltipModule,
   ],
   templateUrl: './history.component.html',
-  styleUrl: './history.component.scss'
+  styleUrl: './history.component.scss',
 })
 export class HistoryComponent implements OnInit, OnDestroy {
   history: EditorAction[] = [];
@@ -30,7 +34,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   constructor(private editorStateService: EditorStateService) {}
 
   ngOnInit(): void {
-    this.subscription = this.editorStateService.state$.subscribe(state => {
+    this.subscription = this.editorStateService.state$.subscribe((state) => {
       this.history = state.history;
       this.currentIndex = state.historyIndex;
       this.canUndo = this.editorStateService.canUndo();
@@ -84,7 +88,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   formatTime(date: Date): string {
     return new Date(date).toLocaleTimeString('uk-UA', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   }
 

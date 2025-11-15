@@ -12,6 +12,7 @@ import { OrderStatusDialogComponent } from '../../components/order-status-dialog
 
 
 @Component({
+    standalone: true,
     selector: 'app-admin-order',
     imports: [CommonModule, MatDialogModule, MatTableModule, MatPaginatorModule, MatIconModule, MatButtonModule, MatSelectModule],
     templateUrl: './admin-order.component.html',

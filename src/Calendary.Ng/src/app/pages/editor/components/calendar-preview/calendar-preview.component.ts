@@ -6,9 +6,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MonthAssignment, MONTHS } from '../../models/calendar-assignment.model';
 
 @Component({
-    selector: 'app-calendar-preview',
-    standalone: true,
-    imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  selector: 'app-calendar-preview',
+  standalone: true,
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
     templateUrl: './calendar-preview.component.html',
     styleUrl: './calendar-preview.component.scss'
 })

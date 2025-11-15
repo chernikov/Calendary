@@ -1,10 +1,19 @@
-import { Component, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
-import { EditorStateService, EditorTool } from '../../services/editor-state.service';
+import {
+  EditorStateService,
+  EditorTool,
+} from '../../services/editor-state.service';
 import { Subscription } from 'rxjs';
 
 interface ToolButton {
@@ -15,16 +24,17 @@ interface ToolButton {
 }
 
 @Component({
+  standalone: true,
   selector: 'app-sidebar',
   imports: [
     CommonModule,
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
   ],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.scss'
+  styleUrl: './sidebar.component.scss',
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   @Output() generateImage = new EventEmitter<void>();
@@ -40,26 +50,26 @@ export class SidebarComponent implements OnInit, OnDestroy {
       id: 'select',
       icon: 'mouse',
       label: 'Вибір',
-      tooltip: 'Інструмент вибору'
+      tooltip: 'Інструмент вибору',
     },
     {
       id: 'crop',
       icon: 'crop',
       label: 'Обрізка',
-      tooltip: 'Обрізати зображення'
+      tooltip: 'Обрізати зображення',
     },
     {
       id: 'rotate',
       icon: 'rotate_right',
       label: 'Поворот',
-      tooltip: 'Повернути зображення'
+      tooltip: 'Повернути зображення',
     },
     {
       id: 'resize',
       icon: 'photo_size_select_large',
       label: 'Розмір',
-      tooltip: 'Змінити розмір'
-    }
+      tooltip: 'Змінити розмір',
+    },
   ];
 
   filterTools: ToolButton[] = [
@@ -67,26 +77,26 @@ export class SidebarComponent implements OnInit, OnDestroy {
       id: 'brightness',
       icon: 'brightness_6',
       label: 'Яскравість',
-      tooltip: 'Налаштувати яскравість'
+      tooltip: 'Налаштувати яскравість',
     },
     {
       id: 'contrast',
       icon: 'contrast',
       label: 'Контраст',
-      tooltip: 'Налаштувати контраст'
+      tooltip: 'Налаштувати контраст',
     },
     {
       id: 'saturation',
       icon: 'palette',
       label: 'Насиченість',
-      tooltip: 'Налаштувати насиченість'
-    }
+      tooltip: 'Налаштувати насиченість',
+    },
   ];
 
   constructor(private editorStateService: EditorStateService) {}
 
   ngOnInit(): void {
-    this.subscription = this.editorStateService.state$.subscribe(state => {
+    this.subscription = this.editorStateService.state$.subscribe((state) => {
       this.selectedTool = state.selectedTool;
     });
   }

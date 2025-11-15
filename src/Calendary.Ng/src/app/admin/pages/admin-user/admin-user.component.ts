@@ -14,6 +14,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 
 @Component({
+    standalone: true,
     selector: 'app-admin-user',
     imports: [
         CommonModule,

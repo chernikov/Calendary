@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { JobTask } from '../../../../models/job-task';
 
 @Component({
+    standalone: true,
     selector: 'app-prompt-results',
     imports: [CommonModule],
     templateUrl: './prompt-results.component.html',

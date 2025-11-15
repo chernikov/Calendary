@@ -8,6 +8,7 @@ import { Job } from '../../../../../models/job';
 import { MonthAssignment, MONTHS } from '../../models/calendar-assignment.model';
 
 @Component({
+    standalone: true,
     selector: 'app-image-gallery',
     imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
     templateUrl: './image-gallery.component.html',

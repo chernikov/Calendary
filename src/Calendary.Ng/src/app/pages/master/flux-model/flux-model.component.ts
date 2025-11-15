@@ -10,6 +10,7 @@ import { CategoryService } from '../../../../services/category.service';
 import { Category } from '../../../../models/category';
 
 @Component({
+    standalone: true,
     selector: 'app-flux-model',
     imports: [CommonModule, FormsModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
     templateUrl: './flux-model.component.html',

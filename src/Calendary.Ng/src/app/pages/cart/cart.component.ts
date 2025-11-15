@@ -14,6 +14,7 @@ import { SummaryOrder } from '../../../models/summary-order';
 import { PaymentRedirect } from '../../../models/payment-redirect';
 import { OrderService } from '../../../services/order.service';
 @Component({
+    standalone: true,
     selector: 'app-cart',
     imports: [CommonModule, FormsModule, ReactiveFormsModule,
         DeliveryComponent, RouterModule],

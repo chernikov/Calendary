@@ -26,6 +26,7 @@ export interface GenerateModalData {
 export type GenerationMode = 'default' | 'theme' | 'custom';
 
 @Component({
+    standalone: true,
     selector: 'app-generate-modal',
     imports: [
         CommonModule,

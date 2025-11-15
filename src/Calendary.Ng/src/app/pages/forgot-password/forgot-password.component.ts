@@ -9,6 +9,7 @@ import { UserService } from '../../../services/user.service';
 import { ForgotPassword } from '../../../models/forgot-password';
 
 @Component({
+    standalone: true,
     selector: 'app-forgot-password',
     imports: [ReactiveFormsModule, CommonModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule],
     templateUrl: './forgot-password.component.html',

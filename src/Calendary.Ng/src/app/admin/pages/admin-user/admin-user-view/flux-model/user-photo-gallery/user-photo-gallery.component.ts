@@ -20,6 +20,7 @@ export interface UserPhotoGalleryData {
 }
 
 @Component({
+    standalone: true,
     selector: 'app-user-photo-gallery',
     imports: [
         CommonModule,

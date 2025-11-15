@@ -17,6 +17,7 @@ import { Prompt } from '../../../../../../models/prompt';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
+    standalone: true,
     selector: 'app-synthesis',
     imports: [CommonModule, MatTableModule, MatIconModule, MatButtonModule, MatProgressSpinner],
     templateUrl: './synthesis.component.html',

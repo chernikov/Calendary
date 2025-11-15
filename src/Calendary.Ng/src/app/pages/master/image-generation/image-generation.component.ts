@@ -5,6 +5,7 @@ import { interval, Subscription, switchMap, takeWhile } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
 @Component({
+    standalone: true,
     selector: 'app-image-generation',
     imports: [CommonModule],
     templateUrl: './image-generation.component.html',

@@ -11,6 +11,7 @@ import { Prompt } from '../../../../models/prompt';
 import { PromptTheme } from '../../../../models/prompt-theme';
 
 @Component({
+    standalone: true,
     selector: 'app-admin-prompt-theme',
     imports: [CommonModule, FormsModule, MatIconModule, MatTableModule, MatButtonModule],
     templateUrl: './admin-prompt-theme.component.html',

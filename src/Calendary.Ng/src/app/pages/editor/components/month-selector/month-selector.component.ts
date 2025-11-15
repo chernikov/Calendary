@@ -26,8 +26,8 @@ export interface MonthSelectorResult {
 }
 
 @Component({
-    selector: 'app-month-selector',
     standalone: true,
+    selector: 'app-month-selector',
     imports: [CommonModule, MatDialogModule, MatFormFieldModule, MatSelectModule, MatButtonModule, MatIconModule],
     templateUrl: './month-selector.component.html',
     styleUrl: './month-selector.component.scss'

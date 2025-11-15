@@ -5,6 +5,7 @@ import { PaymentRedirect } from '../../../../models/payment-redirect';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
+    standalone: true,
     selector: 'app-payment',
     imports: [MatButtonModule],
     templateUrl: './payment.component.html',

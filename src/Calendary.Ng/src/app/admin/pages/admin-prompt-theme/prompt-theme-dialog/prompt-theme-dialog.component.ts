@@ -10,6 +10,7 @@ import { AdminPromptThemeService } from '../../../../../services/admin/prompt-th
 import { PromptTheme } from '../../../../../models/prompt-theme';
 
 @Component({
+    standalone: true,
     selector: 'app-prompt-theme-dialog',
     templateUrl: './prompt-theme-dialog.component.html',
     styleUrls: ['./prompt-theme-dialog.component.scss'],

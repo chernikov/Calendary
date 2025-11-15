@@ -26,6 +26,7 @@ import { ToolbarComponent } from './components/toolbar/toolbar.component';
 import { EditorStateService } from './services/editor-state.service';
 
 @Component({
+    standalone: true,
     selector: 'app-editor',
     imports: [
         CommonModule,

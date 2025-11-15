@@ -6,6 +6,7 @@ import { AdminSynthesisService } from '../../../../services/admin/synthesis.serv
 import { AdminSynthesis } from '../../../../models/admin-synthesis';
 
 @Component({
+    standalone: true,
     selector: 'app-prompt-history',
     imports: [CommonModule, MatButtonModule, RouterModule],
     templateUrl: './prompt-history.component.html',

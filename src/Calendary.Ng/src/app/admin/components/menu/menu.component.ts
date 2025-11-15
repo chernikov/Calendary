@@ -3,6 +3,7 @@ import { RouterModule } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
 
 @Component({
+    standalone: true,
     selector: 'app-menu',
     imports: [RouterModule, MatSidenavModule],
     templateUrl: "./menu.component.html",

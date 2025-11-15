@@ -19,6 +19,7 @@ import { CartService } from '../../../services/cart.service';
 import { DeliveryInfo } from '../../../models/delivery-info';
 
 @Component({
+    standalone: true,
     selector: 'app-delivery',
     imports: [CommonModule, FormsModule, ReactiveFormsModule],
     templateUrl: './delivery.component.html',

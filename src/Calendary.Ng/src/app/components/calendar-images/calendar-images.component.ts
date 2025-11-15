@@ -6,6 +6,7 @@ import { Image } from '../../../models/image';
 import { MatIconModule } from '@angular/material/icon';
 import { ImageItemComponent } from '../image-item/image-item.component';
 @Component({
+    standalone: true,
     selector: 'app-calendar-images',
     imports: [CommonModule, FileUploadModule, MatIconModule, ImageItemComponent],
     templateUrl: './calendar-images.component.html',

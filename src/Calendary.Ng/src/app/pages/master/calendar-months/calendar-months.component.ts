@@ -21,6 +21,7 @@ import { FillCalendar } from '../../../../models/requests/fill-calendar';
 
 import { Image } from '../../../../models/image';
 @Component({
+    standalone: true,
     selector: 'app-calendar-months',
     imports: [CommonModule, DragDropModule, CdkDropList, CdkDrag, MatButtonModule],
     templateUrl: './calendar-months.component.html',
