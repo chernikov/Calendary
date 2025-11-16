@@ -5,7 +5,7 @@ WORKDIR /app
 RUN npm install -g npm@11.6.2
 
 COPY . .
-RUN npm install
+RUN npm ci --no-audit --no-progress
 RUN npm run build
 
 FROM nginx:alpine
