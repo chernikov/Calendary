@@ -149,37 +149,37 @@ public static class SeedData
         }
 
         // Створюємо налаштування для користувачів
-        var admin = context.Users.FirstOrDefault(u => u.Email == "admin@calendary.com");
-        var demoUser = context.Users.FirstOrDefault(u => u.Email == "demo@calendary.com");
-        var masterUser = context.Users.FirstOrDefault(u => u.Email == "master@calendary.com");
+        var adminUser = context.Users.FirstOrDefault(u => u.Email == "admin@calendary.com");
+        var demoUserForSettings = context.Users.FirstOrDefault(u => u.Email == "demo@calendary.com");
+        var masterUserForSettings = context.Users.FirstOrDefault(u => u.Email == "master@calendary.com");
 
-        if (admin != null && !context.UserSettings.Any(s => s.UserId == admin.Id))
+        if (adminUser != null && !context.UserSettings.Any(s => s.UserId == adminUser.Id))
         {
             context.UserSettings.Add(new UserSetting
             {
-                UserId = admin.Id,
+                UserId = adminUser.Id,
                 LanguageId = ukrainian.Id,
                 CountryId = ukraine.Id,
                 UseImprovedPrompt = true
             });
         }
 
-        if (demoUser != null && !context.UserSettings.Any(s => s.UserId == demoUser.Id))
+        if (demoUserForSettings != null && !context.UserSettings.Any(s => s.UserId == demoUserForSettings.Id))
         {
             context.UserSettings.Add(new UserSetting
             {
-                UserId = demoUser.Id,
+                UserId = demoUserForSettings.Id,
                 LanguageId = ukrainian.Id,
                 CountryId = ukraine.Id,
                 UseImprovedPrompt = true
             });
         }
 
-        if (masterUser != null && !context.UserSettings.Any(s => s.UserId == masterUser.Id))
+        if (masterUserForSettings != null && !context.UserSettings.Any(s => s.UserId == masterUserForSettings.Id))
         {
             context.UserSettings.Add(new UserSetting
             {
-                UserId = masterUser.Id,
+                UserId = masterUserForSettings.Id,
                 LanguageId = ukrainian.Id,
                 CountryId = ukraine.Id,
                 UseImprovedPrompt = true
