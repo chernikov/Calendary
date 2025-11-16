@@ -13,6 +13,9 @@ public interface ICalendaryDbContext
     DbSet<EventDate> EventDates { get; set; }
     DbSet<FluxModel> FluxModels { get; set; }
     DbSet<Holiday> Holidays { get; set; }
+    DbSet<HolidayPreset> HolidayPresets { get; set; }
+    DbSet<HolidayPresetTranslation> HolidayPresetTranslations { get; set; }
+    DbSet<HolidayTranslation> HolidayTranslations { get; set; }
     DbSet<Image> Images { get; set; }
     DbSet<Job> Jobs { get; set; }
     DbSet<JobTask> JobTasks { get; set; }
