@@ -1,4 +1,10 @@
-<div *ngIf="isBlocked$ | async" class="loading-overlay">
+<div class="app-shell">
+  <div *ngIf="isBlocked$ | async" class="loading-overlay" aria-live="polite">
+    <div class="loading-overlay__spinner" role="status" aria-label="Виконується операція"></div>
+  </div>
+  <app-header class="app-shell__header"></app-header>
+  <main class="app-shell__content">
+    <router-outlet />
+  </main>
+  <app-footer class="app-shell__footer"></app-footer>
 </div>
-<app-header></app-header>
-<router-outlet />

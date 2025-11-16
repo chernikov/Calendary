@@ -1,0 +1,43 @@
+@use '../../../../styles/tokens' as *;
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.feature-card {
+  @include surface-card;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.feature-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  background: rgba(91, 61, 226, 0.12);
+}
+
+.feature-card__icon.accent {
+  background: rgba(255, 138, 92, 0.2);
+}
+
+.feature-card__icon.neutral {
+  background: rgba(12, 18, 34, 0.08);
+}
+
+.feature-card h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.feature-card p {
+  margin: 0;
+  color: var(--color-text-muted);
+}

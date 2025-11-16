@@ -1,0 +1,37 @@
+:root {
+  --color-background: #f5f5fb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f0f4ff;
+  --color-primary: #5b3de2;
+  --color-primary-strong: #3b1cb3;
+  --color-accent: #ff8a5c;
+  --color-text: #0b1a2b;
+  --color-text-muted: #4b5565;
+  --color-border: rgba(12, 18, 34, 0.08);
+  --gradient-hero: linear-gradient(135deg, #5b3de2 0%, #9e77ed 50%, #ffc8dd 100%);
+  --radius-base: 18px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 20px 45px rgba(35, 29, 67, 0.12);
+  --shadow-card: 0 12px 30px rgba(26, 19, 57, 0.1);
+  --font-display: 'Manrope', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+}
+
+@mixin surface-card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-base);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+
+@mixin text-label {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
