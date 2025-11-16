@@ -21,6 +21,12 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     public DbSet<Holiday> Holidays { get; set; }
 
+    public DbSet<HolidayPreset> HolidayPresets { get; set; }
+
+    public DbSet<HolidayPresetTranslation> HolidayPresetTranslations { get; set; }
+
+    public DbSet<HolidayTranslation> HolidayTranslations { get; set; }
+
     public DbSet<Image> Images { get; set; }
 
     public DbSet<Job> Jobs { get; set; }
