@@ -1,0 +1,47 @@
+<div class="month-page" [ngClass]="[getColorClass(), getFontClass(), 'layout-' + layoutMode]">
+  <!-- Image Section -->
+  <div class="image-section" *ngIf="layoutMode === 'image-top'">
+    <img *ngIf="imageUrl" [src]="imageUrl" [alt]="monthName" class="month-image" />
+    <div *ngIf="!imageUrl" class="image-placeholder">
+      <mat-icon>image</mat-icon>
+      <span>Немає зображення</span>
+    </div>
+  </div>
+
+  <!-- Calendar Section -->
+  <div class="calendar-section">
+    <h2 class="month-title">{{ monthName }}</h2>
+
+    <div class="calendar-grid">
+      <!-- Days of week header -->
+      <div class="day-header" *ngFor="let day of daysOfWeek">
+        {{ day }}
+      </div>
+
+      <!-- Calendar days -->
+      <div
+        class="day-cell"
+        *ngFor="let day of calendarDays"
+        [class.empty]="!day"
+        [class.highlighted]="isDayHighlighted(day)"
+        [title]="getDayDescription(day)"
+      >
+        <div *ngIf="day" class="day-content">
+          <span class="day-number">{{ day }}</span>
+          <span class="day-description" *ngIf="getDayDescription(day)">
+            {{ getDayDescription(day) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Section (bottom) -->
+  <div class="image-section" *ngIf="layoutMode === 'image-bottom'">
+    <img *ngIf="imageUrl" [src]="imageUrl" [alt]="monthName" class="month-image" />
+    <div *ngIf="!imageUrl" class="image-placeholder">
+      <mat-icon>image</mat-icon>
+      <span>Немає зображення</span>
+    </div>
+  </div>
+</div>
