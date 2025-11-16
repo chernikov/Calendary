@@ -116,12 +116,14 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
 
     private Table CreateTable(CalendarModel calendar, string[] days, int monthIndex)
     {
-        var holidaysDtos = calendar.CalendarHolidays.Select(p => new HolidayDto()
-        {
-            Description = p.Holiday.Name,
-            Day = p.Holiday.Date.Day,
-            Month = p.Holiday.Date.Month
-        }).ToArray();
+        var holidaysDtos = calendar.CalendarHolidays
+            .Where(p => p.Holiday.Date.HasValue)
+            .Select(p => new HolidayDto()
+            {
+                Description = p.Holiday.Name,
+                Day = p.Holiday.Date!.Value.Day,
+                Month = p.Holiday.Date!.Value.Month
+            }).ToArray();
 
         var eventDateDtos = calendar.EventDates.Select(p => new EventDateDto()
         {

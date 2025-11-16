@@ -93,7 +93,7 @@ jobs:
         run: npm run build -- --configuration production
 
       - name: Run tests with coverage
-        run: npm run test -- --watch=false --browsers=ChromeHeadlessCI --code-coverage
+        run: npm run test -- --watch=false --code-coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

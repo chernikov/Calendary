@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { MonthAssignment, MONTHS } from '../../models/calendar-assignment.model';
 import { MonthPageComponent } from '../month-page/month-page.component';
 import { CalendarCustomization, DEFAULT_CUSTOMIZATION } from '../../models/calendar-grid.model';
-import { Holiday } from '../../../../models/holiday';
+import { Holiday } from '@models/holiday';
 
 @Component({
   selector: 'app-calendar-preview',

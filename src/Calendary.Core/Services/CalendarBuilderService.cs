@@ -125,11 +125,11 @@ public class CalendarBuilderService(IHolidayRepository holidayRepository) : ICal
     {
         var countryId = ResolveCountryId(country);
         var holidays = await holidayRepository.GetAllByCoutryIdAsync(countryId);
-        var holidaysForYear = holidays.Where(h => h.Date.Year == year).ToArray();
+        var holidaysForYear = holidays.Where(h => h.Date.HasValue && h.Date.Value.Year == year).ToArray();
 
         foreach (var holiday in holidaysForYear)
         {
-            var targetMonth = grid.Months.FirstOrDefault(m => m.Month == holiday.Date.Month);
+            var targetMonth = grid.Months.FirstOrDefault(m => m.Month == holiday.Date!.Value.Month);
             if (targetMonth is null)
             {
                 continue;
@@ -138,8 +138,8 @@ public class CalendarBuilderService(IHolidayRepository holidayRepository) : ICal
             var targetDay = targetMonth.Weeks
                 .SelectMany(w => w)
                 .FirstOrDefault(d => d.IsCurrentMonth &&
-                                     d.Date.Month == holiday.Date.Month &&
-                                     d.Date.Day == holiday.Date.Day);
+                                     d.Date.Month == holiday.Date!.Value.Month &&
+                                     d.Date.Day == holiday.Date!.Value.Day);
 
             if (targetDay is not null)
             {

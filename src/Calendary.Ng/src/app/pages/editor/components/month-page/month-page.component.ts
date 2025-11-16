@@ -7,7 +7,7 @@ import {
   DEFAULT_CUSTOMIZATION,
   generateCalendarMonth,
 } from '../../models/calendar-grid.model';
-import { Holiday } from '../../../../models/holiday';
+import { Holiday } from '@models/holiday';
 
 @Component({
   selector: 'app-month-page',
