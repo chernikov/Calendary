@@ -1,135 +1,135 @@
-/* Загальні стилі */
-body {
-  font-family: Arial, sans-serif;
+:host {
+  display: block;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+  align-items: center;
+}
+
+.hero-grid__content h1,
+.hero-grid__content h2 {
   margin: 0;
-  padding: 0;
-  line-height: 1.6;
 }
 
-h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #333;
-  text-align: center;
+.hero-grid__subtitle {
+  margin: 0 0 var(--space-4);
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 560px;
 }
 
-p {
-  font-size: 1rem;
-  color: #555;
-  text-align: center;
+.hero-grid__cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-
-ul, ol {
-  margin: 20px auto;
-  padding: 0 20px;
-  list-style-type: none;
-  max-width: 800px;
-  color: #555;
-}
-
-ul li, ol li {
-  margin-bottom: 10px;
-  font-size: 1rem;
-}
-
-/* Секції */
-.hero {
-  padding: 50px 20px;
-  background-color: #ffffff;
-  text-align: center;
-}
-
-.background-gray {
-  background-color: #f8f9fa;
-  padding: 50px 20px;
-}
-
-.background-white {
-  background-color: #ffffff;
-  padding: 50px 20px;
-}
-
-.content {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-/* Зображення */
-.illustration {
-  max-width: 100%;
-  height: auto;
-  margin-top: 20px;
-}
-
-/* Футер */
-.footer {
-  text-align: center;
-  background-color: #333;
-  color: white;
-  padding: 20px 0;
-}
-
-.footer p {
-  margin: 0;
+.hero-grid__note {
   font-size: 0.9rem;
-}
-/* Кнопки */
-button, .btn-primary {
-    display: inline-block;
-    padding: 12px 25px;
-    background-color: #007BFF;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-    text-align: center;
-    margin: 20px auto; /* Відступи зверху та знизу */
+  color: rgba(255, 255, 255, 0.8);
 }
 
-button:hover, .btn-primary:hover {
-    background-color: #0056b3;
+.hero-grid__stats {
+  margin-top: var(--space-6);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-4);
 }
 
-/* Центрування кнопок */
-button, .btn-primary {
-    display: block;
-    width: fit-content;
-    margin: 20px auto; /* Вирівнювання по центру сторінки */
+.hero-grid__stat-number {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 700;
 }
 
-/* Адаптивність */
-@media (max-width: 768px) {
-  h2 {
-      font-size: 1.8rem;
-  }
-
-  p {
-      font-size: 0.9rem;
-  }
-
-  button {
-      font-size: 0.9rem;
-      padding: 8px 16px;
-  }
-
-  ul li, ol li {
-      font-size: 0.9rem;
-  }
+.hero-grid__stat-label {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
 }
 
-@media (max-width: 480px) {
-  h2 {
-      font-size: 1.5rem;
+.hero-grid__media {
+  position: relative;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.hero-grid__media img {
+  border-radius: calc(var(--radius-base) - 6px);
+}
+
+.hero-grid__media-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-base);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-card);
+}
+
+.workflow-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.workflow-list li {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.workflow-list__index {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(91, 61, 226, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.workflow-list h3 {
+  margin: 0 0 0.25rem;
+}
+
+.workflow-list p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.closing-cta {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+}
+
+.closing-cta__actions {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.closing-cta__link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .hero-grid__cta {
+    flex-direction: row;
+    align-items: center;
   }
 
-  p {
-      font-size: 0.8rem;
-  }
-
-  button {
-      font-size: 0.8rem;
-      padding: 6px 12px;
+  .closing-cta__actions {
+    flex-direction: row;
   }
 }

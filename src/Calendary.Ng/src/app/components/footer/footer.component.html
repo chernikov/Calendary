@@ -1,0 +1,29 @@
+<footer class="app-footer">
+  <div class="app-footer__grid">
+    <div>
+      <p class="app-footer__eyebrow">Calendary</p>
+      <p class="app-footer__description">
+        Платформа для створення персоналізованих календарів з AI-генерацією і друком на замовлення.
+      </p>
+    </div>
+    <div>
+      <p class="app-footer__eyebrow">Швидкі посилання</p>
+      <ul>
+        <li *ngFor="let link of quickLinks">
+          <a [href]="link.href">{{ link.label }}</a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <p class="app-footer__eyebrow">Підтримка</p>
+      <ul>
+        <li><a href="mailto:support@calendary.com.ua">support@calendary.com.ua</a></li>
+        <li><span>+380 (66) 000-00-00</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="app-footer__meta">
+    <span>© {{ year }} Calendary. Всі права захищені.</span>
+    <span>Зроблено з ❤️ в Україні</span>
+  </div>
+</footer>

@@ -71,6 +71,8 @@ Task 01 → Task 02 → Task 03
 ```
 Можна робити Task 01 → 02 → 03 послідовно (залежності).
 
+> ✅ **Статус**: Task 01-03 виконані в Angular додатку (`src/Calendary.Ng`). Дивіться [PROGRESS.md](./PROGRESS.md) для деталей.
+
 **Трек B - Backend API (Claude):**
 ```
 Task 04, Task 05, Task 06 (всі паралельно, незалежні)

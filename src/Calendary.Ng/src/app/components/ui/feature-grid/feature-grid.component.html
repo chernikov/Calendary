@@ -1,0 +1,9 @@
+<div class="feature-grid">
+  <article class="feature-card" *ngFor="let feature of features">
+    <div class="feature-card__icon" [attr.aria-hidden]="true" [ngClass]="feature.accent">
+      {{ feature.icon }}
+    </div>
+    <h3>{{ feature.title }}</h3>
+    <p>{{ feature.description }}</p>
+  </article>
+</div>

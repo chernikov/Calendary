@@ -1,35 +1,76 @@
-<section class="hero background-white">
-    <div class="content" style="text-align: center;">
-        <img [src]="'/images/bg_title.jpg'" alt="Calendary Background" class="illustration"
-            style="max-width: 100%; height: auto;">
-        <h2>Ваш персональний календар – спогади на кожен день!</h2>
-        <p>
-            <strong>Calendary</strong> – це не просто сервіс для створення календарів. Ми перетворюємо ваші спогади на
-            справжні витвори мистецтва
-            за допомогою передових технологій штучного інтелекту.
-        </p>
-        <button (click)="goToMaster()" class="btn-primary">Створити календар</button>
-        <img [src]="'/images/poster_in_room.png'" alt="Poster in Room" class="illustration"
-            style="max-width: 80%; height: auto; margin-top: 20px;">
+<ui-section
+  variant="highlight"
+  alignment="center"
+  eyebrow="AI студія календарів"
+  title="Створіть персональний календар за кілька хвилин"
+  subtitle="Генеруйте ілюстрації, редагуйте календар та замовляйте друк онлайн."
+>
+  <div class="hero-grid">
+    <div class="hero-grid__content">
+      <p class="hero-grid__subtitle">
+        Calendary поєднує генеративний AI та класичний друк: від ідеї до готового постера з доставкою по Україні.
+      </p>
+      <div class="hero-grid__cta">
+        <ui-cta-button (action)="goToMaster()">Створити календар</ui-cta-button>
+        <span class="hero-grid__note">3 генерації безкоштовно • Без встановлення</span>
+      </div>
+      <div class="hero-grid__stats">
+        <div>
+          <span class="hero-grid__stat-number">12+</span>
+          <span class="hero-grid__stat-label">AI-стилів</span>
+        </div>
+        <div>
+          <span class="hero-grid__stat-number">5 хв.</span>
+          <span class="hero-grid__stat-label">до готового макета</span>
+        </div>
+        <div>
+          <span class="hero-grid__stat-number">100%</span>
+          <span class="hero-grid__stat-label">контроль друку</span>
+        </div>
+      </div>
     </div>
-</section>
+    <div class="hero-grid__media surface-card">
+      <img
+        ngSrc="/images/bg_title.jpg"
+        width="640"
+        height="420"
+        alt="Приклад дизайнерського календаря"
+      />
+      <div class="hero-grid__media-card">
+        <strong>Автоматичний попередній перегляд</strong>
+        <p>Система підказує, коли всі 12 місяців заповнені та готові до експорту в PDF.</p>
+      </div>
+    </div>
+  </div>
+</ui-section>
 
-<section class="ai-features background-white">
-    <div class="content">
-        <h2>Переваги Calendary</h2>
-        <p>Чому обрати нас?</p>
-        <ul>
-            <li><strong>Штучний інтелект на службі ваших спогадів:</strong> Ми створюємо персоналізовані ілюстрації, які
-                вас вразять.</li>
-            <li><strong>Персоналізація в кожній деталі:</strong> Календар відображає ваш стиль, мрії та найважливіші
-                моменти.</li>
-            <li><strong>Простота і задоволення:</strong> Легкий процес створення, який приносить радість.</li>
-        </ul>
-        <p>Ваш календар стане справжнім витвором мистецтва, який буде надихати кожного дня!</p>
-        <p>
-            <img [src]="'/images/poster_on_wall.png'" alt="Poster on Wall" class="illustration"
-                style="max-width: 70%; height: auto; margin-top: 20px;">
-            <button (click)="goToMaster()" class="btn-primary">Створити календар</button>
-        </p>
+<ui-section
+  alignment="center"
+  title="Переваги Calendary"
+  subtitle="Інструменти, які прискорюють створення календаря"
+>
+  <ui-feature-grid [features]="features"></ui-feature-grid>
+</ui-section>
+
+<ui-section alignment="left" variant="surface" title="Як працює майстер Calendary?">
+  <ol class="workflow-list">
+    <li *ngFor="let step of workflowSteps; index as i">
+      <div class="workflow-list__index">{{ i + 1 }}</div>
+      <div>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.description }}</p>
+      </div>
+    </li>
+  </ol>
+</ui-section>
+
+<ui-section alignment="center" variant="muted">
+  <div class="closing-cta surface-card">
+    <h3>Готові розпочати?</h3>
+    <p>Перейдіть у майстер, щоб сформувати календар і додати його до кошика.</p>
+    <div class="closing-cta__actions">
+      <ui-cta-button (action)="goToMaster()">Відкрити майстер</ui-cta-button>
+      <a routerLink="/register" class="closing-cta__link">Зареєструватись</a>
     </div>
-</section>
+  </div>
+</ui-section>
