@@ -14,16 +14,19 @@ public class PaymentController : BaseUserController
     private readonly IOrderService _orderService;
     private readonly IPaymentService _paymentService;
     private readonly IFluxModelService _fluxModelService;
+    private readonly ICreditService _creditService;
 
     public PaymentController(IUserService userService,
-        IOrderService orderService, 
+        IOrderService orderService,
         IPaymentService paymentService,
-        IFluxModelService fluxModelService
+        IFluxModelService fluxModelService,
+        ICreditService creditService
         ) : base(userService)
     {
         _orderService = orderService;
         _paymentService = paymentService;
         _fluxModelService = fluxModelService;
+        _creditService = creditService;
     }
 
     [HttpGet]
@@ -127,6 +130,16 @@ public class PaymentController : BaseUserController
                         fluxModel.IsPaid = true;
                         await _fluxModelService.UpdateStatusAsync(fluxModel);
                     }
+                }
+
+                // Обробка оплати пакету кредитів
+                if (paymentInfo.CreditPackageId is not null && paymentInfo.UserId is not null)
+                {
+                    await _creditService.ProcessCreditPackagePurchaseAsync(
+                        paymentInfo.UserId.Value,
+                        paymentInfo.CreditPackageId.Value,
+                        hook.InvoiceId
+                    );
                 }
             }
 
