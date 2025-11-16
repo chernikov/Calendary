@@ -36,8 +36,9 @@
     >
       <div class="model-main">
         <div class="model-info">
-          <!-- Model Name (editable) -->
+          <!-- Model Name (editable) with active indicator -->
           <div class="model-name" *ngIf="renamingModelId !== model.id">
+            <mat-icon *ngIf="model.isActive" class="active-icon" matTooltip="Активна модель">star</mat-icon>
             {{ getModelName(model) }}
           </div>
           <input
@@ -75,6 +76,13 @@
             <button mat-menu-item (click)="selectModel(model)">
               <mat-icon>check</mat-icon>
               <span>Вибрати</span>
+            </button>
+            <button
+              mat-menu-item
+              (click)="setActiveModel(model, $event)"
+              [disabled]="model.isActive">
+              <mat-icon>star</mat-icon>
+              <span>{{ model.isActive ? 'Активна модель' : 'Зробити активною' }}</span>
             </button>
             <button mat-menu-item (click)="startRename(model, $event)">
               <mat-icon>edit</mat-icon>

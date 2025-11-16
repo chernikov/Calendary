@@ -35,6 +35,7 @@ export class ModelsPanelComponent implements OnInit {
   @Output() modelSelected = new EventEmitter<FluxModel>();
   @Output() modelDeleted = new EventEmitter<number>();
   @Output() modelRenamed = new EventEmitter<FluxModel>();
+  @Output() modelSetActive = new EventEmitter<FluxModel>();
   @Output() modelsRefresh = new EventEmitter<void>();
 
   renamingModelId: number | null = null;
@@ -52,6 +53,11 @@ export class ModelsPanelComponent implements OnInit {
     if (this.renamingModelId !== model.id) {
       this.modelSelected.emit(model);
     }
+  }
+
+  setActiveModel(model: FluxModel, event: Event): void {
+    event.stopPropagation();
+    this.modelSetActive.emit(model);
   }
 
   startRename(model: FluxModel, event: Event): void {

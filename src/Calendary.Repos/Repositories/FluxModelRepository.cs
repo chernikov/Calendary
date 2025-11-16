@@ -61,16 +61,33 @@ public class FluxModelRepository : IFluxModelRepository
 
     public async Task<FluxModel?> GetCurrentByUserIdAsync(int userId)
     {
-        return await _context.FluxModels
+        // Try to get the active model first
+        var activeModel = await _context.FluxModels
             .Include(p => p.Category)
             .Include(p => p.Trainings)
             .Include(p => p.Jobs)
                 .ThenInclude(p => p.Theme)
             .Include(p => p.Jobs)
                 .ThenInclude(p => p.Tasks)
-            .Where(fm => fm.UserId == userId && !fm.IsArchive)
-            .OrderByDescending(fm => fm.Id)
+            .Where(fm => fm.UserId == userId && !fm.IsArchive && fm.IsActive)
             .FirstOrDefaultAsync();
+
+        // If no active model, return the most recent one
+        if (activeModel == null)
+        {
+            activeModel = await _context.FluxModels
+                .Include(p => p.Category)
+                .Include(p => p.Trainings)
+                .Include(p => p.Jobs)
+                    .ThenInclude(p => p.Theme)
+                .Include(p => p.Jobs)
+                    .ThenInclude(p => p.Tasks)
+                .Where(fm => fm.UserId == userId && !fm.IsArchive)
+                .OrderByDescending(fm => fm.Id)
+                .FirstOrDefaultAsync();
+        }
+
+        return activeModel;
     }
 
     public async Task<IList<FluxModel>> GetListByUserIdAsync(int userId)

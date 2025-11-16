@@ -63,6 +63,7 @@
             [isLoading]="isLoading"
             [loadError]="loadError"
             (modelSelected)="selectModel($event)"
+            (modelSetActive)="selectModel($event)"
             (modelDeleted)="onModelDeleted($event)"
             (modelRenamed)="onModelRenamed($event)"
             (modelsRefresh)="loadUserModels()"
