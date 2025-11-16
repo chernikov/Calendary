@@ -1,11 +1,12 @@
 # Task 20: UI для попереднього перегляду календаря
 
 **Epic**: [Epic 01 - Перший реліз](../epic_01.md)
-**Статус**: TODO
+**Статус**: DONE
 **Пріоритет**: P1 (Високий)
 **Складність**: Середня
 **Час**: 4-5 годин
-**Відповідальний AI**: GPT/Codex
+**Відповідальний AI**: Claude Code
+**Виконано**: 2025-11-16
 
 ## Опис задачі
 
@@ -51,13 +52,50 @@
 
 ## Що тестувати
 
-- [ ] Preview показує всі 12 місяців
-- [ ] Зображення відображаються
-- [ ] Holidays виділяються
-- [ ] Navigation працює
-- [ ] Customization змінює вигляд
-- [ ] Responsive design
+- [x] Preview показує всі 12 місяців
+- [x] Зображення відображаються
+- [x] Holidays виділяються
+- [x] Navigation працює
+- [x] Customization змінює вигляд
+- [x] Responsive design
+
+## Реалізація
+
+### Створені компоненти:
+
+1. **MonthPageComponent** (`src/Calendary.Ng/src/app/pages/editor/components/month-page/`)
+   - Відображення окремого місяця з зображенням
+   - Календарна сітка з днями місяця
+   - Виділення вихідних та свят
+   - Підтримка customization (шрифти, кольори, розташування)
+
+2. **CalendarGridModel** (`src/Calendary.Ng/src/app/pages/editor/models/calendar-grid.model.ts`)
+   - Моделі даних: CalendarDay, CalendarMonth, CalendarCustomization
+   - Функція генерації календарної сітки з підтримкою свят
+   - Налаштування за замовчуванням
+
+3. **Розширений CalendarPreviewComponent**
+   - Два режими перегляду: grid (сітка місяців) та preview (попередній перегляд)
+   - Навігація між місяцями (prev/next, селектор)
+   - Zoom controls (50-200%, з кроком 10%)
+   - Fullscreen режим
+   - Edit mode для зміни зображень
+   - Generate PDF button
+   - Customization panel:
+     - Вибір шрифту (6 опцій)
+     - Розмір шрифту (10-24px)
+     - Кольори (основний, свята, вихідні)
+     - Розташування зображення (зверху/знизу)
+   - Збереження налаштувань в localStorage
+
+### Особливості:
+- Responsive design з підтримкою mobile
+- Print-friendly стилі
+- Інтеграція зі святами з backend
+- Збереження стану та налаштувань
+- Fullscreen API integration
 
 ---
 
 **Створено**: 2025-11-15
+**Виконано**: 2025-11-16

@@ -1,0 +1,58 @@
+<div class="month-page" [ngStyle]="getCustomStyles()" *ngIf="calendarMonth">
+  <!-- Image Section -->
+  <div
+    class="month-image"
+    [class.image-top]="customization.layoutPosition === 'top'"
+    [class.image-bottom]="customization.layoutPosition === 'bottom'"
+  >
+    <img
+      *ngIf="calendarMonth.imageUrl"
+      [src]="calendarMonth.imageUrl"
+      [alt]="calendarMonth.monthName"
+      class="calendar-image"
+    />
+    <div *ngIf="!calendarMonth.imageUrl" class="image-placeholder">
+      <mat-icon>image</mat-icon>
+      <span>Зображення для {{ calendarMonth.monthName }}</span>
+    </div>
+  </div>
+
+  <!-- Calendar Grid Section -->
+  <div class="calendar-section">
+    <div class="month-header">
+      <h2 class="month-title">{{ calendarMonth.monthName }} {{ calendarMonth.year }}</h2>
+    </div>
+
+    <div class="calendar-grid">
+      <!-- Week days header -->
+      <div class="week-days">
+        <div class="week-day" *ngFor="let day of weekDays">{{ day }}</div>
+      </div>
+
+      <!-- Calendar days -->
+      <div class="days-grid">
+        <div
+          class="day-cell"
+          *ngFor="let day of calendarMonth.days"
+          [class.current-month]="day.isCurrentMonth"
+          [class.other-month]="!day.isCurrentMonth"
+          [class.weekend]="day.isWeekend && day.isCurrentMonth"
+          [class.holiday]="day.isHoliday"
+          [attr.title]="day.holidayName || ''"
+        >
+          <span class="day-number">{{ day.day }}</span>
+          <span class="holiday-indicator" *ngIf="day.isHoliday">•</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Holidays list -->
+    <div class="holidays-list" *ngIf="getMonthHolidays().length > 0">
+      <div class="holiday-item" *ngFor="let holiday of getMonthHolidays()">
+        <mat-icon>event</mat-icon>
+        <span class="holiday-date">{{ holiday.date | date: 'dd' }}</span>
+        <span class="holiday-name">{{ holiday.name }}</span>
+      </div>
+    </div>
+  </div>
+</div>
