@@ -40,6 +40,7 @@ public static class DependencyRegistration
         services.AddScoped<IPromptService, PromptService>();
         services.AddHttpClient<IPromptEnhancerService, PromptEnhancerService>();
         services.AddScoped<IPhotoService, PhotoService>();
+        services.AddScoped<IUserPhotoService, UserPhotoService>();
         services.AddScoped<IFluxModelService, FluxModelService>();
         services.AddScoped<ITrainingService, TrainingService>();
         services.AddScoped<IJobService, JobService>();
