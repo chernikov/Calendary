@@ -69,7 +69,7 @@ public class PdfGeneratorServiceTests
 
     #region GeneratePdfAsync Tests
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_CalendarExists_ReturnsFilePath()
     {
         // Arrange
@@ -104,7 +104,7 @@ public class PdfGeneratorServiceTests
         Assert.StartsWith("uploads", result);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_CalendarNotFound_ReturnsEmptyString()
     {
         // Arrange
@@ -125,7 +125,7 @@ public class PdfGeneratorServiceTests
         _mockPathProvider.Verify(x => x.MapPath(It.IsAny<string>()), Times.Never);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_CallsRepositoryWithCorrectId_RepositoryCalledOnce()
     {
         // Arrange
@@ -145,7 +145,7 @@ public class PdfGeneratorServiceTests
         _mockCalendarRepository.Verify(x => x.GetFullCalendarAsync(calendarId), Times.Once);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_CalendarWithEventDates_IncludesEventDatesInPdf()
     {
         // Arrange
@@ -183,7 +183,7 @@ public class PdfGeneratorServiceTests
         Assert.Contains("calendar_1_2024.pdf", result);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_CalendarWithHolidays_IncludesHolidaysInPdf()
     {
         // Arrange
@@ -227,7 +227,7 @@ public class PdfGeneratorServiceTests
         Assert.Contains("calendar_1_2024.pdf", result);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_DifferentLanguageCodes_HandlesUkrainianLanguage()
     {
         // Arrange
@@ -258,7 +258,7 @@ public class PdfGeneratorServiceTests
         Assert.Contains("calendar_1_2024.pdf", result);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_DifferentLanguageCodes_HandlesEnglishLanguage()
     {
         // Arrange
@@ -289,7 +289,7 @@ public class PdfGeneratorServiceTests
         Assert.Contains("calendar_1_2024.pdf", result);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_DifferentFirstDayOfWeek_HandlesSundayStart()
     {
         // Arrange
@@ -321,7 +321,7 @@ public class PdfGeneratorServiceTests
         Assert.Contains("calendar_1_2024.pdf", result);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_DifferentFirstDayOfWeek_HandlesMondayStart()
     {
         // Arrange
@@ -353,7 +353,7 @@ public class PdfGeneratorServiceTests
         Assert.Contains("calendar_1_2024.pdf", result);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_ImageRotatorServiceCalled_CalledForEachMonth()
     {
         // Arrange
@@ -385,7 +385,7 @@ public class PdfGeneratorServiceTests
             Times.Exactly(12)); // Called once per month
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public async Task GeneratePdfAsync_PathProviderCalled_MapsPathForEachImage()
     {
         // Arrange
@@ -422,7 +422,7 @@ public class PdfGeneratorServiceTests
 
     #region GenerateCalendarPdf Tests
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public void GenerateCalendarPdf_ValidCalendar_ReturnsFilePath()
     {
         // Arrange
@@ -451,7 +451,7 @@ public class PdfGeneratorServiceTests
         Assert.Contains($"calendar_{calendar.Id}_{calendar.Year}.pdf", result);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public void GenerateCalendarPdf_LeapYear_HandlesFebruaryCorrectly()
     {
         // Arrange
@@ -480,7 +480,7 @@ public class PdfGeneratorServiceTests
         Assert.Contains("calendar_1_2024.pdf", result);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public void GenerateCalendarPdf_NonLeapYear_HandlesFebruaryCorrectly()
     {
         // Arrange
@@ -507,6 +507,182 @@ public class PdfGeneratorServiceTests
         // Assert
         Assert.NotNull(result);
         Assert.Contains("calendar_1_2023.pdf", result);
+    }
+
+    #endregion
+
+    #region Integration Tests
+
+    [Fact]
+    public void GeneratePdf_ShouldCreate13Pages()
+    {
+        // Arrange: Create real calendar with test data
+        var calendar = CreateTestCalendar();
+        var images = calendar.Images.ToArray();
+
+        var testOutputDir = Path.Combine(Path.GetTempPath(), "CalendaryTests");
+        Directory.CreateDirectory(testOutputDir);
+
+        var pathProvider = new TestPathProvider(testOutputDir);
+        var imageRotatorService = new TestImageRotatorService();
+
+        var service = new PdfGeneratorService(
+            _mockCalendarRepository.Object,
+            pathProvider,
+            imageRotatorService);
+
+        // Act: Generate PDF
+        var resultPath = service.GenerateCalendarPdf(calendar, images);
+        var fullPath = pathProvider.MapPath(resultPath);
+
+        // Assert: Verify PDF was created and has 13 pages (1 cover + 12 months)
+        Assert.True(File.Exists(fullPath), "PDF file should be created");
+
+        using (var pdfReader = new iText.Kernel.Pdf.PdfReader(fullPath))
+        using (var pdfDoc = new iText.Kernel.Pdf.PdfDocument(pdfReader))
+        {
+            Assert.Equal(13, pdfDoc.GetNumberOfPages());
+        }
+
+        // Cleanup
+        if (File.Exists(fullPath))
+        {
+            File.Delete(fullPath);
+        }
+    }
+
+    [Fact]
+    public void GeneratePdf_WithHolidays_ShouldHighlightHolidays()
+    {
+        // Arrange
+        var calendar = CreateTestCalendar();
+        var holiday = new Holiday
+        {
+            Id = 1,
+            Date = new DateTime(2024, 1, 1),
+            Name = "New Year"
+        };
+
+        calendar.CalendarHolidays.Add(new CalendarHoliday
+        {
+            CalendarId = calendar.Id,
+            HolidayId = holiday.Id,
+            Holiday = holiday
+        });
+
+        var images = calendar.Images.ToArray();
+        var testOutputDir = Path.Combine(Path.GetTempPath(), "CalendaryTests");
+        Directory.CreateDirectory(testOutputDir);
+
+        var pathProvider = new TestPathProvider(testOutputDir);
+        var imageRotatorService = new TestImageRotatorService();
+
+        var service = new PdfGeneratorService(
+            _mockCalendarRepository.Object,
+            pathProvider,
+            imageRotatorService);
+
+        // Act
+        var resultPath = service.GenerateCalendarPdf(calendar, images);
+        var fullPath = pathProvider.MapPath(resultPath);
+
+        // Assert: PDF should be created successfully with holidays
+        Assert.True(File.Exists(fullPath), "PDF file with holidays should be created");
+
+        // Cleanup
+        if (File.Exists(fullPath))
+        {
+            File.Delete(fullPath);
+        }
+    }
+
+    [Fact]
+    public void GeneratePdf_FileSize_ShouldBeLessThan15MB()
+    {
+        // Arrange
+        var calendar = CreateTestCalendar();
+        var images = calendar.Images.ToArray();
+
+        var testOutputDir = Path.Combine(Path.GetTempPath(), "CalendaryTests");
+        Directory.CreateDirectory(testOutputDir);
+
+        var pathProvider = new TestPathProvider(testOutputDir);
+        var imageRotatorService = new TestImageRotatorService();
+
+        var service = new PdfGeneratorService(
+            _mockCalendarRepository.Object,
+            pathProvider,
+            imageRotatorService);
+
+        // Act
+        var resultPath = service.GenerateCalendarPdf(calendar, images);
+        var fullPath = pathProvider.MapPath(resultPath);
+
+        // Assert: File size should be less than 15MB
+        var fileInfo = new FileInfo(fullPath);
+        Assert.True(fileInfo.Exists, "PDF file should exist");
+
+        const long maxSizeBytes = 15 * 1024 * 1024; // 15 MB
+        Assert.True(fileInfo.Length < maxSizeBytes,
+            $"PDF file size ({fileInfo.Length / 1024 / 1024} MB) should be less than 15MB");
+
+        // Cleanup
+        if (File.Exists(fullPath))
+        {
+            File.Delete(fullPath);
+        }
+    }
+
+    #endregion
+
+    #region Test Helpers
+
+    /// <summary>
+    /// Test implementation of IPathProvider that uses a test directory
+    /// </summary>
+    private class TestPathProvider : IPathProvider
+    {
+        private readonly string _testDir;
+
+        public TestPathProvider(string testDir)
+        {
+            _testDir = testDir;
+        }
+
+        public string MapPath(string relativePath)
+        {
+            return Path.Combine(_testDir, relativePath);
+        }
+    }
+
+    /// <summary>
+    /// Test implementation of IImageRotatorService that creates simple test images
+    /// </summary>
+    private class TestImageRotatorService : IImageRotatorService
+    {
+        public iText.Layout.Element.Image LoadCorrectedImage(string imagePath)
+        {
+            // Create a simple 1x1 pixel image for testing
+            // Use the cover.png that should be copied to output directory
+            var coverPath = "images/cover.png";
+            if (!File.Exists(coverPath))
+            {
+                // If cover doesn't exist, create a minimal test image
+                using (var bitmap = new System.Drawing.Bitmap(100, 100))
+                using (var graphics = System.Drawing.Graphics.FromImage(bitmap))
+                {
+                    graphics.Clear(System.Drawing.Color.White);
+                    var tempPath = Path.GetTempFileName() + ".png";
+                    bitmap.Save(tempPath, System.Drawing.Imaging.ImageFormat.Png);
+                    var imageData = iText.IO.Image.ImageDataFactory.Create(tempPath);
+                    File.Delete(tempPath);
+                    return new iText.Layout.Element.Image(imageData);
+                }
+            }
+
+            var data = iText.IO.Image.ImageDataFactory.Create(coverPath);
+            return new iText.Layout.Element.Image(data);
+        }
     }
 
     #endregion

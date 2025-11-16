@@ -35,4 +35,9 @@
     <Folder Include="Senders\Models\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\src\Calendary.Api\fonts\arial.ttf" Link="fonts\arial.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\Calendary.Api\images\cover.png" Link="images\cover.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
