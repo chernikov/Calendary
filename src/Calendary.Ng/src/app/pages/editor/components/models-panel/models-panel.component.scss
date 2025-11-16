@@ -152,6 +152,9 @@
 }
 
 .model-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 14px;
   font-weight: 600;
   color: #1f2937;
@@ -159,6 +162,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  .active-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #f59e0b;
+    flex-shrink: 0;
+  }
 }
 
 .rename-input {
