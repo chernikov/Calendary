@@ -1,76 +1,213 @@
-<ui-section
-  variant="highlight"
-  alignment="center"
-  eyebrow="AI студія календарів"
-  title="Створіть персональний календар за кілька хвилин"
-  subtitle="Генеруйте ілюстрації, редагуйте календар та замовляйте друк онлайн."
->
-  <div class="hero-grid">
-    <div class="hero-grid__content">
-      <p class="hero-grid__subtitle">
-        Calendary поєднує генеративний AI та класичний друк: від ідеї до готового постера з доставкою по Україні.
-      </p>
-      <div class="hero-grid__cta">
-        <ui-cta-button (action)="goToMaster()">Створити календар</ui-cta-button>
-        <span class="hero-grid__note">3 генерації безкоштовно • Без встановлення</span>
-      </div>
-      <div class="hero-grid__stats">
-        <div>
-          <span class="hero-grid__stat-number">12+</span>
-          <span class="hero-grid__stat-label">AI-стилів</span>
-        </div>
-        <div>
-          <span class="hero-grid__stat-number">5 хв.</span>
-          <span class="hero-grid__stat-label">до готового макета</span>
-        </div>
-        <div>
-          <span class="hero-grid__stat-number">100%</span>
-          <span class="hero-grid__stat-label">контроль друку</span>
-        </div>
+<!-- Hero Section -->
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-emoji">✨</span>
+      <span class="badge-text">AI-Powered Calendar Creator</span>
+    </div>
+    
+    <h1 class="hero-title">
+      Створіть <span class="gradient-text">унікальний календар</span><br>
+      з вашими фото та AI магією
+    </h1>
+    
+    <p class="hero-subtitle">
+      Перетворіть ваші спогади на справжній витвір мистецтва! 
+      Штучний інтелект створить персоналізовані ілюстрації для кожного місяця року.
+    </p>
+    
+    <div class="hero-cta">
+      <button (click)="goToMaster()" class="btn-primary btn-large">
+        <span class="btn-emoji">🚀</span>
+        Створити мій календар
+      </button>
+      <button (click)="scrollToSection('how-it-works')" class="btn-secondary btn-large">
+        <span class="btn-emoji">📖</span>
+        Як це працює?
+      </button>
+    </div>
+    
+    <div class="hero-image">
+      <div class="mockup-container">
+        <div class="mockup-badge">📆</div>
+        <div class="mockup-text">Ваш календар тут</div>
       </div>
     </div>
-    <div class="hero-grid__media surface-card">
-      <img
-        ngSrc="/images/bg_title.jpg"
-        width="640"
-        height="420"
-        alt="Приклад дизайнерського календаря"
-      />
-      <div class="hero-grid__media-card">
-        <strong>Автоматичний попередній перегляд</strong>
-        <p>Система підказує, коли всі 12 місяців заповнені та готові до експорту в PDF.</p>
+    
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-emoji">🎨</div>
+        <div class="stat-number">1000+</div>
+        <div class="stat-label">Створених календарів</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-emoji">⭐</div>
+        <div class="stat-number">4.9/5</div>
+        <div class="stat-label">Оцінка клієнтів</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-emoji">⚡</div>
+        <div class="stat-number">30 хв</div>
+        <div class="stat-label">Швидке створення</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="features" id="features">
+  <div class="section-header">
+    <h2 class="section-title">Чому обирають Calendary?</h2>
+    <p class="section-subtitle">Переваги, які роблять наш сервіс унікальним</p>
+  </div>
+  
+  <div class="features-grid">
+    <div class="feature-card" *ngFor="let feature of features">
+      <div class="feature-emoji">{{feature.emoji}}</div>
+      <h3 class="feature-title">{{feature.title}}</h3>
+      <p class="feature-description">{{feature.description}}</p>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works" id="how-it-works">
+  <div class="section-header">
+    <h2 class="section-title">Як це працює?</h2>
+    <p class="section-subtitle">Всього 4 простих кроки до вашого ідеального календаря</p>
+  </div>
+  
+  <div class="steps-container">
+    <div class="step-card" *ngFor="let step of steps">
+      <div class="step-number">{{step.number}}</div>
+      <div class="step-emoji">{{step.emoji}}</div>
+      <h3 class="step-title">{{step.title}}</h3>
+      <p class="step-description">{{step.description}}</p>
+    </div>
+  </div>
+  
+  <div class="cta-container">
+    <button (click)="goToMaster()" class="btn-primary btn-large">
+      <span class="btn-emoji">🎯</span>
+      Почати зараз
+    </button>
+  </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials" id="testimonials">
+  <div class="section-header">
+    <h2 class="section-title">Відгуки наших клієнтів</h2>
+    <p class="section-subtitle">Дізнайтеся, що кажуть люди про Calendary</p>
+  </div>
+  
+  <div class="testimonials-grid">
+    <div class="testimonial-card" *ngFor="let testimonial of testimonials">
+      <div class="testimonial-header">
+        <div class="testimonial-avatar">{{testimonial.emoji}}</div>
+        <div class="testimonial-info">
+          <div class="testimonial-name">{{testimonial.name}}</div>
+          <div class="testimonial-role">{{testimonial.role}}</div>
+        </div>
+      </div>
+      <div class="testimonial-rating">
+        <span class="star" *ngFor="let star of [1,2,3,4,5]">⭐</span>
+      </div>
+      <p class="testimonial-text">"{{testimonial.text}}"</p>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="pricing" id="pricing">
+  <div class="section-header">
+    <h2 class="section-title">Прозора ціна</h2>
+    <p class="section-subtitle">Без прихованих платежів, все чесно та зрозуміло</p>
+  </div>
+  
+  <div class="pricing-card">
+    <div class="pricing-badge">
+      <span class="badge-emoji">🔥</span>
+      <span class="badge-text">Найкраща пропозиція</span>
+    </div>
+    
+    <div class="pricing-header">
+      <h3 class="pricing-title">Персональний календар</h3>
+      <div class="pricing-price">
+        <span class="price-amount">499</span>
+        <span class="price-currency">грн</span>
+      </div>
+    </div>
+    
+    <ul class="pricing-features">
+      <li class="pricing-feature">
+        <span class="feature-check">✅</span>
+        <span>AI генерація 12 унікальних зображень</span>
+      </li>
+      <li class="pricing-feature">
+        <span class="feature-check">✅</span>
+        <span>Високоякісний друк на преміум папері</span>
+      </li>
+      <li class="pricing-feature">
+        <span class="feature-check">✅</span>
+        <span>Формат A3 (297×420 мм)</span>
+      </li>
+      <li class="pricing-feature">
+        <span class="feature-check">✅</span>
+        <span>Додавання важливих дат</span>
+      </li>
+      <li class="pricing-feature">
+        <span class="feature-check">✅</span>
+        <span>Вибір мови календаря</span>
+      </li>
+      <li class="pricing-feature">
+        <span class="feature-check">✅</span>
+        <span>Доставка Новою Поштою</span>
+      </li>
+    </ul>
+    
+    <button (click)="goToMaster()" class="btn-primary btn-large btn-full">
+      <span class="btn-emoji">🎁</span>
+      Замовити календар
+    </button>
+  </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq" id="faq">
+  <div class="section-header">
+    <h2 class="section-title">Часті запитання</h2>
+    <p class="section-subtitle">Знайдіть відповіді на популярні питання</p>
+  </div>
+  
+  <div class="faq-container">
+    <div class="faq-item" *ngFor="let faq of faqs; let i = index" [class.active]="faq.isOpen">
+      <div class="faq-question" (click)="toggleFAQ(i)">
+        <span class="faq-text">{{faq.question}}</span>
+        <span class="faq-icon">{{faq.isOpen ? '−' : '+'}}</span>
+      </div>
+      <div class="faq-answer" *ngIf="faq.isOpen">
+        <p>{{faq.answer}}</p>
       </div>
     </div>
   </div>
-</ui-section>
+</section>
 
-<ui-section
-  alignment="center"
-  title="Переваги Calendary"
-  subtitle="Інструменти, які прискорюють створення календаря"
->
-  <ui-feature-grid [features]="features"></ui-feature-grid>
-</ui-section>
-
-<ui-section alignment="left" variant="surface" title="Як працює майстер Calendary?">
-  <ol class="workflow-list">
-    <li *ngFor="let step of workflowSteps; index as i">
-      <div class="workflow-list__index">{{ i + 1 }}</div>
-      <div>
-        <h3>{{ step.title }}</h3>
-        <p>{{ step.description }}</p>
-      </div>
-    </li>
-  </ol>
-</ui-section>
-
-<ui-section alignment="center" variant="muted">
-  <div class="closing-cta surface-card">
-    <h3>Готові розпочати?</h3>
-    <p>Перейдіть у майстер, щоб сформувати календар і додати його до кошика.</p>
-    <div class="closing-cta__actions">
-      <ui-cta-button (action)="goToMaster()">Відкрити майстер</ui-cta-button>
-      <a routerLink="/register" class="closing-cta__link">Зареєструватись</a>
-    </div>
+<!-- Final CTA Section -->
+<section class="final-cta">
+  <div class="final-cta-content">
+    <div class="final-cta-emoji">🎨</div>
+    <h2 class="final-cta-title">Готові створити свій унікальний календар?</h2>
+    <p class="final-cta-subtitle">
+      Приєднуйтесь до тисяч задоволених клієнтів, які вже перетворили свої спогади на мистецтво
+    </p>
+    <button (click)="goToMaster()" class="btn-primary btn-large btn-glow">
+      <span class="btn-emoji">✨</span>
+      Створити календар зараз
+    </button>
+    <p class="final-cta-note">
+      <span class="note-emoji">🔒</span>
+      Безпечна оплата • Гарантія якості • Швидка доставка
+    </p>
   </div>
-</ui-section>
+</section>
