@@ -8,6 +8,8 @@ public class FluxModelConfiguration : IEntityTypeConfiguration<FluxModel>
 {
     public void Configure(EntityTypeBuilder<FluxModel> builder)
     {
-        // Additional configuration can be added here
+        builder.Property(f => f.Name)
+            .IsRequired()
+            .HasMaxLength(50);
     }
 }
