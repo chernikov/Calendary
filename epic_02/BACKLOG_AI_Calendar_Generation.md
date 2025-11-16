@@ -15,9 +15,10 @@
 1. Користувач завантажує свої фото → FileUploadService ✅ (готово)
 2. Обирає тематичний шаблон → TemplatesController ✅ (готово)
 3. Система тренує Flux модель на фото користувача → Training (існує)
-4. Генерує 12 стилізованих зображень → Synthesis + FluxModelService (існує)
-5. Створює календар з обробленими фото → UserCalendar ✅ (готово)
-6. Користувач отримує готовий тематичний календар
+4. Генерує 24 стилізованих варіанти → Synthesis + FluxModelService (існує)
+5. Користувач обирає 12 найкращих зображень для місяців календаря
+6. Створює календар з обраними фото → UserCalendar ✅ (готово)
+7. Користувач отримує готовий тематичний календар
 ```
 
 ## Що вже є в системі
@@ -152,21 +153,28 @@ public class CalendarGenerationService : ICalendarGenerationService
 
         // 3. Wait for training completion (or queue next steps)
 
-        // 4. Generate 12 stylized images (one per month)
+        // 4. Generate 24 stylized variants (2x the needed amount for selection)
         var synthesisJobs = new List<Job>();
-        foreach (var photoId in photoIds.Take(12))
+        const int variantsToGenerate = 24; // User will select 12 from these 24
+        
+        // Generate multiple variants with slight variations
+        for (int i = 0; i < variantsToGenerate; i++)
         {
-            var prompt = BuildPromptForPhoto(templateConfig, photoId);
+            var photoId = photoIds[i % photoIds.Length]; // Cycle through user photos
+            var prompt = BuildPromptForPhoto(templateConfig, photoId, i);
             var job = await _synthesisService.GenerateImageAsync(
                 userId,
                 prompt,
-                templateConfig.FluxPrompt.StyleStrength
+                templateConfig.FluxPrompt.StyleStrength,
+                seed: Random.Shared.Next() // Different seed for variety
             );
             synthesisJobs.Add(job);
         }
 
-        // 5. Create UserCalendar with generated images
-        // 6. Return master job tracking all sub-jobs
+        // 5. Store all 24 variants in GeneratedCalendarVariants table
+        // 6. User will select 12 favorites via frontend
+        // 7. Create final UserCalendar only after user selection
+        // 8. Return master job tracking all sub-jobs
     }
 
     private string BuildPromptForPhoto(TemplateConfig config, int photoId)
@@ -218,7 +226,35 @@ public async Task<ActionResult<CalendarGenerationStatusDto>> GetGenerationStatus
 }
 ```
 
-### 5. Додати DTOs
+### 5. Додати Entity для збереження варіантів
+
+**Файл**: `src/Calendary.Model/GeneratedCalendarVariant.cs`
+
+```csharp
+public class GeneratedCalendarVariant
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public int JobId { get; set; } // Master job that generated these variants
+    public int TemplateId { get; set; }
+    public int SourcePhotoId { get; set; } // Original user photo
+    public int GeneratedFileId { get; set; } // Generated styled image
+    public int VariantNumber { get; set; } // 1-24
+    public bool IsSelected { get; set; } // User selected this for calendar
+    public int? MonthNumber { get; set; } // 1-12 if selected
+    public DateTime CreatedAt { get; set; }
+    public DateTime? SelectedAt { get; set; }
+
+    // Navigation properties
+    public User User { get; set; } = null!;
+    public Job Job { get; set; } = null!;
+    public Template Template { get; set; } = null!;
+    public UploadedFile SourcePhoto { get; set; } = null!;
+    public UploadedFile GeneratedFile { get; set; } = null!;
+}
+```
+
+### 6. Додати DTOs
 
 **Файл**: `src/Calendary.Api/Dtos/CalendarGenerationDto.cs`
 
@@ -232,15 +268,82 @@ public record GenerateCalendarRequest
 public record CalendarGenerationStatusDto
 {
     public int JobId { get; init; }
-    public string Status { get; init; } = "pending"; // pending, training, generating, completed, failed
+    public string Status { get; init; } = "pending"; // pending, training, generating, ready_for_selection, finalizing, completed, failed
     public int Progress { get; init; } // 0-100%
     public string? CurrentStep { get; init; }
+    public int GeneratedVariantsCount { get; init; } // 0-24
+    public CalendarVariantDto[]? Variants { get; init; } // Available when status = ready_for_selection
     public int? GeneratedCalendarId { get; init; }
     public DateTime? CompletedAt { get; init; }
 }
+
+public record CalendarVariantDto
+{
+    public int Id { get; init; }
+    public int VariantNumber { get; init; }
+    public string ImageUrl { get; init; } = "";
+    public string ThumbnailUrl { get; init; } = "";
+    public int SourcePhotoId { get; init; }
+    public bool IsSelected { get; init; }
+    public int? MonthNumber { get; init; }
+}
+
+public record SelectCalendarVariantsRequest
+{
+    public int JobId { get; init; }
+    public VariantSelection[] Selections { get; init; } = Array.Empty<VariantSelection>();
+}
+
+public record VariantSelection
+{
+    public int VariantId { get; init; }
+    public int MonthNumber { get; init; } // 1-12
+}
 ```
 
-### 6. Frontend інтеграція
+### 7. Додати API endpoints для вибору варіантів
+
+**Файл**: `src/Calendary.Api/Controllers/CalendarsController.cs`
+
+```csharp
+/// <summary>
+/// Get all 24 generated variants for selection
+/// </summary>
+[HttpGet("generate/{jobId}/variants")]
+public async Task<ActionResult<CalendarVariantDto[]>> GetGeneratedVariants(int jobId)
+{
+    var currentUser = await CurrentUser;
+    if (currentUser == null) return Unauthorized();
+
+    var variants = await _calendarGenerationService.GetVariantsAsync(jobId, currentUser.Id);
+    return Ok(variants);
+}
+
+/// <summary>
+/// Select 12 variants from 24 for final calendar
+/// </summary>
+[HttpPost("generate/{jobId}/select")]
+public async Task<ActionResult<UserCalendarDto>> SelectCalendarVariants(
+    int jobId,
+    [FromBody] SelectCalendarVariantsRequest request)
+{
+    var currentUser = await CurrentUser;
+    if (currentUser == null) return Unauthorized();
+
+    if (request.Selections.Length != 12)
+        return BadRequest("Must select exactly 12 variants (one per month)");
+
+    var calendar = await _calendarGenerationService.FinalizeCalendarAsync(
+        jobId,
+        currentUser.Id,
+        request.Selections
+    );
+
+    return Ok(MapToCalendarDto(calendar));
+}
+```
+
+### 8. Frontend інтеграція
 
 Додати на фронтенді:
 
@@ -249,10 +352,16 @@ public record CalendarGenerationStatusDto
 3. **Прогрес бар генерації**:
    ```
    [=====>         ] 45%
-   Крок 2 з 4: Генерація стилізованих фото...
+   Крок 2 з 4: Генерація 24 варіантів зображень...
    ```
-4. **Preview готового календаря**
-5. **Можливість редагування** перед замовленням
+4. **Галерея вибору** (NEW!):
+   - Показати всі 24 згенеровані варіанти у grid
+   - Користувач обирає 12 найкращих
+   - Drag & drop для призначення місяців (January → Variant #7)
+   - Preview календаря з обраними фото
+5. **Можливість regenerate** окремих варіантів
+6. **Preview готового календаря** після вибору
+7. **Можливість редагування** перед замовленням
 
 ## Приклади промптів для кожної теми
 
@@ -329,14 +438,16 @@ Style strength: 0.65
 ## Технічні вимоги
 
 ### Performance
-- Генерація календаря: ~5-10 хвилин (12 фото × 30-50 сек на фото)
+- Генерація варіантів: ~10-20 хвилин (24 фото × 30-50 сек на фото)
 - Використати Job Queue для асинхронної обробки
 - WebSocket або SignalR для real-time прогресу
+- Паралельна генерація варіантів (до 4 одночасно) для прискорення
 
 ### Storage
-- Зберігати оригінали та згенеровані версії
-- Автоматичне видалення через 30 днів після створення замовлення
-- CDN для швидкої доставки preview
+- Зберігати оригінали та всі 24 згенеровані варіанти
+- Видалити невибрані 12 варіантів після фіналізації календаря
+- Автоматичне видалення всіх варіантів через 7 днів якщо користувач не зробив вибір
+- CDN для швидкої доставки preview та thumbnails
 
 ### Cost Optimization
 - Кешувати згенеровані стилі для однакових комбінацій шаблон+фото
@@ -363,17 +474,21 @@ ADD CONSTRAINT FK_Templates_PromptThemes
 
 ## Пріоритезація
 
-1. **Phase 1** (MVP): Базова генерація з 1 стилем
+1. **Phase 1** (MVP): Генерація 24 варіантів + UI для вибору 12
 2. **Phase 2**: Всі 10 тематичних стилів
-3. **Phase 3**: Кастомні промпти від користувача
-4. **Phase 4**: AI рекомендації стилю на базі фото
+3. **Phase 3**: Можливість regenerate окремих варіантів
+4. **Phase 4**: Кастомні промпти від користувача
+5. **Phase 5**: AI рекомендації кращих варіантів на базі якості/естетики
 
 ## Metrics для відстеження
 
-- Час генерації календаря (SLA: < 10 хв)
+- Час генерації 24 варіантів (SLA: < 20 хв)
 - Success rate генерації (Target: > 95%)
+- Середній час вибору користувачем (insights для UX)
+- % користувачів що завершили вибір (Drop-off rate)
+- Які варіанти обирають частіше (для оптимізації промптів)
 - Користувацька задоволеність (рейтинг результату)
-- Conversion rate (preview → purchase)
+- Conversion rate (варіанти → фінальний календар → purchase)
 
 ## Залежності
 
@@ -383,17 +498,23 @@ ADD CONSTRAINT FK_Templates_PromptThemes
 
 ## Ризики
 
-- ⚠️ API rate limits на Replicate
-- ⚠️ Висока вартість генерації (paid feature?)
-- ⚠️ Довгий час очікування може відштовхнути користувачів
+- ⚠️ API rate limits на Replicate (24 requests замість 12)
+- ⚠️ Вдвічі вища вартість генерації (24 варіанти = definitely paid feature!)
+- ⚠️ Довший час очікування (10-20 хв) може відштовхнути користувачів
 - ⚠️ Якість результату може не задовольнити всіх
+- ⚠️ Складніший UX з вибором варіантів (може заплутати користувачів)
+- ⚠️ Більше storage потрібно для 24 варіантів
 
 ## Рішення ризиків
 
-- Показувати realistic ETA (5-10 хв)
-- Email notification коли готово
-- Preview mode для швидкого тесту
-- Можливість regenerate окремих місяців
+- Показувати realistic ETA (10-20 хв)
+- Email/Push notification коли всі 24 варіанти готові
+- Progressive loading: показувати варіанти по мірі генерації (не чекати всіх 24)
+- Preview mode для швидкого тесту (6 варіантів замість 24, lower quality)
+- Простий wizard для вибору з drag & drop
+- AI pre-selection: показати "рекомендовані" варіанти першими
+- Можливість regenerate окремих варіантів якщо жоден не подобається
+- Clear pricing: "24 унікальні варіанти за X₴"
 
 ---
 

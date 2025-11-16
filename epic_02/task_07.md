@@ -1,12 +1,13 @@
-# Task 07: Database schema для Customer Portal
+# Task 07: Database schema для Customer Portal ✅
 
 **Epic**: [Epic 02 - Customer Portal](../epic_02.md)
-**Статус**: TODO
+**Статус**: DONE
 **Пріоритет**: P0 (Критичний)
 **Складність**: Середня
 **Час**: 3-4 години
 **Відповідальний AI**: Claude
 **Паралельно з**: Task 01, 02, 03, 04, 05, 06
+**Завершено**: 2025-11-16
 
 ## Опис задачі
 
