@@ -10,7 +10,6 @@
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Portable.BouncyCastle" />
     <PackageReference Include="itext7" />
-    <PackageReference Include="itext7.bouncy-castle-adapter" />
     <PackageReference Include="RabbitMQ.Client" />
     <PackageReference Include="SendGrid" />
     <PackageReference Include="SixLabors.ImageSharp" />

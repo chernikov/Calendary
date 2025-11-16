@@ -4,7 +4,6 @@ import { RegisterComponent } from './pages/register/register.component';
 import { Page404Component } from './pages/page404/page404.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { LoginComponent } from './pages/login/login.component';
-import { CalendarComponent } from './pages/calendar/calendar.component';
 import { AdminGuard } from '../guards/admin.guard';
 import { MainComponent } from './main.component';
 import { AdminComponent } from './admin/admin.component';
@@ -72,9 +71,6 @@ export const routes: Routes = [
       { path: 'order/:orderId', component: OrderComponent },
       { path: 'master', component: MasterComponent, canActivate: [UserGuard]  },
       { path: 'editor', component: EditorComponent, canActivate: [UserGuard]  },
-
-      /* to remove */
-      { path: 'settings', component: SettingsComponent, canActivate: [UserGuard]  },
     ],
   },
   { path: '**', component: Page404Component },
