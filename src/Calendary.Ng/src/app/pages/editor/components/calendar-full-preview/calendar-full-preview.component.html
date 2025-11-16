@@ -1,0 +1,159 @@
+<div class="calendar-full-preview" [class.fullscreen]="isFullscreen">
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button mat-icon-button (click)="onClose()" matTooltip="Закрити">
+        <mat-icon>close</mat-icon>
+      </button>
+      <h2 class="title">Попередній перегляд календаря {{ year }}</h2>
+    </div>
+
+    <div class="toolbar-actions">
+      <!-- View Mode Toggle -->
+      <mat-button-toggle-group [(ngModel)]="viewMode" name="viewMode">
+        <mat-button-toggle value="single" matTooltip="Один місяць">
+          <mat-icon>calendar_view_month</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="all" matTooltip="Всі місяці">
+          <mat-icon>calendar_view_day</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <!-- Zoom Controls -->
+      <div class="zoom-controls">
+        <button mat-icon-button (click)="zoomOut()" [disabled]="zoomLevel <= 50" matTooltip="Зменшити">
+          <mat-icon>zoom_out</mat-icon>
+        </button>
+        <span class="zoom-label">{{ zoomLevel }}%</span>
+        <button mat-icon-button (click)="zoomIn()" [disabled]="zoomLevel >= 200" matTooltip="Збільшити">
+          <mat-icon>zoom_in</mat-icon>
+        </button>
+        <button mat-icon-button (click)="resetZoom()" matTooltip="Скинути">
+          <mat-icon>restart_alt</mat-icon>
+        </button>
+      </div>
+
+      <!-- Fullscreen Toggle -->
+      <button mat-icon-button (click)="toggleFullscreen()" [matTooltip]="isFullscreen ? 'Вихід з повного екрану' : 'Повний екран'">
+        <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+      </button>
+
+      <!-- Generate PDF Button -->
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onGeneratePdf()"
+        [disabled]="!canGeneratePdf"
+        matTooltip="Згенерувати PDF"
+      >
+        <mat-icon>picture_as_pdf</mat-icon>
+        Згенерувати PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Customization Panel -->
+  <div class="customization-panel">
+    <div class="panel-group">
+      <label>Шрифт:</label>
+      <mat-select [(ngModel)]="fontFamily" class="small-select">
+        <mat-option *ngFor="let font of fontOptions" [value]="font.value">
+          {{ font.label }}
+        </mat-option>
+      </mat-select>
+    </div>
+
+    <div class="panel-group">
+      <label>Колір:</label>
+      <mat-select [(ngModel)]="colorScheme" class="small-select">
+        <mat-option *ngFor="let color of colorOptions" [value]="color.value">
+          {{ color.label }}
+        </mat-option>
+      </mat-select>
+    </div>
+
+    <div class="panel-group">
+      <label>Розташування:</label>
+      <mat-button-toggle-group [(ngModel)]="layoutMode" name="layoutMode" class="layout-toggle">
+        <mat-button-toggle value="image-top" matTooltip="Зображення зверху">
+          <mat-icon>vertical_align_top</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="image-bottom" matTooltip="Зображення знизу">
+          <mat-icon>vertical_align_bottom</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+  </div>
+
+  <!-- Navigation (for single month view) -->
+  <div class="navigation" *ngIf="viewMode === 'single'">
+    <button mat-icon-button (click)="previousMonth()" matTooltip="Попередній місяць">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+
+    <mat-select [(ngModel)]="currentMonth" class="month-select">
+      <mat-option *ngFor="let month of months" [value]="month.value">
+        {{ month.label }}
+      </mat-option>
+    </mat-select>
+
+    <button mat-icon-button (click)="nextMonth()" matTooltip="Наступний місяць">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+
+    <button
+      mat-stroked-button
+      color="accent"
+      (click)="onEditMonth(currentMonth)"
+      matTooltip="Редагувати місяць"
+    >
+      <mat-icon>edit</mat-icon>
+      Редагувати
+    </button>
+  </div>
+
+  <!-- Preview Content -->
+  <div class="preview-content" [ngStyle]="getZoomStyle()">
+    <div class="months-container" [class.single-view]="viewMode === 'single'" [class.all-view]="viewMode === 'all'">
+      <div class="month-wrapper" *ngFor="let month of getMonthsToDisplay()">
+        <app-month-page
+          [month]="month"
+          [year]="year"
+          [imageUrl]="getImageUrl(month)"
+          [monthName]="getMonthName(month)"
+          [holidays]="holidays"
+          [eventDates]="eventDates"
+          [firstDayOfWeek]="firstDayOfWeek"
+          [layoutMode]="layoutMode"
+          [colorScheme]="colorScheme"
+          [fontFamily]="fontFamily"
+        ></app-month-page>
+      </div>
+    </div>
+  </div>
+
+  <!-- Month Thumbnails (for quick navigation in single view) -->
+  <div class="month-thumbnails" *ngIf="viewMode === 'single'">
+    <button
+      mat-button
+      class="thumbnail-btn"
+      *ngFor="let month of months"
+      [class.active]="currentMonth === month.value"
+      [class.has-image]="getImageUrl(month.value)"
+      (click)="goToMonth(month.value)"
+      [matTooltip]="month.label"
+    >
+      <div class="thumbnail-preview">
+        <img *ngIf="getImageUrl(month.value)" [src]="getImageUrl(month.value)" [alt]="month.label" />
+        <mat-icon *ngIf="!getImageUrl(month.value)">image</mat-icon>
+      </div>
+      <span class="thumbnail-label">{{ month.value }}</span>
+    </button>
+  </div>
+
+  <!-- Status Info -->
+  <div class="status-info" *ngIf="!canGeneratePdf">
+    <mat-icon>info</mat-icon>
+    <span>Заповніть всі 12 місяців для генерації PDF ({{ assignments.length }}/12)</span>
+  </div>
+</div>
