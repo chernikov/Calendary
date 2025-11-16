@@ -51,59 +51,6 @@ public class ImageController : BaseUserController
         return Ok(result);
     }
 
-
-    [HttpPost("upload/{calendarId}")]
-    public async Task<IActionResult> UploadImage(int calendarId, [FromQuery] short month, IFormFile file)
-    {
-        if (file is null || file.Length == 0)
-        {
-            return BadRequest("File isn't uploaded");
-        }
-
-        string imageUrl = await SaveImage(file);
-        var image = new Image { ImageUrl = imageUrl, CalendarId = calendarId, MonthNumber = month };
-        await imageService.SaveAsync(image);
-
-        return Ok(new { imageUrl });
-    }
-
-    [HttpPost("batchupload/{calendarId}")]
-    public async Task<IActionResult> BatchUploadImage(int calendarId, IFormFile file)
-    {
-        if (file is null || file.Length == 0)
-        {
-            return BadRequest("File isn't uploaded");
-        }
-
-        var nextMonth = await imageService.GetNotFilledMonthAsync(calendarId);
-        if (nextMonth != -1)
-        {
-            string imageUrl = await SaveImage(file);
-
-            var image = new Image { ImageUrl = imageUrl, CalendarId = calendarId, MonthNumber = nextMonth };
-
-            await imageService.SaveAsync(image);
-
-            return Ok(new { imageUrl });
-        }
-        return BadRequest("All months are filled");
-    }
-
-
-    private async Task<string> SaveImage(IFormFile file)
-    {
-        var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
-        var filePath = Path.Combine(_imageDirectory, fileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-        var imageUrl = $"/uploads/{fileName}";
-        return imageUrl;
-    }
-
-
     [HttpDelete("{imageId}")]
     public async Task<IActionResult> DeleteImage(int imageId)
     {
