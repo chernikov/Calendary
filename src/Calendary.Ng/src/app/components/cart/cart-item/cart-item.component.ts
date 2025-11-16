@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { OrderItem } from '../../../../../models/order-item';
+import { OrderItem } from '../../../../models/order-item';
 
 @Component({
   selector: 'app-cart-item',

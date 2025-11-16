@@ -47,6 +47,13 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
         var savedPath = System.IO.Path.Combine("uploads", $"calendar_{calendar.Id}_{calendar.Year}.pdf");
         string dest = pathProvider.MapPath(savedPath);
 
+        // Переконуємось, що директорія існує
+        var directory = System.IO.Path.GetDirectoryName(dest);
+        if (!string.IsNullOrEmpty(directory) && !System.IO.Directory.Exists(directory))
+        {
+            System.IO.Directory.CreateDirectory(directory);
+        }
+
         // Імена місяців
         string[] months = GetMonthNames(calendar.Language.Code);
         string[] days = GetDayNames(calendar.Language.Code, calendar.FirstDayOfWeek);

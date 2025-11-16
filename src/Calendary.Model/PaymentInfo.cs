@@ -28,10 +28,4 @@ public class PaymentInfo
     /// </summary>
     public int? CreditPackageId { get; set; }
     public CreditPackage? CreditPackage { get; set; }
-
-    /// <summary>
-    /// ID користувача, який створив платіж
-    /// </summary>
-    public int? UserId { get; set; }
-    public User? User { get; set; }
 }

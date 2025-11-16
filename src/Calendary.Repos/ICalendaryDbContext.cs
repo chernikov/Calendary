@@ -47,6 +47,7 @@ public interface ICalendaryDbContext
     DbSet<UserCalendar> UserCalendars { get; set; }
     DbSet<CartItem> CartItems { get; set; }
     DbSet<UploadedFile> UploadedFiles { get; set; }
+    DbSet<UserPhoto> UserPhotos { get; set; }
 
     /// <summary>
     /// Зберігає всі зміни у базі даних.

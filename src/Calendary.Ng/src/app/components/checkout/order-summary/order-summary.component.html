@@ -1,4 +1,4 @@
-<section class="summary" *ngIf="order?.items.length; else emptyState">
+<section class="summary" *ngIf="order?.items?.length; else emptyState">
   <h2>Замовлення</h2>
   <div class="summary-items">
     <article *ngFor="let item of order?.items" class="summary-item">

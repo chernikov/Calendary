@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { Order } from '../../../../../models/order';
+import { Order } from '../../../../models/order';
 import { EmptyCartComponent } from '../../cart/empty-cart/empty-cart.component';
 
 @Component({
@@ -23,13 +23,13 @@ export class OrderSummaryComponent {
     if (!this.order) {
       return 0;
     }
-    return this.order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return this.order.items.reduce((sum: number, item) => sum + item.price * item.quantity, 0);
   }
 
   get totalItems(): number {
     if (!this.order) {
       return 0;
     }
-    return this.order.items.reduce((sum, item) => sum + item.quantity, 0);
+    return this.order.items.reduce((sum: number, item) => sum + item.quantity, 0);
   }
 }
