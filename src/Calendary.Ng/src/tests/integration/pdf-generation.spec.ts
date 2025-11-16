@@ -37,24 +37,16 @@ describe('PDF Generation Integration Tests', () => {
         id: calendarId,
         year: 2024,
         languageId: 1,
-        language: { id: 1, name: 'Українська', code: 'uk-UA' },
         firstDayOfWeek: 1, // Monday
-        images: Array.from({ length: 12 }, (_, i) => ({
-          id: i + 1,
-          calendarId: calendarId,
-          monthNumber: i + 1,
-          imageUrl: `uploads/image_${i + 1}.jpg`
-        })),
-        eventDates: [],
-        calendarHolidays: [],
-        pdfPath: 'uploads/calendar_1_2024.pdf'
+        filePath: 'uploads/calendar_1_2024.pdf',
+        previewPath: 'uploads/calendar_1_2024_preview.jpg'
       };
 
       service.generatePdf(calendarId, fluxModelId).subscribe(
         (result) => {
           expect(result).toBeTruthy();
-          expect(result.pdfPath).toContain('.pdf');
-          expect(result.pdfPath).toContain('calendar_1_2024');
+          expect(result.filePath).toContain('.pdf');
+          expect(result.filePath).toContain('calendar_1_2024');
           done();
         },
         (error) => {
@@ -73,23 +65,15 @@ describe('PDF Generation Integration Tests', () => {
         id: calendarId,
         year: 2024,
         languageId: 2,
-        language: { id: 2, name: 'English', code: 'en-US' },
         firstDayOfWeek: 0, // Sunday
-        images: Array.from({ length: 12 }, (_, i) => ({
-          id: i + 1,
-          calendarId: calendarId,
-          monthNumber: i + 1,
-          imageUrl: `uploads/image_${i + 1}.jpg`
-        })),
-        eventDates: [],
-        calendarHolidays: [],
-        pdfPath: 'uploads/calendar_2_2024.pdf'
+        filePath: 'uploads/calendar_2_2024.pdf',
+        previewPath: 'uploads/calendar_2_2024_preview.jpg'
       };
 
       service.generatePdf(calendarId, null).subscribe(
         (result) => {
           expect(result).toBeTruthy();
-          expect(result.language.code).toBe('en-US');
+          expect(result.languageId).toBe(2);
           expect(result.firstDayOfWeek).toBe(0); // Sunday for English
           done();
         }
@@ -105,32 +89,15 @@ describe('PDF Generation Integration Tests', () => {
         id: calendarId,
         year: 2024,
         languageId: 1,
-        language: { id: 1, name: 'Українська', code: 'uk-UA' },
         firstDayOfWeek: 1,
-        images: Array.from({ length: 12 }, (_, i) => ({
-          id: i + 1,
-          calendarId: calendarId,
-          monthNumber: i + 1,
-          imageUrl: `uploads/image_${i + 1}.jpg`
-        })),
-        eventDates: [
-          { id: 1, calendarId: calendarId, date: new Date(2024, 0, 15), description: 'Birthday' }
-        ],
-        calendarHolidays: [
-          {
-            calendarId: calendarId,
-            holidayId: 1,
-            holiday: { id: 1, name: 'New Year', date: new Date(2024, 0, 1) }
-          }
-        ],
-        pdfPath: 'uploads/calendar_3_2024.pdf'
+        filePath: 'uploads/calendar_3_2024.pdf',
+        previewPath: 'uploads/calendar_3_2024_preview.jpg'
       };
 
       service.generatePdf(calendarId, null).subscribe(
         (result) => {
           expect(result).toBeTruthy();
-          expect(result.calendarHolidays.length).toBeGreaterThan(0);
-          expect(result.eventDates.length).toBeGreaterThan(0);
+          expect(result.filePath).toContain('.pdf');
           done();
         }
       );
@@ -146,23 +113,15 @@ describe('PDF Generation Integration Tests', () => {
         id: calendarId,
         year: 2024,
         languageId: 1,
-        language: { id: 1, name: 'Українська', code: 'uk-UA' },
         firstDayOfWeek: 1,
-        images: Array.from({ length: 12 }, (_, i) => ({
-          id: i + 1,
-          calendarId: calendarId,
-          monthNumber: i + 1,
-          imageUrl: `uploads/image_${i + 1}.jpg`
-        })),
-        eventDates: [],
-        calendarHolidays: [],
-        pdfPath: 'uploads/calendar_4_2024.pdf'
+        filePath: 'uploads/calendar_4_2024.pdf',
+        previewPath: 'uploads/calendar_4_2024_preview.jpg'
       };
 
       service.generatePdf(calendarId, fluxModelId).subscribe(
         (result) => {
           expect(result).toBeTruthy();
-          expect(result.pdfPath).toContain('.pdf');
+          expect(result.filePath).toContain('.pdf');
           done();
         }
       );
@@ -180,12 +139,9 @@ describe('PDF Generation Integration Tests', () => {
         id: calendarId,
         year: 2024,
         languageId: 1,
-        language: { id: 1, name: 'Українська', code: 'uk-UA' },
         firstDayOfWeek: 1,
-        images: [], // No images
-        eventDates: [],
-        calendarHolidays: [],
-        pdfPath: ''
+        filePath: null,
+        previewPath: null
       };
 
       service.generatePdf(calendarId, null).subscribe(
@@ -206,17 +162,9 @@ describe('PDF Generation Integration Tests', () => {
         id: calendarId,
         year: 2024, // Leap year
         languageId: 1,
-        language: { id: 1, name: 'Українська', code: 'uk-UA' },
         firstDayOfWeek: 1,
-        images: Array.from({ length: 12 }, (_, i) => ({
-          id: i + 1,
-          calendarId: calendarId,
-          monthNumber: i + 1,
-          imageUrl: `uploads/image_${i + 1}.jpg`
-        })),
-        eventDates: [],
-        calendarHolidays: [],
-        pdfPath: 'uploads/calendar_6_2024.pdf'
+        filePath: 'uploads/calendar_6_2024.pdf',
+        previewPath: 'uploads/calendar_6_2024_preview.jpg'
       };
 
       service.generatePdf(calendarId, null).subscribe(
@@ -256,17 +204,9 @@ describe('PDF Generation Integration Tests', () => {
         id: calendarId,
         year: 2024,
         languageId: 1,
-        language: { id: 1, name: 'Українська', code: 'uk-UA' },
         firstDayOfWeek: 1, // Monday
-        images: Array.from({ length: 12 }, (_, i) => ({
-          id: i + 1,
-          calendarId: calendarId,
-          monthNumber: i + 1,
-          imageUrl: `uploads/image_${i + 1}.jpg`
-        })),
-        eventDates: [],
-        calendarHolidays: [],
-        pdfPath: 'uploads/calendar_7_2024.pdf'
+        filePath: 'uploads/calendar_7_2024.pdf',
+        previewPath: 'uploads/calendar_7_2024_preview.jpg'
       };
 
       service.generatePdf(calendarId, null).subscribe(
@@ -286,17 +226,9 @@ describe('PDF Generation Integration Tests', () => {
         id: calendarId,
         year: 2024,
         languageId: 2,
-        language: { id: 2, name: 'English', code: 'en-US' },
         firstDayOfWeek: 0, // Sunday
-        images: Array.from({ length: 12 }, (_, i) => ({
-          id: i + 1,
-          calendarId: calendarId,
-          monthNumber: i + 1,
-          imageUrl: `uploads/image_${i + 1}.jpg`
-        })),
-        eventDates: [],
-        calendarHolidays: [],
-        pdfPath: 'uploads/calendar_8_2024.pdf'
+        filePath: 'uploads/calendar_8_2024.pdf',
+        previewPath: 'uploads/calendar_8_2024_preview.jpg'
       };
 
       service.generatePdf(calendarId, null).subscribe(
