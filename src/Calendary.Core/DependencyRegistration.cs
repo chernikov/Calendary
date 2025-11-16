@@ -44,6 +44,8 @@ public static class DependencyRegistration
         services.AddScoped<IJobTaskService, JobTaskService>();
         services.AddScoped<ISynthesisService, SynthesisService>();
 
+        // Customer Portal services
+        services.AddScoped<IFileUploadService, FileUploadService>();
 
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ISmsService, SmsService>();

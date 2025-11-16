@@ -42,6 +42,12 @@ public interface ICalendaryDbContext
     DbSet<WebHook> WebHooks { get; set; }
     DbSet<WebHookFluxModel> WebHookFluxModels { get; set; }
 
+    // Customer Portal entities
+    DbSet<Template> Templates { get; set; }
+    DbSet<UserCalendar> UserCalendars { get; set; }
+    DbSet<CartItem> CartItems { get; set; }
+    DbSet<UploadedFile> UploadedFiles { get; set; }
+
     /// <summary>
     /// Зберігає всі зміни у базі даних.
     /// </summary>

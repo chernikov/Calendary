@@ -41,6 +41,10 @@ namespace Calendary.Repos
             services.AddScoped<ITrainingRepository, TrainingRepository>();
             services.AddScoped<ISynthesisRepository, SynthesisRepository>();
 
+            // Customer Portal repositories
+            services.AddScoped<ITemplateRepository, TemplateRepository>();
+            services.AddScoped<IUserCalendarRepository, UserCalendarRepository>();
+            services.AddScoped<IUploadedFileRepository, UploadedFileRepository>();
 
             services.ApplyMigrationDb();
 

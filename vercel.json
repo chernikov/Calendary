@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd calendary-customer-portal && npm run build",
+  "devCommand": "cd calendary-customer-portal && npm run dev",
+  "installCommand": "cd calendary-customer-portal && npm install",
+  "framework": "nextjs",
+  "outputDirectory": "calendary-customer-portal/.next",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.calendary.com.ua/api/:path*"
+    }
+  ]
+}
