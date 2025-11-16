@@ -210,8 +210,8 @@
             *ngIf="state.status === ModelStatus.GeneratingImages"
           ></mat-progress-bar>
 
-          <div class="generated-images" *ngIf="state.model?.jobs && state.model.jobs.length > 0">
-            <p>Згенеровано зображень: {{ state.model.jobs[0]?.tasks?.length || 0 }}</p>
+          <div class="generated-images" *ngIf="state.model && state.model.jobs && state.model.jobs.length > 0">
+            <p>Згенеровано зображень: {{ (state.model.jobs[0]?.tasks?.length) || 0 }}</p>
           </div>
         </div>
 

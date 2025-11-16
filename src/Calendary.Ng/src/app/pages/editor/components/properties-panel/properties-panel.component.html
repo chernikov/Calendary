@@ -199,16 +199,26 @@
         </label>
       </div>
 
-      <ui-color-picker
-        label="Заливка"
-        [value]="selectedOverlay?.fill || '#000000'"
-        (valueChange)="updateOverlay({ fill: $event })"
-      ></ui-color-picker>
-      <ui-color-picker
-        label="Обведення"
-        [value]="selectedOverlay?.stroke || '#000000'"
-        (valueChange)="updateOverlay({ stroke: $event })"
-      ></ui-color-picker>
+      <!-- Fill Color -->
+      <label>
+        Заливка
+        <input
+          type="color"
+          [value]="selectedOverlay?.fill || '#000000'"
+          (input)="updateOverlay({ fill: $any($event.target).value })"
+        />
+      </label>
+      
+      <!-- Stroke Color -->
+      <label>
+        Обведення
+        <input
+          type="color"
+          [value]="selectedOverlay?.stroke || '#000000'"
+          (input)="updateOverlay({ stroke: $any($event.target).value })"
+        />
+      </label>
+      
       <label>
         Товщина обведення
         <input
@@ -227,7 +237,7 @@
             matInput
             rows="3"
             [value]="selectedOverlay?.text"
-            (input)="updateTextOverlay({ text: ($event.target as HTMLTextAreaElement).value })"
+            (input)="updateTextOverlay({ text: $any($event.target).value })"
           ></textarea>
         </label>
         <label>
