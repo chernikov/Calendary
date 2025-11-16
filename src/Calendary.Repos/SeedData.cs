@@ -23,32 +23,60 @@ public static class SeedData
 
     public static void SeedDemoUsers(this CalendaryDbContext context)
     {
-        // Перевіряємо чи вже є користувачі
-        if (context.Users.Any())
+        // Перевіряємо чи вже є наші demo користувачі
+        if (context.Users.Any(u => u.Email == "admin@calendary.com" || 
+                                    u.Email == "demo@calendary.com" || 
+                                    u.Email == "master@calendary.com"))
         {
-            return; // БД вже заповнена
+            return; // Demo користувачі вже створені
         }
 
-        // Створюємо ролі
-        var adminRole = new Role { Name = "Admin" };
-        var userRole = new Role { Name = "User" };
-        var masterRole = new Role { Name = "Master" };
-
-        context.Roles.AddRange(adminRole, userRole, masterRole);
+        // Створюємо ролі якщо їх немає
+        if (!context.Roles.Any(r => r.Name == "Admin"))
+        {
+            context.Roles.Add(new Role { Name = "Admin" });
+        }
+        if (!context.Roles.Any(r => r.Name == "User"))
+        {
+            context.Roles.Add(new Role { Name = "User" });
+        }
+        if (!context.Roles.Any(r => r.Name == "Master"))
+        {
+            context.Roles.Add(new Role { Name = "Master" });
+        }
         context.SaveChanges();
 
-        // Створюємо мови та країни
-        var ukrainian = new Language { Code = "uk", Name = "Українська" };
-        var english = new Language { Code = "en", Name = "English" };
-        
-        context.Languages.AddRange(ukrainian, english);
+        var adminRole = context.Roles.First(r => r.Name == "Admin");
+        var userRole = context.Roles.First(r => r.Name == "User");
+        var masterRole = context.Roles.First(r => r.Name == "Master");
+
+        // Створюємо мови якщо їх немає
+        if (!context.Languages.Any(l => l.Code == "uk"))
+        {
+            context.Languages.Add(new Language { Code = "uk", Name = "Українська" });
+        }
+        if (!context.Languages.Any(l => l.Code == "en"))
+        {
+            context.Languages.Add(new Language { Code = "en", Name = "English" });
+        }
         context.SaveChanges();
 
-        var ukraine = new Country { Code = "UA", Name = "Україна" };
-        var usa = new Country { Code = "US", Name = "USA" };
-        
-        context.Countries.AddRange(ukraine, usa);
+        var ukrainian = context.Languages.First(l => l.Code == "uk");
+        var english = context.Languages.First(l => l.Code == "en");
+
+        // Створюємо країни якщо їх немає
+        if (!context.Countries.Any(c => c.Code == "UA"))
+        {
+            context.Countries.Add(new Country { Code = "UA", Name = "Україна" });
+        }
+        if (!context.Countries.Any(c => c.Code == "US"))
+        {
+            context.Countries.Add(new Country { Code = "US", Name = "USA" });
+        }
         context.SaveChanges();
+
+        var ukraine = context.Countries.First(c => c.Code == "UA");
+        var usa = context.Countries.First(c => c.Code == "US");
 
         // Admin користувач: admin@calendary.com / Admin123!
         var admin = new User
