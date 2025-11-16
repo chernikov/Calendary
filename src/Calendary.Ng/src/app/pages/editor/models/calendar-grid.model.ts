@@ -1,4 +1,4 @@
-import { Holiday } from '../../../models/holiday';
+import { Holiday } from '@models/holiday';
 
 export interface CalendarDay {
   day: number;

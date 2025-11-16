@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Holiday } from '../../../../models/holiday';
-import { HolidayService } from '../../../../services/holiday.service';
+import { Holiday } from '@models/holiday';
+import { HolidayService } from '@services/holiday.service';
 
 
 @Component({
