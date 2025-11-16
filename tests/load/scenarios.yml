@@ -1,0 +1,91 @@
+version: 1
+name: calendary-load-suite
+description: |
+  Узгоджений набір сценаріїв для навантажувального тестування Calendary.
+  Сценарії покривають API генерації зображень, генерацію PDF, навантаження на редактор,
+  spike та soak тести. Запускаються через k6 (tests/load/k6-script.js) з різними
+  наборами environment variables.
+
+tooling:
+  runner: k6
+  commandTemplate: >
+    API_BASE_URL={{ apiBaseUrl }} EDITOR_URL={{ editorUrl }} API_TOKEN={{ apiToken | default('') }} \
+    CALENDAR_ID={{ calendarId }} MODEL_VERSION={{ modelVersion }} k6 run tests/load/k6-script.js
+  metrics:
+    - response_time_ms (Trend, p50/p95/p99)
+    - error_rate (Rate)
+    - request_throughput (Counter)
+    - builtin http_req_duration/http_reqs (для Grafana dashboards)
+  observability:
+    - use k6 --out cloud|influxdb=http://localhost:8086/k6 для зберігання метрик
+    - Grafana dashboard: https://grafana.com/grafana/dashboards/2587-k6-load-testing/
+
+environments:
+  local:
+    apiBaseUrl: http://localhost:5000
+    editorUrl: http://localhost:4200/editor
+    calendarId: 1
+    modelVersion: flux-pro-v1.1
+  staging:
+    apiBaseUrl: https://staging.api.calendary.local
+    editorUrl: https://staging.calendary.local/editor
+    calendarId: 42
+    modelVersion: flux-pro-v1.1
+
+scenarios:
+  image_generation:
+    description: 10 одночасних генерацій зображень.
+    k6Scenario: image_generation
+    command: >
+      {{ commandTemplate }} --scenario image_generation
+    asserts:
+      responseTimeP95: < 3000 ms
+      errorRate: < 1%
+
+  pdf_generation:
+    description: 5 одночасних генерацій PDF через /api/calendar/generate/{calendarId}.
+    preconditions:
+      - CALENDAR_ID повинен існувати та бути доступним користувачу токена.
+    k6Scenario: pdf_generation
+    command: >
+      {{ commandTemplate }} --scenario pdf_generation
+
+  editor_concurrency:
+    description: 100 concurrent users в /editor.
+    k6Scenario: editor_concurrency
+    command: >
+      {{ commandTemplate }} --scenario editor_concurrency
+
+  spike_test:
+    description: Різкий наплив користувачів на генерацію зображень.
+    k6Scenario: spike_test
+    command: >
+      {{ commandTemplate }} --scenario spike_test
+
+  soak_test:
+    description: Тривале навантаження (1 година) для відстеження стабільності.
+    k6Scenario: soak_test
+    command: >
+      {{ commandTemplate }} --scenario soak_test
+    notes:
+      - Запускати у screen/tmux, використовувати --duration для скороченої локальної перевірки.
+
+metrics_to_track:
+  response_time:
+    description: http_req_duration (p50, p95, p99)
+  throughput:
+    description: request_throughput / http_reqs
+  error_rate:
+    description: error_rate + http_req_failed
+  cpu_usage:
+    description: Знімати через `docker stats` або Prometheus node_exporter
+  memory_usage:
+    description: Слідкувати за pod/container memory (Prometheus/Grafana panels)
+  db_connections:
+    description: sqlserver_current_connections (або еквівалент з chosen DB exporter)
+
+acceptance_criteria:
+  - p95 response time < 3s для всіх сценаріїв
+  - Error rate < 1%
+  - Soak test 60 хвилин без перезапуску сервісів та витоків пам'яті
+  - Середній CPU < 75%, середній memory < 80% від доступного
