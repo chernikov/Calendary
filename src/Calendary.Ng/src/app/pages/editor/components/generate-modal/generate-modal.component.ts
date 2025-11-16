@@ -22,6 +22,8 @@ import { ImageGenerationSignalRService, ProgressUpdate } from '../../services/im
 import { Observable } from 'rxjs';
 import { SettingService } from '../../../../../services/setting.service';
 import { PromptHistoryService, PromptHistoryItem } from '../../services/prompt-history.service';
+import { PromptEnhancerService } from '../../services/prompt-enhancer.service';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 export interface GenerateModalData {
   fluxModelId: number;
@@ -49,7 +51,8 @@ export type GenerationMode = 'default' | 'theme' | 'custom';
         MatExpansionModule,
         MatSliderModule,
         MatRadioModule,
-        MatTooltipModule
+        MatTooltipModule,
+        MatSlideToggleModule
     ],
     templateUrl: './generate-modal.component.html',
     styleUrls: [
@@ -69,6 +72,12 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
   progress$: Observable<ProgressUpdate | null>;
   currentJobId: number | null = null;
   useImprovedPrompt = false;
+
+  // Prompt enhancement
+  isEnhancingPrompt = false;
+  enhancedPrompt: string | null = null;
+  enhancementSuggestions: string[] = [];
+  showEnhancedPrompt = false;
 
   // Prompt history
   promptHistory$: Observable<PromptHistoryItem[]>;
@@ -92,6 +101,7 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
     private signalRService: ImageGenerationSignalRService,
     private settingService: SettingService,
     private promptHistoryService: PromptHistoryService,
+    private promptEnhancerService: PromptEnhancerService,
     private dialogRef: MatDialogRef<GenerateModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: GenerateModalData
   ) {
@@ -356,5 +366,83 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
     if (customPrompt && customPrompt.trim().length >= 3) {
       this.promptHistoryService.addPrompt(customPrompt);
     }
+  }
+
+  // Prompt Enhancement Methods
+
+  onToggleUseImprovedPrompt(): void {
+    if (this.useImprovedPrompt && this.generationMode === 'custom') {
+      const customPrompt = this.generateForm.get('customPrompt')?.value;
+      if (customPrompt && customPrompt.trim().length >= 3) {
+        this.enhancePrompt();
+      }
+    } else {
+      this.clearEnhancedPrompt();
+    }
+
+    // Save setting to backend
+    this.settingService.getSettings().subscribe({
+      next: (settings) => {
+        settings.useImprovedPrompt = this.useImprovedPrompt;
+        this.settingService.saveSettings(settings).subscribe({
+          error: (err) => {
+            console.error('Failed to save useImprovedPrompt setting:', err);
+          }
+        });
+      }
+    });
+  }
+
+  enhancePrompt(): void {
+    const customPrompt = this.generateForm.get('customPrompt')?.value;
+    if (!customPrompt || customPrompt.trim().length < 3) {
+      this.error = 'Введіть промпт для покращення';
+      return;
+    }
+
+    this.isEnhancingPrompt = true;
+    this.error = '';
+
+    this.promptEnhancerService.enhancePrompt(customPrompt).subscribe({
+      next: (response) => {
+        this.enhancedPrompt = response.enhancedPrompt;
+        this.enhancementSuggestions = response.suggestions;
+        this.showEnhancedPrompt = true;
+        this.isEnhancingPrompt = false;
+      },
+      error: (err) => {
+        console.error('Failed to enhance prompt:', err);
+        this.error = err.status === 429
+          ? 'Перевищено ліміт запитів. Спробуйте пізніше.'
+          : 'Не вдалося покращити промпт. Спробуйте ще раз.';
+        this.isEnhancingPrompt = false;
+        this.useImprovedPrompt = false;
+      }
+    });
+  }
+
+  acceptEnhancedPrompt(): void {
+    if (this.enhancedPrompt) {
+      this.generateForm.patchValue({ customPrompt: this.enhancedPrompt });
+      this.showEnhancedPrompt = false;
+    }
+  }
+
+  rejectEnhancedPrompt(): void {
+    this.clearEnhancedPrompt();
+    this.useImprovedPrompt = false;
+  }
+
+  editEnhancedPrompt(): void {
+    if (this.enhancedPrompt) {
+      this.generateForm.patchValue({ customPrompt: this.enhancedPrompt });
+    }
+    this.showEnhancedPrompt = false;
+  }
+
+  clearEnhancedPrompt(): void {
+    this.enhancedPrompt = null;
+    this.enhancementSuggestions = [];
+    this.showEnhancedPrompt = false;
   }
 }

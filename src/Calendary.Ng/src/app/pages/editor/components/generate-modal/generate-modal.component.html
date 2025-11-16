@@ -107,6 +107,58 @@
             </button>
           </div>
 
+          <!-- AI Prompt Enhancement Toggle -->
+          <div class="prompt-enhancement-toggle">
+            <mat-slide-toggle
+              [(ngModel)]="useImprovedPrompt"
+              (change)="onToggleUseImprovedPrompt()"
+              color="primary"
+            >
+              <div class="toggle-content">
+                <mat-icon>auto_fix_high</mat-icon>
+                <span>Покращити промпт через AI</span>
+              </div>
+            </mat-slide-toggle>
+            <mat-progress-spinner
+              *ngIf="isEnhancingPrompt"
+              mode="indeterminate"
+              diameter="20"
+              class="enhancing-spinner"
+            ></mat-progress-spinner>
+          </div>
+
+          <!-- Enhanced Prompt Preview -->
+          <div class="enhanced-prompt-preview" *ngIf="showEnhancedPrompt && enhancedPrompt">
+            <div class="preview-header">
+              <mat-icon>stars</mat-icon>
+              <h4>Покращений промпт</h4>
+            </div>
+            <div class="preview-content">
+              <p class="enhanced-text">{{ enhancedPrompt }}</p>
+
+              <div class="suggestions" *ngIf="enhancementSuggestions.length > 0">
+                <p class="suggestions-title"><mat-icon>lightbulb</mat-icon> Підказки:</p>
+                <ul>
+                  <li *ngFor="let suggestion of enhancementSuggestions">{{ suggestion }}</li>
+                </ul>
+              </div>
+            </div>
+            <div class="preview-actions">
+              <button mat-stroked-button (click)="rejectEnhancedPrompt()" type="button">
+                <mat-icon>close</mat-icon>
+                Відхилити
+              </button>
+              <button mat-stroked-button (click)="editEnhancedPrompt()" type="button" color="primary">
+                <mat-icon>edit</mat-icon>
+                Редагувати
+              </button>
+              <button mat-raised-button (click)="acceptEnhancedPrompt()" type="button" color="primary">
+                <mat-icon>check</mat-icon>
+                Прийняти
+              </button>
+            </div>
+          </div>
+
           <!-- History Dropdown -->
           <div class="history-dropdown" *ngIf="showHistoryDropdown">
             <div class="history-header">
