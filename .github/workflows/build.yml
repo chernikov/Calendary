@@ -80,8 +80,6 @@ jobs:
 
       - name: Run tests
         run: npm run test -- --watch=false --code-coverage
-        env:
-          CI: true
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4

@@ -2,6 +2,7 @@ const { join } = require('path');
 
 module.exports = function (config) {
   const isCI = process.env.CI === 'true';
+  console.log('CI environment:', process.env.CI, 'isCI:', isCI);
 
   config.set({
     basePath: '',
