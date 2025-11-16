@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/eslintrc",
+  "root": true,
+  "extends": ["next/core-web-vitals", "eslint:recommended", "plugin:react-hooks/recommended", "prettier"],
+  "plugins": ["react-hooks"],
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "@next/next/no-html-link-for-pages": "off"
+  },
+  "settings": {
+    "next": {
+      "rootDir": ["src/"]
+    }
+  }
+}
