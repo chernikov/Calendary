@@ -23,14 +23,6 @@ public static class SeedData
 
     public static void SeedDemoUsers(this CalendaryDbContext context)
     {
-        // Перевіряємо чи вже є наші demo користувачі
-        if (context.Users.Any(u => u.Email == "admin@calendary.com" || 
-                                    u.Email == "demo@calendary.com" || 
-                                    u.Email == "master@calendary.com"))
-        {
-            return; // Demo користувачі вже створені
-        }
-
         // Створюємо ролі якщо їх немає
         if (!context.Roles.Any(r => r.Name == "Admin"))
         {
@@ -79,95 +71,121 @@ public static class SeedData
         var usa = context.Countries.First(c => c.Code == "US");
 
         // Admin користувач: admin@calendary.com / Admin123!
-        var admin = new User
+        if (!context.Users.Any(u => u.Email == "admin@calendary.com"))
         {
-            Email = "admin@calendary.com",
-            UserName = "Admin",
-            PasswordHash = GetMd5Hash("Admin123!"),
-            PhoneNumber = "+380501234567",
-            IsEmailConfirmed = true,
-            IsPhoneNumberConfirmed = true,
-            CreatedByAdmin = true,
-            Created = DateTime.UtcNow,
-            IsTemporary = false
-        };
+            var admin = new User
+            {
+                Email = "admin@calendary.com",
+                UserName = "Admin",
+                PasswordHash = GetMd5Hash("Admin123!"),
+                PhoneNumber = "+380501234567",
+                IsEmailConfirmed = true,
+                IsPhoneNumberConfirmed = true,
+                CreatedByAdmin = true,
+                Created = DateTime.UtcNow,
+                IsTemporary = false
+            };
 
-        context.Users.Add(admin);
-        context.SaveChanges();
+            context.Users.Add(admin);
+            context.SaveChanges();
 
-        context.UserRoles.Add(new UserRole { UserId = admin.Id, RoleId = adminRole.Id });
+            context.UserRoles.Add(new UserRole { UserId = admin.Id, RoleId = adminRole.Id });
+            context.SaveChanges();
+
+            Console.WriteLine("✅ Створено Admin: admin@calendary.com / Admin123!");
+        }
 
         // Demo користувач: demo@calendary.com / Demo123!
-        var demoUser = new User
+        if (!context.Users.Any(u => u.Email == "demo@calendary.com"))
         {
-            Email = "demo@calendary.com",
-            UserName = "Demo",
-            PasswordHash = GetMd5Hash("Demo123!"),
-            PhoneNumber = "+380509876543",
-            IsEmailConfirmed = true,
-            IsPhoneNumberConfirmed = true,
-            CreatedByAdmin = true,
-            Created = DateTime.UtcNow,
-            IsTemporary = false
-        };
+            var demoUser = new User
+            {
+                Email = "demo@calendary.com",
+                UserName = "Demo",
+                PasswordHash = GetMd5Hash("Demo123!"),
+                PhoneNumber = "+380509876543",
+                IsEmailConfirmed = true,
+                IsPhoneNumberConfirmed = true,
+                CreatedByAdmin = true,
+                Created = DateTime.UtcNow,
+                IsTemporary = false
+            };
 
-        context.Users.Add(demoUser);
-        context.SaveChanges();
+            context.Users.Add(demoUser);
+            context.SaveChanges();
 
-        context.UserRoles.Add(new UserRole { UserId = demoUser.Id, RoleId = userRole.Id });
+            context.UserRoles.Add(new UserRole { UserId = demoUser.Id, RoleId = userRole.Id });
+            context.SaveChanges();
+
+            Console.WriteLine("✅ Створено Demo User: demo@calendary.com / Demo123!");
+        }
 
         // Master користувач: master@calendary.com / Master123!
-        var masterUser = new User
+        if (!context.Users.Any(u => u.Email == "master@calendary.com"))
         {
-            Email = "master@calendary.com",
-            UserName = "Master",
-            PasswordHash = GetMd5Hash("Master123!"),
-            PhoneNumber = "+380501112233",
-            IsEmailConfirmed = true,
-            IsPhoneNumberConfirmed = true,
-            CreatedByAdmin = true,
-            Created = DateTime.UtcNow,
-            IsTemporary = false
-        };
+            var masterUser = new User
+            {
+                Email = "master@calendary.com",
+                UserName = "Master",
+                PasswordHash = GetMd5Hash("Master123!"),
+                PhoneNumber = "+380501112233",
+                IsEmailConfirmed = true,
+                IsPhoneNumberConfirmed = true,
+                CreatedByAdmin = true,
+                Created = DateTime.UtcNow,
+                IsTemporary = false
+            };
 
-        context.Users.Add(masterUser);
-        context.SaveChanges();
+            context.Users.Add(masterUser);
+            context.SaveChanges();
 
-        context.UserRoles.AddRange(
-            new UserRole { UserId = masterUser.Id, RoleId = userRole.Id },
-            new UserRole { UserId = masterUser.Id, RoleId = masterRole.Id }
-        );
+            context.UserRoles.AddRange(
+                new UserRole { UserId = masterUser.Id, RoleId = userRole.Id },
+                new UserRole { UserId = masterUser.Id, RoleId = masterRole.Id }
+            );
+            context.SaveChanges();
+
+            Console.WriteLine("✅ Створено Master: master@calendary.com / Master123!");
+        }
 
         // Створюємо налаштування для користувачів
-        context.UserSettings.AddRange(
-            new UserSetting
+        var admin = context.Users.FirstOrDefault(u => u.Email == "admin@calendary.com");
+        var demoUser = context.Users.FirstOrDefault(u => u.Email == "demo@calendary.com");
+        var masterUser = context.Users.FirstOrDefault(u => u.Email == "master@calendary.com");
+
+        if (admin != null && !context.UserSettings.Any(s => s.UserId == admin.Id))
+        {
+            context.UserSettings.Add(new UserSetting
             {
                 UserId = admin.Id,
                 LanguageId = ukrainian.Id,
                 CountryId = ukraine.Id,
                 UseImprovedPrompt = true
-            },
-            new UserSetting
+            });
+        }
+
+        if (demoUser != null && !context.UserSettings.Any(s => s.UserId == demoUser.Id))
+        {
+            context.UserSettings.Add(new UserSetting
             {
                 UserId = demoUser.Id,
                 LanguageId = ukrainian.Id,
                 CountryId = ukraine.Id,
                 UseImprovedPrompt = true
-            },
-            new UserSetting
+            });
+        }
+
+        if (masterUser != null && !context.UserSettings.Any(s => s.UserId == masterUser.Id))
+        {
+            context.UserSettings.Add(new UserSetting
             {
                 UserId = masterUser.Id,
                 LanguageId = ukrainian.Id,
                 CountryId = ukraine.Id,
                 UseImprovedPrompt = true
-            }
-        );
+            });
+        }
 
         context.SaveChanges();
-
-        Console.WriteLine("✅ Demo користувачі створені:");
-        Console.WriteLine("   Admin: admin@calendary.com / Admin123!");
-        Console.WriteLine("   Demo User: demo@calendary.com / Demo123!");
-        Console.WriteLine("   Master: master@calendary.com / Master123!");
     }
 }
