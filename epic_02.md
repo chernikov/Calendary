@@ -1,6 +1,10 @@
 # Epic 02: Customer Portal - Публічна платформа для створення та замовлення календарів
 
-**Статус**: PLANNING
+**⚠️ УВАГА**: Customer Portal вже реалізований на Angular 20.3+ (Calendary.Ng)
+**Цей епік застарів** - більшість функціоналу вже є в Angular додатку.
+Дивіться [app.routes.ts](./src/Calendary.Ng/src/app/app.routes.ts) для поточної структури.
+
+**Статус**: ~~PLANNING~~ **COMPLETED (реалізовано в Angular)**
 **Пріоритет**: P0 (Критичний)
 **Дата створення**: 2025-11-16
 **Планована дата завершення**: 2026-01-31 (6 тижнів)
@@ -28,13 +32,14 @@ Customer Portal - це публічна частина платформи Calend
 
 ## Технологічний стек
 
-**Frontend**:
-- Framework: React 18+ / Next.js 14+
-- Styling: Tailwind CSS + shadcn/ui
-- State: Zustand
-- Forms: React Hook Form + Zod
-- Canvas: Fabric.js або Konva.js
-- HTTP: Axios з TypeScript
+**Frontend** (існуючий Angular):
+- Framework: Angular 20.3+
+- SSR: Angular SSR (@angular/ssr)
+- UI Library: Angular Material
+- State: Services + RxJS
+- Forms: Reactive Forms
+- Canvas: Custom canvas implementation
+- HTTP: HttpClient
 
 **Backend** (існуючий .NET):
 - Нові endpoints для Customer Portal

@@ -8,8 +8,17 @@ COPY . .
 RUN npm ci --no-audit --no-progress
 RUN npm run build
 
-FROM nginx:alpine
-COPY --from=build-env /app/dist/calendary.ng /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
-EXPOSE 80 443
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Copy built application
+COPY --from=build-env /app/dist/calendary.ng /app
+
+# Install only production dependencies needed for SSR
+RUN npm install express
+
+EXPOSE 4000
+
+# Run SSR server
+CMD ["node", "server/server.mjs"]

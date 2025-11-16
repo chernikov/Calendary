@@ -40,7 +40,7 @@
 ### Технологічний стек:
 - **Backend:** .NET 9.0, ASP.NET Core Web API, MS SQL Server, EF Core
 - **Frontend Customer:** React/Next.js (планується)
-- **Frontend Admin:** Angular 18+
+- **Frontend Admin:** Angular 20+
 - **Message Queue:** RabbitMQ
 - **External Services:** MonoBank, Nova Poshta, SendGrid, SmsClub, Replicate AI
 

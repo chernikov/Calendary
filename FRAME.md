@@ -36,7 +36,7 @@ AI (Claude/GPT/Gemini) **повністю відповідає** за:
 AI генерує **весь код**, включаючи:
 
 - **Backend**: C# (.NET 9.0), ASP.NET Core API, Entity Framework, Services, Repositories
-- **Frontend**: Angular 18, TypeScript, Components, Services, Guards, Interceptors
+- **Frontend**: Angular 20, TypeScript, Components, Services, Guards, Interceptors
 - **Database**: SQL migrations, seed data, stored procedures (якщо потрібно)
 - **Tests**: Unit tests (xUnit), Integration tests, E2E tests
 - **DTO/Models**: Request/Response models, DTOs, Entities, Mapping profiles
@@ -93,7 +93,7 @@ INTENT → FRAME → AI ARCHITECTURE → AI ENGINEERING → REVIEW → RELEASE
 **Приклад FRAME**:
 ```
 Дозволено:
-- .NET 9.0, Angular 18, MS SQL Server
+- .NET 9.0, Angular 20, MS SQL Server
 - Replicate API для AI генерації
 - MonoBank API для оплати
 

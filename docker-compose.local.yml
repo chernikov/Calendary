@@ -13,6 +13,12 @@ services:
       - mssqlsystem_calendary:/var/opt/mssql
       - mssqluser_calendary:/var/opt/sqlserver
     restart: always
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -C || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
   calendary_rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -28,7 +34,10 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq # Збереження даних
   calendary_api:
     container_name: calendary_api
-    image: chernikov/calendary.api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: calendary-api:latest
     environment:
       - "ConnectionStrings__DefaultConnection=Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;"
       - "Jwt__Key=Server=tcp:calendary_db;Initial Catalog=calendary;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;"
@@ -48,17 +57,32 @@ services:
     networks:
      - "calendary"
     depends_on:
-     - calendary_db
+      calendary_db:
+        condition: service_healthy
+    restart: always
+  calendary_ng_ssr:
+    container_name: calendary_ng_ssr
+    build:
+      context: ./src/Calendary.Ng
+      dockerfile: Dockerfile
+    image: calendary-ng:latest
+    ports:
+      - "4000:4000"
+    networks:
+      - "calendary"
+    depends_on:
+      - calendary_api
     restart: always
   calendary_ng:
     container_name: calendary_ng
-    image: chernikov/calendary.ng
+    image: nginx:alpine
     ports:
       - "80:80"
       - "443:443"
     networks:
       - "calendary"
     depends_on:
+      - calendary_ng_ssr
       - calendary_api
     restart: always
     volumes:

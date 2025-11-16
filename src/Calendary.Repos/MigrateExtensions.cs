@@ -11,7 +11,10 @@ public static class MigrateExtensions
         using (var scope = serviceProvider.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<CalendaryDbContext>();
-            dbContext.Database.Migrate(); 
+            dbContext.Database.Migrate();
+            
+            // Seed demo користувачів після міграції
+            dbContext.SeedDemoUsers();
         }
     }
 }
