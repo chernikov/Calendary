@@ -61,6 +61,34 @@ namespace Calendary.Repos.Migrations
                     b.HasIndex("LanguageId");
 
                     b.ToTable("Calendars");
+
+                    b.OwnsMany("Calendary.Model.MonthlyImage", "MonthlyImages", b1 =>
+                        {
+                            b1.Property<int>("CalendarId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            b1.Property<string>("ImageId")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int>("Month")
+                                .HasColumnType("int");
+
+                            b1.HasKey("CalendarId", "Id");
+
+                            b1.ToTable("Calendars");
+
+                            b1.ToJson("MonthlyImages");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CalendarId");
+                        });
+
+                    b.Navigation("MonthlyImages");
                 });
 
             modelBuilder.Entity("Calendary.Model.CalendarHoliday", b =>
