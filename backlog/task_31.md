@@ -1,7 +1,7 @@
 # Task 31: Навантажувальне тестування
 
 **Epic**: Future (Backlog) - moved from [Epic 01](../epic_01.md)
-**Статус**: BACKLOG
+**Статус**: DONE
 **Пріоритет**: P3 (Низький - для наступних епіків)
 **Складність**: Висока
 **Час**: 4-6 годин
@@ -42,6 +42,12 @@
 
 - `tests/load/k6-script.js`
 - `tests/load/scenarios.yml`
+
+## Результат виконання
+
+- ✅ Додано `tests/load/k6-script.js` з п'ятьма окремими k6-сценаріями (image, pdf, editor, spike, soak) та збиранням метрик `response_time_ms`, `error_rate`, `request_throughput`.
+- ✅ Створено `tests/load/scenarios.yml` з інструкціями запуску, шаблоном команд для різних середовищ та описом метрик/acceptance criteria.
+- ✅ Порогові значення p95 < 3s та error rate <1% тепер зафіксовані в k6 thresholds, а файл сценаріїв описує моніторинг CPU/memory/DB.
 
 ## Приклад k6 script
 
