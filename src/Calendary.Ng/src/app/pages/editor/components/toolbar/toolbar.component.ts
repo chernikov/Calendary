@@ -1,10 +1,4 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  Output,
-  EventEmitter,
-} from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { EditorStateService } from '../../services/editor-state.service';
+import { EditorStateService, EditorTool } from '../../services/editor-state.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -34,10 +28,16 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   @Output() zoomChange = new EventEmitter<number>();
   @Output() fitToScreen = new EventEmitter<void>();
   @Output() actualSize = new EventEmitter<void>();
+  @Output() addText = new EventEmitter<void>();
+  @Output() addRectangle = new EventEmitter<void>();
+  @Output() addCircle = new EventEmitter<void>();
+  @Output() addLine = new EventEmitter<void>();
+  @Output() preview = new EventEmitter<void>();
 
   zoomLevel: number = 100;
   gridEnabled: boolean = false;
   rulersEnabled: boolean = false;
+  selectedTool: EditorTool = 'select';
 
   private subscription: Subscription | null = null;
 
@@ -48,6 +48,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
       this.zoomLevel = state.zoom;
       this.gridEnabled = state.gridEnabled;
       this.rulersEnabled = state.rulersEnabled;
+      this.selectedTool = state.selectedTool;
     });
   }
 
@@ -87,5 +88,29 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   toggleRulers(): void {
     this.editorStateService.toggleRulers();
+  }
+
+  onAddText(): void {
+    this.editorStateService.setTool('text');
+    this.addText.emit();
+  }
+
+  onAddRectangle(): void {
+    this.editorStateService.setTool('rectangle');
+    this.addRectangle.emit();
+  }
+
+  onAddCircle(): void {
+    this.editorStateService.setTool('circle');
+    this.addCircle.emit();
+  }
+
+  onAddLine(): void {
+    this.editorStateService.setTool('line');
+    this.addLine.emit();
+  }
+
+  onPreview(): void {
+    this.preview.emit();
   }
 }

@@ -1,7 +1,7 @@
 # Task 10: Фільтри та пошук в каталозі
 
 **Epic**: [Epic 02 - Customer Portal](../epic_02.md)
-**Статус**: TODO
+**Статус**: ✅ DONE (Calendary.Ng)
 **Пріоритет**: P1 (Високий)
 **Складність**: Низька
 **Час**: 3-4 години
@@ -237,6 +237,7 @@ export const templateService = {
 - Debounce важливий для search input (запобігає занадто багатьом API calls)
 - URL state дозволяє ділитися посиланнями з фільтрами
 - lodash/debounce - корисна утиліта
+- Angular-версія використовує `FilterBarComponent`, Reactive Forms та оновлений `/api/templates` з `minPrice`/`maxPrice`.
 
 ## Чому Codex?
 

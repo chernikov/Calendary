@@ -26,6 +26,10 @@ import { HistoryComponent } from './components/history/history.component';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
 import { ModelsPanelComponent } from './components/models-panel/models-panel.component';
 import { EditorStateService } from './services/editor-state.service';
+import { CanvasOverlayService } from './services/canvas-overlay.service';
+import { CalendarService } from '../../../services/calendar.service';
+import { Calendar } from '../../../models/calendar';
+import { EditorPreviewDialogComponent } from './components/calendar-full-preview/editor-preview-dialog.component';
 
 @Component({
     standalone: true,
@@ -59,6 +63,7 @@ export class EditorComponent implements OnInit, OnDestroy {
   selectedImage: JobTask | null = null;
   assignments: MonthAssignment[] = [];
   duplicateImageIds: string[] = [];
+  currentCalendar: Calendar | null = null;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -67,7 +72,9 @@ export class EditorComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private calendarBuilder: CalendarBuilderService,
     private jobTaskService: JobTaskService,
-    private editorStateService: EditorStateService
+    private editorStateService: EditorStateService,
+    private canvasOverlayService: CanvasOverlayService,
+    private calendarService: CalendarService
   ) {}
 
   @HostListener('window:keydown', ['$event'])
@@ -92,6 +99,7 @@ export class EditorComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscribeToAssignments();
     this.loadUserModels();
+    this.loadCurrentCalendar();
   }
 
   ngOnDestroy(): void {
@@ -260,6 +268,39 @@ export class EditorComponent implements OnInit, OnDestroy {
     });
   }
 
+  onAddTextElement(): void {
+    this.canvasOverlayService.addElement('text');
+    this.snackBar.open('Додано текстовий блок', 'OK', { duration: 2000 });
+  }
+
+  onAddShape(type: 'rectangle' | 'circle' | 'line'): void {
+    this.canvasOverlayService.addElement(type);
+    this.snackBar.open('Додано нову фігуру', 'OK', { duration: 2000 });
+  }
+
+  openCalendarPreview(): void {
+    if (!this.isCalendarReady) {
+      this.snackBar.open('Заповніть усі 12 місяців без дублікатів, щоб переглянути календар', 'OK', {
+        duration: 4000,
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(EditorPreviewDialogComponent, {
+      width: '960px',
+      data: {
+        calendar: this.currentCalendar,
+        assignments: this.assignments,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'added-to-cart') {
+        this.snackBar.open('Календар додано до кошика', 'OK', { duration: 3000 });
+      }
+    });
+  }
+
   uploadImage(): void {
     // TODO: Implement image upload
     this.snackBar.open('Завантаження зображень буде реалізовано пізніше', 'OK', {
@@ -400,6 +441,16 @@ export class EditorComponent implements OnInit, OnDestroy {
       .subscribe((assignments) => {
         this.assignments = assignments;
         this.duplicateImageIds = this.calendarBuilder.getDuplicateImageIds();
+      });
+  }
+
+  private loadCurrentCalendar(): void {
+    this.calendarService
+      .getCalendar()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (calendar) => (this.currentCalendar = calendar),
+        error: () => (this.currentCalendar = null),
       });
   }
 

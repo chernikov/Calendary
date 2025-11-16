@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewChild, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,9 +6,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ImageCropperComponent, ImageCroppedEvent, LoadedImage } from 'ngx-image-cropper';
+import { DragDropModule, CdkDragEnd } from '@angular/cdk/drag-drop';
 import { JobTask } from '../../../../../models/job-task';
 import { EditorStateService } from '../../services/editor-state.service';
 import { Subscription } from 'rxjs';
+import { CanvasOverlayService } from '../../services/canvas-overlay.service';
+import { CanvasElement } from '../../models/canvas-overlay.model';
 
 @Component({
     standalone: true,
@@ -19,11 +22,12 @@ import { Subscription } from 'rxjs';
         MatIconModule,
         MatButtonModule,
         MatSliderModule,
-        MatTooltipModule,
-        ImageCropperComponent
-    ],
-    templateUrl: './image-canvas.component.html',
-    styleUrl: './image-canvas.component.scss'
+    MatTooltipModule,
+    ImageCropperComponent,
+    DragDropModule
+  ],
+  templateUrl: './image-canvas.component.html',
+  styleUrl: './image-canvas.component.scss'
 })
 export class ImageCanvasComponent implements OnInit, OnDestroy {
   @Input() selectedImage: JobTask | null = null;
@@ -42,12 +46,18 @@ export class ImageCanvasComponent implements OnInit, OnDestroy {
   showGrid = false;
   showRulers = false;
 
-  private subscription: Subscription | null = null;
+  overlayElements: CanvasElement[] = [];
+  selectedOverlay: CanvasElement | null = null;
 
-  constructor(private editorStateService: EditorStateService) {}
+  private subscriptions = new Subscription();
+
+  constructor(
+    private editorStateService: EditorStateService,
+    private overlayService: CanvasOverlayService
+  ) {}
 
   ngOnInit(): void {
-    this.subscription = this.editorStateService.state$.subscribe(state => {
+    this.subscriptions.add(this.editorStateService.state$.subscribe(state => {
       this.zoomLevel = state.zoom;
       this.scale = state.zoom / 100;
       this.showGrid = state.gridEnabled;
@@ -58,13 +68,19 @@ export class ImageCanvasComponent implements OnInit, OnDestroy {
         // Auto-switch to crop mode when crop tool is selected
         this.isCropMode = true;
       }
-    });
+    }));
+
+    this.subscriptions.add(
+      this.overlayService.elements$.subscribe((elements) => (this.overlayElements = elements))
+    );
+
+    this.subscriptions.add(
+      this.overlayService.selectedElement$.subscribe((element) => (this.selectedOverlay = element))
+    );
   }
 
   ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
+    this.subscriptions.unsubscribe();
   }
 
   get imageUrl(): string {
@@ -175,5 +191,22 @@ export class ImageCanvasComponent implements OnInit, OnDestroy {
     this.isCropMode = false;
     this.imageChangedEvent = '';
     this.croppedImage = '';
+  }
+
+  onOverlayClick(element: CanvasElement, event: Event): void {
+    event.stopPropagation();
+    this.overlayService.selectElement(element.id);
+  }
+
+  onCanvasClick(): void {
+    this.overlayService.selectElement(null);
+  }
+
+  onOverlayDragEnd(element: CanvasElement, event: CdkDragEnd): void {
+    const position = event.source.getFreeDragPosition();
+    this.overlayService.updateElement(element.id, {
+      x: position.x,
+      y: position.y,
+    });
   }
 }

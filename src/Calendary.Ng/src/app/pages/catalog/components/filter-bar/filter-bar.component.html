@@ -1,0 +1,45 @@
+<div class="filter-bar">
+  <mat-form-field appearance="outline">
+    <mat-label>Пошук шаблонів</mat-label>
+    <input matInput type="search" formControlName="search" placeholder="Назва або опис" />
+    <button mat-icon-button matSuffix type="button" (click)="form.get('search')?.setValue('')" *ngIf="form.value.search">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Категорія</mat-label>
+    <mat-select formControlName="category">
+      <mat-option value="">Всі категорії</mat-option>
+      <mat-option *ngFor="let category of categories" [value]="category">{{ category }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div class="price-filter">
+    <div class="price-filter__header">
+      <span>Ціна</span>
+      <strong>{{ form.value.minPrice }} ₴ – {{ form.value.maxPrice }} ₴</strong>
+    </div>
+    <div class="range-inputs">
+      <input
+        type="range"
+        min="{{ minLimit }}"
+        max="{{ maxLimit }}"
+        formControlName="minPrice"
+        (change)="clampPrices()"
+      />
+      <input
+        type="range"
+        min="{{ minLimit }}"
+        max="{{ maxLimit }}"
+        formControlName="maxPrice"
+        (change)="clampPrices()"
+      />
+    </div>
+  </div>
+
+  <button mat-stroked-button color="primary" type="button" (click)="resetFilters()">
+    <mat-icon>refresh</mat-icon>
+    Скинути
+  </button>
+</div>

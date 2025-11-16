@@ -1,0 +1,158 @@
+.preview-dialog {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.preview-dialog__media {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .media-main {
+    position: relative;
+    background: #0f172a;
+    border-radius: 18px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      aspect-ratio: 3 / 4;
+    }
+
+    .nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #fff;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+
+      &.prev {
+        left: 12px;
+      }
+
+      &.next {
+        right: 12px;
+      }
+    }
+  }
+
+  .media-thumbnails {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+
+    button {
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+
+      &.active {
+        border-color: #6366f1;
+      }
+
+      img {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 10px;
+        display: block;
+      }
+    }
+  }
+}
+
+.preview-dialog__details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .category-chip {
+    background: #eef2ff;
+    color: #4338ca;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .price {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .description {
+    margin: 0;
+    color: #475467;
+    line-height: 1.5;
+  }
+
+  .info-row {
+    display: flex;
+    gap: 24px;
+
+    small {
+      text-transform: uppercase;
+      font-size: 11px;
+      color: #94a3b8;
+      letter-spacing: 0.08em;
+    }
+
+    p {
+      margin: 2px 0 0;
+      font-weight: 600;
+    }
+  }
+
+  .features ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #475467;
+  }
+
+  .recommendations,
+  .tags {
+    mat-chip-set {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+  }
+}
+
+.preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+
+  .cta-details {
+    flex: 1;
+    min-width: 220px;
+
+    span {
+      font-weight: 600;
+      display: block;
+    }
+
+    small {
+      color: #64748b;
+    }
+  }
+}

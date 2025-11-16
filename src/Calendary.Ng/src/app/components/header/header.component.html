@@ -8,6 +8,9 @@
     </div>
     <!-- Icons aligned to the right -->
     <div class="navbar-icons" *ngIf="isInited">
+      <button mat-icon-button [routerLink]="['/catalog']" aria-label="Каталог шаблонів">
+        <mat-icon>grid_view</mat-icon>
+      </button>
       <button *ngIf="isLoggedIn" mat-stroked-button class="editor-link" [routerLink]="['/editor']" aria-label="Редактор">
         <mat-icon>brush</mat-icon>
         <span>Редактор</span>

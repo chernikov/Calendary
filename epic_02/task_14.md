@@ -1,7 +1,7 @@
 # Task 14: Інструменти редагування (текст, фігури)
 
 **Epic**: [Epic 02 - Customer Portal](../epic_02.md)
-**Статус**: TODO
+**Статус**: ✅ DONE (Calendary.Ng)
 **Пріоритет**: P0 (Критичний)
 **Складність**: Середня
 **Час**: 5-6 годин
@@ -340,6 +340,7 @@ export default function ColorPicker({ color, onChange }: ColorPickerProps) {
 - fabric.IText дозволяє редагування тексту подвійним кліком
 - Google Fonts можна підключити через next/font
 - Color picker можна покращити бібліотекою react-colorful
+- У `Calendary.Ng` додано власний Canvas overlay сервіс, панель властивостей і кнопки у Toolbar для тексту, фігур та ліній.
 
 ## Чому Codex?
 

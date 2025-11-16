@@ -1,0 +1,14 @@
+<div class="color-picker">
+  <label *ngIf="label">{{ label }}</label>
+  <div class="color-picker__presets">
+    <button
+      mat-mini-fab
+      *ngFor="let preset of presets"
+      [style.background]="preset"
+      type="button"
+      (click)="onSelect(preset)"
+      [class.active]="preset === value"
+    ></button>
+  </div>
+  <input type="color" [ngModel]="value" (ngModelChange)="onInputChange($event)" />
+</div>

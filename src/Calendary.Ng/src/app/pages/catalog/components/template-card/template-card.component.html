@@ -1,0 +1,28 @@
+<mat-card class="template-card" [ngClass]="{ highlight }">
+  <a class="template-card__media" [routerLink]="['/editor']" [queryParams]="{ templateId: template.id }">
+    <img [src]="template.previewImageUrl" [alt]="template.name" loading="lazy" />
+    <button mat-mini-fab color="primary" class="preview-button" (click)="onPreview($event)">
+      <mat-icon>visibility</mat-icon>
+    </button>
+  </a>
+
+  <mat-card-content>
+    <div class="template-card__header">
+      <span class="category-chip">{{ template.category }}</span>
+      <span class="price">{{ template.price | number : '1.0-0' }} ₴</span>
+    </div>
+    <h3>{{ template.name }}</h3>
+    <p>{{ template.description }}</p>
+  </mat-card-content>
+
+  <mat-card-actions>
+    <button mat-stroked-button color="primary" [routerLink]="['/editor']" [queryParams]="{ templateId: template.id }">
+      <mat-icon>brush</mat-icon>
+      Створити
+    </button>
+    <button mat-button (click)="onPreview($event)">
+      <mat-icon>zoom_out_map</mat-icon>
+      Переглянути
+    </button>
+  </mat-card-actions>
+</mat-card>
