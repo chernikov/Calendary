@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TokenService } from '../../../services/token.service'; // Сервіс для роботи з токеном
-import { CartService } from '../../../services/cart.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { Subject, takeUntil } from 'rxjs';
+import { CartStore } from '../../store/cart.store';
 
 @Component({
     selector: 'app-header',
@@ -14,17 +15,18 @@ import { MatIconModule } from '@angular/material/icon';
     styleUrl: './header.component.scss'
 })
 
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   isInited = false;
   isLoggedIn = false;
   email: string | null = null;
 
   cartCount = 0;
   role: string = "";
- 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private tokenService: TokenService,
-    private cartService: CartService,
+    private readonly cartStore: CartStore,
     public router: Router
   ) {
   }
@@ -41,17 +43,25 @@ export class HeaderComponent implements OnInit {
     } else {
       this.isInited = true;
     }
+
+    this.cartStore.totalItems$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((count) => (this.cartCount = count));
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   checkCart() : void
   {
-    this.cartService.itemsInCart().subscribe((count) => {
-      this.cartCount = count;
-      this.isInited = true;
-    }, 
-    (error) => {
-      console.error('Error getting cart count:', error);
-      this.isInited = true;
+    this.cartStore.syncCartCount().subscribe({
+      next: () => (this.isInited = true),
+      error: (error) => {
+        console.error('Error getting cart count:', error);
+        this.isInited = true;
+      },
     });
   }
 

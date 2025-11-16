@@ -29,6 +29,7 @@ import { AdminUserViewComponent } from './admin/pages/admin-user/admin-user-view
 import { AdminUserSynthesisComponent } from './admin/pages/admin-user/admin-user-view/synthesis/synthesis.component';
 import { EditorComponent } from './pages/editor/editor.component';
 import { CatalogComponent } from './pages/catalog/catalog.component';
+import { CheckoutComponent } from './pages/checkout/checkout.component';
 
 
 export const routes: Routes = [
@@ -70,6 +71,7 @@ export const routes: Routes = [
       { path: 'catalog', component: CatalogComponent },
       { path: 'profile', component: ProfileComponent, canActivate: [UserGuard] },
       { path: 'cart', component: CartComponent, canActivate: [UserGuard]  },
+      { path: 'checkout', component: CheckoutComponent, canActivate: [UserGuard] },
       { path: 'order/:orderId', component: OrderComponent },
       { path: 'master', component: ModelWizardComponent, canActivate: [UserGuard]  },
       { path: 'create-model', component: ModelWizardComponent, canActivate: [UserGuard]  },

@@ -1,0 +1,58 @@
+<section class="checkout-card" [formGroup]="form">
+  <header>
+    <p class="eyebrow">Крок 2</p>
+    <h2>Доставка</h2>
+  </header>
+
+  <div class="delivery-methods">
+    <label>
+      <input type="radio" value="nova-poshta-warehouse" formControlName="method" />
+      <span>Нова Пошта (у відділення)</span>
+    </label>
+    <label>
+      <input type="radio" value="nova-poshta-courier" formControlName="method" />
+      <span>Нова Пошта (кур'єр)</span>
+    </label>
+    <label>
+      <input type="radio" value="pickup" formControlName="method" />
+      <span>Самовивіз</span>
+    </label>
+  </div>
+
+  <label class="form-field">
+    <span>Місто *</span>
+    <input type="text" formControlName="city" placeholder="Київ" autocomplete="off" />
+    <ul class="suggestions" *ngIf="cityOptions.length">
+      <li *ngFor="let option of cityOptions" (click)="selectCity(option)">
+        {{ option.description }}
+      </li>
+    </ul>
+    <small *ngIf="form.get('city')?.invalid && form.get('city')?.touched">Оберіть місто</small>
+  </label>
+
+  <label class="form-field" *ngIf="shouldShowWarehouse()">
+    <span>Відділення *</span>
+    <input type="text" formControlName="warehouse" placeholder="Відділення №12" autocomplete="off" />
+    <ul class="suggestions" *ngIf="warehouseOptions.length">
+      <li *ngFor="let option of warehouseOptions" (click)="selectWarehouse(option)">
+        {{ option.description }}
+      </li>
+    </ul>
+    <small *ngIf="form.get('warehouse')?.invalid && form.get('warehouse')?.touched">Оберіть відділення</small>
+  </label>
+
+  <div class="form-grid" *ngIf="shouldShowCourierAddress()" formGroupName="address">
+    <label class="form-field">
+      <span>Вулиця *</span>
+      <input type="text" formControlName="street" placeholder="Вулиця" />
+    </label>
+    <label class="form-field">
+      <span>Будинок *</span>
+      <input type="text" formControlName="building" placeholder="10" />
+    </label>
+    <label class="form-field">
+      <span>Квартира</span>
+      <input type="text" formControlName="apartment" placeholder="45" />
+    </label>
+  </div>
+</section>
