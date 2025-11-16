@@ -1,12 +1,13 @@
 # Task 15: Undo/Redo та збереження стану
 
 **Epic**: [Epic 02 - Customer Portal](../epic_02.md)
-**Статус**: TODO
+**Статус**: ⚠️ ЧАСТКОВО COMPLETED
 **Пріоритет**: P1 (Високий)
 **Складність**: Середня
 **Час**: 4-5 годин
 **Відповідальний AI**: Claude
 **Залежить від**: Task 12, 13, 14
+**Виконано**: 2025-11-16 (localStorage auto-save ✅, undo/redo ❌, backend save ❌)
 
 ## Опис задачі
 
@@ -305,6 +306,196 @@ const handleSave = async () => {
 
 ---
 
+## Фактична реалізація в Angular
+
+**Важливо**: Ця задача стосується **збереження стану календаря** (assignments), а не image editing операцій.
+
+### Реалізовано ✅:
+
+#### 1. Auto-save в localStorage
+
+**CalendarBuilderService** (calendar-builder.service.ts:9-10, 76-90):
+
+```typescript
+export class CalendarBuilderService {
+  private readonly storageKey = 'calendar-assignments';
+  private readonly assignmentsSubject = new BehaviorSubject<MonthAssignment[]>(
+    this.loadFromStorage() // Автоматичне завантаження при старті
+  );
+
+  // Автоматичне збереження при кожній зміні
+  private setAssignments(assignments: MonthAssignment[]): void {
+    this.assignmentsSubject.next(assignments);
+    this.persist(assignments); // ← Auto-save
+  }
+
+  private persist(assignments: MonthAssignment[]): void {
+    if (typeof localStorage === 'undefined') return;
+
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(assignments));
+    } catch {
+      // Silently fail storage errors
+    }
+  }
+
+  private loadFromStorage(): MonthAssignment[] {
+    if (typeof localStorage === 'undefined') return [];
+
+    try {
+      const saved = localStorage.getItem(this.storageKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  }
+}
+```
+
+**Як працює:**
+- ✅ При `assignImageToMonth()` → auto-save в localStorage
+- ✅ При `removeAssignment()` → auto-save в localStorage
+- ✅ При `clear()` → auto-save в localStorage
+- ✅ При завантаженні сторінки → auto-restore з localStorage
+
+#### 2. Reactive State Management
+
+**BehaviorSubject для reactive updates** (calendar-builder.service.ts:10-11):
+
+```typescript
+private readonly assignmentsSubject = new BehaviorSubject<MonthAssignment[]>(
+  this.loadFromStorage()
+);
+readonly assignments$ = this.assignmentsSubject.asObservable();
+```
+
+**EditorComponent підписується на зміни** (editor.component.ts:397-404):
+
+```typescript
+private subscribeToAssignments(): void {
+  this.calendarBuilder.assignments$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((assignments) => {
+      this.assignments = assignments;
+      this.duplicateImageIds = this.calendarBuilder.getDuplicateImageIds();
+    });
+}
+```
+
+#### 3. CalendarPreviewComponent збереження customization
+
+**Auto-save customization в localStorage** (calendar-preview.component.ts:229-257):
+
+```typescript
+private loadCustomization(): void {
+  const saved = localStorage.getItem('calendar-customization');
+  if (saved) {
+    this.customization = JSON.parse(saved);
+  }
+}
+
+onCustomizationChange(): void {
+  this.saveCustomization(); // Auto-save при кожній зміні
+}
+
+private saveCustomization(): void {
+  localStorage.setItem(
+    'calendar-customization',
+    JSON.stringify(this.customization)
+  );
+}
+```
+
+### Не реалізовано ❌:
+
+#### Undo/Redo для calendar assignments
+
+**Чого немає:**
+- ❌ History stack для calendar operations (assignImageToMonth, removeAssignment)
+- ❌ Keyboard shortcuts (Ctrl+Z, Ctrl+Y) для календаря
+- ❌ Undo/Redo UI buttons
+
+**Примітка:** EditorStateService має undo/redo, але він для image editing (rotate, crop), а не для calendar assignments.
+
+**Для реалізації потрібно:**
+1. Додати history в CalendarBuilderService
+2. Зберігати snapshots assignments перед кожною зміною
+3. Додати undo()/redo() методи
+4. Додати keyboard shortcuts в EditorComponent
+
+#### Backend збереження
+
+**Чого немає:**
+- ❌ Manual "Save" кнопка
+- ❌ PUT /api/calendars/{id} endpoint для збереження
+- ❌ Збереження assignments на backend
+- ❌ Preview image generation та upload
+
+### Використані технології:
+
+- **localStorage API** - persistence
+- **RxJS BehaviorSubject** - reactive state
+- **TypeScript** - type safety
+- **Angular** - framework
+
+### Файли:
+
+**Core Service:**
+- `/src/Calendary.Ng/src/app/pages/editor/services/calendar-builder.service.ts` - auto-save logic
+
+**Components:**
+- `/src/Calendary.Ng/src/app/pages/editor/components/calendar-preview/calendar-preview.component.ts` - customization save
+- `/src/Calendary.Ng/src/app/pages/editor/editor.component.ts` - state subscription
+
+### Критерії успіху:
+
+#### Виконано ✅:
+- ✅ **Auto-save в localStorage** - assignments зберігаються автоматично
+- ✅ **Відновлення при перезавантаженні** - loadFromStorage() при init
+- ✅ Reactive state через BehaviorSubject
+- ✅ Customization auto-save (fonts, colors)
+- ✅ Error handling (silent fails для storage errors)
+
+#### Не виконано ❌:
+- ❌ **Undo/Redo для calendar assignments**
+- ❌ Keyboard shortcuts (Ctrl+Z, Ctrl+Y)
+- ❌ Manual save кнопка
+- ❌ Backend збереження (PUT /api/calendars/{id})
+- ❌ Preview image generation
+- ❌ "Saving..." індикатор
+
+### Архітектура:
+
+```
+CalendarBuilderService (Singleton)
+    ├── BehaviorSubject<MonthAssignment[]>
+    ├── localStorage persistence
+    └── Methods:
+        ├── assignImageToMonth() → auto-save ✅
+        ├── removeAssignment() → auto-save ✅
+        ├── clear() → auto-save ✅
+        ├── loadFromStorage() → auto-restore ✅
+        └── persist() → write to localStorage ✅
+
+EditorComponent
+    └── subscribe to assignments$ → reactive UI updates ✅
+```
+
+### Примітки:
+
+**Що працює:**
+1. ✅ Automatic localStorage persistence - assignments не втрачаються
+2. ✅ Auto-restore при завантаженні сторінки
+3. ✅ Reactive updates через RxJS
+4. ✅ Customization збереження
+
+**Що треба додати:**
+1. ❌ Undo/Redo функціонал для calendar operations
+2. ❌ Backend integration для збереження на сервер
+3. ❌ Preview image generation (для PDF export)
+
+---
+
 **Створено**: 2025-11-16
 **Оновлено**: 2025-11-16
-**Виконано**: -
+**Виконано**: 2025-11-16
