@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, of, switchMap, takeUntil } from 'rxjs';
-import { NovaPostItem } from '../../../../../models/nova-post-item';
-import { NovaPostService } from '../../../../../services/novapost.service';
+import { NovaPostItem } from '../../../../models/nova-post-item';
+import { NovaPostService } from '../../../../services/novapost.service';
 
 @Component({
   selector: 'app-delivery-form',

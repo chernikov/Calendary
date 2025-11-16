@@ -7,7 +7,7 @@
 
   <div *ngIf="errorMessage" class="checkout-error">{{ errorMessage }}</div>
 
-  <ng-container *ngIf="order?.items.length; else empty">
+  <ng-container *ngIf="order?.items?.length; else empty">
     <div class="checkout-layout">
       <div class="checkout-forms">
         <app-contact-form
