@@ -33,13 +33,13 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: false,
-    browsers: [isCI ? 'ChromeHeadlessCI' : 'ChromeHeadless'],
+    browsers: ['ChromeHeadless'],
     singleRun: false,
     restartOnFileChange: true,
     customLaunchers: {
-      ChromeHeadlessCI: {
+      ChromeHeadless: {
         base: 'ChromeHeadless',
-        flags: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
+        flags: isCI ? ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'] : []
       }
     }
   });
