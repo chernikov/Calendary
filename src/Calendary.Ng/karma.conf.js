@@ -1,9 +1,6 @@
 const { join } = require('path');
 
 module.exports = function (config) {
-  const isCI = process.env.CI === 'true';
-  console.log('CI environment:', process.env.CI, 'isCI:', isCI);
-
   config.set({
     basePath: '',
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
@@ -34,7 +31,7 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: false,
-    browsers: [isCI ? 'ChromeHeadlessCI' : 'ChromeHeadless'],
+    browsers: ['ChromeHeadlessCI'],
     singleRun: false,
     restartOnFileChange: true,
     customLaunchers: {
