@@ -7,4 +7,6 @@ public class DeliveryDto
     public NovaPostApiResponseItem? City { get; set; }
 
     public NovaPostApiResponseItem? PostOffice { get; set; }
+
+    public decimal DeliveryCost { get; set; }
 }

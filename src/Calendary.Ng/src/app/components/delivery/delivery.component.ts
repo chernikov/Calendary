@@ -117,7 +117,7 @@ export class DeliveryComponent implements OnInit {
     this.highlightedPostOfficeIndex = -1; // Скидаємо індекс навігації
     this.deliveryInfo.postOffice.description = postOffice.description;
     this.deliveryInfo.postOffice.ref = postOffice.ref;
-    this.updateDeliveryInfo();
+    this.calculateDeliveryCost();
   }
 
   private clearPostOffice() {
@@ -310,6 +310,31 @@ export class DeliveryComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.initUserInfo();
+      }
+    });
+  }
+
+  calculateDeliveryCost() {
+    if (!this.deliveryInfo.city.ref || !this.deliveryInfo.postOffice.ref) {
+      return;
+    }
+
+    // Typical calendar weight ~1kg, declared value from cart summary
+    const weight = 1.0;
+    const declaredValue = 650; // Default calendar price, should be calculated from cart
+
+    this.novaPostService.calculateDeliveryCost({
+      recipientCityRef: this.deliveryInfo.city.ref,
+      weight: weight,
+      declaredValue: declaredValue
+    }).subscribe({
+      next: (response) => {
+        this.deliveryInfo.deliveryCost = response.cost;
+        this.updateDeliveryInfo();
+      },
+      error: (error) => {
+        console.error('Failed to calculate delivery cost:', error);
+        this.errorMessage = 'Не вдалося розрахувати вартість доставки';
       }
     });
   }
