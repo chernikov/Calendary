@@ -73,6 +73,15 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     public DbSet<WebHookFluxModel> WebHookFluxModels { get; set; }
 
+    // Customer Portal entities
+    public DbSet<Template> Templates { get; set; }
+
+    public DbSet<UserCalendar> UserCalendars { get; set; }
+
+    public DbSet<CartItem> CartItems { get; set; }
+
+    public DbSet<UploadedFile> UploadedFiles { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply all entity configurations from the Configurations folder
