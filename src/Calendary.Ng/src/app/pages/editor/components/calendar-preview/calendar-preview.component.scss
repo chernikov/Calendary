@@ -6,6 +6,19 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: all 0.3s ease;
+
+  &.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    border-radius: 0;
+    padding: 24px;
+    background: #ffffff;
+  }
 }
 
 .preview-header {
@@ -46,8 +59,10 @@ h3 {
 .header-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
+// Grid View Styles
 .months-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -178,5 +193,198 @@ h3 {
     font-size: 20px;
     width: 20px;
     height: 20px;
+  }
+}
+
+// Preview View Styles
+.preview-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.controls-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-selector {
+  width: 140px;
+
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    padding-bottom: 0;
+  }
+
+  ::ng-deep .mdc-notched-outline {
+    border-color: #d1d5db;
+  }
+}
+
+.zoom-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  min-width: 50px;
+  text-align: center;
+}
+
+button.active {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+// Customization Panel Styles
+.customization-panel {
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.customization-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+
+  h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+  }
+}
+
+.customization-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.color-option {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  input[type='color'] {
+    width: 100%;
+    height: 40px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 4px;
+
+    &:hover {
+      border-color: #4f46e5;
+    }
+  }
+}
+
+// Preview Container Styles
+.preview-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  background: #f3f4f6;
+  border-radius: 12px;
+  overflow: auto;
+  transition: transform 0.3s ease;
+
+  app-month-page {
+    width: 100%;
+    max-width: 800px;
+    display: block;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 1200px) {
+  .controls-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .control-group {
+      justify-content: center;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-preview {
+    padding: 12px;
+  }
+
+  .months-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+
+  .preview-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: stretch;
+
+    button {
+      flex: 1;
+    }
+  }
+
+  .customization-options {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-container {
+    padding: 12px;
+
+    app-month-page {
+      max-width: 100%;
+    }
+  }
+}
+
+// Print styles
+@media print {
+  .controls-toolbar,
+  .customization-panel,
+  .preview-header {
+    display: none !important;
+  }
+
+  .preview-container {
+    padding: 0;
+    background: white;
   }
 }
