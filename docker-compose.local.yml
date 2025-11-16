@@ -60,15 +60,29 @@ services:
       calendary_db:
         condition: service_healthy
     restart: always
+  calendary_ng_ssr:
+    container_name: calendary_ng_ssr
+    build:
+      context: ./src/Calendary.Ng
+      dockerfile: Dockerfile
+    image: calendary-ng:latest
+    ports:
+      - "4000:4000"
+    networks:
+      - "calendary"
+    depends_on:
+      - calendary_api
+    restart: always
   calendary_ng:
     container_name: calendary_ng
-    image: calendary-ng:latest
+    image: nginx:alpine
     ports:
       - "80:80"
       - "443:443"
     networks:
       - "calendary"
     depends_on:
+      - calendary_ng_ssr
       - calendary_api
     restart: always
     volumes:
