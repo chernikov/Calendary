@@ -1,0 +1,32 @@
+.empty-cart {
+  text-align: center;
+  padding: 3rem 1rem;
+  border: 2px dashed #cbd5f5;
+  border-radius: 24px;
+  background-color: #f8fafc;
+}
+
+.empty-cart__icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-cart h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-cart p {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
+
+.empty-cart__button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  background-color: #1d4ed8;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
