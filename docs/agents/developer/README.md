@@ -57,12 +57,12 @@ Developer відповідає за розробку функціоналу, н�
 - Postman
 - Git
 
-### Frontend Development (Angular 19)
+### Frontend Development (Angular 20)
 
 **Languages:** TypeScript 5.x
 
 **Frameworks:**
-- Angular 19 (standalone components)
+- Angular 20 (standalone components)
 - Angular Material
 - RxJS
 - Konva.js (calendar editor)

@@ -58,8 +58,8 @@
   - Messages для RabbitMQ
   - Entities
 
-### Frontend (Angular 18)
-- **Calendary.Ng** - Angular SPA + SSR
+### Frontend (Angular 20)
+- **Calendary.Ng** - Angular SPA + SSR (Angular 20.3+)
   - Material Design UI
   - Сторінки: Landing, Registration, Calendar Builder, Cart, Checkout, Profile
   - Адмін-панель: управління замовленнями, моделями, користувачами

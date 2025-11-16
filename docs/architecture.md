@@ -202,19 +202,18 @@ Calendary - платформа для створення, редагування
 ## Технологічний стек (поточний)
 
 ### Frontend
-**Admin Panel (Angular):**
-- **Framework**: Angular 18+
-- **UI Library**: Angular Material / PrimeNG
-- **State Management**: NgRx / Services
+**Calendary.Ng (Angular - Admin Panel + Customer Portal):**
+- **Framework**: Angular 20.3+
+- **SSR**: Angular SSR (@angular/ssr)
+- **UI Library**: Angular Material
+- **State Management**: Services + RxJS
 - **Forms**: Reactive Forms
 - **HTTP Client**: HttpClient
-
-**Customer Portal (опціонально React):**
-- **Framework**: React / Next.js (для максимальної гнучкості UI/UX)
-- **UI Library**: Tailwind CSS + shadcn/ui або Material-UI
-- **State Management**: Zustand / Redux Toolkit
-- **Canvas Editor**: Fabric.js / Konva.js (для редактора календарів)
-- **Forms**: React Hook Form + Zod
+- **Real-time**: SignalR (@microsoft/signalr)
+- **Canvas Editor**: Custom canvas implementation (для редактора календарів)
+- **Image Processing**: ngx-image-cropper
+- **File Upload**: ng2-file-upload
+- **E2E Testing**: Playwright
 
 ### Backend
 - **Runtime**: .NET 9.0

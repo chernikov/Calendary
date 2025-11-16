@@ -90,9 +90,9 @@ src/
 - RabbitMQ.Client
 - Polly (resilience)
 
-### Frontend (Angular 19)
+### Frontend (Angular 20)
 
-**Framework:** Angular 19 + Standalone Components
+**Framework:** Angular 20 + Standalone Components
 
 ```
 src/

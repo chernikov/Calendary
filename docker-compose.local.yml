@@ -62,7 +62,7 @@ services:
     restart: always
   calendary_ng:
     container_name: calendary_ng
-    image: chernikov/calendary.ng
+    image: calendary-ng:latest
     ports:
       - "80:80"
       - "443:443"
