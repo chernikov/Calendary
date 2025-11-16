@@ -20,14 +20,21 @@
    - Navigation (next/prev page)
 
 2. **Generate Preview**:
-   - Backend endpoint `/api/calendar/preview` (lower quality)
+   - Backend endpoint `/api/calendar/preview/{calendarId}` (lower quality)
    - Швидша генерація (quality 60%)
-   - Watermark "PREVIEW"
+   - Водяний знак "PREVIEW" по центру кожної сторінки
+   - Opacity: 30%
+   - Кут: 45°
+   - Показується ТІЛЬКИ на preview PDF
 
 3. **Actions**:
-   - Download (full quality)
+   - Download (full quality, БЕЗ будь-яких водяних знаків)
    - Edit (повернутись до editor)
    - Share (future feature)
+
+**Важливо**: 
+- Preview PDF має водяний знак "PREVIEW" - для швидкого перегляду
+- Фінальний PDF (download) БЕЗ водяних знаків - чиста версія для друку
 
 ## Файли для створення
 

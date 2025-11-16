@@ -9,17 +9,11 @@
 
 ## Опис задачі
 
-Додати водяний знак "Calendary.com.ua" та метадані в PDF.
+Додати метадані в PDF. Водяний знак "PREVIEW" показується тільки на preview версії (Task 28).
 
 ## Що треба зробити
 
-1. **Watermark**:
-   - Прозорий текст "Calendary.com.ua"
-   - Розташування: bottom right
-   - Opacity: 10%
-   - Font size: 10pt
-
-2. **PDF Metadata**:
+1. **PDF Metadata**:
    - Title: "Календар 2026"
    - Author: User name або "Calendary"
    - Subject: "Персональний календар"
@@ -37,9 +31,9 @@
 
 ## Що тестувати
 
-- [ ] Watermark видимий але ненав'язливий
 - [ ] Metadata коректна
 - [ ] QR code працює (якщо додано)
+- [ ] Фінальний PDF без водяних знаків
 
 ---
 
