@@ -1,11 +1,11 @@
 # Task 16: Міграція БД для нової структури
 
 **Epic**: [Epic 01 - Перший реліз](../epic_01.md)
-**Статус**: DONE
+**Статус**: TODO
 **Пріоритет**: P1 (Високий)
 **Складність**: Середня
 **Час**: 3-4 години
-**Відповідальний AI**: Claude Code
+**Відповідальний AI**: Gemini
 
 ## Опис задачі
 
@@ -42,46 +42,12 @@
 
 ## Що тестувати
 
-- [x] Міграція створена без помилок
-- [x] Нові поля додані до моделі
-- [x] Конфігурація для JSON column налаштована
-- [x] Model snapshot оновлений
-- [ ] Міграція apply (потребує dotnet environment)
-- [ ] Rollback працює (потребує dotnet environment)
-
----
-
-## Виконано
-
-**Дата**: 2025-11-16
-
-### Зміни:
-
-1. **Створено новий клас** `MonthlyImage.cs`:
-   - Властивості: `Month` (int), `ImageId` (string)
-
-2. **Оновлено** `Calendar.cs`:
-   - Додано властивість `MonthlyImages` (List<MonthlyImage>)
-   - Note: Властивість `Year` вже існувала в моделі
-
-3. **Оновлено** `CalendarConfiguration.cs`:
-   - Налаштовано `MonthlyImages` як JSON column через `OwnsMany` з `ToJson()`
-
-4. **Створено міграцію** `20251116000000_Calendar2026Structure.cs`:
-   - Додає JSON column `MonthlyImages` до таблиці `Calendars`
-   - Включає методи `Up` і `Down` для rollback
-
-5. **Оновлено** `CalendaryDbContextModelSnapshot.cs`:
-   - Додано конфігурацію для `MonthlyImages` як owned entity з JSON serialization
-
-### Примітки:
-
-- Міграція готова до застосування за допомогою `dotnet ef database update`
-- JSON column використовує вбудовану підтримку EF Core 9.0
-- Структура `MonthlyImages` дозволяє зберігати масив об'єктів з month та imageId
-- Rollback міграції видалить column `MonthlyImages` з таблиці `Calendars`
+- [ ] Міграція apply without errors
+- [ ] Нові поля створені в БД
+- [ ] Старі дані збереглися (якщо є)
+- [ ] Seed data завантажився
+- [ ] Rollback працює
 
 ---
 
 **Створено**: 2025-11-15
-**Завершено**: 2025-11-16

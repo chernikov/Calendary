@@ -8,10 +8,6 @@ public class CalendarConfiguration : IEntityTypeConfiguration<Calendar>
 {
     public void Configure(EntityTypeBuilder<Calendar> builder)
     {
-        // Configure MonthlyImages as JSON column
-        builder.OwnsMany(c => c.MonthlyImages, mi =>
-        {
-            mi.ToJson();
-        });
+        // Additional configuration can be added here
     }
 }
