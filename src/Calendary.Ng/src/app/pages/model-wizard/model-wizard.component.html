@@ -1,0 +1,271 @@
+<div class="model-wizard-container">
+  <!-- Header -->
+  <div class="wizard-header">
+    <h1>Створення моделі для генерації календаря</h1>
+    <p class="subtitle">{{ getStepDescription() }}</p>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-section">
+    <div class="progress-info">
+      <span class="status-text">{{ ModelStatusHelper.getDisplayName(state.status) }}</span>
+      <span class="progress-text">{{ state.progress }}%</span>
+    </div>
+    <mat-progress-bar
+      mode="determinate"
+      [value]="state.progress"
+      [color]="state.error ? 'warn' : 'primary'"
+    ></mat-progress-bar>
+  </div>
+
+  <!-- Error Alert -->
+  <div class="error-alert" *ngIf="state.error">
+    <mat-icon>error</mat-icon>
+    <span>{{ state.error }}</span>
+    <button mat-button (click)="onRetry()" *ngIf="state.model">
+      <mat-icon>refresh</mat-icon>
+      Спробувати знову
+    </button>
+  </div>
+
+  <!-- Stepper -->
+  <mat-stepper [linear]="true" [selectedIndex]="currentStep" #stepper>
+
+    <!-- Step 1: Category Selection -->
+    <mat-step [completed]="currentStep > 0">
+      <ng-template matStepLabel>Категорія</ng-template>
+      <div class="step-content">
+        <h2>Оберіть категорію моделі</h2>
+        <p>Виберіть тип об'єкту, який буде на фотографіях</p>
+
+        <div class="category-grid">
+          <mat-card
+            class="category-card"
+            [class.selected]="selectedCategoryId === 1"
+            (click)="onCategorySelected(1)"
+          >
+            <mat-icon>person</mat-icon>
+            <h3>Людина</h3>
+            <p>Портрети, селфі</p>
+          </mat-card>
+
+          <mat-card
+            class="category-card"
+            [class.selected]="selectedCategoryId === 2"
+            (click)="onCategorySelected(2)"
+          >
+            <mat-icon>pets</mat-icon>
+            <h3>Тварина</h3>
+            <p>Собаки, коти, інші</p>
+          </mat-card>
+
+          <mat-card
+            class="category-card"
+            [class.selected]="selectedCategoryId === 3"
+            (click)="onCategorySelected(3)"
+          >
+            <mat-icon>category</mat-icon>
+            <h3>Об'єкт</h3>
+            <p>Речі, предмети</p>
+          </mat-card>
+        </div>
+
+        <div class="loading-indicator" *ngIf="state.isLoading && currentStep === 0">
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          <span>Створення моделі...</span>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- Step 2: Photo Upload -->
+    <mat-step [completed]="currentStep > 1">
+      <ng-template matStepLabel>Завантаження фото</ng-template>
+      <div class="step-content">
+        <h2>Завантажте фотографії</h2>
+        <p>Мінімум 12 фотографій для якісного навчання моделі</p>
+
+        <!-- Photo upload будемо використовувати існуючий компонент -->
+        <div class="photo-upload-placeholder">
+          <p>Тут буде компонент завантаження фото</p>
+          <p>Використаємо існуючий PhotoUploadComponent або створимо новий</p>
+        </div>
+
+        <div class="photo-count" *ngIf="uploadedPhotos.length > 0">
+          <mat-icon>photo_library</mat-icon>
+          <span>Завантажено: {{ uploadedPhotos.length }} фото</span>
+        </div>
+
+        <div class="loading-indicator" *ngIf="state.isLoading && state.status === ModelStatus.Uploading">
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          <span>Завантаження фото...</span>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- Step 3: Payment -->
+    <mat-step [completed]="currentStep > 2">
+      <ng-template matStepLabel>Оплата</ng-template>
+      <div class="step-content">
+        <h2>Оплата навчання моделі</h2>
+        <p>Для навчання моделі необхідна оплата</p>
+
+        <mat-card class="payment-card">
+          <div class="payment-info">
+            <div class="price">
+              <span class="amount">99</span>
+              <span class="currency">₴</span>
+            </div>
+            <p>Одноразова оплата за навчання моделі</p>
+          </div>
+
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="onPaymentCompleted()"
+            [disabled]="state.model?.isPaid || state.isLoading"
+          >
+            <mat-icon>payment</mat-icon>
+            {{ state.model?.isPaid ? 'Оплачено' : 'Оплатити' }}
+          </button>
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <!-- Step 4: Training -->
+    <mat-step [completed]="currentStep > 3">
+      <ng-template matStepLabel>Навчання</ng-template>
+      <div class="step-content">
+        <h2>Навчання моделі</h2>
+        <p>Модель навчається розпізнавати обличчя з ваших фотографій</p>
+
+        <div class="training-status">
+          <div class="training-animation">
+            <mat-icon class="spinning" *ngIf="state.status === ModelStatus.Training">
+              autorenew
+            </mat-icon>
+            <mat-icon *ngIf="state.status === ModelStatus.Trained" color="primary">
+              check_circle
+            </mat-icon>
+          </div>
+
+          <div class="training-info">
+            <h3>{{ ModelStatusHelper.getDisplayName(state.status) }}</h3>
+            <p *ngIf="state.status === ModelStatus.Training">
+              Це може зайняти 10-20 хвилин. Ви можете закрити це вікно - ми надішлемо email коли все буде готово.
+            </p>
+            <p *ngIf="state.status === ModelStatus.Trained">
+              Навчання завершено! Модель готова до генерації зображень.
+            </p>
+          </div>
+
+          <mat-progress-bar
+            mode="indeterminate"
+            *ngIf="state.status === ModelStatus.Training || state.status === ModelStatus.Preparing"
+          ></mat-progress-bar>
+        </div>
+
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="onTrainingCompleted()"
+          *ngIf="state.status === ModelStatus.Trained"
+        >
+          Далі
+        </button>
+      </div>
+    </mat-step>
+
+    <!-- Step 5: Examples Preview -->
+    <mat-step [completed]="currentStep > 4">
+      <ng-template matStepLabel>Приклади</ng-template>
+      <div class="step-content">
+        <h2>Перегляд прикладів</h2>
+        <p>Подивіться на згенеровані приклади та оберіть тему</p>
+
+        <div class="examples-placeholder">
+          <p>Тут буде галерея прикладів</p>
+        </div>
+
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="onThemeSelected()"
+          [disabled]="state.isLoading"
+        >
+          Генерувати зображення для календаря
+        </button>
+      </div>
+    </mat-step>
+
+    <!-- Step 6: Image Generation -->
+    <mat-step [completed]="currentStep > 5">
+      <ng-template matStepLabel>Генерація</ng-template>
+      <div class="step-content">
+        <h2>Генерація зображень</h2>
+        <p>Створюємо унікальні зображення для вашого календаря</p>
+
+        <div class="generation-status">
+          <mat-progress-bar
+            mode="indeterminate"
+            *ngIf="state.status === ModelStatus.GeneratingImages"
+          ></mat-progress-bar>
+
+          <div class="generated-images" *ngIf="state.model?.jobs && state.model.jobs.length > 0">
+            <p>Згенеровано зображень: {{ state.model.jobs[0]?.tasks?.length || 0 }}</p>
+          </div>
+        </div>
+
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="onImagesGenerated()"
+          *ngIf="state.status === ModelStatus.ImagesSelected"
+        >
+          Створити календар
+        </button>
+      </div>
+    </mat-step>
+
+    <!-- Step 7: Calendar Creation -->
+    <mat-step [completed]="currentStep > 6">
+      <ng-template matStepLabel>Календар</ng-template>
+      <div class="step-content">
+        <h2>Створення календаря</h2>
+        <p>Розподіліть зображення по місяцям</p>
+
+        <div class="calendar-placeholder">
+          <p>Перехід до редактора календаря</p>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- Step 8: Complete -->
+    <mat-step>
+      <ng-template matStepLabel>Готово</ng-template>
+      <div class="step-content">
+        <div class="completion-message">
+          <mat-icon color="primary" class="success-icon">check_circle</mat-icon>
+          <h2>Ваш календар готовий!</h2>
+          <p>Тепер ви можете переглянути та відредагувати календар</p>
+
+          <div class="action-buttons">
+            <button mat-raised-button color="primary" (click)="onImagesGenerated()">
+              Перейти до редактора
+            </button>
+            <button mat-button (click)="onCancel()">
+              На головну
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-step>
+
+  </mat-stepper>
+
+  <!-- Footer Actions -->
+  <div class="wizard-footer">
+    <button mat-button (click)="onCancel()">
+      Скасувати
+    </button>
+  </div>
+</div>

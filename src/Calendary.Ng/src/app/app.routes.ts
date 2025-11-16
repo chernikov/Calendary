@@ -17,7 +17,7 @@ import { AdminPromptThemeComponent } from './admin/pages/admin-prompt-theme/admi
 import { AdminPromptComponent } from './admin/pages/admin-prompt/admin-prompt.component';
 import { EditPromptComponent } from './admin/pages/admin-prompt/edit-prompt/edit-prompt.component';
 import { PromptHistoryComponent } from './admin/pages/prompt-history/prompt-history.component';
-import { MasterComponent } from './pages/master/master.component';
+import { ModelWizardComponent } from './pages/model-wizard/model-wizard.component';
 import { FluxModelComponent } from './admin/pages/flux-model/flux-model.component';
 import { ViewFluxModelComponent } from './admin/pages/flux-model/view-flux-model/view-flux-model.component';
 import { AdminCategoryComponent } from './admin/pages/admin-category/admin-category.component';
@@ -69,7 +69,8 @@ export const routes: Routes = [
       { path: 'profile', component: ProfileComponent, canActivate: [UserGuard] },
       { path: 'cart', component: CartComponent, canActivate: [UserGuard]  },
       { path: 'order/:orderId', component: OrderComponent },
-      { path: 'master', component: MasterComponent, canActivate: [UserGuard]  },
+      { path: 'master', component: ModelWizardComponent, canActivate: [UserGuard]  },
+      { path: 'create-model', component: ModelWizardComponent, canActivate: [UserGuard]  },
       { path: 'editor', component: EditorComponent, canActivate: [UserGuard]  },
     ],
   },
