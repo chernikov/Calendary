@@ -1,0 +1,70 @@
+@use '../../../../styles/tokens' as *;
+
+.ui-section {
+  padding: var(--space-12) var(--space-4);
+}
+
+.ui-section--surface {
+  background: var(--color-surface);
+}
+
+.ui-section--muted {
+  background: var(--color-surface-muted);
+}
+
+.ui-section--highlight {
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.2), transparent),
+    var(--gradient-hero);
+  color: #fff;
+}
+
+.ui-section--highlight .ui-section__subtitle {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ui-section--highlight .ui-section__eyebrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.ui-section__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.ui-section__header {
+  text-align: left;
+  margin-bottom: var(--space-6);
+}
+
+.ui-section__header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin: 0;
+}
+
+.ui-section__subtitle {
+  margin: var(--space-3) 0 0;
+  color: var(--color-text-muted);
+}
+
+.ui-section__eyebrow {
+  @include text-label;
+  color: var(--color-primary);
+  margin-bottom: var(--space-2);
+}
+
+.ui-section__header--center {
+  text-align: center;
+}
+
+.ui-section__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (max-width: 768px) {
+  .ui-section {
+    padding: var(--space-8) var(--space-3);
+  }
+}

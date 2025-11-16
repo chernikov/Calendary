@@ -1,0 +1,14 @@
+<section class="ui-section" [ngClass]="sectionClasses">
+  <div class="ui-section__inner">
+    <div class="ui-section__header" [ngClass]="headerAlignment">
+      <p class="ui-section__eyebrow" *ngIf="eyebrow">{{ eyebrow }}</p>
+      <div>
+        <h2 *ngIf="title">{{ title }}</h2>
+        <p class="ui-section__subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+      </div>
+    </div>
+    <div class="ui-section__content">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</section>

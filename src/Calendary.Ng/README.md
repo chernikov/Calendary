@@ -1,27 +1,49 @@
-# CalendaryNg
+# Calendary.Ng Frontend
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.8.
+Angular 20.3+ SPA + SSR, що покриває Customer Portal Calendary. На цьому етапі виконано **Етап 1** (Task 01-03) з епіка Customer Portal:
 
-## Development server
+1. **Task 01 – Frontend baseline**: Оновлено структуру проєкту, додано lint/type-check/format скрипти, підготовлено `.eslintrc` та `.prettierrc`.
+2. **Task 02 – UI Kit**: Створено дизайн-токени, секції, CTA-кнопки та грід переваг для повторного використання.
+3. **Task 03 – Routing & Layout**: Головний лейаут тепер містить шапку, контент і новий футер з єдиним стилем.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## Скрипти
 
-## Code scaffolding
+| Скрипт | Опис |
+| --- | --- |
+| `npm run dev` / `npm start` | Dev-server на `http://localhost:4200` з proxy до backend. |
+| `npm run build` | Production збірка + SSR bundle (`dist/calendary.ng`). |
+| `npm run test` | Karma unit-тести. |
+| `npm run test:e2e` | Playwright сценарії з `src/Calendary.Ng/e2e`. |
+| `npm run lint` | `ng lint` із @angular-eslint (виконується після `npm install`). |
+| `npm run type-check` | `tsc --noEmit` для статичного аналізу. |
+| `npm run format` / `npm run format:check` | Prettier форматування та перевірка стилю. |
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+> ℹ️ Перший запуск `npm run lint`/`format` вимагає `npm install`, щоб підтягнути devDependencies.
 
-## Build
+## Дизайн система
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+- **Токени**: `src/styles/_tokens.scss` визначає кольори, шрифти, тіні, радіуси, spacing.
+- **Базові стилі**: `src/styles.scss` вмикає глобальні класи (`.app-shell`, `.cta-button`, `.surface-card`, `.tag`).
+- **UI компоненти** (`src/app/components/ui/`):
+  - `section/section.component` – семантичні секції з різними фонами.
+  - `cta-button/cta-button.component` – кнопка з варіантами `primary`/`secondary`.
+  - `feature-grid/feature-grid.component` – грід карток переваг.
 
-## Running unit tests
+## Лейаут та роутинг
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+- `MainComponent` відповідає за спільний шаблон (header → content → footer) та показує loading overlay при блокуванні UI.
+- Новий `FooterComponent` містить швидкі посилання, контакти та рік.
+- `app.routes.ts` залишився джерелом істини для публічних та admin маршрутів; всі публічні сторінки вбудовані у `MainComponent`.
 
-## Running end-to-end tests
+## Домашня сторінка
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+`HomeComponent` тепер використовує UI kit:
+- Hero-блок з CTA, статистикою й прев’ю календаря.
+- Грід переваг, які підключені через `FeatureGridComponent`.
+- Таймлайн кроків створення календаря та фінальний call-to-action.
 
-## Further help
+## Подальші кроки
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Розширити UI kit компонентами для інших сторінок (каталог, кошик).
+- Підключити lint/format у CI pipeline.
+- Додати сторінки Stage 2 (каталог шаблонів та редактор) на основі створеного фундаменту.

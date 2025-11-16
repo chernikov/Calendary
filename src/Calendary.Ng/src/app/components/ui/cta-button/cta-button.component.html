@@ -1,0 +1,6 @@
+<button type="button" class="cta-button" [ngClass]="'cta-button--' + variant" (click)="emit($event)">
+  <ng-container *ngIf="label; else projected">{{ label }}</ng-container>
+  <ng-template #projected>
+    <ng-content></ng-content>
+  </ng-template>
+</button>

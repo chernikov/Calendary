@@ -1,0 +1,37 @@
+{
+  "root": true,
+  "ignorePatterns": ["projects/**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "extends": [
+        "plugin:@angular-eslint/recommended",
+        "plugin:@angular-eslint/template/process-inline-templates"
+      ],
+      "parserOptions": {
+        "project": ["tsconfig.eslint.json"],
+        "tsconfigRootDir": "./"
+      },
+      "rules": {
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@angular-eslint/component-class-suffix": ["error", {"suffixes": ["Component"]}],
+        "@angular-eslint/directive-selector": [
+          "error",
+          {"type": "attribute", "prefix": "app", "style": "camelCase"}
+        ],
+        "@angular-eslint/component-selector": [
+          "error",
+          {"type": "element", "prefix": "app", "style": "kebab-case"}
+        ]
+      }
+    },
+    {
+      "files": ["*.html"],
+      "extends": ["plugin:@angular-eslint/template/recommended"],
+      "rules": {
+        "@angular-eslint/template/no-autofocus": "off"
+      }
+    }
+  ]
+}
