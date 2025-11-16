@@ -1,5 +1,6 @@
 ﻿using Calendary.Core.Models;
 using Calendary.Core.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Calendary.Api.Controllers;
@@ -34,5 +35,34 @@ public class NovaSearchController(INovaPostService novaPostService) : Controller
         }
         var warehouseList = await novaPostService.SearchWarehouseAsync(city, search);
         return Ok(warehouseList);
+    }
+
+    [HttpPost("calculate-delivery")]
+    public async Task<IActionResult> CalculateDeliveryCost([FromBody] DeliveryCalculationRequest request)
+    {
+        try
+        {
+            var cost = await novaPostService.CalculateDeliveryCostAsync(request);
+            return Ok(new { cost });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("create-ttn")]
+    public async Task<IActionResult> CreateTTN([FromBody] CreateTTNRequest request)
+    {
+        try
+        {
+            var trackingNumber = await novaPostService.CreateInternetDocumentAsync(request);
+            return Ok(new { trackingNumber });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 }

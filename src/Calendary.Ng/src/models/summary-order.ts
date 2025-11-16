@@ -6,6 +6,7 @@ export class SummaryOrder {
   sum: number = 0;
   isPaid: boolean = false;
   deliveryAddress: string = '';
+  deliveryCost: number = 0;
   orderItems: OrderItem[] = [];
   user: UserInfo = new UserInfo();
 }

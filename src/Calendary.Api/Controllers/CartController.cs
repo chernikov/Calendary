@@ -191,7 +191,7 @@ public class CartController : BaseUserController
         }
         var raw = JsonSerializer.Serialize(delivery);
         var address = MakeAddress(delivery);
-        await SaveToOrder(user, raw, address);
+        await SaveToOrder(user, raw, address, delivery.DeliveryCost);
         await SaveToSetting(user, raw, address);
         return Ok();
     }
@@ -226,13 +226,14 @@ public class CartController : BaseUserController
         }
     }
 
-    private async Task SaveToOrder(User user, string raw, string address)
+    private async Task SaveToOrder(User user, string raw, string address, decimal deliveryCost = 0)
     {
         var order = await _orderService.GetFullCreatingOrderAsync(user.Id);
         if (order is not null)
         {
             order.DeliveryAddress = address;
             order.DeliveryRaw = raw;
+            order.DeliveryCost = deliveryCost;
             await _orderService.UpdateOrderDeliveryAsync(order);
         }
     }
