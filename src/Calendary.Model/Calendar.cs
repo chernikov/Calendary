@@ -25,8 +25,10 @@ public class Calendar
     public string? PreviewPath { get; set; }
 
     public ICollection<Image> Images { get; set; } = [];
-    
+
     public ICollection<EventDate> EventDates { get; set; } = [];
-    
+
     public ICollection<CalendarHoliday> CalendarHolidays { get; set; } = [];
+
+    public List<MonthlyImage> MonthlyImages { get; set; } = [];
 }
