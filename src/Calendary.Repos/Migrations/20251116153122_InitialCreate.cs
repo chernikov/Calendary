@@ -42,6 +42,20 @@ namespace Calendary.Repos.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "HolidayPresets",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HolidayPresets", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Languages",
                 columns: table => new
                 {
@@ -147,9 +161,16 @@ namespace Calendary.Repos.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CountryId = table.Column<int>(type: "int", nullable: true)
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Month = table.Column<int>(type: "int", nullable: true),
+                    Day = table.Column<int>(type: "int", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsMovable = table.Column<bool>(type: "bit", nullable: false),
+                    CalculationType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsWorkingDay = table.Column<bool>(type: "bit", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CountryId = table.Column<int>(type: "int", nullable: true),
+                    HolidayPresetId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -159,6 +180,12 @@ namespace Calendary.Repos.Migrations
                         column: x => x.CountryId,
                         principalTable: "Countries",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Holidays_HolidayPresets_HolidayPresetId",
+                        column: x => x.HolidayPresetId,
+                        principalTable: "HolidayPresets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -187,6 +214,34 @@ namespace Calendary.Repos.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Calendars_Languages_LanguageId",
+                        column: x => x.LanguageId,
+                        principalTable: "Languages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HolidayPresetTranslations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    HolidayPresetId = table.Column<int>(type: "int", nullable: false),
+                    LanguageId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HolidayPresetTranslations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_HolidayPresetTranslations_HolidayPresets_HolidayPresetId",
+                        column: x => x.HolidayPresetId,
+                        principalTable: "HolidayPresets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_HolidayPresetTranslations_Languages_LanguageId",
                         column: x => x.LanguageId,
                         principalTable: "Languages",
                         principalColumn: "Id",
@@ -300,7 +355,8 @@ namespace Calendary.Repos.Migrations
                     CountryId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     DeliveryAddress = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    DeliveryRaw = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                    DeliveryRaw = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    UseImprovedPrompt = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -376,7 +432,7 @@ namespace Calendary.Repos.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Version = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ReplicateId = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -386,6 +442,7 @@ namespace Calendary.Repos.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsPaid = table.Column<bool>(type: "bit", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     IsArchive = table.Column<bool>(type: "bit", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     WebHookId = table.Column<int>(type: "int", nullable: true)
@@ -409,6 +466,33 @@ namespace Calendary.Repos.Migrations
                         column: x => x.WebHookId,
                         principalTable: "WebHooks",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HolidayTranslations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    HolidayId = table.Column<int>(type: "int", nullable: false),
+                    LanguageId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HolidayTranslations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_HolidayTranslations_Holidays_HolidayId",
+                        column: x => x.HolidayId,
+                        principalTable: "Holidays",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_HolidayTranslations_Languages_LanguageId",
+                        column: x => x.LanguageId,
+                        principalTable: "Languages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -836,9 +920,42 @@ namespace Calendary.Repos.Migrations
                 column: "WebHookId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_HolidayPresets_Code",
+                table: "HolidayPresets",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HolidayPresetTranslations_HolidayPresetId_LanguageId",
+                table: "HolidayPresetTranslations",
+                columns: new[] { "HolidayPresetId", "LanguageId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HolidayPresetTranslations_LanguageId",
+                table: "HolidayPresetTranslations",
+                column: "LanguageId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Holidays_CountryId",
                 table: "Holidays",
                 column: "CountryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Holidays_HolidayPresetId",
+                table: "Holidays",
+                column: "HolidayPresetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HolidayTranslations_HolidayId_LanguageId",
+                table: "HolidayTranslations",
+                columns: new[] { "HolidayId", "LanguageId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HolidayTranslations_LanguageId",
+                table: "HolidayTranslations",
+                column: "LanguageId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Images_CalendarId",
@@ -994,6 +1111,12 @@ namespace Calendary.Repos.Migrations
                 name: "EventDates");
 
             migrationBuilder.DropTable(
+                name: "HolidayPresetTranslations");
+
+            migrationBuilder.DropTable(
+                name: "HolidayTranslations");
+
+            migrationBuilder.DropTable(
                 name: "Images");
 
             migrationBuilder.DropTable(
@@ -1033,10 +1156,10 @@ namespace Calendary.Repos.Migrations
                 name: "WebHookFluxModels");
 
             migrationBuilder.DropTable(
-                name: "Holidays");
+                name: "UserSettings");
 
             migrationBuilder.DropTable(
-                name: "UserSettings");
+                name: "Holidays");
 
             migrationBuilder.DropTable(
                 name: "Jobs");
@@ -1055,6 +1178,9 @@ namespace Calendary.Repos.Migrations
 
             migrationBuilder.DropTable(
                 name: "Roles");
+
+            migrationBuilder.DropTable(
+                name: "HolidayPresets");
 
             migrationBuilder.DropTable(
                 name: "Countries");

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calendary.Repos.Migrations
 {
     [DbContext(typeof(CalendaryDbContext))]
-    [Migration("20251115144441_InitialCreate")]
+    [Migration("20251116153122_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -247,6 +247,9 @@ namespace Calendary.Repos.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsArchive")
                         .HasColumnType("bit");
 
@@ -258,7 +261,8 @@ namespace Calendary.Repos.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ReplicateId")
                         .IsRequired()
@@ -297,21 +301,131 @@ namespace Calendary.Repos.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CalculationType")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("CountryId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime?>("Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("Day")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("HolidayPresetId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsMovable")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsWorkingDay")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Month")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
-                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CountryId");
 
+                    b.HasIndex("HolidayPresetId");
+
                     b.ToTable("Holidays");
+                });
+
+            modelBuilder.Entity("Calendary.Model.HolidayPreset", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("HolidayPresets");
+                });
+
+            modelBuilder.Entity("Calendary.Model.HolidayPresetTranslation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("HolidayPresetId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LanguageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("HolidayPresetId", "LanguageId")
+                        .IsUnique();
+
+                    b.ToTable("HolidayPresetTranslations");
+                });
+
+            modelBuilder.Entity("Calendary.Model.HolidayTranslation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("HolidayId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LanguageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("HolidayId", "LanguageId")
+                        .IsUnique();
+
+                    b.ToTable("HolidayTranslations");
                 });
 
             modelBuilder.Entity("Calendary.Model.Image", b =>
@@ -976,6 +1090,9 @@ namespace Calendary.Repos.Migrations
                     b.Property<int>("LanguageId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("UseImprovedPrompt")
+                        .HasColumnType("bit");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
@@ -1191,7 +1308,52 @@ namespace Calendary.Repos.Migrations
                         .WithMany("Holidays")
                         .HasForeignKey("CountryId");
 
+                    b.HasOne("Calendary.Model.HolidayPreset", "HolidayPreset")
+                        .WithMany("Holidays")
+                        .HasForeignKey("HolidayPresetId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Country");
+
+                    b.Navigation("HolidayPreset");
+                });
+
+            modelBuilder.Entity("Calendary.Model.HolidayPresetTranslation", b =>
+                {
+                    b.HasOne("Calendary.Model.HolidayPreset", "HolidayPreset")
+                        .WithMany("Translations")
+                        .HasForeignKey("HolidayPresetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Calendary.Model.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("HolidayPreset");
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("Calendary.Model.HolidayTranslation", b =>
+                {
+                    b.HasOne("Calendary.Model.Holiday", "Holiday")
+                        .WithMany("Translations")
+                        .HasForeignKey("HolidayId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Calendary.Model.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Holiday");
+
+                    b.Navigation("Language");
                 });
 
             modelBuilder.Entity("Calendary.Model.Image", b =>
@@ -1488,6 +1650,18 @@ namespace Calendary.Repos.Migrations
                     b.Navigation("Tasks");
 
                     b.Navigation("Trainings");
+                });
+
+            modelBuilder.Entity("Calendary.Model.Holiday", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("Calendary.Model.HolidayPreset", b =>
+                {
+                    b.Navigation("Holidays");
+
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("Calendary.Model.Job", b =>
