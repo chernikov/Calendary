@@ -76,23 +76,118 @@
 
         <!-- Custom Prompt -->
         <div class="custom-prompt" *ngIf="generationMode === 'custom'">
-          <mat-form-field appearance="outline">
-            <mat-label>Власний промпт</mat-label>
-            <textarea
-              matInput
-              formControlName="customPrompt"
-              rows="4"
-              placeholder="Опишіть зображення, яке хочете згенерувати..."
-            ></textarea>
-            <mat-icon matPrefix>edit_note</mat-icon>
-            <mat-hint>Мінімум 3 символи. Детальний опис дає кращі результати.</mat-hint>
-            <mat-error *ngIf="generateForm.get('customPrompt')?.hasError('required')">
-              Введіть текст промпту
-            </mat-error>
-            <mat-error *ngIf="generateForm.get('customPrompt')?.hasError('minlength')">
-              Мінімум 3 символи
-            </mat-error>
-          </mat-form-field>
+          <div class="prompt-input-container">
+            <mat-form-field appearance="outline">
+              <mat-label>Власний промпт</mat-label>
+              <textarea
+                matInput
+                formControlName="customPrompt"
+                rows="4"
+                placeholder="Опишіть зображення, яке хочете згенерувати..."
+              ></textarea>
+              <mat-icon matPrefix>edit_note</mat-icon>
+              <mat-hint>Мінімум 3 символи. Детальний опис дає кращі результати.</mat-hint>
+              <mat-error *ngIf="generateForm.get('customPrompt')?.hasError('required')">
+                Введіть текст промпту
+              </mat-error>
+              <mat-error *ngIf="generateForm.get('customPrompt')?.hasError('minlength')">
+                Мінімум 3 символи
+              </mat-error>
+            </mat-form-field>
+
+            <!-- History Toggle Button -->
+            <button
+              mat-icon-button
+              type="button"
+              class="history-toggle-btn"
+              (click)="toggleHistoryDropdown()"
+              matTooltip="Історія промптів"
+            >
+              <mat-icon>history</mat-icon>
+            </button>
+          </div>
+
+          <!-- History Dropdown -->
+          <div class="history-dropdown" *ngIf="showHistoryDropdown">
+            <div class="history-header">
+              <h4>Історія промптів</h4>
+              <button
+                mat-icon-button
+                type="button"
+                (click)="closeHistoryDropdown()"
+                class="close-btn"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+
+            <!-- Search in History -->
+            <div class="history-search">
+              <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Пошук</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="historySearchQuery"
+                  (ngModelChange)="onHistorySearch()"
+                  placeholder="Шукати в історії..."
+                />
+                <mat-icon matPrefix>search</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <!-- History List -->
+            <div class="history-list">
+              <div
+                *ngFor="let item of filteredHistory"
+                class="history-item"
+                [class.pinned]="item.isPinned"
+                (click)="selectHistoryItem(item)"
+              >
+                <div class="item-content">
+                  <mat-icon class="pin-icon" *ngIf="item.isPinned">push_pin</mat-icon>
+                  <p class="item-text">{{ item.text }}</p>
+                </div>
+                <div class="item-actions">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="togglePinHistoryItem(item, $event)"
+                    [matTooltip]="item.isPinned ? 'Відкріпити' : 'Закріпити'"
+                    class="action-btn"
+                  >
+                    <mat-icon>{{ item.isPinned ? 'push_pin' : 'push_pin' }}</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="removeHistoryItem(item, $event)"
+                    matTooltip="Видалити"
+                    class="action-btn delete-btn"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <div class="empty-history" *ngIf="filteredHistory.length === 0">
+                <mat-icon>inbox</mat-icon>
+                <p>{{ historySearchQuery ? 'Нічого не знайдено' : 'Історія порожня' }}</p>
+              </div>
+            </div>
+
+            <!-- History Actions -->
+            <div class="history-actions">
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="clearPromptHistory()"
+                class="clear-btn"
+              >
+                <mat-icon>delete_sweep</mat-icon>
+                Очистити історію
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Advanced Options -->

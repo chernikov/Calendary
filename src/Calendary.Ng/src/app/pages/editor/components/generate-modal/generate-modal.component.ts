@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -21,6 +21,7 @@ import { Job } from '../../../../../models/job';
 import { ImageGenerationSignalRService, ProgressUpdate } from '../../services/image-generation-signalr.service';
 import { Observable } from 'rxjs';
 import { SettingService } from '../../../../../services/setting.service';
+import { PromptHistoryService, PromptHistoryItem } from '../../services/prompt-history.service';
 
 export interface GenerateModalData {
   fluxModelId: number;
@@ -35,6 +36,7 @@ export type GenerationMode = 'default' | 'theme' | 'custom';
     imports: [
         CommonModule,
         ReactiveFormsModule,
+        FormsModule,
         MatDialogModule,
         MatFormFieldModule,
         MatInputModule,
@@ -50,7 +52,11 @@ export type GenerationMode = 'default' | 'theme' | 'custom';
         MatTooltipModule
     ],
     templateUrl: './generate-modal.component.html',
-    styleUrls: ['./generate-modal.component.scss', './generate-modal-advanced.component.scss']
+    styleUrls: [
+      './generate-modal.component.scss',
+      './generate-modal-advanced.component.scss',
+      './generate-modal-history.component.scss'
+    ]
 })
 export class GenerateModalComponent implements OnInit, OnDestroy {
   generateForm: FormGroup;
@@ -63,6 +69,12 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
   progress$: Observable<ProgressUpdate | null>;
   currentJobId: number | null = null;
   useImprovedPrompt = false;
+
+  // Prompt history
+  promptHistory$: Observable<PromptHistoryItem[]>;
+  showHistoryDropdown = false;
+  historySearchQuery = '';
+  filteredHistory: PromptHistoryItem[] = [];
 
   // Image dimension presets
   imageSizePresets = [
@@ -79,10 +91,12 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
     private jobService: JobService,
     private signalRService: ImageGenerationSignalRService,
     private settingService: SettingService,
+    private promptHistoryService: PromptHistoryService,
     private dialogRef: MatDialogRef<GenerateModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: GenerateModalData
   ) {
     this.progress$ = this.signalRService.progress$;
+    this.promptHistory$ = this.promptHistoryService.history$;
     this.generateForm = this.fb.group({
       // Generation mode
       mode: ['theme'],
@@ -121,6 +135,11 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
       console.error('Failed to connect to SignalR:', err);
       // Продовжуємо роботу без real-time оновлень
     }
+
+    // Підписатися на зміни історії промптів
+    this.promptHistory$.subscribe(history => {
+      this.updateFilteredHistory();
+    });
   }
 
   async ngOnDestroy(): Promise<void> {
@@ -198,6 +217,11 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
         this.generateForm.get(key)?.markAsTouched();
       });
       return;
+    }
+
+    // Зберегти промпт в історію перед генерацією
+    if (this.generationMode === 'custom') {
+      this.saveCurrentPromptToHistory();
     }
 
     this.isGenerating = true;
@@ -282,5 +306,55 @@ export class GenerateModalComponent implements OnInit, OnDestroy {
       return true;
     }
     return this.generateForm.valid;
+  }
+
+  // Prompt History Methods
+
+  toggleHistoryDropdown(): void {
+    this.showHistoryDropdown = !this.showHistoryDropdown;
+    if (this.showHistoryDropdown) {
+      this.updateFilteredHistory();
+    }
+  }
+
+  closeHistoryDropdown(): void {
+    this.showHistoryDropdown = false;
+    this.historySearchQuery = '';
+  }
+
+  onHistorySearch(): void {
+    this.updateFilteredHistory();
+  }
+
+  updateFilteredHistory(): void {
+    this.filteredHistory = this.promptHistoryService.searchHistory(this.historySearchQuery);
+  }
+
+  selectHistoryItem(item: PromptHistoryItem): void {
+    this.generateForm.patchValue({ customPrompt: item.text });
+    this.closeHistoryDropdown();
+  }
+
+  togglePinHistoryItem(item: PromptHistoryItem, event: Event): void {
+    event.stopPropagation();
+    this.promptHistoryService.togglePin(item.id);
+  }
+
+  removeHistoryItem(item: PromptHistoryItem, event: Event): void {
+    event.stopPropagation();
+    this.promptHistoryService.removePrompt(item.id);
+  }
+
+  clearPromptHistory(): void {
+    if (confirm('Очистити історію промптів? Закріплені промпти залишаться.')) {
+      this.promptHistoryService.clearHistory();
+    }
+  }
+
+  saveCurrentPromptToHistory(): void {
+    const customPrompt = this.generateForm.get('customPrompt')?.value;
+    if (customPrompt && customPrompt.trim().length >= 3) {
+      this.promptHistoryService.addPrompt(customPrompt);
+    }
   }
 }
