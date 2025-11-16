@@ -1,8 +1,8 @@
-<div class="calendar-preview">
+<div class="calendar-preview" [class.fullscreen]="isFullscreen">
   <header class="preview-header">
     <div>
       <p class="eyebrow">Calendar preview</p>
-      <h3>Призначення місяців</h3>
+      <h3>{{ viewMode === 'grid' ? 'Призначення місяців' : 'Попередній перегляд календаря' }}</h3>
       <div class="status-row" [class.complete]="isComplete">
         <mat-icon>{{ isComplete ? 'check_circle' : 'event' }}</mat-icon>
         <span>{{ progressLabel() }}</span>
@@ -10,6 +10,29 @@
     </div>
     <div class="header-actions">
       <button
+        *ngIf="viewMode === 'grid'"
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="switchToPreview()"
+        [disabled]="!isComplete"
+        matTooltip="Попередній перегляд календаря"
+      >
+        <mat-icon>preview</mat-icon>
+        Preview
+      </button>
+      <button
+        *ngIf="viewMode === 'preview'"
+        mat-stroked-button
+        color="primary"
+        type="button"
+        (click)="switchToGrid()"
+      >
+        <mat-icon>grid_view</mat-icon>
+        Сітка місяців
+      </button>
+      <button
+        *ngIf="viewMode === 'grid'"
         mat-stroked-button
         color="primary"
         type="button"
@@ -22,7 +45,8 @@
     </div>
   </header>
 
-  <div class="months-grid">
+  <!-- Grid View -->
+  <div class="months-grid" *ngIf="viewMode === 'grid'">
     <div
       class="month-card"
       *ngFor="let month of months"
@@ -74,7 +98,194 @@
     </div>
   </div>
 
-  <div class="validation" [class.error]="!isComplete || duplicateImageIds.length">
+  <!-- Preview View -->
+  <div class="preview-view" *ngIf="viewMode === 'preview'">
+    <!-- Controls Toolbar -->
+    <div class="controls-toolbar">
+      <div class="control-group">
+        <button
+          mat-icon-button
+          (click)="prevMonth()"
+          [disabled]="currentPreviewMonth === 1"
+          matTooltip="Попередній місяць"
+        >
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <mat-form-field class="month-selector" appearance="outline">
+          <mat-select [(value)]="currentPreviewMonth" (selectionChange)="goToMonth($event.value)">
+            <mat-option *ngFor="let month of months" [value]="month.value">
+              {{ month.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button
+          mat-icon-button
+          (click)="nextMonth()"
+          [disabled]="currentPreviewMonth === 12"
+          matTooltip="Наступний місяць"
+        >
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+
+      <div class="control-group">
+        <button
+          mat-icon-button
+          (click)="zoomOut()"
+          [disabled]="zoomLevel <= 50"
+          matTooltip="Зменшити"
+        >
+          <mat-icon>zoom_out</mat-icon>
+        </button>
+
+        <span class="zoom-label">{{ zoomLevel }}%</span>
+
+        <button
+          mat-icon-button
+          (click)="zoomIn()"
+          [disabled]="zoomLevel >= 200"
+          matTooltip="Збільшити"
+        >
+          <mat-icon>zoom_in</mat-icon>
+        </button>
+
+        <button
+          mat-icon-button
+          (click)="resetZoom()"
+          matTooltip="Скинути масштаб"
+        >
+          <mat-icon>fit_screen</mat-icon>
+        </button>
+      </div>
+
+      <div class="control-group">
+        <button
+          mat-icon-button
+          (click)="toggleCustomization()"
+          [class.active]="showCustomization"
+          matTooltip="Налаштування"
+        >
+          <mat-icon>palette</mat-icon>
+        </button>
+
+        <button
+          mat-icon-button
+          (click)="toggleFullscreen()"
+          [matTooltip]="isFullscreen ? 'Вийти з повноекранного режиму' : 'Повноекранний режим'"
+        >
+          <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+        </button>
+
+        <button
+          mat-icon-button
+          (click)="onEditCurrentMonth()"
+          matTooltip="Змінити зображення"
+        >
+          <mat-icon>edit</mat-icon>
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="onGeneratePdf()"
+          matTooltip="Згенерувати PDF"
+        >
+          <mat-icon>picture_as_pdf</mat-icon>
+          Створити PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Customization Panel -->
+    <div class="customization-panel" *ngIf="showCustomization">
+      <div class="customization-header">
+        <h4>Налаштування календаря</h4>
+        <button mat-button (click)="resetCustomization()">
+          <mat-icon>restart_alt</mat-icon>
+          Скинути
+        </button>
+      </div>
+
+      <div class="customization-options">
+        <mat-form-field appearance="outline">
+          <mat-label>Шрифт</mat-label>
+          <mat-select
+            [(ngModel)]="customization.fontFamily"
+            (ngModelChange)="onCustomizationChange()"
+          >
+            <mat-option *ngFor="let font of fontOptions" [value]="font">
+              {{ font.split(',')[0] }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Розмір шрифту</mat-label>
+          <input
+            matInput
+            type="number"
+            [(ngModel)]="customization.fontSize"
+            (ngModelChange)="onCustomizationChange()"
+            min="10"
+            max="24"
+          />
+        </mat-form-field>
+
+        <div class="color-option">
+          <label>Основний колір</label>
+          <input
+            type="color"
+            [(ngModel)]="customization.primaryColor"
+            (ngModelChange)="onCustomizationChange()"
+          />
+        </div>
+
+        <div class="color-option">
+          <label>Колір свят</label>
+          <input
+            type="color"
+            [(ngModel)]="customization.holidayColor"
+            (ngModelChange)="onCustomizationChange()"
+          />
+        </div>
+
+        <div class="color-option">
+          <label>Колір вихідних</label>
+          <input
+            type="color"
+            [(ngModel)]="customization.weekendColor"
+            (ngModelChange)="onCustomizationChange()"
+          />
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Розташування зображення</mat-label>
+          <mat-select
+            [(ngModel)]="customization.layoutPosition"
+            (ngModelChange)="onCustomizationChange()"
+          >
+            <mat-option value="top">Зверху</mat-option>
+            <mat-option value="bottom">Знизу</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Month Page Preview -->
+    <div class="preview-container" [ngStyle]="getPreviewStyles()">
+      <app-month-page
+        [month]="currentPreviewMonth"
+        [year]="year"
+        [imageUrl]="getCurrentMonthAssignment()?.imageUrl"
+        [holidays]="holidays"
+        [customization]="customization"
+      ></app-month-page>
+    </div>
+  </div>
+
+  <div class="validation" [class.error]="!isComplete || duplicateImageIds.length" *ngIf="viewMode === 'grid'">
     <mat-icon>{{ duplicateImageIds.length ? 'warning' : (isComplete ? 'check_circle' : 'info') }}</mat-icon>
     <span>{{ validationMessage() }}</span>
   </div>
