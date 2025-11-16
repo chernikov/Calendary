@@ -1,7 +1,7 @@
 # Task 20: Інтеграція Nova Poshta (доставка)
 
 **Epic**: [Epic 02 - Customer Portal](../epic_02.md)
-**Статус**: TODO
+**Статус**: DONE
 **Пріоритет**: P0 (Критичний)
 **Складність**: Середня-Висока
 **Час**: 6-8 годин
@@ -352,4 +352,4 @@ export default function NovaPoshtaCitySearch({ onSelect }: NovaPoshtaCitySearchP
 
 **Створено**: 2025-11-16
 **Оновлено**: 2025-11-16
-**Виконано**: -
+**Виконано**: 2025-11-16
