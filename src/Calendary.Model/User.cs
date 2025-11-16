@@ -28,5 +28,7 @@ public class User
 
     public ICollection<UserRole> UserRoles { get; set; } = [];
     public ICollection<Order> Orders { get; set; } = [];
+    public ICollection<Credit> Credits { get; set; } = [];
+    public ICollection<CreditTransaction> CreditTransactions { get; set; } = [];
     public UserSetting Settings { get; set; } = null!;
 }

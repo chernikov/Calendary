@@ -82,6 +82,13 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     public DbSet<UploadedFile> UploadedFiles { get; set; }
 
+    // Credits system entities
+    public DbSet<Credit> Credits { get; set; }
+
+    public DbSet<CreditTransaction> CreditTransactions { get; set; }
+
+    public DbSet<CreditPackage> CreditPackages { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply all entity configurations from the Configurations folder

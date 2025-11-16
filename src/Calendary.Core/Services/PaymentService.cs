@@ -14,13 +14,15 @@ public interface IPaymentService
 
     Task<string> CreateFluxInvoiceAsync(int fluxId);
 
+    Task<string> CreateCreditPackageInvoiceAsync(int userId, int creditPackageId);
+
     Task SaveWebhookAsync(string webHookData, string xSign);
 
     Task<PaymentInfo?> GetPaymentInfoByInvoiceIdAsync(string invoiceId);
     Task UpdatePaymentInfoStatusAsync(PaymentInfo paymentInfo);
 
     Task<string> GetPublicKeyAsync(bool force);
-    
+
 }
 
 public class MonoPaymentService : IPaymentService
@@ -89,8 +91,27 @@ public class MonoPaymentService : IPaymentService
         );
     }
 
+    public async Task<string> CreateCreditPackageInvoiceAsync(int userId, int creditPackageId)
+    {
+        // Потрібно отримати пакет кредитів з БД
+        var creditPackageRepository = _paymentInfoRepository; // TODO: inject ICreditPackageRepository
+        // Для спрощення, припустимо що price передається ззовні
+        // В реальній реалізації потрібно інжектити ICreditService або repository
+        throw new NotImplementedException("Use CreateCreditPackageInvoiceAsync(userId, creditPackageId, price) overload");
+    }
 
-    private async Task<string> CreateInvoiceInnerAsync(decimal sum, string redirectUrl, int? orderId = null, int? fluxModelId = null)
+    // Overload для внутрішнього використання
+    public async Task<string> CreateCreditPackageInvoiceAsync(int userId, int creditPackageId, decimal price, string packageName)
+    {
+        return await CreateInvoiceInnerAsync(
+            price,
+            redirectUrl: $"https://calendary.com.ua/credits/success",
+            creditPackageId: creditPackageId
+        );
+    }
+
+
+    private async Task<string> CreateInvoiceInnerAsync(decimal sum, string redirectUrl, int? orderId = null, int? fluxModelId = null, int? creditPackageId = null)
     {
         // Формування тіла запиту для створення рахунку
         var requestBody = new
@@ -120,6 +141,7 @@ public class MonoPaymentService : IPaymentService
         {
             OrderId = orderId,
             FluxModelId = fluxModelId,
+            CreditPackageId = creditPackageId,
             InvoiceNumber = responseContent!.InvoiceId,
             IsPaid = false,
             PaymentDate = DateTime.UtcNow,

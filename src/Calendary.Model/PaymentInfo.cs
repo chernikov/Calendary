@@ -15,5 +15,11 @@ public class PaymentInfo
     public int? OrderId { get; set; }
     public Order? Order { get; set; }
     public int? FluxModelId { get; set; }
-    public FluxModel? FluxModel { get; set; } 
+    public FluxModel? FluxModel { get; set; }
+
+    /// <summary>
+    /// ID пакету кредитів (якщо оплачується пакет кредитів)
+    /// </summary>
+    public int? CreditPackageId { get; set; }
+    public CreditPackage? CreditPackage { get; set; }
 }
