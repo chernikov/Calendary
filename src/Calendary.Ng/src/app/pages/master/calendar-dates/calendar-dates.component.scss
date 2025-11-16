@@ -7,6 +7,73 @@
   h2 {
     font-size: 24px;
     font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .section-description {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+
+  .section-divider {
+    border: none;
+    border-top: 2px solid #e0e0e0;
+    margin: 40px 0;
+  }
+
+  // Holiday Presets Section
+  .presets-section {
+    margin-bottom: 30px;
+  }
+
+  .presets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .preset-card {
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+
+    &:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .preset-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .preset-checkbox {
+    flex-grow: 1;
+  }
+
+  .preset-type-badge {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .preset-info {
+    margin-top: 8px;
+    color: #666;
+  }
+
+  .apply-presets-button {
+    margin-top: 15px;
+  }
+
+  // Event Dates Section
+  .event-dates-section {
     margin-bottom: 20px;
   }
   

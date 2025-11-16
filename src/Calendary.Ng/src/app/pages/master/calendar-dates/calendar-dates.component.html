@@ -1,25 +1,65 @@
 <div class="container">
-    <ul class="event-list">
-      <li *ngFor="let event of eventDates" class="event-item">
-        <div class="event-details">
-          <span class="event-date">{{ event.date | date: 'dd MMMM' }}</span>
-          <span class="event-description">{{ event.description }}</span>
-        </div>
-        <button class="delete-button" (click)="deleteEventDate(event.id)">видалити</button>
-      </li>
-    </ul>
-  
-    <div class="add-event-form">
-      <div class="inputs-wrapper">
-        <input type="date" [(ngModel)]="newEventDate.date" class="date-input">
-        <input type="text" [(ngModel)]="newEventDate.description" placeholder="Що за визначна дата" class="description-input">
+    <!-- Holiday Presets Section -->
+    <div class="presets-section">
+      <h2>Пресети свят</h2>
+      <p class="section-description">Оберіть готові набори свят для вашого календаря</p>
+
+      <div class="presets-grid" *ngIf="holidayPresets.length > 0">
+        <mat-card *ngFor="let preset of holidayPresets" class="preset-card">
+          <mat-card-content>
+            <div class="preset-header">
+              <mat-checkbox
+                [(ngModel)]="selectedPresets[preset.code]"
+                class="preset-checkbox">
+                <strong>{{ getPresetName(preset) }}</strong>
+              </mat-checkbox>
+              <span class="preset-type-badge">{{ getPresetTypeLabel(preset.type) }}</span>
+            </div>
+            <div class="preset-info">
+              <small>Код: {{ preset.code }}</small>
+            </div>
+          </mat-card-content>
+        </mat-card>
       </div>
-      <button class="add-button" (click)="addEventDate(newEventDate)">Додати</button>
+
+      <button mat-raised-button
+              color="accent"
+              (click)="applySelectedPresets()"
+              class="apply-presets-button"
+              [disabled]="isApplyingPresets">
+        {{ isApplyingPresets ? 'Застосування...' : 'Застосувати обрані пресети' }}
+      </button>
     </div>
 
-    <button mat-raised-button color="primary" 
-        (click)="generateCalendar()" 
-        class="save-button" 
+    <hr class="section-divider">
+
+    <!-- Event Dates Section -->
+    <div class="event-dates-section">
+      <h2>Особисті важливі дати</h2>
+      <p class="section-description">Додайте власні особливі дати (дні народження, річниці тощо)</p>
+
+      <ul class="event-list">
+        <li *ngFor="let event of eventDates" class="event-item">
+          <div class="event-details">
+            <span class="event-date">{{ event.date | date: 'dd MMMM' }}</span>
+            <span class="event-description">{{ event.description }}</span>
+          </div>
+          <button class="delete-button" (click)="deleteEventDate(event.id)">видалити</button>
+        </li>
+      </ul>
+
+      <div class="add-event-form">
+        <div class="inputs-wrapper">
+          <input type="date" [(ngModel)]="newEventDate.date" class="date-input">
+          <input type="text" [(ngModel)]="newEventDate.description" placeholder="Що за визначна дата" class="description-input">
+        </div>
+        <button class="add-button" (click)="addEventDate(newEventDate)">Додати</button>
+      </div>
+    </div>
+
+    <button mat-raised-button color="primary"
+        (click)="generateCalendar()"
+        class="save-button"
         [disabled]="isGenerating">
   Згенерувати календар
 </button>

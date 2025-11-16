@@ -54,14 +54,14 @@ public class HolidayPresetService : IHolidayPresetService
         }
 
         var preset = await _holidayPresetRepository.GetWithHolidaysAsync(presetCode, 1); // Default to Ukrainian
-        if (preset == null)
+        if (preset == null || preset.Holidays == null || !preset.Holidays.Any())
         {
             return false;
         }
 
-        // TODO: Apply preset holidays to calendar
-        // This would involve creating CalendarHoliday entries
-        // For now, return success
+        // Apply preset holidays to calendar by creating CalendarHoliday entries
+        await _calendarRepository.AssignHolidays(calendarId, preset.Holidays);
+
         return true;
     }
 }
