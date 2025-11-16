@@ -694,6 +694,8 @@ public class FluxModelServiceTests
 
         _mockFluxModelRepository.Setup(x => x.GetByIdAsync(updatedModel.Id))
             .ReturnsAsync(existingModel);
+        _mockFluxModelRepository.Setup(x => x.IsNameUniqueForUserAsync(existingModel.UserId, updatedModel.Name, updatedModel.Id))
+            .ReturnsAsync(true);
         _mockFluxModelRepository.Setup(x => x.UpdateAsync(It.IsAny<FluxModel>()))
             .Returns(Task.CompletedTask);
 
