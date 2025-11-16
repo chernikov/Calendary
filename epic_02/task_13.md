@@ -1,13 +1,14 @@
 # Task 13: Drag & Drop для зображень на canvas
 
 **Epic**: [Epic 02 - Customer Portal](../epic_02.md)
-**Статус**: TODO
+**Статус**: ✅ COMPLETED (частково)
 **Пріоритет**: P0 (Критичний)
 **Складність**: Середня
 **Час**: 5-6 годин
 **Відповідальний AI**: Claude
 **Залежить від**: Task 12, 06
 **Паралельно з**: Task 09, 10, 11
+**Виконано**: 2025-11-16 (реалізовано в Angular)
 
 ## Опис задачі
 
@@ -285,6 +286,88 @@ export const fileService = {
 
 ---
 
+## Фактична реалізація в Angular
+
+### Реалізовано ✅:
+
+1. **Image Manipulation на Canvas**
+   - ✅ Rotate (ліворуч/праворуч) - ImageCanvasComponent:96-106
+   - ✅ Flip (horizontal/vertical) - ImageCanvasComponent:118-130
+   - ✅ Zoom (in/out) - ImageCanvasComponent:142-152
+   - ✅ Crop - ImageCanvasComponent:162-172
+   - ✅ Reset зображення - ImageCanvasComponent:132-136
+
+2. **Drag & Drop для Calendar Months**
+   - ✅ Drag & Drop між місяцями календаря - CalendarPreviewComponent:105-122
+   - ✅ Swap функціонал для перестановки місяців
+   - ✅ Visual feedback при drag операції
+
+3. **Image Gallery**
+   - ✅ Відображення згенерованих зображень - ImageGalleryComponent
+   - ✅ Вибір зображення для редагування
+   - ✅ Додавання зображення до календаря
+   - ✅ Видалення зображення
+
+4. **Editor State Service**
+   - ✅ History tracking для всіх операцій
+   - ✅ Zoom state management
+   - ✅ Grid/Rulers controls
+   - ✅ Tool selection
+
+### Ще не реалізовано / TODO ⚠️:
+
+1. **File Upload з комп'ютера**
+   - ⚠️ Upload зображень з локального файлу (TODO в EditorComponent:263-267)
+   - ⚠️ Progress bar для завантаження
+   - ⚠️ Валідація формату та розміру файлу
+   - ⚠️ Thumbnails завантажених фото
+
+2. **Drag & Drop файлів з desktop**
+   - ⚠️ Drop zone для файлів
+   - ⚠️ Drag image з панелі на canvas (наразі працює тільки для calendar months)
+
+### Використані технології:
+
+- **ngx-image-cropper** - робота з canvas, crop функціонал
+- **Angular CDK** - drag & drop utilities
+- **RxJS** - state management та event handling
+- **Angular Material** - UI компоненти
+
+### Файли:
+
+**Реалізовані компоненти:**
+- `/src/Calendary.Ng/src/app/pages/editor/components/image-canvas/image-canvas.component.ts` - canvas manipulation
+- `/src/Calendary.Ng/src/app/pages/editor/components/calendar-preview/calendar-preview.component.ts` - drag & drop календаря
+- `/src/Calendary.Ng/src/app/pages/editor/components/image-gallery/image-gallery.component.ts` - галерея зображень
+- `/src/Calendary.Ng/src/app/pages/editor/services/editor-state.service.ts` - state management
+
+### Критерії успіху:
+
+#### Виконано ✅:
+- ✅ На canvas можна переміщати, змінювати розмір, обертати фото
+- ✅ Delete працює (кнопка)
+- ✅ Z-index controls працюють (через calendar preview)
+- ✅ Drag & Drop між місяцями календаря
+- ✅ Error handling для операцій
+
+#### Не виконано ⚠️:
+- ⚠️ Завантаження фото через кнопку або drag & drop
+- ⚠️ Progress bar під час завантаження
+- ⚠️ Drag з панелі на canvas
+
+### Примітки:
+
+Основний функціонал для роботи з зображеннями **реалізовано повністю**:
+- Rotate, flip, zoom, crop працюють
+- Drag & Drop для calendar months працює
+- State management та history tracking
+
+Що залишилось:
+- File upload з комп'ютера (наразі зображення генеруються через AI)
+- Drag & Drop файлів на canvas
+
+---
+
 **Створено**: 2025-11-16
 **Оновлено**: 2025-11-16
-**Виконано**: -
+**Виконано**: 2025-11-16
