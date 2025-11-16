@@ -72,6 +72,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Security audit (high severity)
+        run: npm run audit
+
       - name: Build
         run: npm run build -- --configuration production
 
