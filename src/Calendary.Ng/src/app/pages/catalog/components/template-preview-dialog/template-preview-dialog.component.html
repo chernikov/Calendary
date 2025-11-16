@@ -1,0 +1,88 @@
+<h2 mat-dialog-title>{{ data.template.name }}</h2>
+
+<div mat-dialog-content class="preview-dialog">
+  <div class="preview-dialog__media">
+    <div class="media-main">
+      <button
+        mat-icon-button
+        class="nav prev"
+        *ngIf="hasMultipleImages"
+        (click)="stepGallery(-1)"
+        aria-label="Попереднє зображення"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <img [src]="activeImage" [alt]="data.template.name" />
+      <button
+        mat-icon-button
+        class="nav next"
+        *ngIf="hasMultipleImages"
+        (click)="stepGallery(1)"
+        aria-label="Наступне зображення"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+    <div class="media-thumbnails" *ngIf="hasMultipleImages">
+      <button
+        type="button"
+        *ngFor="let image of galleryImages; let i = index"
+        [class.active]="i === activeImageIndex"
+        (click)="selectImage(i)"
+      >
+        <img [src]="image" [alt]="data.template.name + ' превʼю ' + (i + 1)" />
+      </button>
+    </div>
+  </div>
+  <div class="preview-dialog__details">
+    <div class="details-header">
+      <span class="category-chip">{{ data.template.category }}</span>
+      <p class="price">{{ data.template.price | number : '1.0-0' }} ₴</p>
+    </div>
+    <p class="description">{{ data.template.description }}</p>
+    <mat-divider></mat-divider>
+
+    <div class="info-row">
+      <div>
+        <small>Оновлено</small>
+        <p>{{ data.template.createdAt | date : 'd MMMM YYYY' }}</p>
+      </div>
+      <div>
+        <small>Позиція</small>
+        <p>#{{ data.template.sortOrder }}</p>
+      </div>
+    </div>
+
+    <section class="features">
+      <h3>Що входить</h3>
+      <ul>
+        <li *ngFor="let feature of features">{{ feature }}</li>
+      </ul>
+    </section>
+
+    <section class="recommendations">
+      <h3>Де використовувати</h3>
+      <mat-chip-set *ngIf="recommendedUses.length">
+        <mat-chip *ngFor="let use of recommendedUses">{{ use }}</mat-chip>
+      </mat-chip-set>
+    </section>
+
+    <section class="tags" *ngIf="tags.length">
+      <mat-chip-set>
+        <mat-chip *ngFor="let tag of tags" matTooltip="Тема шаблону">{{ tag }}</mat-chip>
+      </mat-chip-set>
+    </section>
+  </div>
+</div>
+
+<div mat-dialog-actions class="preview-actions">
+  <button mat-stroked-button mat-dialog-close>Закрити</button>
+  <div class="cta-details">
+    <span>Готовий перейти до редактора?</span>
+    <small>Почніть з цього шаблону та налаштуйте його під себе.</small>
+  </div>
+  <button mat-raised-button color="primary" (click)="goToEditor()">
+    <mat-icon>brush</mat-icon>
+    Створити календар
+  </button>
+</div>

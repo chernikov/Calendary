@@ -1,7 +1,7 @@
 # Task 11: Попередній перегляд шаблону (modal)
 
 **Epic**: [Epic 02 - Customer Portal](../epic_02.md)
-**Статус**: TODO
+**Статус**: ✅ DONE (Calendary.Ng)
 **Пріоритет**: P1 (Високий)
 **Складність**: Низька
 **Час**: 2-3 години
@@ -206,6 +206,7 @@ export default function TemplateCard({ template }: TemplateCardProps) {
 - shadcn/ui Dialog має вбудовану accessibility (ESC, focus trap)
 - Deep linking дозволяє ділитися конкретним шаблоном
 - Priority на Image в modal для швидкого завантаження
+- На Angular-сторінці використано `MatDialog` та `TemplatePreviewDialogComponent` з підтримкою `?preview=` параметра.
 
 ## Чому Codex?
 

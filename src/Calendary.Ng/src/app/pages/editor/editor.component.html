@@ -50,7 +50,13 @@
 
         <!-- Bottom Toolbar -->
         <div class="toolbar-section">
-          <app-toolbar></app-toolbar>
+          <app-toolbar
+            (addText)="onAddTextElement()"
+            (addRectangle)="onAddShape('rectangle')"
+            (addCircle)="onAddShape('circle')"
+            (addLine)="onAddShape('line')"
+            (preview)="openCalendarPreview()"
+          ></app-toolbar>
         </div>
       </section>
 

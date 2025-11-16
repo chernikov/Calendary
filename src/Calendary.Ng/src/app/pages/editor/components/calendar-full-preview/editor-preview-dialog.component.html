@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>Попередній перегляд календаря</h2>
+<div mat-dialog-content class="preview-dialog">
+  <app-calendar-full-preview
+    class="preview"
+    [assignments]="data.assignments"
+    [year]="2026"
+    [holidays]="[]"
+  ></app-calendar-full-preview>
+  <div class="options">
+    <label>
+      Формат
+      <mat-select [(ngModel)]="format">
+        <mat-option value="A4">A4 (210 × 297 мм)</mat-option>
+        <mat-option value="A3">A3 (297 × 420 мм)</mat-option>
+      </mat-select>
+    </label>
+    <label>
+      Тип паперу
+      <mat-select [(ngModel)]="paper">
+        <mat-option value="Matte">Матовий</mat-option>
+        <mat-option value="Glossy">Глянцевий (+20%)</mat-option>
+      </mat-select>
+    </label>
+    <label>
+      Кількість
+      <input matInput type="number" min="1" max="20" [(ngModel)]="quantity" />
+    </label>
+    <div class="price">Вартість: {{ price }} ₴</div>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="addToCart()"
+      [disabled]="!canAddToCart || isSubmitting"
+    >
+      Додати в кошик
+    </button>
+    <small *ngIf="!data.calendar">Поточний календар ще не збережений — додавання буде доступне після збереження.</small>
+  </div>
+</div>
+<div mat-dialog-actions>
+  <button mat-stroked-button mat-dialog-close>Закрити</button>
+</div>

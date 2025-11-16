@@ -1,7 +1,7 @@
 # Task 16: Попередній перегляд готового календаря
 
 **Epic**: [Epic 02 - Customer Portal](../epic_02.md)
-**Статус**: TODO
+**Статус**: ✅ DONE (Calendary.Ng)
 **Пріоритет**: P0 (Критичний)
 **Складність**: Низька
 **Час**: 3-4 години
@@ -282,6 +282,7 @@ export const cartService = {
 - multiplier: 3 для 300 DPI якості (потрібно для друку)
 - Preview modal повинен показувати realistic size
 - Ціна може змінюватися залежно від формату та паперу
+- Додано `EditorPreviewDialogComponent` (Angular Material) з форматами, типами паперу та інтеграцією `CalendarService.addToCart`.
 
 ## Чому Codex?
 

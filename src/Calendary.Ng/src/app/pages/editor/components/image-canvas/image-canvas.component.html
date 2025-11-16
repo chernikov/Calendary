@@ -87,13 +87,64 @@
       <div class="ruler-vertical"></div>
     </div>
 
-    <div class="canvas-area" *ngIf="selectedImage && !isCropMode; else cropperView">
+    <div
+      class="canvas-area"
+      *ngIf="selectedImage && !isCropMode; else cropperView"
+      (click)="onCanvasClick()"
+    >
       <img
         [src]="imageUrl"
         [alt]="'Image #' + selectedImage.id"
         [style.transform]="'scale(' + scale + ')'"
         class="canvas-image"
       />
+      <div class="overlay-layer" *ngIf="overlayElements.length">
+        <div
+          *ngFor="let element of overlayElements"
+          class="overlay-element"
+          [ngClass]="{
+            selected: selectedOverlay?.id === element.id,
+            'type-circle': element.type === 'circle',
+            'type-line': element.type === 'line'
+          }"
+          cdkDrag
+          [cdkDragDisabled]="isCropMode"
+          [cdkDragFreeDragPosition]="{ x: element.x, y: element.y }"
+          (cdkDragEnded)="onOverlayDragEnd(element, $event)"
+          (click)="onOverlayClick(element, $event)"
+          [style.width.px]="element.width"
+          [style.height.px]="element.height"
+          [style.opacity]="element.opacity"
+          [style.transform]="'rotate(' + element.rotation + 'deg)'"
+        >
+          <div
+            *ngIf="element.type === 'text'"
+            class="text-element"
+            [style.fontFamily]="element.fontFamily"
+            [style.fontSize.px]="element.fontSize"
+            [style.fontWeight]="element.fontWeight"
+            [style.fontStyle]="element.fontStyle"
+            [style.textDecoration]="element.underline ? 'underline' : 'none'"
+            [style.color]="element.fill"
+            [style.textAlign]="element.align"
+          >
+            {{ element.text }}
+          </div>
+          <div
+            *ngIf="element.type === 'rectangle' || element.type === 'circle'"
+            class="shape-element"
+            [style.background]="element.fill"
+            [style.borderColor]="element.stroke"
+            [style.borderWidth.px]="element.strokeWidth"
+          ></div>
+          <div
+            *ngIf="element.type === 'line'"
+            class="line-element"
+            [style.background]="element.stroke"
+            [style.height.px]="element.strokeWidth"
+          ></div>
+        </div>
+      </div>
     </div>
 
     <ng-template #cropperView>

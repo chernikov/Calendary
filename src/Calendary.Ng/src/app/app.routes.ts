@@ -28,6 +28,7 @@ import { AdminUserComponent } from './admin/pages/admin-user/admin-user.componen
 import { AdminUserViewComponent } from './admin/pages/admin-user/admin-user-view/admin-user-view.component';
 import { AdminUserSynthesisComponent } from './admin/pages/admin-user/admin-user-view/synthesis/synthesis.component';
 import { EditorComponent } from './pages/editor/editor.component';
+import { CatalogComponent } from './pages/catalog/catalog.component';
 
 
 export const routes: Routes = [
@@ -66,6 +67,7 @@ export const routes: Routes = [
       { path: 'login', component: LoginComponent },
       { path: 'forgot-password', component: ForgotPasswordComponent },
       { path: 'verify/:token', component: VerifyComponent },
+      { path: 'catalog', component: CatalogComponent },
       { path: 'profile', component: ProfileComponent, canActivate: [UserGuard] },
       { path: 'cart', component: CartComponent, canActivate: [UserGuard]  },
       { path: 'order/:orderId', component: OrderComponent },

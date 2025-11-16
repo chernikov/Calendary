@@ -110,6 +110,186 @@
         <img [src]="imageUrl" [alt]="'Preview of image #' + selectedImage.id" />
       </div>
     </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="property-section">
+      <h4>Елементи полотна</h4>
+      <div class="overlay-list" *ngIf="overlayElements.length; else noOverlays">
+        <button
+          mat-stroked-button
+          *ngFor="let element of overlayElements"
+          [class.active]="selectedOverlay?.id === element.id"
+          (click)="selectOverlay(element)"
+        >
+          <mat-icon>
+            {{ element.type === 'text' ? 'title' : element.type === 'line' ? 'show_chart' : 'category' }}
+          </mat-icon>
+          {{ element.type }}
+          <mat-icon class="remove" (click)="removeOverlay(element, $event)">close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <ng-template #noOverlays>
+      <div class="empty-state small">
+        <p>Додайте текст або фігуру, щоб налаштовувати їх тут.</p>
+      </div>
+    </ng-template>
+
+    <div class="property-section" *ngIf="selectedOverlay; else overlayHint">
+      <h4>Налаштування елемента</h4>
+      <div class="grid two-columns">
+        <label>
+          X
+          <input
+            matInput
+            type="number"
+            [value]="selectedOverlay?.x"
+            (change)="updateOverlay({ x: $any($event.target).valueAsNumber })"
+          />
+        </label>
+        <label>
+          Y
+          <input
+            matInput
+            type="number"
+            [value]="selectedOverlay?.y"
+            (change)="updateOverlay({ y: $any($event.target).valueAsNumber })"
+          />
+        </label>
+        <label>
+          Ширина
+          <input
+            matInput
+            type="number"
+            [value]="selectedOverlay?.width"
+            (change)="updateOverlay({ width: $any($event.target).valueAsNumber })"
+          />
+        </label>
+        <label>
+          Висота
+          <input
+            matInput
+            type="number"
+            [value]="selectedOverlay?.height"
+            (change)="updateOverlay({ height: $any($event.target).valueAsNumber })"
+          />
+        </label>
+        <label>
+          Обертання
+          <input
+            matInput
+            type="number"
+            [value]="selectedOverlay?.rotation"
+            (change)="updateOverlay({ rotation: $any($event.target).valueAsNumber })"
+          />
+        </label>
+        <label>
+          Прозорість
+          <input
+            matInput
+            type="number"
+            min="0"
+            max="1"
+            step="0.05"
+            [value]="selectedOverlay?.opacity"
+            (change)="updateOverlay({ opacity: $any($event.target).valueAsNumber })"
+          />
+        </label>
+      </div>
+
+      <ui-color-picker
+        label="Заливка"
+        [value]="selectedOverlay?.fill || '#000000'"
+        (valueChange)="updateOverlay({ fill: $event })"
+      ></ui-color-picker>
+      <ui-color-picker
+        label="Обведення"
+        [value]="selectedOverlay?.stroke || '#000000'"
+        (valueChange)="updateOverlay({ stroke: $event })"
+      ></ui-color-picker>
+      <label>
+        Товщина обведення
+        <input
+          matInput
+          type="number"
+          min="0"
+          [value]="selectedOverlay?.strokeWidth"
+          (change)="updateOverlay({ strokeWidth: $any($event.target).valueAsNumber })"
+        />
+      </label>
+
+      <div *ngIf="isTextElement(selectedOverlay)" class="text-settings">
+        <label>
+          Текст
+          <textarea
+            matInput
+            rows="3"
+            [value]="selectedOverlay?.text"
+            (input)="updateTextOverlay({ text: ($event.target as HTMLTextAreaElement).value })"
+          ></textarea>
+        </label>
+        <label>
+          Шрифт
+          <mat-select
+            [value]="selectedOverlay?.fontFamily"
+            (selectionChange)="updateTextOverlay({ fontFamily: $event.value })"
+          >
+            <mat-option *ngFor="let font of fontFamilies" [value]="font">{{ font }}</mat-option>
+          </mat-select>
+        </label>
+        <label>
+          Розмір
+          <input
+            matInput
+            type="number"
+            min="8"
+            [value]="selectedOverlay?.fontSize"
+            (change)="updateTextOverlay({ fontSize: $any($event.target).valueAsNumber })"
+          />
+        </label>
+        <mat-button-toggle-group
+          [value]="selectedOverlay?.fontWeight"
+          (valueChange)="updateTextOverlay({ fontWeight: $event })"
+          class="toggle-row"
+        >
+          <mat-button-toggle value="normal">Regular</mat-button-toggle>
+          <mat-button-toggle value="bold">Bold</mat-button-toggle>
+        </mat-button-toggle-group>
+        <mat-button-toggle-group
+          [value]="selectedOverlay?.fontStyle"
+          (valueChange)="updateTextOverlay({ fontStyle: $event })"
+          class="toggle-row"
+        >
+          <mat-button-toggle value="normal">Звичайний</mat-button-toggle>
+          <mat-button-toggle value="italic">Курсив</mat-button-toggle>
+        </mat-button-toggle-group>
+        <mat-button-toggle-group
+          [value]="selectedOverlay?.align"
+          (valueChange)="updateTextOverlay({ align: $event })"
+          class="toggle-row"
+        >
+          <mat-button-toggle value="left">Ліворуч</mat-button-toggle>
+          <mat-button-toggle value="center">По центру</mat-button-toggle>
+          <mat-button-toggle value="right">Праворуч</mat-button-toggle>
+        </mat-button-toggle-group>
+        <mat-button-toggle-group
+          [value]="selectedOverlay?.underline ? 'underline' : 'none'"
+          (valueChange)="updateTextOverlay({ underline: $event === 'underline' })"
+          class="toggle-row"
+        >
+          <mat-button-toggle value="none">Без підкреслення</mat-button-toggle>
+          <mat-button-toggle value="underline">Підкреслення</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+    </div>
+
+    <ng-template #overlayHint>
+      <div class="empty-state small">
+        <p>Оберіть елемент, щоб змінити його властивості.</p>
+      </div>
+    </ng-template>
   </div>
 
   <ng-template #noSelection>

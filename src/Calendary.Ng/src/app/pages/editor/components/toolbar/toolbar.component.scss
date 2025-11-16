@@ -15,6 +15,15 @@
   gap: 12px;
 }
 
+.toolbar-section.tools {
+  flex-wrap: wrap;
+
+  button {
+    min-width: 140px;
+    justify-content: flex-start;
+  }
+}
+
 .zoom-slider-container {
   width: 200px;
   display: flex;
