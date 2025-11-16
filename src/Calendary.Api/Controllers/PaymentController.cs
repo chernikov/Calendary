@@ -97,7 +97,7 @@ public class PaymentController : BaseUserController
                 return BadRequest();
             }
 
-            //await ValidateSign(body, xSign);
+            await ValidateSign(body, xSign);
 
             // Обробка події
             var paymentInfo = await _paymentService.GetPaymentInfoByInvoiceIdAsync(hook.InvoiceId);
@@ -140,6 +140,60 @@ public class PaymentController : BaseUserController
                         paymentInfo.CreditPackageId.Value,
                         hook.InvoiceId
                     );
+                }
+            }
+            else if (hook.Status == "failure")
+            {
+                paymentInfo.IsPaid = false;
+                await _paymentService.UpdatePaymentInfoStatusAsync(paymentInfo);
+
+                if (paymentInfo.OrderId is not null)
+                {
+                    var order = await _orderService.GetOrderByIdAsync(paymentInfo.OrderId!.Value);
+                    if (order is not null)
+                    {
+                        order.Status = "PaymentFailed";
+                        order.IsPaid = false;
+                        await _orderService.UpdateOrderStatusAsync(order);
+                    }
+                }
+
+                if (paymentInfo.FluxModelId is not null)
+                {
+                    var fluxModel = await _fluxModelService.GetByIdAsync(paymentInfo.FluxModelId.Value);
+                    if (fluxModel is not null)
+                    {
+                        fluxModel.Status = "payment_failed";
+                        fluxModel.IsPaid = false;
+                        await _fluxModelService.UpdateStatusAsync(fluxModel);
+                    }
+                }
+            }
+            else if (hook.Status == "reversed")
+            {
+                paymentInfo.IsPaid = false;
+                await _paymentService.UpdatePaymentInfoStatusAsync(paymentInfo);
+
+                if (paymentInfo.OrderId is not null)
+                {
+                    var order = await _orderService.GetOrderByIdAsync(paymentInfo.OrderId!.Value);
+                    if (order is not null)
+                    {
+                        order.Status = "Cancelled";
+                        order.IsPaid = false;
+                        await _orderService.UpdateOrderStatusAsync(order);
+                    }
+                }
+
+                if (paymentInfo.FluxModelId is not null)
+                {
+                    var fluxModel = await _fluxModelService.GetByIdAsync(paymentInfo.FluxModelId.Value);
+                    if (fluxModel is not null)
+                    {
+                        fluxModel.Status = "cancelled";
+                        fluxModel.IsPaid = false;
+                        await _fluxModelService.UpdateStatusAsync(fluxModel);
+                    }
                 }
             }
 
