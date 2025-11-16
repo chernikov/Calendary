@@ -56,6 +56,26 @@
     </button>
   </div>
 
+  <!-- Tools section -->
+  <div class="toolbar-section tools">
+    <button mat-stroked-button color="primary" (click)="onAddText()" [class.active]="selectedTool === 'text'">
+      <mat-icon>title</mat-icon>
+      Текст
+    </button>
+    <button mat-stroked-button (click)="onAddRectangle()" [class.active]="selectedTool === 'rectangle'">
+      <mat-icon>crop_square</mat-icon>
+      Прямокутник
+    </button>
+    <button mat-stroked-button (click)="onAddCircle()" [class.active]="selectedTool === 'circle'">
+      <mat-icon>radio_button_unchecked</mat-icon>
+      Коло
+    </button>
+    <button mat-stroked-button (click)="onAddLine()" [class.active]="selectedTool === 'line'">
+      <mat-icon>show_chart</mat-icon>
+      Лінія
+    </button>
+  </div>
+
   <!-- Right section: View options -->
   <div class="toolbar-section">
     <mat-button-toggle-group>
@@ -77,5 +97,9 @@
         <span>Лінійки</span>
       </mat-button-toggle>
     </mat-button-toggle-group>
+    <button mat-raised-button color="accent" (click)="onPreview()">
+      <mat-icon>visibility</mat-icon>
+      Попередній перегляд
+    </button>
   </div>
 </div>

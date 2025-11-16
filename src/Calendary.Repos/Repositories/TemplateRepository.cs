@@ -8,6 +8,8 @@ public interface ITemplateRepository : IRepository<Template>
     Task<(IEnumerable<Template> Items, int TotalCount)> GetPagedAsync(
         string? category = null,
         string? searchQuery = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
         int page = 1,
         int pageSize = 20,
         string sortBy = "popularity"
@@ -66,6 +68,8 @@ public class TemplateRepository : ITemplateRepository
     public async Task<(IEnumerable<Template> Items, int TotalCount)> GetPagedAsync(
         string? category = null,
         string? searchQuery = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
         int page = 1,
         int pageSize = 20,
         string sortBy = "popularity"
@@ -86,6 +90,16 @@ public class TemplateRepository : ITemplateRepository
                 t.Name.Contains(searchQuery) ||
                 t.Description.Contains(searchQuery)
             );
+        }
+
+        if (minPrice.HasValue)
+        {
+            query = query.Where(t => t.Price >= minPrice.Value);
+        }
+
+        if (maxPrice.HasValue)
+        {
+            query = query.Where(t => t.Price <= maxPrice.Value);
         }
 
         // Apply sorting

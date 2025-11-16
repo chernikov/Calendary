@@ -35,7 +35,7 @@ public class CalendarsController : BaseUserController
     {
         try
         {
-            var currentUser = await CurrentUser;
+            var currentUser = await CurrentUser.Value;
             if (currentUser == null)
             {
                 return Unauthorized();
@@ -61,7 +61,7 @@ public class CalendarsController : BaseUserController
     {
         try
         {
-            var currentUser = await CurrentUser;
+            var currentUser = await CurrentUser.Value;
             if (currentUser == null)
             {
                 return Unauthorized();
@@ -92,7 +92,7 @@ public class CalendarsController : BaseUserController
     {
         try
         {
-            var currentUser = await CurrentUser;
+            var currentUser = await CurrentUser.Value;
             if (currentUser == null)
             {
                 return Unauthorized();
@@ -150,7 +150,7 @@ public class CalendarsController : BaseUserController
     {
         try
         {
-            var currentUser = await CurrentUser;
+            var currentUser = await CurrentUser.Value;
             if (currentUser == null)
             {
                 return Unauthorized();
@@ -203,7 +203,7 @@ public class CalendarsController : BaseUserController
     {
         try
         {
-            var currentUser = await CurrentUser;
+            var currentUser = await CurrentUser.Value;
             if (currentUser == null)
             {
                 return Unauthorized();
@@ -235,7 +235,7 @@ public class CalendarsController : BaseUserController
     {
         try
         {
-            var currentUser = await CurrentUser;
+            var currentUser = await CurrentUser.Value;
             if (currentUser == null)
             {
                 return Unauthorized();

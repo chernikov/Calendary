@@ -1,0 +1,42 @@
+.preview-dialog {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 24px;
+}
+
+.preview {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .price {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+  }
+}
+
+[mat-dialog-actions] {
+  justify-content: flex-end;
+}
+
+@media (max-width: 960px) {
+  .preview-dialog {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,63 @@
+<section class="catalog-page">
+  <div class="catalog-hero">
+    <div>
+      <p class="eyebrow">Каталог шаблонів</p>
+      <h1>Оберіть стартовий дизайн і прискорте роботу</h1>
+      <p class="subtitle">
+        Усі шаблони оптимізовані під друк та підтримують подальше редагування в редакторі Calendary.
+      </p>
+    </div>
+  </div>
+
+  <app-catalog-filter-bar
+    [categories]="categories"
+    [value]="filters"
+    (valueChange)="onFiltersChange($event)"
+  ></app-catalog-filter-bar>
+
+  <div class="catalog-meta" *ngIf="!loading">
+    <p class="catalog-meta__count">
+      Показано {{ templates.length }} з {{ totalCount }} шаблонів
+    </p>
+    <div class="catalog-meta__filters" *ngIf="activeFilterLabels.length">
+      <span class="chip" *ngFor="let label of activeFilterLabels">{{ label }}</span>
+      <button type="button" class="link" (click)="clearFilters()">
+        Скинути все
+      </button>
+    </div>
+  </div>
+
+  <div class="catalog-content">
+    <div class="state" *ngIf="loading">
+      <div class="grid">
+        <app-template-card-skeleton *ngFor="let skeleton of skeletons; trackBy: trackSkeleton"></app-template-card-skeleton>
+      </div>
+    </div>
+
+    <div class="state" *ngIf="!loading && error">
+      <p>{{ error }}</p>
+    </div>
+
+    <div class="state" *ngIf="!loading && !error && !templates.length">
+      <p>Шаблони за заданими фільтрами не знайдені.</p>
+    </div>
+
+    <div class="grid" *ngIf="!loading && !error && templates.length">
+      <app-template-card
+        *ngFor="let template of templates; trackBy: trackByTemplate"
+        [template]="template"
+        (preview)="openPreview($event)"
+      ></app-template-card>
+    </div>
+  </div>
+
+  <div class="catalog-footer" *ngIf="totalCount > pageSize">
+    <mat-paginator
+      [length]="totalCount"
+      [pageIndex]="pageIndex"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[6, 12, 24]"
+      (page)="onPageChange($event)"
+    ></mat-paginator>
+  </div>
+</section>

@@ -4,15 +4,33 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FormsModule } from '@angular/forms';
 import { JobTask } from '../../../../../models/job-task';
 import { EditorStateService } from '../../services/editor-state.service';
 import { Subscription } from 'rxjs';
+import { CanvasOverlayService } from '../../services/canvas-overlay.service';
+import { CanvasElement, TextCanvasElement } from '../../models/canvas-overlay.model';
+// TODO: Create ColorPickerComponent
+// import { ColorPickerComponent } from '../../../components/ui/color-picker/color-picker.component';
 
 @Component({
     standalone: true,
     selector: 'app-properties-panel',
-    imports: [CommonModule, MatIconModule, MatDividerModule, MatSliderModule, MatSelectModule, FormsModule],
+    imports: [
+        CommonModule,
+        MatIconModule,
+        MatDividerModule,
+        MatSliderModule,
+        MatSelectModule,
+        MatButtonModule,
+        MatInputModule,
+        MatButtonToggleModule,
+        FormsModule,
+        // ColorPickerComponent // TODO: Uncomment when created
+    ],
     templateUrl: './properties-panel.component.html',
     styleUrl: './properties-panel.component.scss'
 })
@@ -23,26 +41,38 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
   imageQuality = 95;
   imageWidth = 0;
   imageHeight = 0;
+  overlayElements: CanvasElement[] = [];
+  selectedOverlay: CanvasElement | null = null;
 
   formats = ['PNG', 'JPG', 'WebP'];
+  fontFamilies = ['Inter, sans-serif', 'Merriweather, serif', 'Roboto, sans-serif'];
 
-  private subscription: Subscription | null = null;
+  private subscriptions = new Subscription();
 
-  constructor(private editorStateService: EditorStateService) {}
+  constructor(
+    private editorStateService: EditorStateService,
+    private overlayService: CanvasOverlayService
+  ) {}
 
   ngOnInit(): void {
-    this.subscription = this.editorStateService.state$.subscribe(state => {
+    this.subscriptions.add(this.editorStateService.state$.subscribe(state => {
       this.imageFormat = state.imageFormat;
       this.imageQuality = state.imageQuality;
       this.imageWidth = state.imageWidth;
       this.imageHeight = state.imageHeight;
-    });
+    }));
+
+    this.subscriptions.add(
+      this.overlayService.elements$.subscribe((elements) => (this.overlayElements = elements))
+    );
+
+    this.subscriptions.add(
+      this.overlayService.selectedElement$.subscribe((element) => (this.selectedOverlay = element))
+    );
   }
 
   ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
+    this.subscriptions.unsubscribe();
   }
 
   get imageUrl(): string {
@@ -104,5 +134,32 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
     return this.selectedImage.retryCount > 0
       ? `${this.selectedImage.retryCount} спроб`
       : 'Без повторів';
+  }
+
+  selectOverlay(element: CanvasElement): void {
+    this.overlayService.selectElement(element.id);
+  }
+
+  removeOverlay(element: CanvasElement, event?: Event): void {
+    event?.stopPropagation();
+    this.overlayService.removeElement(element.id);
+  }
+
+  updateOverlay(changes: Partial<CanvasElement>): void {
+    if (!this.selectedOverlay) {
+      return;
+    }
+    this.overlayService.updateElement(this.selectedOverlay.id, changes);
+  }
+
+  updateTextOverlay(changes: Partial<TextCanvasElement>): void {
+    if (!this.isTextElement(this.selectedOverlay)) {
+      return;
+    }
+    this.overlayService.updateElement(this.selectedOverlay.id, changes);
+  }
+
+  isTextElement(element: CanvasElement | null): element is TextCanvasElement {
+    return !!element && element.type === 'text';
   }
 }

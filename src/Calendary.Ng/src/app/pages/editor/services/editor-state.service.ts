@@ -9,7 +9,11 @@ export type EditorTool =
   | 'filter'
   | 'brightness'
   | 'contrast'
-  | 'saturation';
+  | 'saturation'
+  | 'text'
+  | 'rectangle'
+  | 'circle'
+  | 'line';
 
 export interface EditorAction {
   type: string;

@@ -28,6 +28,8 @@ public class TemplatesController : ControllerBase
     public async Task<ActionResult<PagedResult<TemplateDto>>> GetTemplates(
         [FromQuery] string? category = null,
         [FromQuery] string? search = null,
+        [FromQuery] decimal? minPrice = null,
+        [FromQuery] decimal? maxPrice = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] string sortBy = "popularity")
@@ -39,7 +41,13 @@ public class TemplatesController : ControllerBase
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
             var (items, totalCount) = await _templateRepository.GetPagedAsync(
-                category, search, page, pageSize, sortBy);
+                category,
+                search,
+                minPrice,
+                maxPrice,
+                page,
+                pageSize,
+                sortBy);
 
             var templateDtos = items.Select(MapToDto);
 

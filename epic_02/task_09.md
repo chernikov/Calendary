@@ -1,7 +1,7 @@
 # Task 09: Сторінка каталогу шаблонів
 
 **Epic**: [Epic 02 - Customer Portal](../epic_02.md)
-**Статус**: TODO
+**Статус**: ✅ DONE (Calendary.Ng)
 **Пріоритет**: P0 (Критичний)
 **Складність**: Низька
 **Час**: 4-5 годин
@@ -192,6 +192,7 @@ export const templateService = {
 - Next.js Image автоматично оптимізує зображення
 - Skeleton loaders покращують UX під час завантаження
 - line-clamp-2 обрізає опис до 2 рядків
+- Реалізовано в Angular застосунку (`src/Calendary.Ng`) — сторінка `/catalog` із картками, skeleton-станом, пагінацією та інтеграцією з `TemplateService`.
 
 ## Чому Codex?
 

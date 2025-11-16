@@ -1,0 +1,40 @@
+.filter-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  align-items: end;
+}
+
+.price-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.price-filter__header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #475467;
+
+  strong {
+    color: #111827;
+  }
+}
+
+.range-inputs {
+  display: flex;
+  gap: 12px;
+
+  input[type='range'] {
+    flex: 1;
+  }
+}
+
+button mat-icon {
+  margin-right: 6px;
+}
