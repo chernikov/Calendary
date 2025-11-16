@@ -1,13 +1,13 @@
 # Task 15: Undo/Redo та збереження стану
 
 **Epic**: [Epic 02 - Customer Portal](../epic_02.md)
-**Статус**: ✅ COMPLETED
+**Статус**: ⚠️ ЧАСТКОВО COMPLETED
 **Пріоритет**: P1 (Високий)
 **Складність**: Середня
 **Час**: 4-5 годин
 **Відповідальний AI**: Claude
 **Залежить від**: Task 12, 13, 14
-**Виконано**: 2025-11-16 (реалізовано в Angular)
+**Виконано**: 2025-11-16 (localStorage auto-save ✅, undo/redo ❌, backend save ❌)
 
 ## Опис задачі
 
@@ -308,203 +308,191 @@ const handleSave = async () => {
 
 ## Фактична реалізація в Angular
 
+**Важливо**: Ця задача стосується **збереження стану календаря** (assignments), а не image editing операцій.
+
 ### Реалізовано ✅:
 
-#### 1. History Stack для Undo/Redo
+#### 1. Auto-save в localStorage
 
-**EditorStateService** (`editor-state.service.ts:14-49`):
+**CalendarBuilderService** (calendar-builder.service.ts:9-10, 76-90):
+
 ```typescript
-export interface EditorAction {
-  type: string;
-  timestamp: Date;
-  data: any;
-  description: string;
-}
+export class CalendarBuilderService {
+  private readonly storageKey = 'calendar-assignments';
+  private readonly assignmentsSubject = new BehaviorSubject<MonthAssignment[]>(
+    this.loadFromStorage() // Автоматичне завантаження при старті
+  );
 
-export interface EditorState {
-  history: EditorAction[];
-  historyIndex: number;
-  isDirty: boolean;
-  // ... інші поля
-}
-```
+  // Автоматичне збереження при кожній зміні
+  private setAssignments(assignments: MonthAssignment[]): void {
+    this.assignmentsSubject.next(assignments);
+    this.persist(assignments); // ← Auto-save
+  }
 
-**Методи для history management:**
-- ✅ `addAction()` - додає дію до історії (editor-state.service.ts:92-109)
-- ✅ `undo()` - відміняє останню дію (editor-state.service.ts:111-119)
-- ✅ `redo()` - повторює скасовану дію (editor-state.service.ts:121-129)
-- ✅ `canUndo()` - перевіряє можливість undo (editor-state.service.ts:131-133)
-- ✅ `canRedo()` - перевіряє можливість redo (editor-state.service.ts:135-137)
-- ✅ `clearHistory()` - очищає історію (editor-state.service.ts:139-145)
+  private persist(assignments: MonthAssignment[]): void {
+    if (typeof localStorage === 'undefined') return;
 
-#### 2. Keyboard Shortcuts
-
-**EditorComponent** (`editor.component.ts:73-90`):
-```typescript
-@HostListener('window:keydown', ['$event'])
-handleKeyboardEvent(event: KeyboardEvent): void {
-  // Ctrl+Z - Undo
-  if (event.ctrlKey && event.key === 'z' && !event.shiftKey) {
-    event.preventDefault();
-    if (this.editorStateService.undo()) {
-      this.snackBar.open('Дію скасовано', '', { duration: 2000 });
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(assignments));
+    } catch {
+      // Silently fail storage errors
     }
   }
 
-  // Ctrl+Y або Ctrl+Shift+Z - Redo
-  if ((event.ctrlKey && event.key === 'y') ||
-      (event.ctrlKey && event.shiftKey && event.key === 'z')) {
-    event.preventDefault();
-    if (this.editorStateService.redo()) {
-      this.snackBar.open('Дію повторено', '', { duration: 2000 });
+  private loadFromStorage(): MonthAssignment[] {
+    if (typeof localStorage === 'undefined') return [];
+
+    try {
+      const saved = localStorage.getItem(this.storageKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
     }
   }
 }
 ```
 
-#### 3. State Management з RxJS
+**Як працює:**
+- ✅ При `assignImageToMonth()` → auto-save в localStorage
+- ✅ При `removeAssignment()` → auto-save в localStorage
+- ✅ При `clear()` → auto-save в localStorage
+- ✅ При завантаженні сторінки → auto-restore з localStorage
 
-**BehaviorSubject для reactive state** (`editor-state.service.ts:55-56`):
+#### 2. Reactive State Management
+
+**BehaviorSubject для reactive updates** (calendar-builder.service.ts:10-11):
+
 ```typescript
-private stateSubject = new BehaviorSubject<EditorState>(initialState);
-public state$: Observable<EditorState> = this.stateSubject.asObservable();
+private readonly assignmentsSubject = new BehaviorSubject<MonthAssignment[]>(
+  this.loadFromStorage()
+);
+readonly assignments$ = this.assignmentsSubject.asObservable();
 ```
 
-**Підписка на зміни стану:**
-- ✅ Components можуть підписатись на `state$` observable
-- ✅ Automatic updates при змінах стану
-- ✅ Reactive UI updates
+**EditorComponent підписується на зміни** (editor.component.ts:397-404):
 
-#### 4. isDirty Tracking
-
-**Відстеження змін** (`editor-state.service.ts:29, 107, 148`):
 ```typescript
-isDirty: boolean; // Показує чи є незбережені зміни
-markAsSaved(): void; // Позначає стан як збережений
+private subscribeToAssignments(): void {
+  this.calendarBuilder.assignments$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((assignments) => {
+      this.assignments = assignments;
+      this.duplicateImageIds = this.calendarBuilder.getDuplicateImageIds();
+    });
+}
 ```
 
-#### 5. Action Tracking
+#### 3. CalendarPreviewComponent збереження customization
 
-**Кожна дія зберігається в історії** (`image-canvas.component.ts`):
-- ✅ Rotate: `editorStateService.addAction('rotate', {...}, 'Повернуто ліворуч')`
-- ✅ Crop: `editorStateService.addAction('crop', {...}, 'Зображення обрізано')`
-- ✅ Інші операції також tracking
+**Auto-save customization в localStorage** (calendar-preview.component.ts:229-257):
 
-### Реалізовані Features:
+```typescript
+private loadCustomization(): void {
+  const saved = localStorage.getItem('calendar-customization');
+  if (saved) {
+    this.customization = JSON.parse(saved);
+  }
+}
 
-#### History Management:
-- ✅ History stack з необмеженою кількістю кроків
-- ✅ History index для навігації
-- ✅ Видалення future actions при додаванні нової дії після undo
-- ✅ Timestamp для кожної дії
-- ✅ Description для кожної дії
+onCustomizationChange(): void {
+  this.saveCustomization(); // Auto-save при кожній зміні
+}
 
-#### State Tracking:
-- ✅ Zoom level (10-400%)
-- ✅ Grid enabled/disabled
-- ✅ Rulers enabled/disabled
-- ✅ Selected tool
-- ✅ Image dimensions
-- ✅ Image format (PNG, JPEG)
-- ✅ Image quality (1-100%)
-- ✅ isDirty flag
+private saveCustomization(): void {
+  localStorage.setItem(
+    'calendar-customization',
+    JSON.stringify(this.customization)
+  );
+}
+```
 
-#### Keyboard Shortcuts:
-- ✅ Ctrl+Z - Undo
-- ✅ Ctrl+Y - Redo
-- ✅ Ctrl+Shift+Z - Redo (alternative)
+### Не реалізовано ❌:
 
-### Ще не реалізовано / TODO ⚠️:
+#### Undo/Redo для calendar assignments
 
-#### Auto-save:
-- ⚠️ Auto-save в localStorage кожні 10 секунд
-- ⚠️ Відновлення з localStorage при завантаженні
-- ⚠️ "Automatically saved" індикатор
+**Чого немає:**
+- ❌ History stack для calendar operations (assignImageToMonth, removeAssignment)
+- ❌ Keyboard shortcuts (Ctrl+Z, Ctrl+Y) для календаря
+- ❌ Undo/Redo UI buttons
 
-#### Backend save:
-- ⚠️ Manual save кнопка
-- ⚠️ PUT /api/calendars/{id} для збереження
-- ⚠️ Збереження canvas JSON на backend
-- ⚠️ Preview image generation та збереження
+**Примітка:** EditorStateService має undo/redo, але він для image editing (rotate, crop), а не для calendar assignments.
+
+**Для реалізації потрібно:**
+1. Додати history в CalendarBuilderService
+2. Зберігати snapshots assignments перед кожною зміною
+3. Додати undo()/redo() методи
+4. Додати keyboard shortcuts в EditorComponent
+
+#### Backend збереження
+
+**Чого немає:**
+- ❌ Manual "Save" кнопка
+- ❌ PUT /api/calendars/{id} endpoint для збереження
+- ❌ Збереження assignments на backend
+- ❌ Preview image generation та upload
 
 ### Використані технології:
 
-- **RxJS BehaviorSubject** - reactive state management
-- **TypeScript** - type safety для state та actions
-- **Angular HostListener** - keyboard shortcuts
-- **Angular Material Snackbar** - user notifications
+- **localStorage API** - persistence
+- **RxJS BehaviorSubject** - reactive state
+- **TypeScript** - type safety
+- **Angular** - framework
 
 ### Файли:
 
-**Core Services:**
-- `/src/Calendary.Ng/src/app/pages/editor/services/editor-state.service.ts` - state management
-- `/src/Calendary.Ng/src/app/pages/editor/editor.component.ts` - keyboard shortcuts
+**Core Service:**
+- `/src/Calendary.Ng/src/app/pages/editor/services/calendar-builder.service.ts` - auto-save logic
 
-**Components using state:**
-- `/src/Calendary.Ng/src/app/pages/editor/components/image-canvas/image-canvas.component.ts` - canvas operations
-- `/src/Calendary.Ng/src/app/pages/editor/components/toolbar/toolbar.component.ts` - toolbar state
+**Components:**
+- `/src/Calendary.Ng/src/app/pages/editor/components/calendar-preview/calendar-preview.component.ts` - customization save
+- `/src/Calendary.Ng/src/app/pages/editor/editor.component.ts` - state subscription
 
 ### Критерії успіху:
 
 #### Виконано ✅:
-- ✅ Undo працює (Ctrl+Z)
-- ✅ Redo працює (Ctrl+Y та Ctrl+Shift+Z)
-- ✅ History stack реалізовано
-- ✅ State management через RxJS
-- ✅ isDirty tracking
-- ✅ canUndo/canRedo перевірки
-- ✅ Action descriptions для history
-- ✅ Keyboard shortcuts
-- ✅ User notifications при undo/redo
+- ✅ **Auto-save в localStorage** - assignments зберігаються автоматично
+- ✅ **Відновлення при перезавантаженні** - loadFromStorage() при init
+- ✅ Reactive state через BehaviorSubject
+- ✅ Customization auto-save (fonts, colors)
+- ✅ Error handling (silent fails для storage errors)
 
-#### Не виконано ⚠️:
-- ⚠️ Auto-save в localStorage
-- ⚠️ Відновлення при перезавантаженні
-- ⚠️ Manual save на backend
-- ⚠️ Preview image generation
-- ⚠️ Saving state індикатор
+#### Не виконано ❌:
+- ❌ **Undo/Redo для calendar assignments**
+- ❌ Keyboard shortcuts (Ctrl+Z, Ctrl+Y)
+- ❌ Manual save кнопка
+- ❌ Backend збереження (PUT /api/calendars/{id})
+- ❌ Preview image generation
+- ❌ "Saving..." індикатор
 
 ### Архітектура:
 
 ```
-EditorStateService (Singleton)
-    ├── BehaviorSubject<EditorState>
-    ├── History Stack (EditorAction[])
-    ├── History Index
+CalendarBuilderService (Singleton)
+    ├── BehaviorSubject<MonthAssignment[]>
+    ├── localStorage persistence
     └── Methods:
-        ├── addAction() - додає action + автоматичний history management
-        ├── undo() - зменшує historyIndex
-        ├── redo() - збільшує historyIndex
-        ├── canUndo() - historyIndex > 0
-        └── canRedo() - historyIndex < history.length - 1
+        ├── assignImageToMonth() → auto-save ✅
+        ├── removeAssignment() → auto-save ✅
+        ├── clear() → auto-save ✅
+        ├── loadFromStorage() → auto-restore ✅
+        └── persist() → write to localStorage ✅
 
-Components subscribe to state$:
-    ├── ImageCanvasComponent - додає actions при rotate/crop/etc
-    ├── ToolbarComponent - відображає state (zoom, grid, rulers)
-    └── EditorComponent - keyboard shortcuts для undo/redo
+EditorComponent
+    └── subscribe to assignments$ → reactive UI updates ✅
 ```
-
-### Performance:
-
-- ✅ Efficient history management (no deep copying on every change)
-- ✅ RxJS для reactive updates без manual change detection
-- ✅ History index approach (не re-apply всіх дій при undo/redo)
 
 ### Примітки:
 
-**Сильні сторони реалізації:**
-1. Чистий, типізований state management
-2. Reactive architecture з RxJS
-3. Зручні keyboard shortcuts
-4. User-friendly notifications
-5. Efficient history tracking
+**Що працює:**
+1. ✅ Automatic localStorage persistence - assignments не втрачаються
+2. ✅ Auto-restore при завантаженні сторінки
+3. ✅ Reactive updates через RxJS
+4. ✅ Customization збереження
 
-**Що можна додати:**
-1. localStorage auto-save для persistence
-2. Backend integration для збереження
-3. History panel для візуалізації всіх дій
-4. Max history limit (наприклад, 50 останніх дій)
-5. Compression для великих history stacks
+**Що треба додати:**
+1. ❌ Undo/Redo функціонал для calendar operations
+2. ❌ Backend integration для збереження на сервер
+3. ❌ Preview image generation (для PDF export)
 
 ---
 

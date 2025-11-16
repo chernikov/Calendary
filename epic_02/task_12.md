@@ -468,50 +468,63 @@ Claude краще справляється з такими складними з
 
 ## Фактична реалізація в Angular
 
-Замість Fabric.js/Konva.js, в Angular додатку реалізовано редактор на основі:
+**Важливо**: Замість складного canvas editor з Fabric.js/Konva.js, реалізовано **календарну сітку (grid)** для призначення зображень на місяці.
 
 ### Використані технології:
-- **ngx-image-cropper** - для роботи з canvas та обробки зображень
-- **EditorStateService** - управління станом редактора через RxJS
-- **Angular Material** - UI компоненти для інструментів редагування
+- **CalendarBuilderService** - управління призначеннями зображень + localStorage
+- **CalendarPreviewComponent** - відображення 12 місяців у grid/preview режимі
+- **MonthPageComponent** - рендеринг окремого місяця
+- **RxJS BehaviorSubject** - reactive state management
+- **Angular Material** - UI компоненти
 
 ### Реалізовані компоненти:
 
-1. **ImageCanvasComponent** (`src/app/pages/editor/components/image-canvas/`)
-   - Відображення та обробка зображень на canvas
-   - Rotate, flip, zoom, crop функціонал
-   - Інтеграція з ngx-image-cropper
+1. **CalendarBuilderService** (`services/calendar-builder.service.ts:1-93`)
+   - ✅ `assignImageToMonth()` - призначити зображення на місяць
+   - ✅ `removeAssignment()` - видалити призначення
+   - ✅ `clear()` - очистити всі призначення
+   - ✅ `isComplete()` - перевірка чи всі 12 місяців заповнені
+   - ✅ `getDuplicateImageIds()` - знайти дубльовані зображення
+   - ✅ **Auto-save в localStorage** (calendar-builder.service.ts:76-90)
+   - ✅ **BehaviorSubject** `assignments$` для reactive updates
 
-2. **EditorStateService** (`src/app/pages/editor/services/editor-state.service.ts`)
-   - Centralized state management
-   - History stack для undo/redo
-   - Zoom, grid, rulers controls
-   - Tool selection
+2. **CalendarPreviewComponent** (`components/calendar-preview/calendar-preview.component.ts:1-266`)
+   - ✅ Grid view - 12 місяців у сітці 3x4
+   - ✅ Preview mode - повноекранний перегляд місяця
+   - ✅ Progress: "Заповнено: X/12" (calendar-preview.component.ts:71-90)
+   - ✅ Validation - дублікати та незаповнені місяці
+   - ✅ Click на місяць - вибір зображення
+   - ✅ Clear month/Clear all (calendar-preview.component.ts:96-103)
+   - ✅ Zoom controls (176-190)
+   - ✅ Customization - шрифти, кольори (215-257)
 
-3. **ToolbarComponent** (`src/app/pages/editor/components/toolbar/`)
-   - Інструменти для редагування
-   - Zoom controls
-   - Grid/Rulers toggles
+3. **MonthPageComponent** (`components/month-page/`)
+   - ✅ Рендеринг календарної сітки місяця
+   - ✅ Дні тижня, дати
+   - ✅ Святкові дні (holidays)
+   - ✅ Customizable styles
 
-4. **EditorComponent** (`src/app/pages/editor/editor.component.ts`)
-   - Головний компонент редактора
-   - Keyboard shortcuts (Ctrl+Z, Ctrl+Y)
-   - Інтеграція всіх підкомпонентів
+4. **MonthSelectorComponent** (`components/month-selector/`)
+   - ✅ Modal для вибору місяця
+   - ✅ Список доступних зображень
+   - ✅ Preview зображення
 
 ### Файли:
-- `/src/Calendary.Ng/src/app/pages/editor/editor.component.ts`
-- `/src/Calendary.Ng/src/app/pages/editor/components/image-canvas/image-canvas.component.ts`
-- `/src/Calendary.Ng/src/app/pages/editor/services/editor-state.service.ts`
-- `/src/Calendary.Ng/src/app/pages/editor/components/toolbar/toolbar.component.ts`
+- `/src/Calendary.Ng/src/app/pages/editor/services/calendar-builder.service.ts` - core service
+- `/src/Calendary.Ng/src/app/pages/editor/components/calendar-preview/calendar-preview.component.ts` - UI
+- `/src/Calendary.Ng/src/app/pages/editor/components/month-page/month-page.component.ts` - month rendering
+- `/src/Calendary.Ng/src/app/pages/editor/models/calendar-assignment.model.ts` - data models
 
 ### Критерії успіху - Виконано:
-- ✅ Canvas компонент створено та працює
-- ✅ State management через EditorStateService
-- ✅ Утиліти для роботи з canvas (rotate, flip, crop, zoom)
-- ✅ Toolbar з інструментами редагування
-- ✅ Можна обробляти зображення (crop, rotate, flip)
+- ✅ Календарна сітка з 12 місяцями створена
+- ✅ State management через CalendarBuilderService + RxJS
+- ✅ Можна призначати зображення на місяці
+- ✅ Grid та Preview режими
+- ✅ Validation (completion, duplicates)
+- ✅ **Auto-save в localStorage**
+- ✅ Reactive updates через BehaviorSubject
 - ✅ TypeScript типізація
-- ✅ Angular Material UI інтеграція
+- ✅ Customization UI
 
 ---
 
