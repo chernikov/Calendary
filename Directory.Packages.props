@@ -14,7 +14,6 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1" />
     <PackageVersion Include="Portable.BouncyCastle" Version="1.9.0" />
     <PackageVersion Include="itext7" Version="9.4.0" />
-    <PackageVersion Include="itext7.bouncy-castle-adapter" Version="9.4.0" />
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.0" />
     <PackageVersion Include="SendGrid" Version="9.29.3" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
