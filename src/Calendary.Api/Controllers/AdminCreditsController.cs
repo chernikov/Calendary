@@ -27,7 +27,7 @@ public class AdminCreditsController : ControllerBase
     public async Task<IActionResult> AddCreditsToUser([FromBody] AddCreditsRequest request)
     {
         // Перевірка що користувач існує
-        var user = await _userService.GetByIdAsync(request.UserId);
+        var user = await _userService.GetUserByIdAsync(request.UserId);
         if (user == null)
         {
             return NotFound(new { message = "User not found" });
@@ -57,7 +57,7 @@ public class AdminCreditsController : ControllerBase
     [HttpGet("balance/{userId:int}")]
     public async Task<IActionResult> GetUserBalance(int userId)
     {
-        var user = await _userService.GetByIdAsync(userId);
+        var user = await _userService.GetUserByIdAsync(userId);
         if (user == null)
         {
             return NotFound(new { message = "User not found" });
@@ -80,7 +80,7 @@ public class AdminCreditsController : ControllerBase
     [HttpGet("transactions/{userId:int}")]
     public async Task<IActionResult> GetUserTransactions(int userId, [FromQuery] int skip = 0, [FromQuery] int take = 100)
     {
-        var user = await _userService.GetByIdAsync(userId);
+        var user = await _userService.GetUserByIdAsync(userId);
         if (user == null)
         {
             return NotFound(new { message = "User not found" });
