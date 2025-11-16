@@ -151,8 +151,8 @@ public class ReplicateService : IReplicateService
             // Розрахунок прогресу на основі статусу
             var progress = CalculateProgress(status.Status, attempts, _settings.MaxRetries);
             var elapsed = (DateTime.UtcNow - startTime).TotalSeconds;
-            var estimatedTotal = attempts > 0 ? (elapsed / attempts) * _settings.MaxRetries : null;
-            var estimatedRemaining = estimatedTotal.HasValue ? (int)(estimatedTotal.Value - elapsed) : null;
+            double? estimatedTotal = attempts > 0 ? (elapsed / attempts) * _settings.MaxRetries : null;
+            int? estimatedRemaining = estimatedTotal.HasValue ? (int)(estimatedTotal.Value - elapsed) : null;
 
             // Відправити оновлення прогресу
             if (onProgress != null)

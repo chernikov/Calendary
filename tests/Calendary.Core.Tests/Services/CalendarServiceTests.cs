@@ -659,4 +659,215 @@ public class CalendarServiceTests
     }
 
     #endregion
+
+    #region Edge Cases and Additional Coverage Tests
+
+    [Fact]
+    public async Task CreateAsync_MultipleCalls_ReusesExistingOrder()
+    {
+        // Arrange
+        var userId = 1;
+        var calendar1 = CreateTestCalendar(userId: userId);
+        var calendar2 = CreateTestCalendar(2, userId: userId);
+        var existingOrder = CreateTestOrder(userId: userId);
+
+        _mockOrderRepository.Setup(x => x.GetOrderByStatusAsync(userId, "creating"))
+            .ReturnsAsync(existingOrder);
+        _mockCalendarRepository.Setup(x => x.AddAsync(It.IsAny<Calendar>()))
+            .Returns(Task.CompletedTask);
+        _mockOrderItemRepository.Setup(x => x.AddAsync(It.IsAny<OrderItem>()))
+            .Returns(Task.CompletedTask);
+        _mockCalendarRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync((int id) => id == calendar1.Id ? calendar1 : calendar2);
+        _mockCalendarRepository.Setup(x => x.UpdateAsync(It.IsAny<Calendar>()))
+            .Returns(Task.CompletedTask);
+
+        var service = CreateService();
+
+        // Act
+        await service.CreateAsync(userId, calendar1);
+        await service.CreateAsync(userId, calendar2);
+
+        // Assert
+        // Should create only ONE order for both calendars
+        _mockOrderRepository.Verify(x => x.AddAsync(It.IsAny<Order>()), Times.Never);
+        _mockOrderItemRepository.Verify(x => x.AddAsync(It.IsAny<OrderItem>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task GetCurrentAsync_EmptyCalendarList_ReturnsNull()
+    {
+        // Arrange
+        var userId = 1;
+        var calendars = new List<Calendar>();
+
+        _mockCalendarRepository.Setup(x => x.GetCalendarsByUserAsync(userId))
+            .ReturnsAsync(calendars);
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.GetCurrentAsync(userId);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetCurrentAsync_MultipleCurrentCalendars_ReturnsNewest()
+    {
+        // Arrange
+        var userId = 1;
+        var calendars = new List<Calendar>
+        {
+            CreateTestCalendar(1, userId, isCurrent: true),
+            CreateTestCalendar(2, userId, isCurrent: true),
+            CreateTestCalendar(3, userId, isCurrent: true)
+        };
+
+        _mockCalendarRepository.Setup(x => x.GetCalendarsByUserAsync(userId))
+            .ReturnsAsync(calendars);
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.GetCurrentAsync(userId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(3, result.Id); // Newest (highest ID)
+    }
+
+    [Fact]
+    public async Task MakeCurrentAsync_CalendarNotFound_DoesNothing()
+    {
+        // Arrange
+        var userId = 1;
+        var calendarId = 999;
+
+        _mockCalendarRepository.Setup(x => x.GetByIdAsync(calendarId))
+            .ReturnsAsync((Calendar?)null);
+
+        var service = CreateService();
+
+        // Act
+        await service.MakeCurrentAsync(userId, calendarId);
+
+        // Assert
+        _mockCalendarRepository.Verify(x => x.UpdateAsync(It.IsAny<Calendar>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task MakeNotCurrentAsync_CalendarNotFound_DoesNothing()
+    {
+        // Arrange
+        var userId = 1;
+        var calendarId = 999;
+
+        _mockCalendarRepository.Setup(x => x.GetFullCalendarAsync(calendarId))
+            .ReturnsAsync((Calendar?)null);
+
+        var service = CreateService();
+
+        // Act
+        await service.MakeNotCurrentAsync(userId, calendarId);
+
+        // Assert
+        _mockCalendarRepository.Verify(x => x.UpdateAsync(It.IsAny<Calendar>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GeneratePdfAsync_AlreadyHasHolidays_SkipsAssignment()
+    {
+        // Arrange
+        var userId = 1;
+        var calendarId = 1;
+        var calendar = CreateTestCalendar(calendarId, userId);
+        calendar.CalendarHolidays = new List<CalendarHoliday>
+        {
+            new CalendarHoliday { CalendarId = calendarId, HolidayId = 1 },
+            new CalendarHoliday { CalendarId = calendarId, HolidayId = 2 }
+        };
+
+        var pdfPath = "/path/to/calendar.pdf";
+
+        _mockCalendarRepository.Setup(x => x.GetFullCalendarAsync(calendarId))
+            .ReturnsAsync(calendar);
+        _mockPdfGeneratorService.Setup(x => x.GeneratePdfAsync(calendarId))
+            .ReturnsAsync(pdfPath);
+        _mockCalendarRepository.Setup(x => x.SaveFileAsync(calendarId, pdfPath))
+            .Returns(Task.CompletedTask);
+
+        var service = CreateService();
+
+        // Act
+        await service.GeneratePdfAsync(userId, calendarId);
+
+        // Assert
+        // Should NOT assign holidays since calendar already has them
+        _mockEventDateRepository.Verify(x => x.GetAllByUserIdAsync(It.IsAny<int>()), Times.Never);
+        _mockHolidayRepository.Verify(x => x.GetAllByCoutryIdAsync(It.IsAny<int>()), Times.Never);
+        _mockCalendarRepository.Verify(x => x.AssignEventDatesAsync(It.IsAny<int>(), It.IsAny<IList<EventDate>>()), Times.Never);
+        _mockCalendarRepository.Verify(x => x.AssignHolidays(It.IsAny<int>(), It.IsAny<IList<Holiday>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_NoCalendars_ReturnsEmptyList()
+    {
+        // Arrange
+        var userId = 1;
+        var calendars = new List<Calendar>();
+
+        _mockCalendarRepository.Setup(x => x.GetByUserIdAsync(userId))
+            .ReturnsAsync(calendars);
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.GetByUserIdAsync(userId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task CreateAsync_PriceServiceCalled_UsesCorrectPrice()
+    {
+        // Arrange
+        var userId = 1;
+        var calendar = CreateTestCalendar(userId: userId);
+        var testPrice = 999.99m;
+
+        _mockPriceService.Setup(x => x.GetPrice()).Returns(testPrice);
+        _mockOrderRepository.Setup(x => x.GetOrderByStatusAsync(userId, "creating"))
+            .ReturnsAsync((Order?)null);
+        _mockUserSettingRepository.Setup(x => x.GetByUserIdAsync(userId))
+            .ReturnsAsync((UserSetting?)null);
+        _mockOrderRepository.Setup(x => x.AddAsync(It.IsAny<Order>()))
+            .Returns(Task.CompletedTask);
+        _mockCalendarRepository.Setup(x => x.AddAsync(It.IsAny<Calendar>()))
+            .Returns(Task.CompletedTask);
+
+        OrderItem? capturedOrderItem = null;
+        _mockOrderItemRepository.Setup(x => x.AddAsync(It.IsAny<OrderItem>()))
+            .Callback<OrderItem>(oi => capturedOrderItem = oi)
+            .Returns(Task.CompletedTask);
+
+        _mockCalendarRepository.Setup(x => x.GetByIdAsync(calendar.Id))
+            .ReturnsAsync(calendar);
+        _mockCalendarRepository.Setup(x => x.UpdateAsync(It.IsAny<Calendar>()))
+            .Returns(Task.CompletedTask);
+
+        var service = CreateService();
+
+        // Act
+        await service.CreateAsync(userId, calendar);
+
+        // Assert
+        Assert.NotNull(capturedOrderItem);
+        Assert.Equal(testPrice, capturedOrderItem.Price);
+    }
+
+    #endregion
 }
