@@ -25,6 +25,7 @@ public static class DependencyRegistration
         services.AddScoped<ILanguageService, LanguageService>();
         services.AddScoped<IEventDateService, EventDateService>();
         services.AddScoped<ICalendarService, CalendarService>();
+        services.AddScoped<ICalendarBuilderService, CalendarBuilderService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IHolidayService, HolidayService>();
