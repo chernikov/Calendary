@@ -45,6 +45,8 @@ public class CalendaryDbContext : DbContext, ICalendaryDbContext
 
     public DbSet<Photo> Photos { get; set; }
 
+    public DbSet<UserPhoto> UserPhotos { get; set; }
+
     public DbSet<Prompt> Prompts { get; set; }
 
     public DbSet<PromptSeed> PromptSeeds { get; set; }

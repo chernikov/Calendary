@@ -60,7 +60,7 @@ export class LoginComponent {
               window.location.reload();
             });
           } else {
-            this.router.navigate(['/']).then(() => {
+            this.router.navigate(['/editor']).then(() => {
               window.location.reload();
             });
           }
