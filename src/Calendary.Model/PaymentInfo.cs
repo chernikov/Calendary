@@ -18,6 +18,12 @@ public class PaymentInfo
     public FluxModel? FluxModel { get; set; }
 
     /// <summary>
+    /// ID користувача (для покупки кредитних пакетів)
+    /// </summary>
+    public int? UserId { get; set; }
+    public User? User { get; set; }
+
+    /// <summary>
     /// ID пакету кредитів (якщо оплачується пакет кредитів)
     /// </summary>
     public int? CreditPackageId { get; set; }

@@ -13,7 +13,8 @@ import { EditorStateService } from '../../services/editor-state.service';
 import { Subscription } from 'rxjs';
 import { CanvasOverlayService } from '../../services/canvas-overlay.service';
 import { CanvasElement, TextCanvasElement } from '../../models/canvas-overlay.model';
-import { ColorPickerComponent } from '../../../components/ui/color-picker/color-picker.component';
+// TODO: Create ColorPickerComponent
+// import { ColorPickerComponent } from '../../../components/ui/color-picker/color-picker.component';
 
 @Component({
     standalone: true,
@@ -28,7 +29,7 @@ import { ColorPickerComponent } from '../../../components/ui/color-picker/color-
         MatInputModule,
         MatButtonToggleModule,
         FormsModule,
-        ColorPickerComponent
+        // ColorPickerComponent // TODO: Uncomment when created
     ],
     templateUrl: './properties-panel.component.html',
     styleUrl: './properties-panel.component.scss'

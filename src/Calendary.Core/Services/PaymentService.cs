@@ -15,6 +15,8 @@ public interface IPaymentService
     Task<string> CreateFluxInvoiceAsync(int fluxId);
 
     Task<string> CreateCreditPackageInvoiceAsync(int userId, int creditPackageId);
+    
+    Task<string> CreateCreditPackageInvoiceAsync(int userId, int creditPackageId, decimal price, string packageName);
 
     Task SaveWebhookAsync(string webHookData, string xSign);
 

@@ -4,6 +4,7 @@ import {
   CanvasElement,
   CanvasElementType,
   TextCanvasElement,
+  ShapeCanvasElement,
 } from '../models/canvas-overlay.model';
 import { EditorStateService } from './editor-state.service';
 
@@ -32,9 +33,9 @@ export class CanvasOverlayService {
 
   updateElement(id: string, changes: Partial<CanvasElement>): void {
     const updated = this.elementsSubject.value.map((element) =>
-      element.id === id ? { ...element, ...changes } : element
+      element.id === id ? { ...element, ...changes } as CanvasElement : element
     );
-    this.elementsSubject.next(updated);
+    this.elementsSubject.next(updated as CanvasElement[]);
   }
 
   removeElement(id: string): void {
@@ -79,7 +80,7 @@ export class CanvasOverlayService {
       } satisfies TextCanvasElement;
     }
 
-    const base: CanvasElement = {
+    const base = {
       id,
       type,
       x: 60,
@@ -91,7 +92,7 @@ export class CanvasOverlayService {
       stroke: '#111827',
       strokeWidth: type === 'line' ? 3 : 2,
       opacity: 0.9,
-    } as CanvasElement;
+    } as ShapeCanvasElement;
 
     return base;
   }

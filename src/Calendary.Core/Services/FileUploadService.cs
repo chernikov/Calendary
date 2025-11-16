@@ -1,5 +1,6 @@
 using Calendary.Model;
 using Calendary.Repos.Repositories;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -19,7 +20,7 @@ public class FileUploadService : IFileUploadService
     private readonly IUploadedFileRepository _fileRepository;
     private readonly IConfiguration _config;
     private readonly ILogger<FileUploadService> _logger;
-    private readonly IWebHostEnvironment _environment;
+    // private readonly IWebHostEnvironment _environment;
 
     private const long MaxFileSize = 10 * 1024 * 1024; // 10MB
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
@@ -28,13 +29,13 @@ public class FileUploadService : IFileUploadService
     public FileUploadService(
         IUploadedFileRepository fileRepository,
         IConfiguration config,
-        ILogger<FileUploadService> logger,
-        IWebHostEnvironment environment)
+        ILogger<FileUploadService> logger)
+        // IWebHostEnvironment environment)
     {
         _fileRepository = fileRepository;
         _config = config;
         _logger = logger;
-        _environment = environment;
+        // _environment = environment;
     }
 
     public async Task<UploadedFile> UploadAsync(IFormFile file, int userId, CancellationToken ct = default)
@@ -46,7 +47,7 @@ public class FileUploadService : IFileUploadService
         var uniqueFileName = $"{Guid.NewGuid()}{extension}";
 
         // Ensure uploads directory exists
-        var uploadsPath = Path.Combine(_environment.WebRootPath ?? "wwwroot", "uploads");
+        var uploadsPath = Path.Combine("wwwroot", "uploads");
         Directory.CreateDirectory(uploadsPath);
 
         var filePath = Path.Combine(uploadsPath, uniqueFileName);
@@ -158,17 +159,5 @@ public class FileUploadService : IFileUploadService
         {
             throw new ArgumentException($"MIME type {file.ContentType} is not allowed");
         }
-    }
-}
-
-// Note: IWebHostEnvironment needs to be available
-// Add this using directive at the top: using Microsoft.AspNetCore.Hosting;
-namespace Microsoft.AspNetCore.Hosting
-{
-    // Placeholder interface if not available
-    public interface IWebHostEnvironment
-    {
-        string WebRootPath { get; }
-        string EnvironmentName { get; }
     }
 }
