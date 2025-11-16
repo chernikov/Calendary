@@ -28,3 +28,143 @@ h4{margin:0;font-size:14px;font-weight:600;color:#1e40af}.progress-icon{color:#3
 .progress-time{display:flex;align-items:center;gap:4px;font-size:12px;color:#6b7280;mat-icon{font-size:16px;width:16px;height:16px}}}
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 mat-dialog-actions{padding:16px 24px;border-top:1px solid #e5e7eb;gap:12px;button mat-progress-spinner{display:inline-block;margin-right:8px}}
+
+// Prompt Enhancement Styles
+.prompt-enhancement-toggle{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 16px;
+  background:#f9fafb;
+  border-radius:8px;
+  border:1px solid #e5e7eb;
+  margin-top:12px;
+
+  mat-slide-toggle{
+    flex:1;
+
+    .toggle-content{
+      display:flex;
+      align-items:center;
+      gap:8px;
+
+      mat-icon{
+        font-size:20px;
+        width:20px;
+        height:20px;
+        color:#4058ff;
+      }
+
+      span{
+        font-size:14px;
+        font-weight:500;
+        color:#1f2937;
+      }
+    }
+  }
+
+  .enhancing-spinner{
+    flex-shrink:0;
+  }
+}
+
+.enhanced-prompt-preview{
+  padding:16px;
+  background:#f0fdf4;
+  border:1px solid #86efac;
+  border-radius:12px;
+  margin-top:16px;
+
+  .preview-header{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:12px;
+
+    mat-icon{
+      color:#10b981;
+      font-size:20px;
+      width:20px;
+      height:20px;
+    }
+
+    h4{
+      margin:0;
+      font-size:14px;
+      font-weight:600;
+      color:#065f46;
+    }
+  }
+
+  .preview-content{
+    .enhanced-text{
+      padding:12px;
+      background:#fff;
+      border-radius:8px;
+      font-size:13px;
+      line-height:1.6;
+      color:#1f2937;
+      margin:0 0 12px;
+      border:1px solid #d1fae5;
+    }
+
+    .suggestions{
+      padding:12px;
+      background:#ecfdf5;
+      border-radius:8px;
+      border:1px solid #d1fae5;
+
+      .suggestions-title{
+        display:flex;
+        align-items:center;
+        gap:6px;
+        font-size:13px;
+        font-weight:600;
+        color:#065f46;
+        margin:0 0 8px;
+
+        mat-icon{
+          font-size:16px;
+          width:16px;
+          height:16px;
+          color:#10b981;
+        }
+      }
+
+      ul{
+        margin:0;
+        padding-left:20px;
+        font-size:12px;
+        color:#047857;
+
+        li{
+          margin-bottom:4px;
+
+          &:last-child{
+            margin-bottom:0;
+          }
+        }
+      }
+    }
+  }
+
+  .preview-actions{
+    display:flex;
+    gap:8px;
+    justify-content:flex-end;
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid #d1fae5;
+
+    button{
+      font-size:13px;
+
+      mat-icon{
+        font-size:18px;
+        width:18px;
+        height:18px;
+        margin-right:4px;
+      }
+    }
+  }
+}

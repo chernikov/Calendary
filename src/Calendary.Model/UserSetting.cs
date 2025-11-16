@@ -23,5 +23,8 @@ public class UserSetting
     public string? DeliveryAddress { get; set; } = null!;   // saved in text city, postOffice
 
     [MaxLength(1000)]
-    public string? DeliveryRaw { get; set; } // saved in json city and postOffice  
+    public string? DeliveryRaw { get; set; } // saved in json city and postOffice
+
+    // AI Prompt Enhancement Setting
+    public bool UseImprovedPrompt { get; set; } = false;
 }
