@@ -5,23 +5,29 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 WORKDIR /src
 
+# Копіюємо файли Central Package Management для правильних версій пакетів
+COPY ["Directory.Build.props", "./"]
+COPY ["Directory.Packages.props", "./"]
+
 # Копіюємо тільки файли проектів для кешування залежностей
 COPY ["src/Calendary.Api/Calendary.Api.csproj", "Calendary.Api/"]
 COPY ["src/Calendary.Core/Calendary.Core.csproj", "Calendary.Core/"]
 COPY ["src/Calendary.Model/Calendary.Model.csproj", "Calendary.Model/"]
 COPY ["src/Calendary.Repos/Calendary.Repos.csproj", "Calendary.Repos/"]
 
+# Очищення NuGet конфігурації від Windows-специфічних шляхів
+RUN dotnet nuget locals all --clear
+
 # Restore залежностей (цей шар буде кешуватись)
-RUN dotnet restore "Calendary.Api/Calendary.Api.csproj"
+RUN dotnet restore "Calendary.Api/Calendary.Api.csproj" --force
 
 # Копіюємо весь код
 COPY src/ .
 
-# Build з оптимізацією для production
+# Build і publish з оптимізацією для production
 RUN dotnet publish "Calendary.Api/Calendary.Api.csproj" \
     -c Release \
     -o /app/publish \
-    --no-restore \
     /p:PublishTrimmed=false \
     /p:PublishSingleFile=false \
     /p:EnableCompressionInSingleFile=true
