@@ -11,8 +11,13 @@ COPY ["src/Calendary.Core/Calendary.Core.csproj", "Calendary.Core/"]
 COPY ["src/Calendary.Model/Calendary.Model.csproj", "Calendary.Model/"]
 COPY ["src/Calendary.Repos/Calendary.Repos.csproj", "Calendary.Repos/"]
 
+# Очищення NuGet конфігурації від Windows-специфічних шляхів
+RUN dotnet nuget locals all --clear
+
 # Restore залежностей (цей шар буде кешуватись)
-RUN dotnet restore "Calendary.Api/Calendary.Api.csproj"
+RUN dotnet restore "Calendary.Api/Calendary.Api.csproj" \
+    --disable-parallel \
+    --no-cache
 
 # Копіюємо весь код
 COPY src/ .
@@ -24,7 +29,8 @@ RUN dotnet publish "Calendary.Api/Calendary.Api.csproj" \
     --no-restore \
     /p:PublishTrimmed=false \
     /p:PublishSingleFile=false \
-    /p:EnableCompressionInSingleFile=true
+    /p:EnableCompressionInSingleFile=true \
+    /p:RestorePackagesPath=/root/.nuget/packages
 
 # Stage 2: Runtime (Alpine для меншого розміру)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
