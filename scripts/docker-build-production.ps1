@@ -6,7 +6,7 @@ param(
     [Parameter()]
     [string]$Tag = 'latest',
     [Parameter()]
-    [switch]$Push,
+    [bool]$Push = $true,
     [Parameter()]
     [switch]$NoCache
 )
@@ -35,7 +35,10 @@ function Build-Backend {
     }
     
     if ($LASTEXITCODE -ne 0) { exit 1 }
-    if ($Push) { docker push $backendImage }
+    if ($Push) {
+        docker push $backendImage
+        if ($LASTEXITCODE -ne 0) { exit 1 }
+    }
 }
 
 function Build-Consumer {
@@ -50,7 +53,10 @@ function Build-Consumer {
     }
     
     if ($LASTEXITCODE -ne 0) { exit 1 }
-    if ($Push) { docker push $consumerImage }
+    if ($Push) {
+        docker push $consumerImage
+        if ($LASTEXITCODE -ne 0) { exit 1 }
+    }
 }
 
 function Build-Frontend {
@@ -65,7 +71,10 @@ function Build-Frontend {
     }
     
     if ($LASTEXITCODE -ne 0) { exit 1 }
-    if ($Push) { docker push $frontendImage }
+    if ($Push) {
+        docker push $frontendImage
+        if ($LASTEXITCODE -ne 0) { exit 1 }
+    }
 }
 switch ($Component) {
     'backend' { Build-Backend }
