@@ -32,24 +32,25 @@ RUN dotnet nuget locals all --clear
 # Restore залежностей (цей шар буде кешуватись)
 RUN dotnet restore "Calendary.Api/Calendary.Api.csproj" \
     --configfile NuGet.Config \
-    --disable-parallel \
-    --no-cache
+    --force
 
 # Копіюємо весь код
 COPY src/ .
 
-# Видаляємо project.assets.json файли які містять Windows-специфічні шляхи
-# та робимо restore знову щоб згенерувати Linux-сумісні файли
-RUN find . -name "project.assets.json" -type f -delete && \
-    find . -name "*.csproj.nuget.g.props" -type f -delete && \
-    find . -name "*.csproj.nuget.g.targets" -type f -delete && \
-    dotnet restore "Calendary.Api/Calendary.Api.csproj" --configfile NuGet.Config
+# Debug: показати поточний стан файлів
+RUN echo "=== Checking for obj/bin directories ===" && \
+    find . -type d \( -name "obj" -o -name "bin" \) && \
+    echo "=== Checking for .csproj files ===" && \
+    find . -name "*.csproj" && \
+    echo "=== Checking for project.assets.json ===" && \
+    find . -name "project.assets.json" && \
+    echo "=== Checking NuGet props/targets ===" && \
+    find . -name "*.csproj.nuget.g.*" || echo "No NuGet cache files found"
 
 # Build і publish з оптимізацією для production
 RUN dotnet publish "Calendary.Api/Calendary.Api.csproj" \
     -c Release \
     -o /app/publish \
-    --no-restore \
     /p:PublishTrimmed=false \
     /p:PublishSingleFile=false \
     /p:EnableCompressionInSingleFile=true
