@@ -1,30 +1,69 @@
+# ==============================================================================
 # Stage 1: Build Angular application
+# ==============================================================================
 FROM node:20-alpine AS build
+
+# Set working directory
 WORKDIR /app
 
-# Copy package files (include lockfile for deterministic installs)
-COPY package.json package-lock.json* ./
+# Copy package files first for better layer caching
+COPY package.json package-lock.json ./
 
-# Install dependencies (prefer `npm ci`, fall back to `npm install` if necessary)
-RUN npm ci || npm install
+# Install dependencies
+# Use npm ci for clean, reproducible installs in production
+RUN npm ci --only=production=false && \
+    npm cache clean --force
 
-# Copy source code
-COPY . ./
+# Copy source code and configuration files
+COPY angular.json tsconfig.json tsconfig.app.json ./
+COPY src ./src
+COPY public ./public
 
-# Build Angular app for production
+# Build Angular app for production with optimizations
 RUN npm run build -- --configuration production
 
+# ==============================================================================
 # Stage 2: Serve with Nginx
+# ==============================================================================
 FROM nginx:alpine
 
-# Copy built Angular app
+# Add labels for better image management
+LABEL maintainer="Calendary Team"
+LABEL description="Calendary.Ng Angular Frontend (Production)"
+LABEL version="1.0"
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+# Remove default nginx configuration and static files
+RUN rm -rf /usr/share/nginx/html/* && \
+    rm -rf /etc/nginx/conf.d/*
+
+# Copy built Angular app from build stage
 COPY --from=build /app/dist/calendary.ng/browser /usr/share/nginx/html
 
 # Copy nginx configuration for production
 COPY nginx.production.conf /etc/nginx/nginx.conf
 
+# Create directory for certificates (will be mounted as volume)
+RUN mkdir -p /certs
+
+# Set proper permissions
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /etc/nginx/conf.d
+
+# Note: Running as root is required for binding to ports 80 and 443
+# Nginx will automatically drop privileges to 'nginx' user after binding
+# as configured in nginx.production.conf (user nginx;)
+
 # Expose ports
 EXPOSE 80 443
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
