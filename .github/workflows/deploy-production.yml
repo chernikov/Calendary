@@ -81,8 +81,8 @@ jobs:
       - name: Build and push (Production)
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./backend
+          file: ./docker/backend/Dockerfile.production
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -125,8 +125,8 @@ jobs:
       - name: Build and push (Production)
         uses: docker/build-push-action@v5
         with:
-          context: ./src/
-          file: ./src/Calendary.Consumer/Dockerfile
+          context: ./backend
+          file: ./docker/backend/Dockerfile.consumer
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -169,8 +169,8 @@ jobs:
       - name: Build and push (Production)
         uses: docker/build-push-action@v5
         with:
-          context: ./src/Calendary.Ng
-          file: ./src/Calendary.Ng/Dockerfile
+          context: ./frontend/Calendary.Ng
+          file: ./docker/frontend/Dockerfile.production
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

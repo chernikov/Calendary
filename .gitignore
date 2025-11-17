@@ -366,3 +366,8 @@ FodyWeavers.xsd
 # Claude Code settings
 .claude/
 
+# Uploaded files and user content (exclude user uploads)
+backend/src/Calendary.Api/wwwroot/uploads/
+
+# Git analysis reports
+git-large-files-report.md

@@ -64,7 +64,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./src/Calendary.Ng
+        working-directory: ./frontend/Calendary.Ng
 
     steps:
       - name: Checkout
@@ -75,7 +75,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: ./src/Calendary.Ng/package-lock.json
+          cache-dependency-path: ./frontend/Calendary.Ng/package-lock.json
 
       - name: Use npm 11.6.2
         run: npm install -g npm@11.6.2
@@ -99,7 +99,7 @@ jobs:
         uses: codecov/codecov-action@v4
         if: github.event_name == 'pull_request'
         with:
-          directory: ./src/Calendary.Ng/coverage/
+          directory: ./frontend/Calendary.Ng/coverage/
           flags: frontend
           name: frontend-coverage
 

@@ -1,0 +1,29 @@
+# ================================================
+# FRONTEND .dockerignore (src/Calendary.Ng context)
+# Used when building Angular app
+# ================================================
+
+# Node modules (will be installed in container)
+node_modules/
+
+# Build output (will be built in container)
+dist/
+.angular/
+
+# IDE
+.vscode/
+
+# Tests coverage
+coverage/
+
+# Environment files
+.env
+.env.local
+
+# Test files (not needed in production)
+*.spec.ts
+karma.conf.js
+playwright.config.ts
+
+# Documentation
+README.md

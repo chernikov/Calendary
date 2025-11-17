@@ -1,0 +1,34 @@
+# ================================================
+# BACKEND .dockerignore (backend/ context)
+# Used when building backend from /backend directory
+# ================================================
+
+# Build artifacts
+bin/
+obj/
+*.dll
+*.pdb
+
+# Tests
+tests/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Environment
+.env
+.env.local
+
+# Git
+.git/
+.gitignore
+
+# Coverage
+coverage/
+
+# Uploads (will be volume-mounted)
+src/Calendary.Api/wwwroot/uploads/
+src/Calendary.Api/wwwroot/output/
