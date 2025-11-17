@@ -38,15 +38,21 @@ RUN dotnet restore "Calendary.Api/Calendary.Api.csproj" \
 # Копіюємо весь код
 COPY src/ .
 
+# Видаляємо project.assets.json файли які містять Windows-специфічні шляхи
+RUN find . -name "project.assets.json" -type f -delete && \
+    find . -name "*.csproj.nuget.g.props" -type f -delete && \
+    find . -name "*.csproj.nuget.g.targets" -type f -delete
+
 # Build з оптимізацією для production
+RUN dotnet build "Calendary.Api/Calendary.Api.csproj" -c Release --no-restore
+
 RUN dotnet publish "Calendary.Api/Calendary.Api.csproj" \
     -c Release \
     -o /app/publish \
-    --no-restore \
+    --no-build \
     /p:PublishTrimmed=false \
     /p:PublishSingleFile=false \
-    /p:EnableCompressionInSingleFile=true \
-    /p:RestorePackagesPath=/root/.nuget/packages
+    /p:EnableCompressionInSingleFile=true
 
 # Stage 2: Runtime (Alpine для меншого розміру)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
