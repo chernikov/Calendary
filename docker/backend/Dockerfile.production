@@ -5,6 +5,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 WORKDIR /src
 
+# Копіюємо NuGet конфігурацію для уникнення Windows-специфічних шляхів
+COPY ["docker/backend/NuGet.Config", "./"]
+
 # Копіюємо тільки файли проектів для кешування залежностей
 COPY ["src/Calendary.Api/Calendary.Api.csproj", "Calendary.Api/"]
 COPY ["src/Calendary.Core/Calendary.Core.csproj", "Calendary.Core/"]
@@ -16,6 +19,7 @@ RUN dotnet nuget locals all --clear
 
 # Restore залежностей (цей шар буде кешуватись)
 RUN dotnet restore "Calendary.Api/Calendary.Api.csproj" \
+    --configfile NuGet.Config \
     --disable-parallel \
     --no-cache
 
