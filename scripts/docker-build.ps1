@@ -139,7 +139,7 @@ function Build-Frontend {
         }
         
         # Build from src/Calendary.Ng directory
-        docker build -t $frontendImage -f $dockerfilePath $angularPath
+        docker build --no-cache -t $frontendImage -f $dockerfilePath $angularPath
         
         if ($LASTEXITCODE -ne 0) {
             throw "Frontend build failed"
