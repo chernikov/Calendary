@@ -2,11 +2,11 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Copy package files
+# Copy package files (include lockfile for deterministic installs)
 COPY package.json package-lock.json* ./
 
-# Install dependencies
-RUN npm ci --omit=dev
+# Install dependencies (prefer `npm ci`, fall back to `npm install` if necessary)
+RUN npm ci || npm install
 
 # Copy source code
 COPY . ./

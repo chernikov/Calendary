@@ -26,7 +26,7 @@ Write-Info "Push: $Push"
 function Build-Backend {
     $backendImage = "chernikov/calendary.api:$Tag"
     $backendContext = Join-Path $rootDir "backend"
-    $dockerfilePath = Join-Path $rootDir "docker\backend\Dockerfile.production"
+    $dockerfilePath = Join-Path $rootDir "backend\src\Calendary.Api\Dockerfile.production"
     
     if ($NoCache) {
         docker build --no-cache -t $backendImage -f $dockerfilePath $backendContext
@@ -41,7 +41,7 @@ function Build-Backend {
 function Build-Consumer {
     $consumerImage = "chernikov/calendary.consumer:$Tag"
     $backendContext = Join-Path $rootDir "backend"
-    $dockerfilePath = Join-Path $rootDir "docker\backend\Dockerfile.consumer"
+    $dockerfilePath = Join-Path $rootDir "backend\src\Calendary.Consumer\Dockerfile.production"
     
     if ($NoCache) {
         docker build --no-cache -t $consumerImage -f $dockerfilePath $backendContext
@@ -56,7 +56,7 @@ function Build-Consumer {
 function Build-Frontend {
     $frontendImage = "chernikov/calendary.ng:$Tag"
     $angularPath = Join-Path $rootDir "frontend\Calendary.Ng"
-    $dockerfilePath = Join-Path $rootDir "docker\frontend\Dockerfile.production"
+    $dockerfilePath = Join-Path $angularPath "Dockerfile.production"
     
     if ($NoCache) {
         docker build --no-cache -t $frontendImage -f $dockerfilePath $angularPath
