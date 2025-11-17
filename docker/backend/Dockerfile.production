@@ -51,6 +51,7 @@ RUN echo "=== Checking for obj/bin directories ===" && \
 RUN dotnet publish "Calendary.Api/Calendary.Api.csproj" \
     -c Release \
     -o /app/publish \
+    --configfile NuGet.Config \
     /p:PublishTrimmed=false \
     /p:PublishSingleFile=false \
     /p:EnableCompressionInSingleFile=true
