@@ -39,17 +39,17 @@ RUN dotnet restore "Calendary.Api/Calendary.Api.csproj" \
 COPY src/ .
 
 # Видаляємо project.assets.json файли які містять Windows-специфічні шляхи
+# та робимо restore знову щоб згенерувати Linux-сумісні файли
 RUN find . -name "project.assets.json" -type f -delete && \
     find . -name "*.csproj.nuget.g.props" -type f -delete && \
-    find . -name "*.csproj.nuget.g.targets" -type f -delete
+    find . -name "*.csproj.nuget.g.targets" -type f -delete && \
+    dotnet restore "Calendary.Api/Calendary.Api.csproj" --configfile NuGet.Config
 
-# Build з оптимізацією для production
-RUN dotnet build "Calendary.Api/Calendary.Api.csproj" -c Release --no-restore
-
+# Build і publish з оптимізацією для production
 RUN dotnet publish "Calendary.Api/Calendary.Api.csproj" \
     -c Release \
     -o /app/publish \
-    --no-build \
+    --no-restore \
     /p:PublishTrimmed=false \
     /p:PublishSingleFile=false \
     /p:EnableCompressionInSingleFile=true
