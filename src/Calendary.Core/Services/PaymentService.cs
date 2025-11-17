@@ -76,20 +76,28 @@ public class MonoPaymentService : IPaymentService
         var orderItems = await _orderItemRepository.GetByOrderIdAsync(orderId);
         var sum = orderItems.Sum(p => p.Price * p.Quantity);
 
+        // Get userId from the first order item
+        var firstItem = orderItems.FirstOrDefault();
+        int? userId = firstItem?.Order?.UserId;
+
         return await CreateInvoiceInnerAsync(
             sum,
-            redirectUrl: $"https://calendary.com.ua/order/{orderId}",
-            orderId: orderId
+            redirectUrl: $"https://calendary.com.ua/order/{orderId}?payment=processing",
+            orderId: orderId,
+            userId: userId
         );
     }
 
     public async Task<string> CreateFluxInvoiceAsync(int fluxModelId)
     {
         var price = _priceModel;
+        // FluxModel userId needs to be retrieved from FluxModelService or repository
+        // For now, passing null, should be set by the controller
         return await CreateInvoiceInnerAsync(
             price,
             redirectUrl: $"https://calendary.com.ua/master",
-            fluxModelId: fluxModelId
+            fluxModelId: fluxModelId,
+            userId: null
         );
     }
 
@@ -108,12 +116,13 @@ public class MonoPaymentService : IPaymentService
         return await CreateInvoiceInnerAsync(
             price,
             redirectUrl: $"https://calendary.com.ua/credits/success",
-            creditPackageId: creditPackageId
+            creditPackageId: creditPackageId,
+            userId: userId
         );
     }
 
 
-    private async Task<string> CreateInvoiceInnerAsync(decimal sum, string redirectUrl, int? orderId = null, int? fluxModelId = null, int? creditPackageId = null)
+    private async Task<string> CreateInvoiceInnerAsync(decimal sum, string redirectUrl, int? orderId = null, int? fluxModelId = null, int? creditPackageId = null, int? userId = null)
     {
         // Формування тіла запиту для створення рахунку
         var requestBody = new
@@ -144,6 +153,7 @@ public class MonoPaymentService : IPaymentService
             OrderId = orderId,
             FluxModelId = fluxModelId,
             CreditPackageId = creditPackageId,
+            UserId = userId,
             InvoiceNumber = responseContent!.InvoiceId,
             IsPaid = false,
             PaymentDate = DateTime.UtcNow,

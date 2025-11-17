@@ -1,0 +1,23 @@
+<div class="summary-card">
+  <h3>Разом</h3>
+  <div class="summary-row">
+    <span>Товарів ({{ totalItems }})</span>
+    <span>{{ subtotal | number:'1.0-0' }} грн</span>
+  </div>
+  <div class="summary-row">
+    <span>Доставка</span>
+    <span *ngIf="shippingCost === 0" class="muted">Розрахується на етапі оплати</span>
+    <span *ngIf="shippingCost > 0">{{ shippingCost | number:'1.0-0' }} грн</span>
+  </div>
+  <div class="summary-total">
+    <span>До сплати</span>
+    <span>{{ total | number:'1.0-0' }} грн</span>
+  </div>
+
+  <button type="button" class="primary" (click)="checkout.emit()" [disabled]="isLoading || totalItems === 0">
+    Оформити замовлення
+  </button>
+  <button type="button" class="secondary" (click)="continueShopping.emit()" [disabled]="isLoading">
+    Продовжити покупки
+  </button>
+</div>

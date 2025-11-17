@@ -1,0 +1,37 @@
+<section class="checkout-page">
+  <header>
+    <p class="eyebrow">Етап 2 з 2</p>
+    <h1>Оформлення замовлення</h1>
+    <p>Вкажіть контактні дані та спосіб доставки, щоб перейти до оплати.</p>
+  </header>
+
+  <div *ngIf="errorMessage" class="checkout-error">{{ errorMessage }}</div>
+
+  <ng-container *ngIf="order?.items?.length; else empty">
+    <div class="checkout-layout">
+      <div class="checkout-forms">
+        <app-contact-form
+          [form]="contactForm"
+          [isEmailConfirmed]="isEmailConfirmed"
+          [isPhoneConfirmed]="isPhoneConfirmed"
+          [isSubmitting]="isSubmitting"
+          (emailVerification)="requestEmailVerification()"
+          (phoneVerification)="requestPhoneVerification()"
+        ></app-contact-form>
+
+        <app-delivery-form [form]="deliveryForm"></app-delivery-form>
+      </div>
+
+      <app-order-summary
+        [order]="order"
+        [isSubmitting]="isSubmitting"
+        (confirm)="onSubmit()"
+        (backToCart)="backToCart()"
+      ></app-order-summary>
+    </div>
+  </ng-container>
+
+  <ng-template #empty>
+    <app-empty-cart title="Кошик порожній" actionLabel="Повернутися до каталогу" actionLink="/catalog"></app-empty-cart>
+  </ng-template>
+</section>

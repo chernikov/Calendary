@@ -102,7 +102,7 @@ export class RegisterComponent {
     dialogRef.afterClosed().subscribe((result) => {
 
       if (result) {
-        this.router.navigate(['/master']).then(() => {
+        this.router.navigate(['/editor']).then(() => {
           window.location.reload();
         });
       }

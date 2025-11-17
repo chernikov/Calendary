@@ -25,7 +25,12 @@ public class Order
     public string? DeliveryAddress { get; set; } = null!;   // saved in text city, postOffice
 
     [MaxLength(1000)]
-    public string? DeliveryRaw { get; set; } // saved in json city and postOffice  
+    public string? DeliveryRaw { get; set; } // saved in json city and postOffice
+
+    [MaxLength(100)]
+    public string? TrackingNumber { get; set; } // Nova Poshta TTN number
+
+    public decimal? DeliveryCost { get; set; } // Delivery cost in UAH
 
     public int UserId { get; set; }
 

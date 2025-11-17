@@ -47,6 +47,13 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
         var savedPath = System.IO.Path.Combine("uploads", $"calendar_{calendar.Id}_{calendar.Year}.pdf");
         string dest = pathProvider.MapPath(savedPath);
 
+        // Переконуємось, що директорія існує
+        var directory = System.IO.Path.GetDirectoryName(dest);
+        if (!string.IsNullOrEmpty(directory) && !System.IO.Directory.Exists(directory))
+        {
+            System.IO.Directory.CreateDirectory(directory);
+        }
+
         // Імена місяців
         string[] months = GetMonthNames(calendar.Language.Code);
         string[] days = GetDayNames(calendar.Language.Code, calendar.FirstDayOfWeek);
@@ -66,7 +73,7 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
                     // Додаємо по сторінці для кожного місяця
                     for (int i = 0; i < months.Length; i++)
                     {
-                        AddImageOnPage(images[i], pdf, document);
+                        AddImageOnPageAsync(images[i], pdf, document).Wait();
                         AddHeaderOfPage(calendar.Language.Code, months[i], document);
 
                         var table = CreateTable(calendar, days, i);
@@ -234,11 +241,13 @@ public class PdfGeneratorService(ICalendarRepository calendarRepository,
         return "";
     }
 
-    private void AddImageOnPage(Model.Image image, PdfDocument pdf, Document document)
+    private async Task AddImageOnPageAsync(Model.Image image, PdfDocument pdf, Document document)
     {
         // Завантажуємо зображення для місяця
         var pathImage = pathProvider.MapPath(image.ImageUrl);
-        var imagePdf = imageRotatorService.LoadCorrectedImage(pathImage);
+
+        // Використовуємо оптимізовану версію зображення
+        var imagePdf = await imageRotatorService.LoadOptimizedAndCorrectedImageAsync(pathImage);
         ScaleImage(pdf, imagePdf);
 
         document.Add(imagePdf);

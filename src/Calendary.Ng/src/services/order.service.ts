@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SummaryOrder } from '../models/summary-order';
 import { OrderResult } from '../models/results/order.result';
-import { Order } from '../models/order';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +20,7 @@ export class OrderService {
     return this.http.get<OrderResult>(`${this.apiUrl}/my?page=${page}`);
   }
 
-  updateComment(order: Order): Observable<Order> {
-    return this.http.put<Order>(`${this.apiUrl}/comment`, order);
+  updateComment(orderId: number, comment: string | null): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/comment`, { id: orderId, comment });
   }
 }

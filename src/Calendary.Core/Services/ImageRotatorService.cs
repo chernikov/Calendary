@@ -13,9 +13,10 @@ namespace Calendary.Core.Services;
 public interface IImageRotatorService
 {
     ImagePdf LoadCorrectedImage(string imagePath);
+    Task<ImagePdf> LoadOptimizedAndCorrectedImageAsync(string imagePath, int maxWidth = 2480, int quality = 85);
 }
 
-public class ImageRotatorService : IImageRotatorService
+public class ImageRotatorService(IImageOptimizer? imageOptimizer = null) : IImageRotatorService
 {
     public ImagePdf LoadCorrectedImage(string imagePath)
     {
@@ -32,6 +33,28 @@ public class ImageRotatorService : IImageRotatorService
                 return new ImagePdf(imageData);
             }
         }
+    }
+
+    public async Task<ImagePdf> LoadOptimizedAndCorrectedImageAsync(string imagePath, int maxWidth = 2480, int quality = 85)
+    {
+        // Якщо imageOptimizer доступний, спочатку оптимізуємо зображення
+        if (imageOptimizer != null)
+        {
+            try
+            {
+                var optimizedPath = await imageOptimizer.OptimizeForPdfAsync(imagePath, maxWidth, quality);
+                return LoadCorrectedImage(optimizedPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Image optimization failed, using original image. Error: {ex.Message}");
+                // Якщо оптимізація не вдалася, використовуємо оригінал
+                return LoadCorrectedImage(imagePath);
+            }
+        }
+
+        // Якщо optimizer не доступний, використовуємо оригінальний метод
+        return LoadCorrectedImage(imagePath);
     }
 
     private void RotateImageIfNeeded(ImageSh image)

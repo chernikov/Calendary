@@ -30,6 +30,7 @@
         public IEnumerable<OrderItemDto> OrderItems { get; set; } = Array.Empty<OrderItemDto>();
         public decimal Sum { get; set; }
         public string? DeliveryAddress { get; set; }
+        public decimal? DeliveryCost { get; set; }
         public UserDto User { get; set; }
 
         public bool IsPaid { get; set; }

@@ -1,0 +1,48 @@
+<div class="cart-item-card">
+  <div class="cart-item-media" [class.cart-item-media--empty]="!item.calendar?.previewPath">
+    <img
+      *ngIf="item.calendar?.previewPath"
+      [src]="item.calendar?.previewPath"
+      alt="Попередній перегляд календаря"
+      (click)="requestPreview()"
+    />
+    <div *ngIf="!item.calendar?.previewPath" class="cart-item-placeholder">
+      <p>Прев'ю недоступне</p>
+      <a [routerLink]="['/master']">Продовжити редагування</a>
+    </div>
+  </div>
+
+  <div class="cart-item-details">
+    <div>
+      <p class="cart-item-title">Календар №{{ item.calendar?.id || item.id }}</p>
+      <p class="cart-item-meta">Рік: {{ item.calendar?.year || 'поточний' }}</p>
+    </div>
+
+    <div class="cart-item-controls">
+      <label for="qty-{{ item.id }}">Кількість</label>
+      <input
+        id="qty-{{ item.id }}"
+        type="number"
+        min="1"
+        [disabled]="disabled"
+        [value]="quantity"
+        (input)="handleQuantityInput($any($event.target).value)"
+        (blur)="submitQuantityChange()"
+      />
+    </div>
+
+    <div class="cart-item-actions">
+      <button type="button" (click)="requestPreview()" [disabled]="disabled || !item.calendar?.previewPath">
+        Переглянути
+      </button>
+      <button type="button" class="danger" (click)="remove.emit()" [disabled]="disabled">
+        Видалити
+      </button>
+    </div>
+  </div>
+
+  <div class="cart-item-price">
+    <span class="price">{{ item.price * item.quantity | number:'1.0-0' }} грн</span>
+    <span class="unit-price">{{ item.price | number:'1.0-0' }} грн / од.</span>
+  </div>
+</div>

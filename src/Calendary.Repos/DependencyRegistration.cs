@@ -35,6 +35,7 @@ namespace Calendary.Repos
             services.AddScoped<IJobRepository, JobRepository>();
             services.AddScoped<IJobTaskRepository, JobTaskRepository>();
             services.AddScoped<IPhotoRepository, PhotoRepository>();
+            services.AddScoped<IUserPhotoRepository, UserPhotoRepository>();
             services.AddScoped<IResetTokenRepository, ResetTokenRepository>();
             services.AddScoped<IPromptRepository, PromptRepository>();
             services.AddScoped<IPromptThemeRepository, PromptThemeRepository>();

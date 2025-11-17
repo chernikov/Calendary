@@ -2,12 +2,31 @@
   <button mat-button color="primary" (click)="goBack()">
     <mat-icon>arrow_back</mat-icon> Назад
   </button>
+
+  <!-- Payment status message -->
+  <div *ngIf="paymentMessage"
+       [class]="'alert mb-3 ' +
+                (paymentMessageType === 'success' ? 'alert-success' :
+                 paymentMessageType === 'error' ? 'alert-danger' : 'alert-info')"
+       role="alert">
+    <div class="d-flex align-items-center">
+      <mat-icon class="me-2">
+        {{ paymentMessageType === 'success' ? 'check_circle' :
+           paymentMessageType === 'error' ? 'error' : 'info' }}
+      </mat-icon>
+      <span>{{ paymentMessage }}</span>
+      <div *ngIf="isPolling" class="spinner-border spinner-border-sm ms-auto" role="status">
+        <span class="visually-hidden">Завантаження...</span>
+      </div>
+    </div>
+  </div>
+
     <div class="order-details card shadow-sm p-4 mb-4 bg-white rounded">
       <h2 class="mb-3">Деталі замовлення №{{ order.id }}</h2>
       <div class="order-info mb-3">
         <p><strong>Користувач:</strong> {{ order.user.userName }}</p>
         <p><strong>Сума:</strong> <span class="text-primary">{{ order.sum | currency:'UAH' }}</span></p>
-        <p><strong>Статус:</strong> 
+        <p><strong>Статус:</strong>
           <span [class]="order.isPaid ? 'badge bg-success' : 'badge bg-warning'">
             {{ order.isPaid ? 'Оплачено' : 'Не оплачено' }}
           </span>

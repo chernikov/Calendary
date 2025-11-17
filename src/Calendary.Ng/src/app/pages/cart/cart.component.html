@@ -1,46 +1,61 @@
-<div class="cart-container" *ngIf="order">
-  <h2>Кошик</h2>
-  <div class="cart-items">
-    <div *ngFor="let item of order.items" class="cart-item">
-      <span class="title">#{{ item.calendar?.id }}</span>
-      <img *ngIf="item.calendar?.previewPath" [src]="item.calendar?.previewPath" class="thumbnail" (mousedown)="openPreview(item.calendar?.previewPath)"
-        (mouseup)="closePreview()">
-      <a *ngIf="!item.calendar?.previewPath" [routerLink]="['/master']">Продовжити редагування</a>
-      <input class="input" type="number" [(ngModel)]="item.quantity" min="1" (change)="onUpdateItem(item)">
-      <span>{{ item.price }} грн</span>
-      <button (click)="removeItem(item.id)" class="delete-button">видалити</button>
+<section class="cart-page">
+  <header class="cart-page__header">
+    <div>
+      <p class="cart-page__eyebrow">Етап 1 з 2</p>
+      <h1>Кошик</h1>
+      <p class="cart-page__subtitle">Перевірте вибрані календарі перед оформленням доставки.</p>
     </div>
-  </div>
-  
-  <button class="secondary-button" [routerLink]="['/master']">
-    Додати ще календар
-  </button>
+    <button type="button" class="cart-page__refresh" (click)="refreshCart()" [disabled]="isLoading">
+      Оновити
+    </button>
+  </header>
 
-  <div class="total">
-    <h3>Сума</h3>
-    <span class="sum">{{ calculateTotal() }} грн</span>
+  <div *ngIf="loadError" class="cart-page__error">
+    <p>{{ loadError }}</p>
   </div>
 
-  <!-- Поле вводу коментаря -->
-  <div class="comment-section">
-    <h3>Коментар до замовлення</h3>
-    <textarea class="comment-input" [(ngModel)]="order.comment" (blur)="onCommentChange()"
-      placeholder="Додайте коментар..."></textarea>
-  </div>
+  <ng-container *ngIf="!isLoading; else loadingState">
+    <app-empty-cart *ngIf="!hasItems()" actionLabel="Перейти до каталогу" actionLink="/catalog"></app-empty-cart>
 
-  <!-- Підключаємо компонент доставки -->
-  <app-delivery></app-delivery>
-  <p *ngIf="hasIncompleteCalendars()" class="error-message">
-    Завершіть редагування всіх календарів перед переходом до оплати.
-  </p>
-  <button class="checkout-button" (click)="proceedToPayment()" [disabled]="hasIncompleteCalendars()">
-    Перейти до оплати
-  </button>
+    <div *ngIf="hasItems()" class="cart-layout">
+      <div class="cart-items">
+        <app-cart-item
+          *ngFor="let item of order?.items; trackBy: trackByItem"
+          [item]="item"
+          [disabled]="updatingItemId === item.id || removingItemId === item.id"
+          (quantityChange)="onQuantityChange(item, $event)"
+          (remove)="onRemoveItem(item)"
+          (preview)="openPreview($event)"
+        ></app-cart-item>
 
+        <section class="cart-comment">
+          <label for="orderComment">Коментар до замовлення</label>
+          <textarea
+            id="orderComment"
+            rows="4"
+            [(ngModel)]="commentValue"
+            (blur)="onCommentChange()"
+            placeholder="Додайте уточнення або побажання"
+          ></textarea>
+        </section>
+      </div>
 
-  <!-- Модальне вікно для перегляду повного зображення -->
+      <app-cart-summary
+        [totalItems]="totalItems"
+        [subtotal]="subtotal"
+        [isLoading]="isLoading"
+        (checkout)="goToCheckout()"
+        (continueShopping)="continueShopping()"
+      ></app-cart-summary>
+    </div>
+  </ng-container>
+
+  <ng-template #loadingState>
+    <div class="cart-page__loading">Завантаження кошика...</div>
+  </ng-template>
+
   <div class="modal" *ngIf="previewImage">
     <div class="modal-overlay" (click)="closePreview()"></div>
-    <img [src]="previewImage" class="modal-image">
+    <img [src]="previewImage" class="modal-image" />
   </div>
-</div>
+</section>

@@ -1,0 +1,37 @@
+<section class="summary" *ngIf="order?.items?.length; else emptyState">
+  <h2>Замовлення</h2>
+  <div class="summary-items">
+    <article *ngFor="let item of order?.items" class="summary-item">
+      <div>
+        <p class="summary-item__title">Календар №{{ item.calendar?.id || item.id }}</p>
+        <p class="summary-item__meta">Кількість: {{ item.quantity }}</p>
+      </div>
+      <p class="summary-item__price">{{ item.price * item.quantity | number:'1.0-0' }} грн</p>
+    </article>
+  </div>
+
+  <div class="summary-row">
+    <span>Товарів ({{ totalItems }})</span>
+    <span>{{ subtotal | number:'1.0-0' }} грн</span>
+  </div>
+  <div class="summary-row">
+    <span>Доставка</span>
+    <span *ngIf="deliveryCost === 0" class="muted">Буде уточнено</span>
+    <span *ngIf="deliveryCost > 0">{{ deliveryCost | number:'1.0-0' }} грн</span>
+  </div>
+  <div class="summary-total">
+    <span>До сплати</span>
+    <span>{{ subtotal + deliveryCost | number:'1.0-0' }} грн</span>
+  </div>
+
+  <button type="button" class="primary" (click)="confirm.emit()" [disabled]="isSubmitting">
+    {{ isSubmitting ? 'Обробка...' : 'Перейти до оплати' }}
+  </button>
+  <button type="button" class="secondary" (click)="backToCart.emit()" [disabled]="isSubmitting">
+    Повернутися до кошика
+  </button>
+</section>
+
+<ng-template #emptyState>
+  <app-empty-cart title="Додайте товари перед оформленням" actionLabel="Повернутися до кошика" actionLink="/cart"></app-empty-cart>
+</ng-template>

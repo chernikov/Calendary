@@ -1,0 +1,54 @@
+<section class="checkout-card" [formGroup]="form">
+  <header>
+    <div>
+      <p class="eyebrow">Крок 1</p>
+      <h2>Контактні дані</h2>
+    </div>
+  </header>
+
+  <div class="form-grid">
+    <label class="form-field">
+      <span>Ім'я *</span>
+      <input type="text" formControlName="firstName" placeholder="Олександр" />
+      <small *ngIf="form.get('firstName')?.invalid && form.get('firstName')?.touched">Ім'я обов'язкове</small>
+    </label>
+
+    <label class="form-field">
+      <span>Прізвище *</span>
+      <input type="text" formControlName="lastName" placeholder="Шевченко" />
+      <small *ngIf="form.get('lastName')?.invalid && form.get('lastName')?.touched">Прізвище обов'язкове</small>
+    </label>
+  </div>
+
+  <label class="form-field">
+    <span>Email *</span>
+    <div class="form-field__row">
+      <input type="email" formControlName="email" placeholder="you@example.com" />
+      <button
+        type="button"
+        class="ghost"
+        (click)="emailVerification.emit()"
+        [disabled]="form.get('email')?.invalid || isEmailConfirmed || isSubmitting"
+      >
+        {{ isEmailConfirmed ? 'Підтверджено' : 'Підтвердити' }}
+      </button>
+    </div>
+    <small *ngIf="form.get('email')?.invalid && form.get('email')?.touched">Вкажіть коректний email</small>
+  </label>
+
+  <label class="form-field">
+    <span>Телефон *</span>
+    <div class="form-field__row">
+      <input type="tel" formControlName="phone" placeholder="+380XXXXXXXXX" />
+      <button
+        type="button"
+        class="ghost"
+        (click)="phoneVerification.emit()"
+        [disabled]="form.get('phone')?.invalid || isPhoneConfirmed || isSubmitting"
+      >
+        {{ isPhoneConfirmed ? 'Підтверджено' : 'Підтвердити' }}
+      </button>
+    </div>
+    <small *ngIf="form.get('phone')?.invalid && form.get('phone')?.touched">Вкажіть номер у форматі +380XXXXXXXXX</small>
+  </label>
+</section>

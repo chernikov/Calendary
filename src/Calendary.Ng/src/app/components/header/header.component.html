@@ -15,8 +15,9 @@
         <mat-icon>brush</mat-icon>
         <span>Редактор</span>
       </button>
-      <button *ngIf="isLoggedIn && cartCount && role === 'User'" mat-icon-button [routerLink]="['/cart']" aria-label="Кошик">
+      <button *ngIf="isLoggedIn && role === 'User'" mat-icon-button class="cart-link" [routerLink]="['/cart']" aria-label="Кошик">
         <mat-icon>shopping_cart</mat-icon>
+        <span class="cart-link__badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
       </button>
       <button *ngIf="isLoggedIn && role == 'User'" mat-icon-button [routerLink]="['/profile']" aria-label="Профіль">
         <mat-icon>account_circle</mat-icon>
