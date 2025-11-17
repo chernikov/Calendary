@@ -5,14 +5,26 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 WORKDIR /src
 
-# Копіюємо NuGet конфігурацію для уникнення Windows-специфічних шляхів
-COPY ["docker/backend/NuGet.Config", "./"]
-
 # Копіюємо тільки файли проектів для кешування залежностей
 COPY ["src/Calendary.Api/Calendary.Api.csproj", "Calendary.Api/"]
 COPY ["src/Calendary.Core/Calendary.Core.csproj", "Calendary.Core/"]
 COPY ["src/Calendary.Model/Calendary.Model.csproj", "Calendary.Model/"]
 COPY ["src/Calendary.Repos/Calendary.Repos.csproj", "Calendary.Repos/"]
+
+# Створюємо NuGet.Config в контейнері для уникнення Windows-специфічних шляхів
+RUN echo '<?xml version="1.0" encoding="utf-8"?>' > NuGet.Config && \
+    echo '<configuration>' >> NuGet.Config && \
+    echo '  <packageSources>' >> NuGet.Config && \
+    echo '    <clear />' >> NuGet.Config && \
+    echo '    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />' >> NuGet.Config && \
+    echo '  </packageSources>' >> NuGet.Config && \
+    echo '  <config>' >> NuGet.Config && \
+    echo '    <add key="globalPackagesFolder" value="/root/.nuget/packages" />' >> NuGet.Config && \
+    echo '  </config>' >> NuGet.Config && \
+    echo '  <fallbackPackageFolders>' >> NuGet.Config && \
+    echo '    <clear />' >> NuGet.Config && \
+    echo '  </fallbackPackageFolders>' >> NuGet.Config && \
+    echo '</configuration>' >> NuGet.Config
 
 # Очищення NuGet конфігурації від Windows-специфічних шляхів
 RUN dotnet nuget locals all --clear
