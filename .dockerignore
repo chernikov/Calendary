@@ -1,0 +1,74 @@
+# ================================================
+# BACKEND .dockerignore (root context)
+# Used when building from project root
+# ================================================
+
+# Build artifacts
+bin/
+obj/
+*.dll
+*.pdb
+
+# Frontend source code and artifacts (exclude entire frontend directory)
+src/Calendary.Ng
+
+# Tests
+tests/
+
+# Documentation
+docs/
+*.md
+README.md
+AGENTS.md
+FRAME.md
+GEMINI.md
+claude.md
+DEPLOYMENT_READY.md
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Environment
+.env
+.env.local
+
+# Git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Docker files (not needed in container)
+docker/
+docker-compose.yml
+docker-compose.local.yml
+Dockerfile*
+.dockerignore
+
+# Nginx configs (only frontend needs these)
+nginx.local.conf
+nginx.production.conf
+
+# Coverage reports
+coverage/
+
+# Uploads (will be volume-mounted in production)
+src/Calendary.Api/wwwroot/uploads/
+src/Calendary.Api/wwwroot/output/
+
+# Scripts
+scripts/
+
+# Backlog and planning
+backlog/
+epic_01/
+epic_02/
+todo/
+
+# Other
+vercel.json
+deploy.sh
+

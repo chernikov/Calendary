@@ -12,10 +12,29 @@ RUN apt-get update && apt-get upgrade -y \
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Копіюємо всі файли в поточну папку в контейнері
-COPY . .
-RUN dotnet restore
-RUN cd src && dotnet publish Calendary.Consumer -c Release -o /app/publish
+# Копіюємо файли Central Package Management для правильних версій пакетів
+COPY ["Directory.Build.props", "./"]
+COPY ["Directory.Packages.props", "./"]
+
+# Копіюємо файли проектів для кешування залежностей
+COPY ["src/Calendary.Consumer/Calendary.Consumer.csproj", "Calendary.Consumer/"]
+COPY ["src/Calendary.Core/Calendary.Core.csproj", "Calendary.Core/"]
+COPY ["src/Calendary.Model/Calendary.Model.csproj", "Calendary.Model/"]
+COPY ["src/Calendary.Repos/Calendary.Repos.csproj", "Calendary.Repos/"]
+
+# Очищення NuGet конфігурації від Windows-специфічних шляхів
+RUN dotnet nuget locals all --clear
+
+# Restore залежностей
+RUN dotnet restore "Calendary.Consumer/Calendary.Consumer.csproj" --force
+
+# Копіюємо весь код
+COPY src/ .
+
+# Build і publish
+RUN dotnet publish "Calendary.Consumer/Calendary.Consumer.csproj" \
+    -c Release \
+    -o /app/publish
 
 # Копіюємо опублікований додаток в остаточний образ
 FROM base AS final
