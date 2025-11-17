@@ -5,9 +5,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 WORKDIR /src
 
-# Копіюємо файли Central Package Management
-COPY ["Directory.Build.props", "./"]
-COPY ["Directory.Packages.props", "./"]
+# Копіюємо файли Central Package Management з backend/src
+COPY ["src/Directory.Build.props", "./"]
+COPY ["src/Directory.Packages.props", "./"]
 
 # Копіюємо тільки файли проектів для кешування залежностей
 COPY ["src/Calendary.Api/Calendary.Api.csproj", "Calendary.Api/"]
