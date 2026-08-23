@@ -1,0 +1,56 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    # Not exposed to the host on purpose — only reachable from other containers on this network.
+
+  backend:
+    image: ghcr.io/${GHCR_OWNER}/calendary-backend:latest
+    restart: unless-stopped
+    environment:
+      ConnectionStrings__Default: "Server=mssql,1433;Database=Calendary;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
+      Cors__AllowedOrigins__0: "https://${DOMAIN}"
+      ASPNETCORE_ENVIRONMENT: "Production"
+    depends_on:
+      mssql:
+        condition: service_healthy
+    # Not exposed to the host — reached internally by the frontend's nginx /api proxy.
+
+  frontend:
+    image: ghcr.io/${GHCR_OWNER}/calendary-frontend:latest
+    restart: unless-stopped
+    depends_on:
+      - backend
+    # Not exposed to the host — Caddy reverse-proxies to it.
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      DOMAIN: "${DOMAIN}"
+    depends_on:
+      - frontend
+
+volumes:
+  mssql-data:
+  caddy-data:
+  caddy-config:

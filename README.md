@@ -45,6 +45,38 @@ EF Core migrations apply automatically on backend startup.
 - **Order fulfillment timing** — `FulfillmentBackgroundService` advances Paid → Printing → Shipped
   → Delivered purely by elapsed wall-clock time (8s / 10s / 20s), not real print/courier events.
 
+## Production deployment
+
+Deploys automatically on push to `main` via `.github/workflows/deploy.yml`:
+`build backend + frontend images → push to GHCR → SSH into the droplet → docker compose pull/up`.
+Production is a DigitalOcean droplet (`207.154.222.66`) behind Caddy (automatic HTTPS) at
+**calendary.com.ua**, DNS hosted on DigitalOcean.
+
+**One-time droplet setup:**
+
+```bash
+ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
+# then edit the generated /opt/calendary/.env and set a real MSSQL_SA_PASSWORD
+```
+
+**DNS:** in DigitalOcean → Networking → Domains → `calendary.com.ua`, point the `A` record for
+`@` at `207.154.222.66`.
+
+**GitHub Actions secrets** (repo Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+| --- | --- |
+| `DEPLOY_HOST` | `207.154.222.66` |
+| `DEPLOY_USER` | `root` |
+| `DEPLOY_SSH_KEY` | private key matching an authorized key on the droplet |
+
+`GITHUB_TOKEN` (built-in) handles both pushing images to GHCR and the droplet's `docker login`
+during deploy — no extra registry secret needed.
+
+The production compose file (`deploy/docker-compose.prod.yml`) does **not** publish `mssql` or
+`backend` ports to the host — only Caddy (80/443) is public; the frontend's nginx proxies `/api`
+to `backend` over the internal Docker network, same as in local dev.
+
 ## Known gaps vs. the full design doc
 
 - The design explored several layout **variants** per screen (mobile/desktop, alternate copy) —
