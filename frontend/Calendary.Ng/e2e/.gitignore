@@ -1,8 +1,0 @@
-# Playwright Test Results
-test-results/
-playwright-report/
-playwright/.cache/
-
-# Visual Regression Test Screenshots
-*.png
-!*-expected.png
