@@ -1,6 +1,7 @@
 using Calendary.Api.Auth;
 using Calendary.Domain.Abstractions;
 using Calendary.Infrastructure.Data;
+using Calendary.Infrastructure.Options;
 using Calendary.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
@@ -15,13 +16,16 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
 builder.Services.AddScoped<IImageGenerationService, MockImageGenerationService>();
 builder.Services.AddScoped<IPaymentService, MockPaymentService>();
 builder.Services.AddSingleton<INovaPoshtaService, MockNovaPoshtaService>();
-builder.Services.AddScoped<IDevAuthService, DevAuthService>();
+builder.Services.AddScoped<ISessionTokenService, SessionTokenService>();
+builder.Services.AddScoped<IPasswordAuthService, PasswordAuthService>();
+builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(GoogleOptions.SectionName));
 
 builder.Services.AddHostedService<GenerationBackgroundService>();
 builder.Services.AddHostedService<FulfillmentBackgroundService>();
 
-builder.Services.AddAuthentication(DevTokenAuth.Scheme)
-    .AddScheme<AuthenticationSchemeOptions, DevTokenAuthenticationHandler>(DevTokenAuth.Scheme, _ => { });
+builder.Services.AddAuthentication(BearerTokenAuth.Scheme)
+    .AddScheme<AuthenticationSchemeOptions, BearerTokenAuthenticationHandler>(BearerTokenAuth.Scheme, _ => { });
 builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>

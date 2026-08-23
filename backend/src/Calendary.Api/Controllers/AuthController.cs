@@ -1,6 +1,7 @@
 using Calendary.Api.Auth;
 using Calendary.Api.Dtos;
 using Calendary.Domain.Abstractions;
+using Calendary.Domain.Entities;
 using Calendary.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,36 +11,67 @@ namespace Calendary.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(IDevAuthService authService, AppDbContext db) : ControllerBase
+public class AuthController(
+    IPasswordAuthService passwordAuth,
+    IGoogleAuthService googleAuth,
+    ISessionTokenService sessionTokens,
+    AppDbContext db) : ControllerBase
 {
-    /// Dev-mode passwordless "start": in a real deployment this would email/text a link.
-    /// Here the token is simply returned to the caller so the frontend can present the
-    /// "link sent" screen and then act as if the user tapped the link.
-    [HttpPost("start")]
+    private const int MinPasswordLength = 8;
+
+    [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<ActionResult<StartAuthResponse>> Start(StartAuthRequest request)
+    public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Contact))
+        if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
         {
-            return BadRequest("Contact (email or phone) is required.");
+            return BadRequest("A valid email is required.");
+        }
+        if (request.Password.Length < MinPasswordLength)
+        {
+            return BadRequest($"Password must be at least {MinPasswordLength} characters.");
         }
 
-        var result = await authService.StartAsync(request.Contact.Trim());
-        return Ok(new StartAuthResponse(result.Token, result.Contact));
+        var user = await passwordAuth.RegisterAsync(request.Email, request.Password, request.DisplayName);
+        if (user is null)
+        {
+            return Conflict("This email is already registered.");
+        }
+
+        var bearer = await sessionTokens.IssueTokenAsync(user);
+        return Ok(new AuthResponse(bearer, user.ToDto()));
     }
 
-    [HttpPost("complete")]
+    [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<ActionResult<CompleteAuthResponse>> Complete(CompleteAuthRequest request)
+    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
     {
-        var result = await authService.CompleteAsync(request.Token);
-        if (result is null)
+        var user = await passwordAuth.LoginAsync(request.Email, request.Password);
+        if (user is null)
         {
-            return NotFound("Token is invalid or already used.");
+            return Unauthorized("Invalid email or password.");
         }
 
-        var (bearer, user) = result.Value;
-        return Ok(new CompleteAuthResponse(bearer, user.ToDto()));
+        var bearer = await sessionTokens.IssueTokenAsync(user);
+        return Ok(new AuthResponse(bearer, user.ToDto()));
+    }
+
+    [HttpPost("google")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponse>> Google(GoogleAuthRequest request)
+    {
+        User googleUser;
+        try
+        {
+            googleUser = await googleAuth.AuthenticateAsync(request.IdToken);
+        }
+        catch (InvalidGoogleTokenException)
+        {
+            return Unauthorized("Invalid Google credential.");
+        }
+
+        var bearer = await sessionTokens.IssueTokenAsync(googleUser);
+        return Ok(new AuthResponse(bearer, googleUser.ToDto()));
     }
 
     [HttpGet("me")]

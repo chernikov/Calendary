@@ -7,16 +7,16 @@ using Microsoft.Extensions.Options;
 
 namespace Calendary.Api.Auth;
 
-public static class DevTokenAuth
+public static class BearerTokenAuth
 {
-    public const string Scheme = "DevToken";
+    public const string Scheme = "Bearer";
 }
 
-public class DevTokenAuthenticationHandler(
+public class BearerTokenAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    IDevAuthService authService)
+    ISessionTokenService sessionTokens)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -33,7 +33,7 @@ public class DevTokenAuthenticationHandler(
         }
 
         var token = header["Bearer ".Length..].Trim();
-        var user = await authService.ResolveBearerTokenAsync(token);
+        var user = await sessionTokens.ResolveAsync(token);
         if (user is null)
         {
             return AuthenticateResult.Fail("Invalid or expired session token");
@@ -42,11 +42,11 @@ public class DevTokenAuthenticationHandler(
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.DisplayName ?? user.Email ?? user.Phone ?? user.Id.ToString())
+            new Claim(ClaimTypes.Name, user.DisplayName ?? user.Email ?? user.Id.ToString())
         };
-        var identity = new ClaimsIdentity(claims, DevTokenAuth.Scheme);
+        var identity = new ClaimsIdentity(claims, BearerTokenAuth.Scheme);
         var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, DevTokenAuth.Scheme);
+        var ticket = new AuthenticationTicket(principal, BearerTokenAuth.Scheme);
         return AuthenticateResult.Success(ticket);
     }
 }

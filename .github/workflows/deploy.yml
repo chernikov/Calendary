@@ -85,6 +85,12 @@ jobs:
             cd /opt/calendary
             docker network inspect web >/dev/null 2>&1 || docker network create web
 
+            touch .env
+            grep -v '^GOOGLE_CLIENT_ID=' .env > .env.tmp || true; mv .env.tmp .env
+            grep -v '^GOOGLE_CLIENT_SECRET=' .env > .env.tmp || true; mv .env.tmp .env
+            printf 'GOOGLE_CLIENT_ID=%s\n' "${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+            printf 'GOOGLE_CLIENT_SECRET=%s\n' "${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+
             # App stack first — this frees ports 80/443 by removing the old in-stack
             # Caddy (if present) as an orphan, before the edge stack claims them.
             docker compose -p calendary -f docker-compose.prod.yml --env-file .env pull

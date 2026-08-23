@@ -1,10 +1,10 @@
 namespace Calendary.Api.Dtos;
 
-public record StartAuthRequest(string Contact);
-public record StartAuthResponse(string Token, string Contact);
-public record CompleteAuthRequest(string Token);
-public record UserDto(Guid Id, string? DisplayName, string? Email, string? Phone);
-public record CompleteAuthResponse(string BearerToken, UserDto User);
+public record RegisterRequest(string Email, string Password, string? DisplayName);
+public record LoginRequest(string Email, string Password);
+public record GoogleAuthRequest(string IdToken);
+public record UserDto(Guid Id, string? DisplayName, string? Email);
+public record AuthResponse(string BearerToken, UserDto User);
 
 public record StyleCategoryDto(Guid Id, string Code, string Name, string Description, int SortOrder);
 

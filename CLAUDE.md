@@ -8,22 +8,21 @@ Calendary — a Ukrainian custom AI-generated photo-calendar ordering app. The U
 Claude Design doc (`Calendary.dc.html`, "Broadsheet" design system); the implementation is a thin,
 end-to-end vertical slice: Docker + ASP.NET Core (.NET 10) + EF Core/MSSQL + Angular 18.
 
-Flow: landing → passwordless start (email/phone) → photo upload → style + personal dates →
-generation (live progress) → cover confirm → month-by-month reveal (regenerate/failure/retry) →
+Flow: landing → register/login (email+password or Google) → photo upload → style + personal dates
+→ generation (live progress) → cover confirm → month-by-month reveal (regenerate/failure/retry) →
 review → delivery + payment → order status (auto-progressing Paid → Printing → Shipped →
 Delivered).
 
-**Three integrations are deliberately mocked** behind `Calendary.Domain.Abstractions` interfaces —
-swap the DI registration in `Program.cs` to go live with a real provider:
+Auth is real (email+password via `PasswordHasher<User>`, and Google Sign-In via ID-token
+verification — see "Backend architecture" below), not mocked. **Two integrations are still
+deliberately mocked** behind `Calendary.Domain.Abstractions` interfaces — swap the DI registration
+in `Program.cs` to go live with a real provider:
 - `IImageGenerationService` — AI image generation (currently returns picsum.photos placeholders).
   A real implementation already exists (`AiImageGenerationService`, backed by the `Calendary.AI`
   project) but isn't wired in by default — see the README's "Calendary.AI" section for the
   three-step switch-over.
 - `IPaymentService` — payment charging (currently always succeeds)
 - `INovaPoshtaService` — delivery branch lookup (currently a small static city/warehouse list)
-
-Auth is also dev-mode: `IDevAuthService` mints "magic link" tokens and returns them directly in
-the API response instead of emailing/texting them (no real email/SMS/OAuth provider).
 
 ## Commands
 
@@ -85,10 +84,13 @@ Four-project split:
   `GeminiImageClient` (real HTTP calls; `ServiceCollectionExtensions.AddCalendaryAi()` registers
   whichever `AiOptions.Provider` selects), `Prompts/CalendarPrompts.cs` (the actual prompt text
   per style category / month, English by design).
-- **Calendary.Api** — Controllers, `Auth/DevTokenAuthenticationHandler` (a custom
-  `AuthenticationHandler` for opaque bearer tokens issued by `DevAuthService`'s in-memory
-  `ConcurrentDictionary` — **not** JWT/`JwtBearer`; sessions reset on backend restart), and
-  `Dtos/` (record DTOs + `DtoMapping.cs` extension methods, e.g. `order.ToDto()`).
+- **Calendary.Api** — Controllers, `Auth/BearerTokenAuthenticationHandler` (a custom
+  `AuthenticationHandler` for opaque bearer tokens, scheme `"Bearer"` — **not** JWT/`JwtBearer`;
+  resolves tokens via `ISessionTokenService`), and `Dtos/` (record DTOs + `DtoMapping.cs` extension
+  methods, e.g. `order.ToDto()`). `AuthController` has `register`/`login`/`google`/`me`, backed by
+  `IPasswordAuthService`/`IGoogleAuthService`/`ISessionTokenService` (all in Infrastructure —
+  `SessionTokenService` persists sessions as `UserSession` rows, hashing the bearer token with
+  SHA-256 before storage, specifically so a backend restart on deploy doesn't log everyone out).
 
 **Order state machine** (`OrderStatus`): `Created` → `PhotoUploaded` → `DetailsSubmitted` →
 `Generating` → `CoverReady` → `CoverConfirmed` → `ReviewReady` → `AwaitingPayment` → `Paid` →
@@ -145,4 +147,7 @@ one-time droplet setup script (installs Docker, creates the `web` network, seeds
 **Branching policy**: `develop` is the working branch (deploys to staging automatically on push);
 `main` is production (deploys to prod automatically on push/merge). Both `.github/workflows/*.yml`
 pipelines build images and push to GHCR (`ghcr.io/<owner>/calendary-backend` /
-`calendary-frontend`) before SSHing into the droplet to `docker compose pull && up -d`.
+`calendary-frontend`) before SSHing into the droplet to `docker compose pull && up -d`. The two
+pipelines are also where `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` GH secrets get threaded into the
+droplet's `.env`/`.env.staging` on every deploy (see README's "Auth" section) — unlike the AI
+provider keys, which are a manual one-off `.env` edit.

@@ -24,28 +24,42 @@ export class AuthService {
     return this.session()?.bearerToken ?? null;
   }
 
-  startLogin(contact: string): Observable<{ token: string; contact: string }> {
-    return this.http.post<{ token: string; contact: string }>(
-      `${environment.apiBaseUrl}/api/auth/start`,
-      { contact },
-    );
+  register(email: string, password: string, displayName: string): Observable<StoredSession> {
+    return this.http
+      .post<{ bearerToken: string; user: UserDto }>(`${environment.apiBaseUrl}/api/auth/register`, {
+        email,
+        password,
+        displayName,
+      })
+      .pipe(tap((res) => this.storeSession(res)));
   }
 
-  completeLogin(token: string): Observable<StoredSession> {
+  login(email: string, password: string): Observable<StoredSession> {
     return this.http
-      .post<{ bearerToken: string; user: UserDto }>(`${environment.apiBaseUrl}/api/auth/complete`, { token })
-      .pipe(
-        tap((res) => {
-          const stored: StoredSession = { bearerToken: res.bearerToken, user: res.user };
-          this.session.set(stored);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-        }),
-      );
+      .post<{ bearerToken: string; user: UserDto }>(`${environment.apiBaseUrl}/api/auth/login`, {
+        email,
+        password,
+      })
+      .pipe(tap((res) => this.storeSession(res)));
+  }
+
+  loginWithGoogle(idToken: string): Observable<StoredSession> {
+    return this.http
+      .post<{ bearerToken: string; user: UserDto }>(`${environment.apiBaseUrl}/api/auth/google`, {
+        idToken,
+      })
+      .pipe(tap((res) => this.storeSession(res)));
   }
 
   logout(): void {
     this.session.set(null);
     localStorage.removeItem(STORAGE_KEY);
+  }
+
+  private storeSession(res: { bearerToken: string; user: UserDto }): void {
+    const stored: StoredSession = { bearerToken: res.bearerToken, user: res.user };
+    this.session.set(stored);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
   }
 
   private readStoredSession(): StoredSession | null {
