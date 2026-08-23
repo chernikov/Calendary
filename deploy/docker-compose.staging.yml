@@ -10,39 +10,36 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
       MSSQL_PID: "Developer"
-      MSSQL_MEMORY_LIMIT_MB: "768"
+      MSSQL_MEMORY_LIMIT_MB: "512"
     volumes:
-      - mssql-data:/var/opt/mssql
+      - mssql-staging-data:/var/opt/mssql
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 20s
-    # Not exposed to the host on purpose — only reachable from other containers on this project's network.
 
   backend:
-    image: ghcr.io/${GHCR_OWNER}/calendary-backend:latest
+    image: ghcr.io/${GHCR_OWNER}/calendary-backend:develop
     restart: unless-stopped
     environment:
       ConnectionStrings__Default: "Server=mssql,1433;Database=Calendary;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
-      Cors__AllowedOrigins__0: "https://${DOMAIN}"
-      ASPNETCORE_ENVIRONMENT: "Production"
+      Cors__AllowedOrigins__0: "https://${STAGING_DOMAIN}"
+      ASPNETCORE_ENVIRONMENT: "Staging"
     depends_on:
       mssql:
         condition: service_healthy
-    # Not exposed to the host — reached internally by the frontend's nginx /api proxy.
 
   frontend:
-    image: ghcr.io/${GHCR_OWNER}/calendary-frontend:latest
+    image: ghcr.io/${GHCR_OWNER}/calendary-frontend:develop
     restart: unless-stopped
     depends_on:
       - backend
     networks:
       default: {}
       web:
-        aliases: [frontend-prod]
-    # Joins the shared "web" network (as "frontend-prod") so the edge Caddy can reach it.
+        aliases: [frontend-staging]
 
 volumes:
-  mssql-data:
+  mssql-staging-data:

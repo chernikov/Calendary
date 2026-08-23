@@ -1,3 +1,7 @@
 {$DOMAIN} {
-	reverse_proxy frontend:80
+	reverse_proxy frontend-prod:80
+}
+
+{$STAGING_DOMAIN} {
+	reverse_proxy frontend-staging:80
 }

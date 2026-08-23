@@ -1,0 +1,23 @@
+networks:
+  web:
+    external: true
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    networks: [web]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      DOMAIN: "${DOMAIN}"
+      STAGING_DOMAIN: "${STAGING_DOMAIN}"
+
+volumes:
+  caddy-data:
+  caddy-config:
