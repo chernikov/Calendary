@@ -20,6 +20,8 @@ builder.Services.AddScoped<ISessionTokenService, SessionTokenService>();
 builder.Services.AddScoped<IPasswordAuthService, PasswordAuthService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(GoogleOptions.SectionName));
+builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
+builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection(ResendOptions.SectionName));
 
 builder.Services.AddHostedService<GenerationBackgroundService>();
 builder.Services.AddHostedService<FulfillmentBackgroundService>();

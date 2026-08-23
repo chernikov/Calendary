@@ -14,9 +14,10 @@ review → delivery + payment → order status (auto-progressing Paid → Printi
 Delivered).
 
 Auth is real (email+password via `PasswordHasher<User>`, and Google Sign-In via ID-token
-verification — see "Backend architecture" below), not mocked. **Two integrations are still
-deliberately mocked** behind `Calendary.Domain.Abstractions` interfaces — swap the DI registration
-in `Program.cs` to go live with a real provider:
+verification — see "Backend architecture" below), not mocked. Transactional email (currently just
+a welcome email on registration) is also real, via `IEmailService`/`ResendEmailService`. **Two
+integrations are still deliberately mocked** behind `Calendary.Domain.Abstractions` interfaces —
+swap the DI registration in `Program.cs` to go live with a real provider:
 - `IImageGenerationService` — AI image generation (currently returns picsum.photos placeholders).
   A real implementation already exists (`AiImageGenerationService`, backed by the `Calendary.AI`
   project) but isn't wired in by default — see the README's "Calendary.AI" section for the

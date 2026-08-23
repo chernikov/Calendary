@@ -65,6 +65,19 @@ personal-account project doesn't — so the OAuth consent screen and Web OAuth c
 JavaScript origins: `https://calendary.com.ua`, `https://staging.calendary.com.ua`,
 `http://localhost:4200`) were created manually via Cloud Console → APIs & Services.
 
+## Transactional email — Resend
+
+`IEmailService`/`ResendEmailService` (Infrastructure) call the Resend API directly over HTTP (no
+SDK). Currently used for one thing: a welcome email on `/api/auth/register` — best-effort, wrapped
+in try/catch so a Resend outage never fails registration itself. Config is the `Resend` appsettings
+section (`ApiKey`/`FromEmail`/`FromName`, same blank-by-default/env-injected convention as `AI` and
+`Google`); with no `ApiKey` configured, `ResendEmailService` just logs and skips sending — safe for
+local dev.
+
+`calendary.com.ua`'s sending domain (DKIM `resend._domainkey` TXT record, `send`/`rsend` CNAMEs) is
+verified directly in DigitalOcean DNS. `RESEND_API_KEY` is a GitHub secret, threaded into the
+droplet's `.env`/`.env.staging` on every deploy the same way as the Google OAuth secrets.
+
 ## Calendary.AI — real AI image generation
 
 `backend/src/Calendary.AI` is a standalone project (no dependency on the other three) holding the
@@ -141,11 +154,12 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `DEPLOY_SSH_KEY` | private key matching an authorized key on the droplet |
 | `GOOGLE_CLIENT_ID` | OAuth Web client ID from the `calendary-ua` GCP project |
 | `GOOGLE_CLIENT_SECRET` | matching OAuth client secret |
+| `RESEND_API_KEY` | Resend API key for transactional email |
 
 `GITHUB_TOKEN` (built-in) handles both pushing images to GHCR and the droplet's `docker login`
 during deploy — no extra registry secret needed. Unlike the AI provider keys (a manual one-off
-`.env` edit), `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are genuinely threaded through on every
-deploy: both `deploy.yml` and `deploy-staging.yml` upsert them into the droplet's
+`.env` edit), `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`RESEND_API_KEY` are genuinely threaded
+through on every deploy: both `deploy.yml` and `deploy-staging.yml` upsert them into the droplet's
 `.env`/`.env.staging` from the GH secret before `docker compose up` — rotate the secret in GH, the
 next deploy picks it up automatically.
 

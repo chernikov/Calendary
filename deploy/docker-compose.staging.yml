@@ -32,6 +32,7 @@ services:
       AI__Gemini__ApiKey: "${AI_GEMINI_API_KEY:-}"
       Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
       Google__ClientSecret: "${GOOGLE_CLIENT_SECRET:-}"
+      Resend__ApiKey: "${RESEND_API_KEY:-}"
     depends_on:
       mssql:
         condition: service_healthy

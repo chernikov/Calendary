@@ -15,6 +15,8 @@ public class AuthController(
     IPasswordAuthService passwordAuth,
     IGoogleAuthService googleAuth,
     ISessionTokenService sessionTokens,
+    IEmailService email,
+    ILogger<AuthController> logger,
     AppDbContext db) : ControllerBase
 {
     private const int MinPasswordLength = 8;
@@ -39,6 +41,21 @@ public class AuthController(
         }
 
         var bearer = await sessionTokens.IssueTokenAsync(user);
+
+        try
+        {
+            await email.SendAsync(
+                user.Email!,
+                "Ласкаво просимо до Calendary",
+                $"<p>Привіт, {System.Net.WebUtility.HtmlEncode(user.DisplayName)}!</p>" +
+                "<p>Дякуємо за реєстрацію в Calendary. Можете одразу починати збирати свій календар.</p>");
+        }
+        catch (Exception ex)
+        {
+            // A failed welcome email should never fail registration itself.
+            logger.LogWarning(ex, "Failed to send welcome email to {Email}", user.Email);
+        }
+
         return Ok(new AuthResponse(bearer, user.ToDto()));
     }
 

@@ -90,6 +90,8 @@ jobs:
             grep -v '^GOOGLE_CLIENT_SECRET=' .env > .env.tmp || true; mv .env.tmp .env
             printf 'GOOGLE_CLIENT_ID=%s\n' "${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
             printf 'GOOGLE_CLIENT_SECRET=%s\n' "${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+            grep -v '^RESEND_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
+            printf 'RESEND_API_KEY=%s\n' "${{ secrets.RESEND_API_KEY }}" >> .env
 
             # App stack first — this frees ports 80/443 by removing the old in-stack
             # Caddy (if present) as an orphan, before the edge stack claims them.
