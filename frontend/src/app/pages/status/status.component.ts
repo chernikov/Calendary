@@ -1,0 +1,101 @@
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription, interval, startWith, switchMap } from 'rxjs';
+import { OrderService } from '../../core/order.service';
+import { OrderDto, OrderStatus } from '../../core/models';
+
+const TIMELINE: { status: OrderStatus; label: string }[] = [
+  { status: 'Paid', label: 'Оплачено' },
+  { status: 'Printing', label: 'Друкуємо' },
+  { status: 'Shipped', label: 'Відправлено' },
+  { status: 'Delivered', label: 'Доставлено' },
+];
+
+@Component({
+  selector: 'app-status',
+  standalone: true,
+  template: `
+    <div class="page page-narrow">
+      @if (order(); as o) {
+        <h2 style="font-size: 28px;">Статус замовлення</h2>
+
+        @if (o.status === 'Cancelled') {
+          <p class="text-muted">Замовлення скасовано.</p>
+        } @else {
+          <div style="display: flex; flex-direction: column; gap: 0; margin: var(--space-4) 0;">
+            @for (step of timeline; track step.status; let last = $last) {
+              <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                  <div
+                    style="width: 12px; height: 12px; border-radius: 50%; flex: none;"
+                    [style.background]="stepIndex(o) >= $index ? 'var(--color-accent)' : 'var(--color-neutral-300)'"
+                  ></div>
+                  @if (!last) {
+                    <div style="width: 1px; flex: 1; min-height: 32px;"
+                         [style.background]="stepIndex(o) > $index ? 'var(--color-accent)' : 'var(--color-divider)'"></div>
+                  }
+                </div>
+                <div style="padding-bottom: 24px;">
+                  <div [style.color]="stepIndex(o) >= $index ? 'var(--color-text)' : 'var(--color-neutral-500)'">{{ step.label }}</div>
+                  @if (step.status === 'Shipped' && o.delivery?.trackingNumber && stepIndex(o) >= $index) {
+                    <div class="money text-muted" style="font-size: 12px;">ТТН {{ o.delivery?.trackingNumber }}</div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (isCancellable(o)) {
+          <button class="btn btn-danger" [disabled]="busy()" (click)="cancel(o)">Скасувати замовлення</button>
+        }
+      }
+    </div>
+  `,
+})
+export class StatusComponent implements OnInit, OnDestroy {
+  readonly order = signal<OrderDto | null>(null);
+  readonly busy = signal(false);
+  readonly timeline = TIMELINE;
+  private readonly orderId: string;
+  private sub?: Subscription;
+
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly orders: OrderService,
+  ) {
+    this.orderId = this.route.snapshot.paramMap.get('orderId')!;
+  }
+
+  ngOnInit(): void {
+    this.sub = interval(2000)
+      .pipe(
+        startWith(0),
+        switchMap(() => this.orders.getOrder(this.orderId)),
+      )
+      .subscribe((o) => this.order.set(o));
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
+
+  stepIndex(o: OrderDto): number {
+    return TIMELINE.findIndex((t) => t.status === o.status);
+  }
+
+  isCancellable(o: OrderDto): boolean {
+    return !['Paid', 'Printing', 'Shipped', 'Delivered', 'Cancelled'].includes(o.status);
+  }
+
+  cancel(o: OrderDto): void {
+    this.busy.set(true);
+    this.orders.cancel(o.id).subscribe({
+      next: (updated) => {
+        this.order.set(updated);
+        this.busy.set(false);
+      },
+      error: () => this.busy.set(false),
+    });
+  }
+}
