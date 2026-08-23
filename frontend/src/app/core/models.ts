@@ -2,7 +2,6 @@ export interface UserDto {
   id: string;
   displayName: string | null;
   email: string | null;
-  phone: string | null;
 }
 
 export interface StyleCategoryDto {

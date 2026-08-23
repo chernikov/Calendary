@@ -4,7 +4,7 @@ namespace Calendary.Api.Dtos;
 
 public static class DtoMapping
 {
-    public static UserDto ToDto(this User u) => new(u.Id, u.DisplayName, u.Email, u.Phone);
+    public static UserDto ToDto(this User u) => new(u.Id, u.DisplayName, u.Email);
 
     public static StyleCategoryDto ToDto(this StyleCategory c) => new(c.Id, c.Code, c.Name, c.Description, c.SortOrder);
 

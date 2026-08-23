@@ -5,7 +5,7 @@ Custom AI-generated photo calendar ordering app. A thin, end-to-end vertical sli
 
 ## Flow implemented
 
-Landing → passwordless start (email/phone) → photo upload → style + personal dates → generation
+Landing → register/login (email+password or Google) → photo upload → style + personal dates → generation
 (live progress) → cover pick → month-by-month reveal (regenerate/failure/retry) → review →
 delivery + payment (Nova Poshta + Apple/Google Pay/monobank/card) → order status (auto-progressing
 Paid → Printing → Shipped → Delivered, with cancellation while unpaid).
@@ -39,11 +39,31 @@ EF Core migrations apply automatically on backend startup.
   collected. Swap `IPaymentService` for a real provider (Stripe, WayForPay, etc.).
 - **Nova Poshta** — `MockNovaPoshtaService` returns a small static city/warehouse list instead of
   calling the real Nova Poshta API.
-- **Auth** — passwordless "magic link" tokens are minted and hidden in the API response itself
-  (no real email/SMS/Google OAuth). Session tokens are an in-memory opaque bearer store
-  (`DevAuthService`), which resets on backend restart — fine for a demo, not for production.
 - **Order fulfillment timing** — `FulfillmentBackgroundService` advances Paid → Printing → Shipped
   → Delivered purely by elapsed wall-clock time (8s / 10s / 20s), not real print/courier events.
+
+## Auth — email+password and Google Sign-In
+
+Both are real (not mocked). `POST /api/auth/register` / `/login` use
+`Microsoft.AspNetCore.Identity`'s standalone `PasswordHasher<User>` (no full Identity/EF
+UserManager stack). `POST /api/auth/google` verifies a Google Identity Services ID token
+client-side-obtained credential via `Google.Apis.Auth`'s `GoogleJsonWebSignature.ValidateAsync` —
+an ID-token flow, not server-side OAuth code exchange, so no redirect URI is needed (the Client
+Secret isn't actually used by this flow, but is still configured/available). Sessions are
+DB-backed (`UserSession`, bearer token stored as a SHA-256 hash) rather than in-memory, so a
+container restart (which happens on every deploy) doesn't log everyone out.
+
+Config lives in the `Google` appsettings section (`ClientId`/`ClientSecret`, both blank in the
+committed `appsettings.json`, same convention as the `AI` section). The frontend's
+`environment.googleClientId` is a plain committed literal, not a secret — it's sent to the browser
+and to Google on every sign-in regardless.
+
+**GCP setup**: OAuth Client ID/Secret live under the `calendary-ua` GCP project
+(`calendary`/`calendary-app` were already taken globally). The IAP `brands`/OAuth-client REST API
+that normally scripts this requires the project to belong to a Workspace organization, which a
+personal-account project doesn't — so the OAuth consent screen and Web OAuth client (Authorized
+JavaScript origins: `https://calendary.com.ua`, `https://staging.calendary.com.ua`,
+`http://localhost:4200`) were created manually via Cloud Console → APIs & Services.
 
 ## Calendary.AI — real AI image generation
 
@@ -119,9 +139,15 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `DEPLOY_HOST` | `207.154.222.66` |
 | `DEPLOY_USER` | `root` |
 | `DEPLOY_SSH_KEY` | private key matching an authorized key on the droplet |
+| `GOOGLE_CLIENT_ID` | OAuth Web client ID from the `calendary-ua` GCP project |
+| `GOOGLE_CLIENT_SECRET` | matching OAuth client secret |
 
 `GITHUB_TOKEN` (built-in) handles both pushing images to GHCR and the droplet's `docker login`
-during deploy — no extra registry secret needed.
+during deploy — no extra registry secret needed. Unlike the AI provider keys (a manual one-off
+`.env` edit), `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are genuinely threaded through on every
+deploy: both `deploy.yml` and `deploy-staging.yml` upsert them into the droplet's
+`.env`/`.env.staging` from the GH secret before `docker compose up` — rotate the secret in GH, the
+next deploy picks it up automatically.
 
 ## Known gaps vs. the full design doc
 

@@ -12,9 +12,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PersonalDate> PersonalDates => Set<PersonalDate>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Delivery> Deliveries => Set<Delivery>();
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique()
+            .HasFilter("[Email] IS NOT NULL");
+
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.Sessions)
+            .WithOne(s => s.User)
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserSession>()
+            .HasIndex(s => s.TokenHash)
+            .IsUnique();
+
         modelBuilder.Entity<Order>()
             .HasOne(o => o.Payment)
             .WithOne(p => p.Order)

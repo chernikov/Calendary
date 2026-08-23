@@ -84,6 +84,13 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             cd /opt/calendary
             docker network inspect web >/dev/null 2>&1 || docker network create web
+
+            touch .env.staging
+            grep -v '^GOOGLE_CLIENT_ID=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            grep -v '^GOOGLE_CLIENT_SECRET=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'GOOGLE_CLIENT_ID=%s\n' "${{ secrets.GOOGLE_CLIENT_ID }}" >> .env.staging
+            printf 'GOOGLE_CLIENT_SECRET=%s\n' "${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env.staging
+
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging pull
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging up -d --remove-orphans
             docker image prune -f
