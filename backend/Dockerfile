@@ -5,6 +5,7 @@ COPY Calendary.slnx .
 COPY src/Calendary.Api/Calendary.Api.csproj src/Calendary.Api/
 COPY src/Calendary.Domain/Calendary.Domain.csproj src/Calendary.Domain/
 COPY src/Calendary.Infrastructure/Calendary.Infrastructure.csproj src/Calendary.Infrastructure/
+COPY src/Calendary.AI/Calendary.AI.csproj src/Calendary.AI/
 RUN dotnet restore src/Calendary.Api/Calendary.Api.csproj
 
 COPY src/ src/

@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Calendary.AI/Calendary.AI.csproj" />
     <Project Path="src/Calendary.Api/Calendary.Api.csproj" />
     <Project Path="src/Calendary.Domain/Calendary.Domain.csproj" />
     <Project Path="src/Calendary.Infrastructure/Calendary.Infrastructure.csproj" />

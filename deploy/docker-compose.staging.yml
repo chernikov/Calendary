@@ -27,6 +27,9 @@ services:
       ConnectionStrings__Default: "Server=mssql,1433;Database=Calendary;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
       Cors__AllowedOrigins__0: "https://${STAGING_DOMAIN}"
       ASPNETCORE_ENVIRONMENT: "Staging"
+      AI__Provider: "${AI_PROVIDER:-OpenAI}"
+      AI__OpenAI__ApiKey: "${AI_OPENAI_API_KEY:-}"
+      AI__Gemini__ApiKey: "${AI_GEMINI_API_KEY:-}"
     depends_on:
       mssql:
         condition: service_healthy

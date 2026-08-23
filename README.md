@@ -13,7 +13,7 @@ Paid → Printing → Shipped → Delivered, with cancellation while unpaid).
 ## Stack
 
 - **backend/** — ASP.NET Core (.NET 10) Web API, EF Core + SQL Server, split into
-  `Calendary.Domain` / `Calendary.Infrastructure` / `Calendary.Api`.
+  `Calendary.Domain` / `Calendary.Infrastructure` / `Calendary.Api` / `Calendary.AI`.
 - **frontend/** — Angular 18 standalone app, styled with the Broadsheet design tokens
   (`frontend/src/styles.css`), served via nginx in production.
 - **docker-compose.yml** — wires up `mssql`, `backend`, `frontend`.
@@ -44,6 +44,41 @@ EF Core migrations apply automatically on backend startup.
   (`DevAuthService`), which resets on backend restart — fine for a demo, not for production.
 - **Order fulfillment timing** — `FulfillmentBackgroundService` advances Paid → Printing → Shipped
   → Delivered purely by elapsed wall-clock time (8s / 10s / 20s), not real print/courier events.
+
+## Calendary.AI — real AI image generation
+
+`backend/src/Calendary.AI` is a standalone project (no dependency on the other three) holding the
+actual AI provider integration, built but **not wired in by default**:
+
+- `Options/AiOptions.cs` — binds the `AI` section of `appsettings.json`: `Provider` (`OpenAI` or
+  `Gemini`) plus one sub-section per provider (`ApiKey`, `BaseUrl`, `Model`). Both API keys are
+  blank in the committed `appsettings.json` — set the real one via environment variable
+  (`AI__OpenAI__ApiKey` / `AI__Gemini__ApiKey`, wired optionally into
+  `deploy/docker-compose.{prod,staging}.yml` from `AI_OPENAI_API_KEY` / `AI_GEMINI_API_KEY` in
+  `.env`), never committed.
+- `Clients/` — `IAiImageClient` plus one real HTTP implementation per provider
+  (`OpenAiImageClient` calls `/images/edits` when a reference photo is supplied, else
+  `/images/generations`; `GeminiImageClient` calls `generateContent` with the photo as inline
+  image data). `ServiceCollectionExtensions.AddCalendaryAi()` registers only the implementation
+  `AiOptions.Provider` selects.
+- `Prompts/CalendarPrompts.cs` — the actual prompt text, one style descriptor per
+  `StyleCategory.Code` (`history`/`cinema`/`adventure`/`professions`) and a seasonal hint per
+  month, composed into `BuildCoverPrompt` / `BuildMonthPrompt`. Prompts are in English (both
+  providers follow English instructions more reliably) even though the product copy is Ukrainian.
+
+`Calendary.Infrastructure/Services/AiImageGenerationService.cs` is a real `IImageGenerationService`
+built on top of this — unlike the mock, it drives generation itself (fire-and-forget per-order/
+per-sheet work using its own DI scope, throttled to 3 concurrent months) rather than relying on
+`GenerationBackgroundService`'s timer-based simulation.
+
+**Going live** (three steps, done together):
+1. Set a real key in `AI:OpenAI:ApiKey` or `AI:Gemini:ApiKey` (and `AI:Provider` to match).
+2. In `Program.cs`: call `builder.Services.AddCalendaryAi(builder.Configuration)` and register
+   `AiImageGenerationService` instead of `MockImageGenerationService`.
+3. Remove `GenerationBackgroundService`'s hosted-service registration — it would otherwise race
+   the real generation calls on the same `Sheet` rows (both flip `Pending` → `Generating` →
+   `Ready`). `AiImageGenerationService` doesn't need it: it advances `Order.Status` itself via
+   `OrderProgressionHelper` after each sheet completes.
 
 ## Deployment — production + staging
 

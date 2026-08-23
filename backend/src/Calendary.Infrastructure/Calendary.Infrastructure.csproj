@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Calendary.Domain\Calendary.Domain.csproj" />
+    <ProjectReference Include="..\Calendary.AI\Calendary.AI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
