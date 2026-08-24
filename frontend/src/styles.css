@@ -204,3 +204,17 @@ textarea.input { min-height: 90px; resize: vertical; }
 .sheet-thumb.ready { border-style: solid; }
 .sheet-thumb.failed { border-style: solid; border-color: var(--color-accent-2); }
 .money { font-variant-numeric: tabular-nums; }
+
+.month-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-2); }
+@media (max-width: 640px) { .month-grid { grid-template-columns: repeat(2, 1fr); } }
+.month-tile {
+  display: flex; flex-direction: column; gap: 6px; min-height: 92px;
+  padding: var(--space-2); text-align: left; cursor: pointer;
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md); background: var(--color-surface);
+}
+.month-tile:hover { border-color: var(--color-accent); }
+.month-tile.has-dates { border-color: var(--color-accent); background: var(--color-accent-100); }
+.month-tile-name { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 14px; }
+.month-tile-dates { display: flex; flex-direction: column; gap: 2px; }
+.month-tile-date { font-size: 11px; color: var(--color-accent-700); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.month-tile-empty { font-size: 12px; color: color-mix(in srgb, var(--color-text) 45%, transparent); }
