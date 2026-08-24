@@ -92,6 +92,10 @@ jobs:
             printf 'GOOGLE_CLIENT_SECRET=%s\n' "${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env.staging
             grep -v '^RESEND_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
             printf 'RESEND_API_KEY=%s\n' "${{ secrets.RESEND_API_KEY }}" >> .env.staging
+            grep -v '^AI_OPENAI_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            grep -v '^AI_GEMINI_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'AI_OPENAI_API_KEY=%s\n' "${{ secrets.AI_OPENAI_API_KEY }}" >> .env.staging
+            printf 'AI_GEMINI_API_KEY=%s\n' "${{ secrets.AI_GEMINI_API_KEY }}" >> .env.staging
 
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging pull
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging up -d --remove-orphans
