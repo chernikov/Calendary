@@ -3,7 +3,8 @@ namespace Calendary.Api.Dtos;
 public record RegisterRequest(string Email, string Password, string? DisplayName);
 public record LoginRequest(string Email, string Password);
 public record GoogleAuthRequest(string IdToken);
-public record UserDto(Guid Id, string? DisplayName, string? Email);
+public record ConfirmEmailRequest(string Code);
+public record UserDto(Guid Id, string? DisplayName, string? Email, bool EmailConfirmed);
 public record AuthResponse(string BearerToken, UserDto User);
 
 public record StyleCategoryDto(Guid Id, string Code, string Name, string Description, int SortOrder);

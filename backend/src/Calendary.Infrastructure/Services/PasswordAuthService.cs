@@ -23,7 +23,9 @@ public class PasswordAuthService(AppDbContext db) : IPasswordAuthService
         {
             Email = normalizedEmail,
             DisplayName = string.IsNullOrWhiteSpace(displayName) ? normalizedEmail.Split('@')[0] : displayName.Trim(),
-            AuthProvider = AuthProvider.Password
+            AuthProvider = AuthProvider.Password,
+            EmailConfirmationCode = EmailConfirmationCodeGenerator.Generate(),
+            EmailConfirmationCodeExpiresAtUtc = DateTime.UtcNow.Add(EmailConfirmationCodeGenerator.Lifetime),
         };
         user.PasswordHash = _hasher.HashPassword(user, password);
 

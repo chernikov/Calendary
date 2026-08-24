@@ -17,7 +17,10 @@ public class ResendEmailService(HttpClient httpClient, IOptions<ResendOptions> o
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {
-            logger.LogInformation("Resend:ApiKey not configured — skipping email to {To}: {Subject}", to, subject);
+            // No real send in local dev — log the full body so e.g. a confirmation code is still
+            // visible to whoever is testing, without needing a real Resend API key.
+            logger.LogInformation(
+                "Resend:ApiKey not configured — skipping email to {To}: {Subject}\n{Html}", to, subject, html);
             return;
         }
 
