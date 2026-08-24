@@ -32,6 +32,15 @@ public class GoogleAuthService(AppDbContext db, IOptions<GoogleOptions> options)
         {
             // Matching by verified email — signing in with Google on an email that already has a
             // password account just logs into that same account rather than creating a duplicate.
+            // Google already verified ownership of this address, so it settles any pending
+            // confirmation from the password-registration flow too.
+            if (!user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+                user.EmailConfirmationCode = null;
+                user.EmailConfirmationCodeExpiresAtUtc = null;
+                await db.SaveChangesAsync(ct);
+            }
             return user;
         }
 
@@ -39,7 +48,8 @@ public class GoogleAuthService(AppDbContext db, IOptions<GoogleOptions> options)
         {
             Email = email,
             DisplayName = string.IsNullOrWhiteSpace(payload.Name) ? email.Split('@')[0] : payload.Name,
-            AuthProvider = AuthProvider.Google
+            AuthProvider = AuthProvider.Google,
+            EmailConfirmed = true
         };
         db.Users.Add(user);
         await db.SaveChangesAsync(ct);

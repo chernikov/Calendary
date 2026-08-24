@@ -11,6 +11,10 @@ public class User
     public AuthProvider AuthProvider { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
+    public bool EmailConfirmed { get; set; }
+    public string? EmailConfirmationCode { get; set; }
+    public DateTime? EmailConfirmationCodeExpiresAtUtc { get; set; }
+
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<UserSession> Sessions { get; set; } = new List<UserSession>();
 }

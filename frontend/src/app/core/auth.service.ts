@@ -17,6 +17,8 @@ export class AuthService {
 
   readonly user = computed(() => this.session()?.user ?? null);
   readonly isAuthenticated = computed(() => this.session() !== null);
+  readonly needsEmailConfirmation = computed(() => this.user()?.emailConfirmed === false);
+  readonly confirmModalOpen = signal(false);
 
   constructor(private readonly http: HttpClient) {}
 
@@ -54,6 +56,32 @@ export class AuthService {
   logout(): void {
     this.session.set(null);
     localStorage.removeItem(STORAGE_KEY);
+  }
+
+  openConfirmModal(): void {
+    this.confirmModalOpen.set(true);
+  }
+
+  closeConfirmModal(): void {
+    this.confirmModalOpen.set(false);
+  }
+
+  confirmEmail(code: string): Observable<UserDto> {
+    return this.http
+      .post<UserDto>(`${environment.apiBaseUrl}/api/auth/confirm-email`, { code })
+      .pipe(tap((user) => this.updateUser(user)));
+  }
+
+  resendConfirmation(): Observable<void> {
+    return this.http.post<void>(`${environment.apiBaseUrl}/api/auth/resend-confirmation`, {});
+  }
+
+  private updateUser(user: UserDto): void {
+    const current = this.session();
+    if (!current) return;
+    const stored: StoredSession = { ...current, user };
+    this.session.set(stored);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
   }
 
   private storeSession(res: { bearerToken: string; user: UserDto }): void {

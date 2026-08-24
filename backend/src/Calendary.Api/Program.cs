@@ -1,3 +1,4 @@
+using Calendary.AI;
 using Calendary.Api.Auth;
 using Calendary.Domain.Abstractions;
 using Calendary.Infrastructure.Data;
@@ -13,7 +14,8 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-builder.Services.AddScoped<IImageGenerationService, MockImageGenerationService>();
+builder.Services.AddScoped<IImageGenerationService, AiImageGenerationService>();
+builder.Services.AddCalendaryAi(builder.Configuration);
 builder.Services.AddScoped<IPaymentService, MockPaymentService>();
 builder.Services.AddSingleton<INovaPoshtaService, MockNovaPoshtaService>();
 builder.Services.AddScoped<ISessionTokenService, SessionTokenService>();
@@ -23,7 +25,6 @@ builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(Googl
 builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
 builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection(ResendOptions.SectionName));
 
-builder.Services.AddHostedService<GenerationBackgroundService>();
 builder.Services.AddHostedService<FulfillmentBackgroundService>();
 
 builder.Services.AddAuthentication(BearerTokenAuth.Scheme)

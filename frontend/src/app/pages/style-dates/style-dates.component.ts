@@ -39,15 +39,21 @@ import { OrderDto, StyleCategoryDto } from '../../core/models';
             (click)="openMonth(m.number)"
           >
             <div class="month-tile-name">{{ m.name }}</div>
-            @if (datesForMonth(m.number).length) {
-              <div class="month-tile-dates">
-                @for (date of datesForMonth(m.number); track date.id) {
-                  <span class="month-tile-date">{{ pad(date.day) }} · {{ date.label }}</span>
+            <div class="tile-calendar">
+              @for (day of calendarCells(m.number); track $index) {
+                @if (day === null) {
+                  <span class="tile-calendar-day empty"></span>
+                } @else {
+                  <span
+                    class="tile-calendar-day"
+                    [class.has-date]="hasDate(m.number, day)"
+                    [title]="labelForDay(m.number, day)"
+                  >
+                    {{ day }}
+                  </span>
                 }
-              </div>
-            } @else {
-              <div class="month-tile-empty">+ Додати</div>
-            }
+              }
+            </div>
           </button>
         }
       </div>
@@ -71,15 +77,30 @@ import { OrderDto, StyleCategoryDto } from '../../core/models';
               </div>
             }
 
-            <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-              <div class="field" style="width: 70px;">
-                <label>День</label>
-                <input class="input" type="number" min="1" max="31" [(ngModel)]="newDay" />
-              </div>
-              <div class="field" style="flex: 1; min-width: 180px;">
-                <label>Підпис (до 22 символів)</label>
-                <input class="input" maxlength="22" [(ngModel)]="newLabel" />
-              </div>
+            <div class="calendar-grid">
+              @for (w of weekdays; track w) {
+                <div class="calendar-weekday">{{ w }}</div>
+              }
+              @for (day of calendarCells(month); track $index) {
+                @if (day === null) {
+                  <div class="calendar-day empty"></div>
+                } @else {
+                  <button
+                    type="button"
+                    class="calendar-day"
+                    [class.has-date]="hasDate(month, day)"
+                    [class.selected]="newDay === day"
+                    (click)="selectDay(day)"
+                  >
+                    {{ day }}
+                  </button>
+                }
+              }
+            </div>
+
+            <div class="field">
+              <label>Підпис (до 22 символів)</label>
+              <input class="input" maxlength="22" [(ngModel)]="newLabel" />
             </div>
 
             @if (error()) {
@@ -88,7 +109,7 @@ import { OrderDto, StyleCategoryDto } from '../../core/models';
 
             <div class="dialog-actions">
               <button class="btn btn-secondary" (click)="closeModal()">Готово</button>
-              <button class="btn btn-primary" [disabled]="!newLabel" (click)="addDate()">Додати дату</button>
+              <button class="btn btn-primary" [disabled]="!newLabel || !newDay" (click)="addDate()">Додати дату</button>
             </div>
           </div>
         </div>
@@ -127,7 +148,10 @@ export class StyleDatesComponent implements OnInit {
     { number: 12, name: 'Грудень' },
   ];
 
-  newDay = 1;
+  readonly weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+  private readonly calendarYear = new Date().getFullYear() + 1;
+
+  newDay: number | null = null;
   newLabel = '';
 
   private readonly orderId: string;
@@ -161,9 +185,33 @@ export class StyleDatesComponent implements OnInit {
     return this.months.find((m) => m.number === month)?.name ?? '';
   }
 
+  calendarCells(month: number): (number | null)[] {
+    const firstWeekday = (new Date(this.calendarYear, month - 1, 1).getDay() + 6) % 7;
+    const daysInMonth = new Date(this.calendarYear, month, 0).getDate();
+    const cells: (number | null)[] = new Array(firstWeekday).fill(null);
+    for (let day = 1; day <= daysInMonth; day++) cells.push(day);
+    while (cells.length < 42) cells.push(null);
+    return cells;
+  }
+
+  hasDate(month: number, day: number): boolean {
+    return this.datesForMonth(month).some((d) => d.day === day);
+  }
+
+  labelForDay(month: number, day: number): string {
+    return this.datesForMonth(month)
+      .filter((d) => d.day === day)
+      .map((d) => d.label)
+      .join(', ');
+  }
+
+  selectDay(day: number): void {
+    this.newDay = day;
+  }
+
   openMonth(month: number): void {
     this.selectedMonth.set(month);
-    this.newDay = 1;
+    this.newDay = null;
     this.newLabel = '';
     this.error.set(null);
   }
@@ -174,10 +222,11 @@ export class StyleDatesComponent implements OnInit {
 
   addDate(): void {
     const month = this.selectedMonth();
-    if (!month) return;
+    const day = this.newDay;
+    if (!month || !day) return;
     const label = this.newLabel.trim();
     if (!label) return;
-    this.orders.addDate(this.orderId, this.newDay, month, label).subscribe({
+    this.orders.addDate(this.orderId, day, month, label).subscribe({
       next: (o) => {
         this.order.set(o);
         this.newLabel = '';

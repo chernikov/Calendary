@@ -23,6 +23,9 @@ services:
       ConnectionStrings__Default: "Server=mssql,1433;Database=Calendary;User Id=sa;Password=Your_password123;TrustServerCertificate=True"
       Cors__AllowedOrigins__0: "http://localhost:4200"
       ASPNETCORE_ENVIRONMENT: "Development"
+      Resend__ApiKey: "${RESEND_API_KEY:-}"
+      AI__OpenAI__ApiKey: "${OPENAI_API_KEY:-}"
+      AI__Gemini__ApiKey: "${GEMINI_API_KEY:-}"
     ports:
       - "5080:8080"
     depends_on:

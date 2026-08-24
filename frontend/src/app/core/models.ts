@@ -2,6 +2,7 @@ export interface UserDto {
   id: string;
   displayName: string | null;
   email: string | null;
+  emailConfirmed: boolean;
 }
 
 export interface StyleCategoryDto {

@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OrderService } from '../../core/order.service';
+import { AuthService } from '../../core/auth.service';
 import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
 
 @Component({
@@ -68,6 +69,13 @@ import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
           <p style="color: var(--color-accent-2-700); font-size: 13px; margin-top: var(--space-2);">{{ error() }}</p>
         }
 
+        @if (auth.needsEmailConfirmation()) {
+          <p class="text-muted" style="font-size: 12px; margin-top: var(--space-2);">
+            Пошту не підтверджено — ви можете не отримати сповіщення про статус замовлення.
+            <button class="btn btn-ghost" style="padding: 0;" (click)="auth.openConfirmModal()">Підтвердити</button>
+          </p>
+        }
+
         <button
           class="btn btn-primary btn-block"
           style="min-height: 50px; font-size: 15px;"
@@ -109,6 +117,7 @@ export class CheckoutComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly orders: OrderService,
+    readonly auth: AuthService,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
   }
