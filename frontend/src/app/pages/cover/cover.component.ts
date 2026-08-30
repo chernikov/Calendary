@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, interval, startWith, switchMap } from 'rxjs';
-import { OrderService } from '../../core/order.service';
-import { OrderDto, SheetDto } from '../../core/models';
+import { Store } from '@ngrx/store';
+import { Actions, ofType } from '@ngrx/effects';
+import { OrderActions, selectCoverSheet, selectOrder, selectOrderBusy, selectOrderError } from '../../core/state/order';
+import { SheetDto } from '../../core/models';
 
 @Component({
   selector: 'app-cover',
@@ -43,59 +45,37 @@ import { OrderDto, SheetDto } from '../../core/models';
   `,
 })
 export class CoverComponent implements OnInit, OnDestroy {
-  readonly order = signal<OrderDto | null>(null);
-  readonly busy = signal(false);
-  readonly error = signal<string | null>(null);
+  private readonly store = inject(Store);
+  readonly order = this.store.selectSignal(selectOrder);
+  readonly cover = this.store.selectSignal(selectCoverSheet);
+  readonly busy = this.store.selectSignal(selectOrderBusy);
+  readonly error = this.store.selectSignal(selectOrderError);
   private readonly orderId: string;
-  private sub?: Subscription;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly orders: OrderService,
+    private readonly actions$: Actions,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
+    this.actions$
+      .pipe(ofType(OrderActions.confirmCoverSuccess), takeUntilDestroyed())
+      .subscribe(() => this.router.navigate(['/order', this.orderId, 'months', 1]));
   }
 
   ngOnInit(): void {
-    this.sub = interval(1500)
-      .pipe(
-        startWith(0),
-        switchMap(() => this.orders.getOrder(this.orderId)),
-      )
-      .subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.startOrderPolling({ orderId: this.orderId, intervalMs: 1500 }));
   }
 
   ngOnDestroy(): void {
-    this.sub?.unsubscribe();
-  }
-
-  cover(): SheetDto | undefined {
-    return this.order()?.sheets.find((s) => s.kind === 'Cover');
+    this.store.dispatch(OrderActions.stopOrderPolling());
   }
 
   regenerate(c: SheetDto): void {
-    this.busy.set(true);
-    this.orders.regenerateSheet(this.orderId, c.id).subscribe({
-      next: (o) => {
-        this.order.set(o);
-        this.busy.set(false);
-      },
-      error: () => {
-        this.error.set('Перегенерації вичерпано.');
-        this.busy.set(false);
-      },
-    });
+    this.store.dispatch(OrderActions.regenerateSheet({ orderId: this.orderId, sheetId: c.id }));
   }
 
   confirm(c: SheetDto): void {
-    this.busy.set(true);
-    this.orders.confirmCover(this.orderId, c.id).subscribe({
-      next: () => this.router.navigate(['/order', this.orderId, 'months', 1]),
-      error: () => {
-        this.error.set('Не вдалося підтвердити обкладинку.');
-        this.busy.set(false);
-      },
-    });
+    this.store.dispatch(OrderActions.confirmCover({ orderId: this.orderId, sheetId: c.id }));
   }
 }

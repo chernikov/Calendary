@@ -1,9 +1,18 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { OrderService } from '../../core/order.service';
+import { Store } from '@ngrx/store';
+import { Actions, ofType } from '@ngrx/effects';
+import {
+  OrderActions,
+  selectOrder,
+  selectOrderBusy,
+  selectOrderError,
+  selectWarehouses,
+} from '../../core/state/order';
 import { AuthService } from '../../core/auth.service';
-import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
+import { NovaPoshtaWarehouseDto } from '../../core/models';
 
 @Component({
   selector: 'app-checkout',
@@ -80,7 +89,7 @@ import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
           class="btn btn-primary btn-block"
           style="min-height: 50px; font-size: 15px;"
           [disabled]="!canSubmit() || busy()"
-          (click)="submit(o)"
+          (click)="submit()"
         >
           Оплатити {{ o.price }} ₴
         </button>
@@ -92,12 +101,13 @@ import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
   `,
 })
 export class CheckoutComponent implements OnInit {
-  readonly order = signal<OrderDto | null>(null);
-  readonly warehouses = signal<NovaPoshtaWarehouseDto[]>([]);
+  private readonly store = inject(Store);
+  readonly order = this.store.selectSignal(selectOrder);
+  readonly warehouses = this.store.selectSignal(selectWarehouses);
   readonly selectedWarehouse = signal<NovaPoshtaWarehouseDto | null>(null);
   readonly method = signal<string>('ApplePay');
-  readonly busy = signal(false);
-  readonly error = signal<string | null>(null);
+  readonly busy = this.store.selectSignal(selectOrderBusy);
+  readonly error = this.store.selectSignal(selectOrderError);
 
   readonly paymentMethods = [
     { value: 'ApplePay', label: 'Apple Pay' },
@@ -116,23 +126,26 @@ export class CheckoutComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly orders: OrderService,
+    private readonly actions$: Actions,
     readonly auth: AuthService,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
+    this.actions$
+      .pipe(ofType(OrderActions.checkoutAndPaySuccess), takeUntilDestroyed())
+      .subscribe(() => this.router.navigate(['/order', this.orderId, 'status']));
   }
 
   ngOnInit(): void {
-    this.orders.getOrder(this.orderId).subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.loadOrder({ orderId: this.orderId }));
   }
 
   onCityChange(city: string): void {
     this.selectedWarehouse.set(null);
-    this.warehouses.set([]);
+    this.store.dispatch(OrderActions.clearWarehouses());
     clearTimeout(this.cityDebounce);
     if (!city.trim()) return;
     this.cityDebounce = setTimeout(() => {
-      this.orders.novaPoshtaWarehouses(city.trim()).subscribe((w) => this.warehouses.set(w));
+      this.store.dispatch(OrderActions.loadWarehouses({ city: city.trim() }));
     }, 300);
   }
 
@@ -140,34 +153,21 @@ export class CheckoutComponent implements OnInit {
     return !!(this.recipientName && this.phone && this.city && this.selectedWarehouse() && this.method());
   }
 
-  submit(o: OrderDto): void {
+  submit(): void {
     const w = this.selectedWarehouse();
     if (!w) return;
-    this.busy.set(true);
-    this.error.set(null);
-
-    this.orders
-      .checkout(this.orderId, {
-        recipientName: this.recipientName,
-        phone: this.phone,
-        city: this.city,
-        warehouseNumber: w.number,
-        warehouseAddress: w.address,
-      })
-      .subscribe({
-        next: () => {
-          this.orders.pay(this.orderId, this.method()).subscribe({
-            next: () => this.router.navigate(['/order', o.id, 'status']),
-            error: () => {
-              this.error.set('Оплата не пройшла. Спробуйте ще раз.');
-              this.busy.set(false);
-            },
-          });
+    this.store.dispatch(
+      OrderActions.checkoutAndPay({
+        orderId: this.orderId,
+        delivery: {
+          recipientName: this.recipientName,
+          phone: this.phone,
+          city: this.city,
+          warehouseNumber: w.number,
+          warehouseAddress: w.address,
         },
-        error: () => {
-          this.error.set('Не вдалося зберегти дані доставки.');
-          this.busy.set(false);
-        },
-      });
+        method: this.method(),
+      }),
+    );
   }
 }

@@ -1,8 +1,17 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { OrderService } from '../../core/order.service';
-import { OrderDto, StyleCategoryDto } from '../../core/models';
+import { Store } from '@ngrx/store';
+import { Actions, ofType } from '@ngrx/effects';
+import {
+  OrderActions,
+  selectOrder,
+  selectOrderBusy,
+  selectOrderError,
+  selectStyleCategories,
+} from '../../core/state/order';
+import { StyleCategoryDto } from '../../core/models';
 
 @Component({
   selector: 'app-style-dates',
@@ -127,10 +136,11 @@ import { OrderDto, StyleCategoryDto } from '../../core/models';
   `,
 })
 export class StyleDatesComponent implements OnInit {
-  readonly categories = signal<StyleCategoryDto[]>([]);
-  readonly order = signal<OrderDto | null>(null);
-  readonly loading = signal(false);
-  readonly error = signal<string | null>(null);
+  private readonly store = inject(Store);
+  readonly categories = this.store.selectSignal(selectStyleCategories);
+  readonly order = this.store.selectSignal(selectOrder);
+  readonly loading = this.store.selectSignal(selectOrderBusy);
+  readonly error = this.store.selectSignal(selectOrderError);
   readonly selectedMonth = signal<number | null>(null);
 
   readonly months = [
@@ -159,14 +169,20 @@ export class StyleDatesComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly orders: OrderService,
+    private readonly actions$: Actions,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
+    this.actions$
+      .pipe(ofType(OrderActions.startGenerationSuccess), takeUntilDestroyed())
+      .subscribe(() => this.router.navigate(['/order', this.orderId, 'generating']));
+    this.actions$
+      .pipe(ofType(OrderActions.addPersonalDateSuccess), takeUntilDestroyed())
+      .subscribe(() => (this.newLabel = ''));
   }
 
   ngOnInit(): void {
-    this.orders.styleCategories().subscribe((cats) => this.categories.set(cats));
-    this.orders.getOrder(this.orderId).subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.loadStyleCategories());
+    this.store.dispatch(OrderActions.loadOrder({ orderId: this.orderId }));
   }
 
   pad(n: number): string {
@@ -174,7 +190,7 @@ export class StyleDatesComponent implements OnInit {
   }
 
   pickStyle(cat: StyleCategoryDto): void {
-    this.orders.selectStyle(this.orderId, cat.id).subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.selectStyle({ orderId: this.orderId, styleCategoryId: cat.id }));
   }
 
   datesForMonth(month: number) {
@@ -213,7 +229,7 @@ export class StyleDatesComponent implements OnInit {
     this.selectedMonth.set(month);
     this.newDay = null;
     this.newLabel = '';
-    this.error.set(null);
+    this.store.dispatch(OrderActions.clearOrderError());
   }
 
   closeModal(): void {
@@ -226,27 +242,14 @@ export class StyleDatesComponent implements OnInit {
     if (!month || !day) return;
     const label = this.newLabel.trim();
     if (!label) return;
-    this.orders.addDate(this.orderId, day, month, label).subscribe({
-      next: (o) => {
-        this.order.set(o);
-        this.newLabel = '';
-      },
-      error: () => this.error.set('Не вдалося додати дату.'),
-    });
+    this.store.dispatch(OrderActions.addPersonalDate({ orderId: this.orderId, day, month, label }));
   }
 
   removeDate(dateId: string): void {
-    this.orders.removeDate(this.orderId, dateId).subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.removePersonalDate({ orderId: this.orderId, dateId }));
   }
 
   startGeneration(): void {
-    this.loading.set(true);
-    this.orders.startGeneration(this.orderId).subscribe({
-      next: () => this.router.navigate(['/order', this.orderId, 'generating']),
-      error: () => {
-        this.error.set('Не вдалося почати генерацію.');
-        this.loading.set(false);
-      },
-    });
+    this.store.dispatch(OrderActions.startGeneration({ orderId: this.orderId }));
   }
 }

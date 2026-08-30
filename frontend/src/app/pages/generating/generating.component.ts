@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, interval, startWith, switchMap } from 'rxjs';
-import { OrderService } from '../../core/order.service';
+import { Store } from '@ngrx/store';
+import { OrderActions, selectOrder } from '../../core/state/order';
 import { OrderDto } from '../../core/models';
 
 @Component({
@@ -44,29 +44,23 @@ import { OrderDto } from '../../core/models';
   `,
 })
 export class GeneratingComponent implements OnInit, OnDestroy {
-  readonly order = signal<OrderDto | null>(null);
+  private readonly store = inject(Store);
+  readonly order = this.store.selectSignal(selectOrder);
   private readonly orderId: string;
-  private sub?: Subscription;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly orders: OrderService,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
   }
 
   ngOnInit(): void {
-    this.sub = interval(1500)
-      .pipe(
-        startWith(0),
-        switchMap(() => this.orders.getOrder(this.orderId)),
-      )
-      .subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.startOrderPolling({ orderId: this.orderId, intervalMs: 1500 }));
   }
 
   ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+    this.store.dispatch(OrderActions.stopOrderPolling());
   }
 
   readyCount(o: OrderDto): number {

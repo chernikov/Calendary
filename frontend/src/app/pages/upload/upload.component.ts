@@ -1,6 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { OrderService } from '../../core/order.service';
+import { Store } from '@ngrx/store';
+import { Actions, ofType } from '@ngrx/effects';
+import { OrderActions, selectOrderBusy, selectOrderError } from '../../core/state/order';
 
 @Component({
   selector: 'app-upload',
@@ -29,8 +32,8 @@ import { OrderService } from '../../core/order.service';
       </label>
       <input id="photo" type="file" accept="image/*" style="display: none;" (change)="onFileSelected($event)" />
 
-      @if (error()) {
-        <p style="color: var(--color-accent-2-700); font-size: 13px; margin-top: var(--space-2);">{{ error() }}</p>
+      @if (fileError() || error()) {
+        <p style="color: var(--color-accent-2-700); font-size: 13px; margin-top: var(--space-2);">{{ fileError() || error() }}</p>
       }
 
       <button class="btn btn-primary btn-block" [disabled]="!previewUrl() || loading()" (click)="continue()">
@@ -41,26 +44,32 @@ import { OrderService } from '../../core/order.service';
 })
 export class UploadComponent {
   readonly previewUrl = signal<string | null>(null);
-  readonly loading = signal(false);
-  readonly error = signal<string | null>(null);
+  readonly fileError = signal<string | null>(null);
   private readonly orderId: string;
+  private readonly store = inject(Store);
+
+  readonly loading = this.store.selectSignal(selectOrderBusy);
+  readonly error = this.store.selectSignal(selectOrderError);
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly orders: OrderService,
+    private readonly actions$: Actions,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
+    this.actions$
+      .pipe(ofType(OrderActions.uploadPhotoSuccess), takeUntilDestroyed())
+      .subscribe(() => this.router.navigate(['/order', this.orderId, 'style']));
   }
 
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      this.error.set('Оберіть файл зображення.');
+      this.fileError.set('Оберіть файл зображення.');
       return;
     }
-    this.error.set(null);
+    this.fileError.set(null);
     const reader = new FileReader();
     reader.onload = () => this.previewUrl.set(reader.result as string);
     reader.readAsDataURL(file);
@@ -69,13 +78,6 @@ export class UploadComponent {
   continue(): void {
     const dataUrl = this.previewUrl();
     if (!dataUrl) return;
-    this.loading.set(true);
-    this.orders.uploadPhoto(this.orderId, dataUrl).subscribe({
-      next: () => this.router.navigate(['/order', this.orderId, 'style']),
-      error: () => {
-        this.error.set('Не вдалося завантажити фото.');
-        this.loading.set(false);
-      },
-    });
+    this.store.dispatch(OrderActions.uploadPhoto({ orderId: this.orderId, photoDataUrl: dataUrl }));
   }
 }

@@ -1,6 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { OrderService } from '../../core/order.service';
+import { Store } from '@ngrx/store';
+import { OrderActions, selectOrder } from '../../core/state/order';
 import { OrderDto } from '../../core/models';
 
 const MONTH_NAMES = [
@@ -53,19 +54,19 @@ const MONTH_NAMES = [
   imports: [RouterLink],
 })
 export class ReviewComponent implements OnInit {
-  readonly order = signal<OrderDto | null>(null);
+  private readonly store = inject(Store);
+  readonly order = this.store.selectSignal(selectOrder);
   private readonly orderId: string;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly orders: OrderService,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
   }
 
   ngOnInit(): void {
-    this.orders.getOrder(this.orderId).subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.loadOrder({ orderId: this.orderId }));
   }
 
   monthName(index: number): string {
