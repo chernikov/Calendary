@@ -1,5 +1,5 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { NovaPoshtaWarehouseDto, OrderDto, StyleCategoryDto } from '../../models';
+import { NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, StyleCategoryDto } from '../../models';
 
 export const OrderActions = createActionGroup({
   source: 'Order',
@@ -10,6 +10,10 @@ export const OrderActions = createActionGroup({
 
     'Start Order Polling': props<{ orderId: string; intervalMs: number }>(),
     'Stop Order Polling': emptyProps(),
+
+    'Load My Orders': emptyProps(),
+    'Load My Orders Success': props<{ orders: OrderSummaryDto[] }>(),
+    'Load My Orders Failure': props<{ error: string }>(),
 
     'Load Style Categories': emptyProps(),
     'Load Style Categories Success': props<{ categories: StyleCategoryDto[] }>(),

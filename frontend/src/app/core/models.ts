@@ -84,6 +84,16 @@ export interface OrderDto {
   delivery: DeliveryDto | null;
 }
 
+export interface OrderSummaryDto {
+  id: string;
+  status: OrderStatus;
+  price: number;
+  createdAtUtc: string;
+  statusUpdatedAtUtc: string;
+  styleName: string | null;
+  coverImageUrl: string | null;
+}
+
 export interface NovaPoshtaWarehouseDto {
   number: string;
   address: string;

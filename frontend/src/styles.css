@@ -180,6 +180,7 @@ textarea.input { min-height: 90px; resize: vertical; }
 .nav a:hover, .nav a[aria-current='page'] { color: var(--color-accent); }
 .nav-top { border-bottom: 1px solid var(--color-divider); background: var(--color-bg); flex-wrap: wrap; }
 .nav-top a.btn:hover { color: var(--color-bg); }
+.nav a.is-active { color: var(--color-accent); }
 
 /* — dialog — */
 .dialog-backdrop {

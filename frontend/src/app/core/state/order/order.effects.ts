@@ -22,6 +22,18 @@ export class OrderEffects {
     ),
   );
 
+  loadMyOrders$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.loadMyOrders),
+      switchMap(() =>
+        this.orders.listOrders().pipe(
+          map((orders) => OrderActions.loadMyOrdersSuccess({ orders })),
+          catchError(() => of(OrderActions.loadMyOrdersFailure({ error: 'Не вдалося завантажити замовлення.' }))),
+        ),
+      ),
+    ),
+  );
+
   startOrderPolling$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.startOrderPolling),

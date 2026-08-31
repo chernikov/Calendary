@@ -8,6 +8,10 @@ export const orderReducer = createReducer(
   on(OrderActions.loadOrderSuccess, (state, { order }) => ({ ...state, order, error: null })),
   on(OrderActions.loadOrderFailure, (state, { error }) => ({ ...state, error })),
 
+  on(OrderActions.loadMyOrders, (state) => ({ ...state, busy: true, error: null })),
+  on(OrderActions.loadMyOrdersSuccess, (state, { orders }) => ({ ...state, myOrders: orders, busy: false })),
+  on(OrderActions.loadMyOrdersFailure, (state, { error }) => ({ ...state, busy: false, error })),
+
   on(OrderActions.loadStyleCategoriesSuccess, (state, { categories }) => ({ ...state, styleCategories: categories })),
   on(OrderActions.loadStyleCategoriesFailure, (state, { error }) => ({ ...state, error })),
 
