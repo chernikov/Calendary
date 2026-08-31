@@ -26,6 +26,8 @@ services:
       Resend__ApiKey: "${RESEND_API_KEY:-}"
       AI__OpenAI__ApiKey: "${OPENAI_API_KEY:-}"
       AI__Gemini__ApiKey: "${GEMINI_API_KEY:-}"
+    volumes:
+      - media-data:/app/App_Data/media
     ports:
       - "5080:8080"
     depends_on:
@@ -42,3 +44,6 @@ services:
 
 volumes:
   mssql-data:
+  # Uploaded photos and generated sheets. `docker compose down -v` wipes these along with the DB,
+  # which is what you want locally — the two must be reset together or orders point at gone files.
+  media-data:

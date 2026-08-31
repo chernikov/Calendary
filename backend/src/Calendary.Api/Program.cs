@@ -5,7 +5,9 @@ using Calendary.Infrastructure.Data;
 using Calendary.Infrastructure.Options;
 using Calendary.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +18,8 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
 
 builder.Services.AddScoped<IImageGenerationService, DynamicImageGenerationService>();
 builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
+builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(FileStorageOptions.SectionName));
+builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 builder.Services.AddCalendaryAi(builder.Configuration);
 builder.Services.AddScoped<IPaymentService, MockPaymentService>();
 builder.Services.AddSingleton<INovaPoshtaService, MockNovaPoshtaService>();
@@ -53,6 +57,11 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+
+    await MediaMigrator.ConvertInlineImagesAsync(
+        db,
+        scope.ServiceProvider.GetRequiredService<IFileStorage>(),
+        scope.ServiceProvider.GetRequiredService<ILogger<Program>>());
 }
 
 if (app.Environment.IsDevelopment())
@@ -61,7 +70,29 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+var fileStorageOptions = builder.Configuration.GetSection(FileStorageOptions.SectionName).Get<FileStorageOptions>()
+    ?? new FileStorageOptions();
+var mediaRoot = fileStorageOptions.ResolveRootPath(app.Environment.ContentRootPath);
+Directory.CreateDirectory(mediaRoot);
+
 app.UseCors();
+
+// Filenames are unguessable GUIDs, so the URLs act as capability tokens and need no auth check —
+// which also lets the browser cache them like any other image.
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(mediaRoot),
+    RequestPath = fileStorageOptions.PublicBasePath,
+    ContentTypeProvider = new FileExtensionContentTypeProvider(new Dictionary<string, string>
+    {
+        [".jpg"] = "image/jpeg",
+        [".png"] = "image/png",
+        [".webp"] = "image/webp",
+    }),
+    OnPrepareResponse = ctx =>
+        ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable",
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 

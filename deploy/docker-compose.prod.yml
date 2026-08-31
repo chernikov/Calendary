@@ -34,6 +34,8 @@ services:
       Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
       Google__ClientSecret: "${GOOGLE_CLIENT_SECRET:-}"
       Resend__ApiKey: "${RESEND_API_KEY:-}"
+    volumes:
+      - media-data:/app/App_Data/media
     depends_on:
       mssql:
         condition: service_healthy
@@ -52,3 +54,6 @@ services:
 
 volumes:
   mssql-data:
+  # Uploaded photos and generated sheets. Must outlive `docker compose pull && up -d`, and must be
+  # backed up together with mssql-data — the DB only stores URLs pointing into this volume.
+  media-data:

@@ -1,4 +1,5 @@
 using Calendary.Api.Dtos;
+using Calendary.Api.Photos;
 using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
@@ -15,7 +16,8 @@ namespace Calendary.Api.Controllers;
 public class AdminController(
     AppDbContext db,
     IImageGenerationService generationService,
-    IAppSettingsService appSettings) : ControllerBase
+    IAppSettingsService appSettings,
+    IFileStorage fileStorage) : ControllerBase
 {
     private async Task<Order?> LoadOrderAsync(Guid orderId) =>
         await db.Orders
@@ -26,8 +28,7 @@ public class AdminController(
             .Include(o => o.Payment)
             .Include(o => o.Delivery)
             // See OrdersController.LoadOwnedOrderAsync — Sheets/PersonalDates are sibling
-            // collections whose cartesian join can balloon into a gigantic result set once
-            // Sheet.ImageUrl holds real (multi-MB base64) generated images.
+            // collections whose cartesian join multiplies rows.
             .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId);
 
@@ -69,9 +70,12 @@ public class AdminController(
     {
         var order = await LoadOrderAsync(orderId);
         if (order is null) return NotFound();
-        if (string.IsNullOrWhiteSpace(request.PhotoDataUrl)) return BadRequest("photoDataUrl is required.");
+        if (!PhotoIntake.TryDecode(request.PhotoDataUrl, out var bytes, out var contentType, out var error))
+        {
+            return BadRequest(error);
+        }
 
-        order.PhotoUrl = request.PhotoDataUrl;
+        order.PhotoUrl = await fileStorage.SaveAsync(bytes, contentType, "photos");
         await db.SaveChangesAsync();
 
         order = await LoadOrderAsync(orderId);

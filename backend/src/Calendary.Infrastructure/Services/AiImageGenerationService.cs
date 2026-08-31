@@ -1,5 +1,6 @@
 using Calendary.AI.Clients;
 using Calendary.AI.Prompts;
+using Calendary.Domain;
 using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
@@ -22,6 +23,7 @@ namespace Calendary.Infrastructure.Services;
 public class AiImageGenerationService(
     AppDbContext db,
     IAiImageClient aiClient,
+    IFileStorage fileStorage,
     IServiceScopeFactory scopeFactory,
     ILogger<AiImageGenerationService> logger) : IImageGenerationService
 {
@@ -130,21 +132,32 @@ public class AiImageGenerationService(
         sheet.GeneratingStartedAtUtc = DateTime.UtcNow;
         await scopedDb.SaveChangesAsync();
 
-        var result = await aiClient.GenerateImageAsync(new AiImageRequest(prompt, photoUrl));
+        var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl);
+        var result = await aiClient.GenerateImageAsync(new AiImageRequest(prompt, referenceDataUrl));
 
-        if (result.Success)
+        if (result.Success && DataUrl.TryParse(result.ImageDataUrl, out var contentType, out var bytes))
         {
             sheet.Status = SheetStatus.Ready;
-            sheet.ImageUrl = result.ImageDataUrl;
+            sheet.ImageUrl = await fileStorage.SaveAsync(bytes, contentType, "sheets");
             sheet.ReadyAtUtc = DateTime.UtcNow;
         }
         else
         {
             sheet.Status = SheetStatus.Failed;
-            logger.LogWarning("AI generation failed for sheet {SheetId}: {Error}", sheet.Id, result.Error);
+            logger.LogWarning(
+                "AI generation failed for sheet {SheetId}: {Error}",
+                sheet.Id,
+                result.Error ?? "provider returned a malformed image payload");
         }
 
         await scopedDb.SaveChangesAsync();
+    }
+
+    /// Providers take the reference photo inline, so it has to be pulled back out of storage.
+    private async Task<string> ResolveReferenceDataUrlAsync(string photoUrl)
+    {
+        var file = await fileStorage.ReadAsync(photoUrl);
+        return DataUrl.Build(file.ContentType, file.Content);
     }
 
     private static string BuildPrompt(string styleCode, SheetKind kind, int index) =>

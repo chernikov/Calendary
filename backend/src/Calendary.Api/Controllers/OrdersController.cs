@@ -1,5 +1,6 @@
 using Calendary.Api.Auth;
 using Calendary.Api.Dtos;
+using Calendary.Api.Photos;
 using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
@@ -17,7 +18,8 @@ public class OrdersController(
     AppDbContext db,
     IImageGenerationService generationService,
     IPaymentService paymentService,
-    ICalendarPdfService pdfService) : ControllerBase
+    ICalendarPdfService pdfService,
+    IFileStorage fileStorage) : ControllerBase
 {
     private const int MaxLabelLength = 22;
 
@@ -31,9 +33,7 @@ public class OrdersController(
             .Include(o => o.Payment)
             .Include(o => o.Delivery)
             // Sheets and PersonalDates are sibling collections on the same query — a single join
-            // multiplies rows (sheets × dates), and each Sheet.ImageUrl can be a multi-MB base64
-            // data: URL once real AI generation is live, so that cartesian product balloons into a
-            // gigantic result set. AsSplitQuery issues one query per collection instead.
+            // multiplies rows (sheets × dates). AsSplitQuery issues one query per collection.
             .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
     }
@@ -62,12 +62,12 @@ public class OrdersController(
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
 
-        if (string.IsNullOrWhiteSpace(request.PhotoDataUrl))
+        if (!PhotoIntake.TryDecode(request.PhotoDataUrl, out var bytes, out var contentType, out var error))
         {
-            return BadRequest("photoDataUrl is required.");
+            return BadRequest(error);
         }
 
-        order.PhotoUrl = request.PhotoDataUrl;
+        order.PhotoUrl = await fileStorage.SaveAsync(bytes, contentType, "photos");
         order.SetStatus(OrderStatus.PhotoUploaded);
         await db.SaveChangesAsync();
         return Ok(order.ToDto());

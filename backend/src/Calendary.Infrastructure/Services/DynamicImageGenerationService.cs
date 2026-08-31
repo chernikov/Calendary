@@ -18,6 +18,7 @@ namespace Calendary.Infrastructure.Services;
 public class DynamicImageGenerationService(
     AppDbContext db,
     IAppSettingsService settings,
+    IFileStorage fileStorage,
     IServiceProvider serviceProvider,
     IServiceScopeFactory scopeFactory,
     ILoggerFactory loggerFactory) : IImageGenerationService
@@ -50,6 +51,7 @@ public class DynamicImageGenerationService(
         return new AiImageGenerationService(
             db,
             client,
+            fileStorage,
             scopeFactory,
             loggerFactory.CreateLogger<AiImageGenerationService>());
     }

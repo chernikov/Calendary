@@ -14,7 +14,7 @@ namespace Calendary.Infrastructure.Services;
 /// day-grid highlighting that month's personal dates. Caller (OrdersController) is responsible
 /// for checking all 13 sheets are SheetStatus.Ready before calling — see GenerateAsync's guard
 /// for why that check is repeated here too.
-public class CalendarPdfService(HttpClient httpClient, AppDbContext db) : ICalendarPdfService
+public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileStorage fileStorage) : ICalendarPdfService
 {
     // Keep in sync with frontend/src/app/pages/style-dates/style-dates.component.ts's `weekdays`.
     private static readonly string[] Weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
@@ -42,7 +42,7 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db) : ICalen
             .Include(o => o.PersonalDates)
             .Include(o => o.Sheets)
             // See OrdersController.LoadOwnedOrderAsync — avoids a cartesian join between the two
-            // sibling collections, which balloons once Sheet.ImageUrl holds real base64 images.
+            // sibling collections.
             .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId, ct)
             ?? throw new InvalidOperationException($"Order {orderId} not found.");
@@ -86,16 +86,12 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db) : ICalen
             throw new InvalidOperationException("Ready sheet has no image URL.");
         }
 
-        if (imageUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        if (fileStorage.IsStoredUrl(imageUrl))
         {
-            var commaIndex = imageUrl.IndexOf(',');
-            if (commaIndex < 0)
-            {
-                throw new InvalidOperationException("Malformed data URL.");
-            }
-            return Convert.FromBase64String(imageUrl[(commaIndex + 1)..]);
+            return (await fileStorage.ReadAsync(imageUrl, ct)).Content;
         }
 
+        // The mock generator still points sheets at external placeholder images.
         return await httpClient.GetByteArrayAsync(imageUrl, ct);
     }
 
