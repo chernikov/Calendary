@@ -66,17 +66,20 @@ public class AdminController(
     }
 
     [HttpPost("orders/{orderId:guid}/photo")]
-    public async Task<ActionResult<OrderDto>> ReplacePhoto(Guid orderId, ReplacePhotoRequest request)
+    [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
+    public async Task<ActionResult<OrderDto>> ReplacePhoto(Guid orderId, [FromForm] IFormFile? photo, CancellationToken ct)
     {
         var order = await LoadOrderAsync(orderId);
         if (order is null) return NotFound();
-        if (!PhotoIntake.TryDecode(request.PhotoDataUrl, out var bytes, out var contentType, out var error))
+
+        var intake = await PhotoIntake.ReadAsync(photo, ct);
+        if (!intake.Ok)
         {
-            return BadRequest(error);
+            return BadRequest(new { error = intake.Error });
         }
 
-        order.PhotoUrl = await fileStorage.SaveAsync(bytes, contentType, "photos");
-        await db.SaveChangesAsync();
+        order.PhotoUrl = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
+        await db.SaveChangesAsync(ct);
 
         order = await LoadOrderAsync(orderId);
         return Ok(order!.ToDto());

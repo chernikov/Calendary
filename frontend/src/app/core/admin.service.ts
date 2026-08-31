@@ -22,8 +22,10 @@ export class AdminService {
     return this.http.get<OrderDto>(`${BASE}/orders/${orderId}`);
   }
 
-  replacePhoto(orderId: string, photoDataUrl: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photo`, { photoDataUrl });
+  replacePhoto(orderId: string, photo: File): Observable<OrderDto> {
+    const form = new FormData();
+    form.append('photo', photo, photo.name);
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photo`, form);
   }
 
   regenerateSheet(orderId: string, sheetId: string): Observable<OrderDto> {

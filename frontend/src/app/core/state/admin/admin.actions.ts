@@ -16,7 +16,7 @@ export const AdminActions = createActionGroup({
     'Load Order Detail Success': props<{ order: OrderDto }>(),
     'Load Order Detail Failure': props<{ error: string }>(),
 
-    'Replace Photo': props<{ orderId: string; photoDataUrl: string }>(),
+    'Replace Photo': props<{ orderId: string; photo: File }>(),
     'Replace Photo Success': props<{ order: OrderDto }>(),
     'Replace Photo Failure': props<{ error: string }>(),
 

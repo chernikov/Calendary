@@ -2,8 +2,9 @@ namespace Calendary.AI.Clients;
 
 /// <param name="Prompt">The full text prompt (see Prompts/CalendarPrompts.cs).</param>
 /// <param name="ReferencePhotoDataUrl">
-/// The customer's uploaded photo as a data: URL (as stored on Order.PhotoUrl), used for
-/// image-to-image generation so the result keeps their likeness. Both providers support this.
+/// The customer's uploaded photo as a data: URL (downscaled by ReferencePhotoDownscaler before
+/// it gets here), used for image-to-image generation so the result keeps their likeness. Both
+/// providers support this.
 /// </param>
 public record AiImageRequest(string Prompt, string? ReferencePhotoDataUrl);
 

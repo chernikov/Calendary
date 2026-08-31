@@ -15,7 +15,7 @@ export const OrderActions = createActionGroup({
     'Load Style Categories Success': props<{ categories: StyleCategoryDto[] }>(),
     'Load Style Categories Failure': props<{ error: string }>(),
 
-    'Upload Photo': props<{ orderId: string; photoDataUrl: string }>(),
+    'Upload Photo': props<{ orderId: string; photo: File }>(),
     'Upload Photo Success': props<{ order: OrderDto }>(),
     'Upload Photo Failure': props<{ error: string }>(),
 

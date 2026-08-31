@@ -142,12 +142,6 @@ export class AdminOrderDetailComponent implements OnInit {
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.store.dispatch(
-        AdminActions.replacePhoto({ orderId: this.orderId, photoDataUrl: reader.result as string }),
-      );
-    };
-    reader.readAsDataURL(file);
+    this.store.dispatch(AdminActions.replacePhoto({ orderId: this.orderId, photo: file }));
   }
 }

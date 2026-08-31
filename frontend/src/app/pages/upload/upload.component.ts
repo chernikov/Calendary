@@ -5,6 +5,9 @@ import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
 import { OrderActions, selectOrderBusy, selectOrderError } from '../../core/state/order';
 
+// Mirrors PhotoIntake.MaxBytes on the backend.
+const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
+
 @Component({
   selector: 'app-upload',
   standalone: true,
@@ -45,6 +48,7 @@ import { OrderActions, selectOrderBusy, selectOrderError } from '../../core/stat
 export class UploadComponent {
   readonly previewUrl = signal<string | null>(null);
   readonly fileError = signal<string | null>(null);
+  private readonly file = signal<File | null>(null);
   private readonly orderId: string;
   private readonly store = inject(Store);
 
@@ -69,15 +73,24 @@ export class UploadComponent {
       this.fileError.set('Оберіть файл зображення.');
       return;
     }
+    if (file.size > MAX_PHOTO_BYTES) {
+      this.fileError.set('Фото завелике — максимум 20 МБ.');
+      return;
+    }
     this.fileError.set(null);
-    const reader = new FileReader();
-    reader.onload = () => this.previewUrl.set(reader.result as string);
-    reader.readAsDataURL(file);
+    this.file.set(file);
+    this.setPreview(URL.createObjectURL(file));
   }
 
   continue(): void {
-    const dataUrl = this.previewUrl();
-    if (!dataUrl) return;
-    this.store.dispatch(OrderActions.uploadPhoto({ orderId: this.orderId, photoDataUrl: dataUrl }));
+    const photo = this.file();
+    if (!photo) return;
+    this.store.dispatch(OrderActions.uploadPhoto({ orderId: this.orderId, photo }));
+  }
+
+  private setPreview(url: string | null): void {
+    const previous = this.previewUrl();
+    if (previous) URL.revokeObjectURL(previous);
+    this.previewUrl.set(url);
   }
 }

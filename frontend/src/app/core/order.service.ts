@@ -26,8 +26,10 @@ export class OrderService {
     return this.http.get<OrderDto>(`${BASE}/orders/${orderId}`);
   }
 
-  uploadPhoto(orderId: string, photoDataUrl: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photo`, { photoDataUrl });
+  uploadPhoto(orderId: string, photo: File): Observable<OrderDto> {
+    const form = new FormData();
+    form.append('photo', photo, photo.name);
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photo`, form);
   }
 
   selectStyle(orderId: string, styleCategoryId: string): Observable<OrderDto> {

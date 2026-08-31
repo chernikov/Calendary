@@ -57,19 +57,21 @@ public class OrdersController(
     }
 
     [HttpPost("{orderId:guid}/photo")]
-    public async Task<ActionResult<OrderDto>> UploadPhoto(Guid orderId, UploadPhotoRequest request)
+    [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
+    public async Task<ActionResult<OrderDto>> UploadPhoto(Guid orderId, [FromForm] IFormFile? photo, CancellationToken ct)
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
 
-        if (!PhotoIntake.TryDecode(request.PhotoDataUrl, out var bytes, out var contentType, out var error))
+        var intake = await PhotoIntake.ReadAsync(photo, ct);
+        if (!intake.Ok)
         {
-            return BadRequest(error);
+            return BadRequest(new { error = intake.Error });
         }
 
-        order.PhotoUrl = await fileStorage.SaveAsync(bytes, contentType, "photos");
+        order.PhotoUrl = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
         order.SetStatus(OrderStatus.PhotoUploaded);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
         return Ok(order.ToDto());
     }
 

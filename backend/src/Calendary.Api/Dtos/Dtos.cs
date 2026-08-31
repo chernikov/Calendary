@@ -9,7 +9,6 @@ public record AuthResponse(string BearerToken, UserDto User);
 
 public record StyleCategoryDto(Guid Id, string Code, string Name, string Description, int SortOrder);
 
-public record UploadPhotoRequest(string PhotoDataUrl);
 public record SelectStyleRequest(Guid StyleCategoryId);
 public record AddPersonalDateRequest(int Day, int Month, string Label);
 public record PersonalDateDto(Guid Id, int Day, int Month, string Label);
@@ -52,6 +51,5 @@ public record AdminUserDto(
     Guid Id, string? Email, string? DisplayName, string Role, string AuthProvider,
     bool EmailConfirmed, DateTime CreatedAtUtc, int OrderCount);
 
-public record ReplacePhotoRequest(string PhotoDataUrl);
 public record SetImageGenerationProviderRequest(string Provider);
 public record ImageGenerationProviderDto(string Provider);

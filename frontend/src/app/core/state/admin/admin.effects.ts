@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { AdminService } from '../../admin.service';
+import { photoUploadErrorMessage } from '../../photo-upload-error';
 import { AdminActions } from './admin.actions';
 
 @Injectable()
@@ -48,10 +49,10 @@ export class AdminEffects {
   replacePhoto$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.replacePhoto),
-      switchMap(({ orderId, photoDataUrl }) =>
-        this.admin.replacePhoto(orderId, photoDataUrl).pipe(
+      switchMap(({ orderId, photo }) =>
+        this.admin.replacePhoto(orderId, photo).pipe(
           map((order) => AdminActions.replacePhotoSuccess({ order })),
-          catchError(() => of(AdminActions.replacePhotoFailure({ error: 'Не вдалося замінити фото.' }))),
+          catchError((err) => of(AdminActions.replacePhotoFailure({ error: photoUploadErrorMessage(err) }))),
         ),
       ),
     ),

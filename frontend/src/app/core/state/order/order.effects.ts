@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, interval, map, of, startWith, switchMap, takeUntil, tap } from 'rxjs';
 import { OrderService } from '../../order.service';
+import { photoUploadErrorMessage } from '../../photo-upload-error';
 import { OrderActions } from './order.actions';
 
 @Injectable()
@@ -54,10 +55,10 @@ export class OrderEffects {
   uploadPhoto$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.uploadPhoto),
-      switchMap(({ orderId, photoDataUrl }) =>
-        this.orders.uploadPhoto(orderId, photoDataUrl).pipe(
+      switchMap(({ orderId, photo }) =>
+        this.orders.uploadPhoto(orderId, photo).pipe(
           map((order) => OrderActions.uploadPhotoSuccess({ order })),
-          catchError(() => of(OrderActions.uploadPhotoFailure({ error: 'Не вдалося завантажити фото.' }))),
+          catchError((err) => of(OrderActions.uploadPhotoFailure({ error: photoUploadErrorMessage(err) }))),
         ),
       ),
     ),

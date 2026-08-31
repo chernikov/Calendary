@@ -76,19 +76,21 @@ public class AiImageGenerationService(
 
         await db.SaveChangesAsync(ct);
 
-        var photoUrl = order.PhotoUrl!;
+        var referenceDataUrl = await ResolveReferenceDataUrlAsync(order.PhotoUrl!, ct);
         var prompt = BuildPrompt(order.StyleCategory!.Code, sheet.Kind, sheet.Index);
-        _ = Task.Run(() => GenerateOneSheetAsync(orderId, sheetId, prompt, photoUrl), CancellationToken.None);
+        _ = Task.Run(() => GenerateOneSheetAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
 
         return true;
     }
 
     private async Task GenerateOrderAsync(Guid orderId, string photoUrl, string styleCode)
     {
+        var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl);
+
         // Cover first — the months' prompts describe themselves as matching "the cover image"'s
         // style, so generating it first (and letting it finish) keeps that framing honest even
         // though nothing here actually feeds the cover's pixels back into the month prompts.
-        await GenerateOneSheetAsync(orderId, kind: SheetKind.Cover, index: 0, photoUrl, styleCode);
+        await GenerateOneSheetAsync(orderId, kind: SheetKind.Cover, index: 0, referenceDataUrl, styleCode);
 
         using var throttle = new SemaphoreSlim(MaxConcurrentGenerations);
         var monthTasks = Enumerable.Range(1, 12).Select(async month =>
@@ -96,7 +98,7 @@ public class AiImageGenerationService(
             await throttle.WaitAsync();
             try
             {
-                await GenerateOneSheetAsync(orderId, kind: SheetKind.Month, index: month, photoUrl, styleCode);
+                await GenerateOneSheetAsync(orderId, kind: SheetKind.Month, index: month, referenceDataUrl, styleCode);
             }
             finally
             {
@@ -106,33 +108,32 @@ public class AiImageGenerationService(
         await Task.WhenAll(monthTasks);
     }
 
-    private async Task GenerateOneSheetAsync(Guid orderId, SheetKind kind, int index, string photoUrl, string styleCode)
+    private async Task GenerateOneSheetAsync(Guid orderId, SheetKind kind, int index, string referenceDataUrl, string styleCode)
     {
         using var scope = scopeFactory.CreateScope();
         var scopedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var sheet = await scopedDb.Sheets.FirstAsync(s => s.OrderId == orderId && s.Kind == kind && s.Index == index);
 
-        await RunGenerationAsync(scopedDb, sheet, BuildPrompt(styleCode, kind, index), photoUrl);
+        await RunGenerationAsync(scopedDb, sheet, BuildPrompt(styleCode, kind, index), referenceDataUrl);
         await OrderProgressionHelper.AdvanceOrderStatusAsync(scopedDb, orderId);
     }
 
-    private async Task GenerateOneSheetAsync(Guid orderId, Guid sheetId, string prompt, string photoUrl)
+    private async Task GenerateOneSheetAsync(Guid orderId, Guid sheetId, string prompt, string referenceDataUrl)
     {
         using var scope = scopeFactory.CreateScope();
         var scopedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var sheet = await scopedDb.Sheets.FirstAsync(s => s.Id == sheetId);
 
-        await RunGenerationAsync(scopedDb, sheet, prompt, photoUrl);
+        await RunGenerationAsync(scopedDb, sheet, prompt, referenceDataUrl);
         await OrderProgressionHelper.AdvanceOrderStatusAsync(scopedDb, orderId);
     }
 
-    private async Task RunGenerationAsync(AppDbContext scopedDb, Sheet sheet, string prompt, string photoUrl)
+    private async Task RunGenerationAsync(AppDbContext scopedDb, Sheet sheet, string prompt, string referenceDataUrl)
     {
         sheet.Status = SheetStatus.Generating;
         sheet.GeneratingStartedAtUtc = DateTime.UtcNow;
         await scopedDb.SaveChangesAsync();
 
-        var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl);
         var result = await aiClient.GenerateImageAsync(new AiImageRequest(prompt, referenceDataUrl));
 
         if (result.Success && DataUrl.TryParse(result.ImageDataUrl, out var contentType, out var bytes))
@@ -153,11 +154,13 @@ public class AiImageGenerationService(
         await scopedDb.SaveChangesAsync();
     }
 
-    /// Providers take the reference photo inline, so it has to be pulled back out of storage.
-    private async Task<string> ResolveReferenceDataUrlAsync(string photoUrl)
+    /// Providers take the reference photo inline and re-send it for every sheet, so it is pulled
+    /// out of storage and shrunk once per generation run.
+    private async Task<string> ResolveReferenceDataUrlAsync(string photoUrl, CancellationToken ct = default)
     {
-        var file = await fileStorage.ReadAsync(photoUrl);
-        return DataUrl.Build(file.ContentType, file.Content);
+        var file = await fileStorage.ReadAsync(photoUrl, ct);
+        var reference = ReferencePhotoDownscaler.Downscale(file);
+        return DataUrl.Build(reference.ContentType, reference.Content);
     }
 
     private static string BuildPrompt(string styleCode, SheetKind kind, int index) =>
