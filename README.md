@@ -94,9 +94,9 @@ actual AI provider integration, built but **not wired in by default**:
   `/images/generations`; `GeminiImageClient` calls `generateContent` with the photo as inline
   image data). `ServiceCollectionExtensions.AddCalendaryAi()` registers only the implementation
   `AiOptions.Provider` selects.
-- `Prompts/CalendarPrompts.cs` — the actual prompt text, one style descriptor per
-  `StyleCategory.Code` (`history`/`cinema`/`adventure`/`professions`) and a seasonal hint per
-  month, composed into `BuildCoverPrompt` / `BuildMonthPrompt`. Prompts are in English (both
+- `Prompts/CalendarPrompts.cs` — wraps the DB-stored prompt library texts (per-sheet scene from
+  `Prompt.Text` + visual style from `ImageStyle.Text`) and a seasonal hint per month, composed
+  into `BuildCoverPrompt` / `BuildMonthPrompt`. Prompts are in English (both
   providers follow English instructions more reliably) even though the product copy is Ukrainian.
 
 `Calendary.Infrastructure/Services/AiImageGenerationService.cs` is a real `IImageGenerationService`

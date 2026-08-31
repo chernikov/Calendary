@@ -52,13 +52,13 @@ export class OrderEffects {
     ),
   );
 
-  loadStyleCategories$ = createEffect(() =>
+  loadPromptLibrary$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(OrderActions.loadStyleCategories),
+      ofType(OrderActions.loadPromptLibrary),
       switchMap(() =>
-        this.orders.styleCategories().pipe(
-          map((categories) => OrderActions.loadStyleCategoriesSuccess({ categories })),
-          catchError(() => of(OrderActions.loadStyleCategoriesFailure({ error: 'Не вдалося завантажити стилі.' }))),
+        this.orders.promptLibrary().pipe(
+          map((library) => OrderActions.loadPromptLibrarySuccess({ library })),
+          catchError(() => of(OrderActions.loadPromptLibraryFailure({ error: 'Не вдалося завантажити бібліотеку промптів.' }))),
         ),
       ),
     ),
@@ -76,13 +76,21 @@ export class OrderEffects {
     ),
   );
 
-  selectStyle$ = createEffect(() =>
+  // Saving the sheet plan and starting generation are one user gesture — chain the two calls
+  // and reuse startGenerationSuccess so navigation logic stays in one place.
+  savePlanAndGenerate$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(OrderActions.selectStyle),
-      switchMap(({ orderId, styleCategoryId }) =>
-        this.orders.selectStyle(orderId, styleCategoryId).pipe(
-          map((order) => OrderActions.selectStyleSuccess({ order })),
-          catchError(() => of(OrderActions.selectStyleFailure({ error: 'Не вдалося обрати стиль.' }))),
+      ofType(OrderActions.savePlanAndGenerate),
+      switchMap(({ orderId, items }) =>
+        this.orders.saveSheetPlan(orderId, items).pipe(
+          switchMap(() =>
+            this.orders.startGeneration(orderId).pipe(
+              map((order) => OrderActions.startGenerationSuccess({ order })),
+            ),
+          ),
+          catchError(() =>
+            of(OrderActions.savePlanAndGenerateFailure({ error: 'Не вдалося почати генерацію.' })),
+          ),
         ),
       ),
     ),

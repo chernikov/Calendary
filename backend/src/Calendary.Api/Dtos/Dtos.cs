@@ -7,13 +7,21 @@ public record ConfirmEmailRequest(string Code);
 public record UserDto(Guid Id, string? DisplayName, string? Email, bool EmailConfirmed, string Role);
 public record AuthResponse(string BearerToken, UserDto User);
 
-public record StyleCategoryDto(Guid Id, string Code, string Name, string Description, int SortOrder);
+public record PromptThemeDto(Guid Id, string Name, string Description, int SortOrder, IReadOnlyList<PromptDto> Prompts);
+public record PromptDto(Guid Id, Guid PromptThemeId, string Name, string Text, int SortOrder);
+public record ImageStyleDto(Guid Id, string Name, string Text, int SortOrder);
+public record PromptLibraryDto(IReadOnlyList<PromptThemeDto> Themes, IReadOnlyList<ImageStyleDto> Styles);
 
-public record SelectStyleRequest(Guid StyleCategoryId);
+public record SheetPlanItem(int Index, Guid PromptId, Guid ImageStyleId);
+public record SaveSheetPlanRequest(IReadOnlyList<SheetPlanItem> Items);
+public record RegenerateSheetRequest(Guid? PromptId, Guid? ImageStyleId);
+
 public record AddPersonalDateRequest(int Day, int Month, string Label);
 public record PersonalDateDto(Guid Id, int Day, int Month, string Label);
 
-public record SheetDto(Guid Id, string Kind, int Index, string Status, bool IsSelected, string? ImageUrl, int VariantCount);
+public record SheetDto(
+    Guid Id, string Kind, int Index, string Status, bool IsSelected, string? ImageUrl, int VariantCount,
+    Guid? PromptId, string? PromptName, Guid? ImageStyleId, string? ImageStyleName);
 public record ConfirmCoverRequest(Guid SheetId);
 
 public record CheckoutRequest(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);
@@ -28,7 +36,6 @@ public record OrderDto(
     Guid Id,
     string Status,
     string? PhotoUrl,
-    StyleCategoryDto? StyleCategory,
     decimal Price,
     int RegenerationsRemaining,
     DateTime CreatedAtUtc,
@@ -62,3 +69,7 @@ public record AdminUserDto(
 
 public record SetImageGenerationProviderRequest(string Provider);
 public record ImageGenerationProviderDto(string Provider);
+
+public record SavePromptThemeRequest(string Name, string Description, int SortOrder);
+public record SavePromptRequest(Guid PromptThemeId, string Name, string Text, int SortOrder);
+public record SaveImageStyleRequest(string Name, string Text, int SortOrder);

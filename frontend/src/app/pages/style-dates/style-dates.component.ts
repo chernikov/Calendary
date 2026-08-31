@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -9,9 +9,16 @@ import {
   selectOrder,
   selectOrderBusy,
   selectOrderError,
-  selectStyleCategories,
+  selectPromptLibrary,
 } from '../../core/state/order';
-import { StyleCategoryDto } from '../../core/models';
+import { SheetPlanItem } from '../../core/models';
+
+interface PlanRow {
+  promptId: string;
+  styleId: string;
+  /** True once the user explicitly picked a style here — stops downward propagation. */
+  styleTouched: boolean;
+}
 
 @Component({
   selector: 'app-style-dates',
@@ -21,13 +28,37 @@ import { StyleCategoryDto } from '../../core/models';
     <div class="page">
       <div class="step-label"><span>Крок 3 із 5</span></div>
       <h2 style="font-size: 28px;">Образи</h2>
-      <p class="text-muted">Оберіть напрямок для дванадцяти місяців.</p>
+      <p class="text-muted">
+        Оберіть образ (сюжет) і стиль для обкладинки та кожного місяця. Обраний стиль
+        застосовується й до наступних аркушів — за бажанням змініть його на будь-якому.
+      </p>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-2);">
-        @for (cat of categories(); track cat.id) {
-          <div class="card selectable" [class.selected]="order()?.styleCategory?.id === cat.id" (click)="pickStyle(cat)">
-            <div class="card-title">{{ cat.name }}</div>
-            <div class="card-body">{{ cat.description }}</div>
+      <div style="display: grid; gap: var(--space-2);">
+        @for (row of sheetRows; track row.index) {
+          <div class="card" style="display: grid; grid-template-columns: 110px 1fr 1fr; gap: var(--space-2); align-items: center;">
+            <div class="card-title" style="margin: 0;">{{ row.name }}</div>
+            <div class="field" style="margin: 0;">
+              <label>Образ</label>
+              <select class="input" [ngModel]="plan[row.index].promptId" (ngModelChange)="pickPrompt(row.index, $event)">
+                <option value="" disabled>— оберіть образ —</option>
+                @for (theme of library()?.themes ?? []; track theme.id) {
+                  <optgroup [label]="theme.name">
+                    @for (prompt of theme.prompts; track prompt.id) {
+                      <option [value]="prompt.id">{{ prompt.name }}</option>
+                    }
+                  </optgroup>
+                }
+              </select>
+            </div>
+            <div class="field" style="margin: 0;">
+              <label>Стиль</label>
+              <select class="input" [ngModel]="plan[row.index].styleId" (ngModelChange)="pickStyle(row.index, $event)">
+                <option value="" disabled>— оберіть стиль —</option>
+                @for (style of library()?.styles ?? []; track style.id) {
+                  <option [value]="style.id">{{ style.name }}</option>
+                }
+              </select>
+            </div>
           </div>
         }
       </div>
@@ -127,7 +158,7 @@ import { StyleCategoryDto } from '../../core/models';
       <button
         class="btn btn-primary btn-block"
         style="max-width: 320px;"
-        [disabled]="!order()?.styleCategory || loading()"
+        [disabled]="!planComplete() || loading()"
         (click)="startGeneration()"
       >
         Почати генерацію
@@ -137,7 +168,7 @@ import { StyleCategoryDto } from '../../core/models';
 })
 export class StyleDatesComponent implements OnInit {
   private readonly store = inject(Store);
-  readonly categories = this.store.selectSignal(selectStyleCategories);
+  readonly library = this.store.selectSignal(selectPromptLibrary);
   readonly order = this.store.selectSignal(selectOrder);
   readonly loading = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
@@ -161,6 +192,14 @@ export class StyleDatesComponent implements OnInit {
   readonly weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
   private readonly calendarYear = new Date().getFullYear() + 1;
 
+  // Index 0 = cover, 1..12 = months.
+  readonly sheetRows = [
+    { index: 0, name: 'Обкладинка' },
+    ...Array.from({ length: 12 }, (_, i) => ({ index: i + 1, name: this.monthNameByNumber(i + 1) })),
+  ];
+  readonly plan: PlanRow[] = this.sheetRows.map(() => ({ promptId: '', styleId: '', styleTouched: false }));
+  private planHydrated = false;
+
   newDay: number | null = null;
   newLabel = '';
 
@@ -178,19 +217,55 @@ export class StyleDatesComponent implements OnInit {
     this.actions$
       .pipe(ofType(OrderActions.addPersonalDateSuccess), takeUntilDestroyed())
       .subscribe(() => (this.newLabel = ''));
+
+    // A previously saved plan comes back on the order's sheets — hydrate the selects once.
+    effect(() => {
+      const sheets = this.order()?.sheets ?? [];
+      if (this.planHydrated || sheets.length === 0) return;
+      this.planHydrated = true;
+      for (const sheet of sheets) {
+        const row = this.plan[sheet.index];
+        if (!row) continue;
+        row.promptId = sheet.promptId ?? '';
+        row.styleId = sheet.imageStyleId ?? '';
+        row.styleTouched = !!sheet.imageStyleId;
+      }
+    });
   }
 
   ngOnInit(): void {
-    this.store.dispatch(OrderActions.loadStyleCategories());
+    this.store.dispatch(OrderActions.loadPromptLibrary());
     this.store.dispatch(OrderActions.loadOrder({ orderId: this.orderId }));
+  }
+
+  private monthNameByNumber(month: number): string {
+    return [
+      'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
+      'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень',
+    ][month - 1];
   }
 
   pad(n: number): string {
     return n.toString().padStart(2, '0');
   }
 
-  pickStyle(cat: StyleCategoryDto): void {
-    this.store.dispatch(OrderActions.selectStyle({ orderId: this.orderId, styleCategoryId: cat.id }));
+  pickPrompt(index: number, promptId: string): void {
+    this.plan[index].promptId = promptId;
+  }
+
+  // The chosen style “sticks”: it flows down to every later sheet the user hasn't overridden.
+  pickStyle(index: number, styleId: string): void {
+    this.plan[index].styleId = styleId;
+    this.plan[index].styleTouched = true;
+    for (let i = index + 1; i < this.plan.length; i++) {
+      if (!this.plan[i].styleTouched) {
+        this.plan[i].styleId = styleId;
+      }
+    }
+  }
+
+  planComplete(): boolean {
+    return this.plan.every((row) => row.promptId && row.styleId);
   }
 
   datesForMonth(month: number) {
@@ -250,6 +325,12 @@ export class StyleDatesComponent implements OnInit {
   }
 
   startGeneration(): void {
-    this.store.dispatch(OrderActions.startGeneration({ orderId: this.orderId }));
+    if (!this.planComplete()) return;
+    const items: SheetPlanItem[] = this.plan.map((row, index) => ({
+      index,
+      promptId: row.promptId,
+      imageStyleId: row.styleId,
+    }));
+    this.store.dispatch(OrderActions.savePlanAndGenerate({ orderId: this.orderId, items }));
   }
 }

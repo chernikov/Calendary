@@ -42,7 +42,6 @@ const STATUS_COLORS: Record<SheetStatus, string> = {
 
       <nz-descriptions [nzBordered]="true" [nzColumn]="2" style="margin-bottom: 24px;">
         <nz-descriptions-item nzTitle="Статус"><nz-tag>{{ o.status }}</nz-tag></nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Стиль">{{ o.styleCategory?.name || '—' }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Ціна">{{ o.price }} ₴</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Перегенерацій залишилось">{{ o.regenerationsRemaining }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Створено">{{ o.createdAtUtc | date: 'short' }}</nz-descriptions-item>
@@ -95,6 +94,11 @@ const STATUS_COLORS: Record<SheetStatus, string> = {
             <div style="font-size: 12px; margin: 6px 0 4px;">
               {{ sheet.kind === 'Cover' ? 'Обкладинка' : monthName(sheet.index) }}
             </div>
+            @if (sheet.promptName || sheet.imageStyleName) {
+              <div style="font-size: 11px; color: rgba(0, 0, 0, 0.45); margin-bottom: 4px;">
+                {{ sheet.promptName || '—' }} · {{ sheet.imageStyleName || '—' }}
+              </div>
+            }
             <nz-tag [nzColor]="statusColor(sheet.status)">{{ sheet.status }}</nz-tag>
             <div style="margin-top: 6px;">
               <button

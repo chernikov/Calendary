@@ -56,27 +56,31 @@ public class DynamicImageGenerationService(
             loggerFactory.CreateLogger<AiImageGenerationService>());
     }
 
-    // Moved verbatim from the now-deleted MockImageGenerationService.
+    // Moved verbatim from the now-deleted MockImageGenerationService, then adapted: sheets (with
+    // the user's per-sheet prompt/style picks) are pre-created by the sheet-plan endpoint, so
+    // this only flips the order into Generating — GenerationBackgroundService picks the pending
+    // sheets up from there.
     private async Task<IReadOnlyList<Sheet>> StartMockGenerationAsync(Guid orderId, CancellationToken ct)
     {
-        var existing = await db.Sheets.Where(s => s.OrderId == orderId).ToListAsync(ct);
-        if (existing.Count > 0)
-        {
-            return existing;
-        }
-
-        var sheets = new List<Sheet>
-        {
-            new() { OrderId = orderId, Kind = SheetKind.Cover, Index = 0, VariantCount = 4 }
-        };
-        for (var month = 1; month <= 12; month++)
-        {
-            sheets.Add(new Sheet { OrderId = orderId, Kind = SheetKind.Month, Index = month, VariantCount = 4 });
-        }
-
-        db.Sheets.AddRange(sheets);
-
         var order = await db.Orders.FirstAsync(o => o.Id == orderId, ct);
+        var sheets = await db.Sheets
+            .Where(s => s.OrderId == orderId)
+            .OrderBy(s => s.Index)
+            .ToListAsync(ct);
+
+        if (order.Status is not (OrderStatus.DetailsSubmitted or OrderStatus.PhotoUploaded))
+        {
+            return sheets;
+        }
+        if (sheets.Count != 13 || sheets.Any(s => s.PromptId is null || s.ImageStyleId is null))
+        {
+            throw new InvalidOperationException("Order does not have a complete sheet plan.");
+        }
+
+        foreach (var sheet in sheets)
+        {
+            sheet.VariantCount = 4;
+        }
         order.SetStatus(OrderStatus.Generating);
 
         await db.SaveChangesAsync(ct);

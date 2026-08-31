@@ -75,6 +75,14 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/admin/admin-users.component').then((m) => m.AdminUsersComponent),
       },
       {
+        path: 'prompts',
+        loadComponent: () => import('./pages/admin/admin-prompts.component').then((m) => m.AdminPromptsComponent),
+      },
+      {
+        path: 'styles',
+        loadComponent: () => import('./pages/admin/admin-styles.component').then((m) => m.AdminStylesComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./pages/admin/admin-settings.component').then((m) => m.AdminSettingsComponent),
       },

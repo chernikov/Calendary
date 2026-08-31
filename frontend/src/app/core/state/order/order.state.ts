@@ -1,9 +1,9 @@
-import { NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, StyleCategoryDto } from '../../models';
+import { NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, PromptLibraryDto } from '../../models';
 
 export interface OrderState {
   order: OrderDto | null;
   myOrders: OrderSummaryDto[];
-  styleCategories: StyleCategoryDto[];
+  promptLibrary: PromptLibraryDto | null;
   warehouses: NovaPoshtaWarehouseDto[];
   busy: boolean;
   downloadingPdf: boolean;
@@ -13,7 +13,7 @@ export interface OrderState {
 export const initialOrderState: OrderState = {
   order: null,
   myOrders: [],
-  styleCategories: [],
+  promptLibrary: null,
   warehouses: [],
   busy: false,
   downloadingPdf: false,

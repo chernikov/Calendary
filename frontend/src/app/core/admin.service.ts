@@ -2,7 +2,19 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AdminOrderSummaryDto, AdminUserDto, ImageGenerationProvider, OrderDto, PagedResult } from './models';
+import {
+  AdminOrderSummaryDto,
+  AdminUserDto,
+  ImageGenerationProvider,
+  ImageStyleDto,
+  OrderDto,
+  PagedResult,
+  PromptDto,
+  PromptThemeDto,
+  SaveImageStylePayload,
+  SavePromptPayload,
+  SavePromptThemePayload,
+} from './models';
 
 const BASE = `${environment.apiBaseUrl}/api/admin`;
 
@@ -43,5 +55,43 @@ export class AdminService {
 
   setAiProvider(provider: ImageGenerationProvider): Observable<{ provider: ImageGenerationProvider }> {
     return this.http.put<{ provider: ImageGenerationProvider }>(`${BASE}/settings/ai-provider`, { provider });
+  }
+
+  listPromptThemes(): Observable<PromptThemeDto[]> {
+    return this.http.get<PromptThemeDto[]>(`${BASE}/prompt-themes`);
+  }
+
+  savePromptTheme(theme: SavePromptThemePayload): Observable<PromptThemeDto> {
+    return theme.id
+      ? this.http.put<PromptThemeDto>(`${BASE}/prompt-themes/${theme.id}`, theme)
+      : this.http.post<PromptThemeDto>(`${BASE}/prompt-themes`, theme);
+  }
+
+  deletePromptTheme(themeId: string): Observable<void> {
+    return this.http.delete<void>(`${BASE}/prompt-themes/${themeId}`);
+  }
+
+  savePrompt(prompt: SavePromptPayload): Observable<PromptDto> {
+    return prompt.id
+      ? this.http.put<PromptDto>(`${BASE}/prompts/${prompt.id}`, prompt)
+      : this.http.post<PromptDto>(`${BASE}/prompts`, prompt);
+  }
+
+  deletePrompt(promptId: string): Observable<void> {
+    return this.http.delete<void>(`${BASE}/prompts/${promptId}`);
+  }
+
+  listImageStyles(): Observable<ImageStyleDto[]> {
+    return this.http.get<ImageStyleDto[]>(`${BASE}/image-styles`);
+  }
+
+  saveImageStyle(style: SaveImageStylePayload): Observable<ImageStyleDto> {
+    return style.id
+      ? this.http.put<ImageStyleDto>(`${BASE}/image-styles/${style.id}`, style)
+      : this.http.post<ImageStyleDto>(`${BASE}/image-styles`, style);
+  }
+
+  deleteImageStyle(styleId: string): Observable<void> {
+    return this.http.delete<void>(`${BASE}/image-styles/${styleId}`);
   }
 }
