@@ -8,12 +8,38 @@ export interface UserDto {
   role: UserRole;
 }
 
-export interface StyleCategoryDto {
+export interface PromptDto {
   id: string;
-  code: string;
+  promptThemeId: string;
+  name: string;
+  text: string;
+  sortOrder: number;
+}
+
+export interface PromptThemeDto {
+  id: string;
   name: string;
   description: string;
   sortOrder: number;
+  prompts: PromptDto[];
+}
+
+export interface ImageStyleDto {
+  id: string;
+  name: string;
+  text: string;
+  sortOrder: number;
+}
+
+export interface PromptLibraryDto {
+  themes: PromptThemeDto[];
+  styles: ImageStyleDto[];
+}
+
+export interface SheetPlanItem {
+  index: number;
+  promptId: string;
+  imageStyleId: string;
 }
 
 export interface PersonalDateDto {
@@ -34,6 +60,10 @@ export interface SheetDto {
   isSelected: boolean;
   imageUrl: string | null;
   variantCount: number;
+  promptId: string | null;
+  promptName: string | null;
+  imageStyleId: string | null;
+  imageStyleName: string | null;
 }
 
 export interface PaymentDto {
@@ -72,7 +102,6 @@ export interface OrderDto {
   id: string;
   status: OrderStatus;
   photoUrl: string | null;
-  styleCategory: StyleCategoryDto | null;
   price: number;
   regenerationsRemaining: number;
   createdAtUtc: string;
@@ -130,3 +159,25 @@ export interface AdminUserDto {
 }
 
 export type ImageGenerationProvider = 'Mock' | 'OpenAI' | 'Gemini';
+
+export interface SavePromptThemePayload {
+  id?: string;
+  name: string;
+  description: string;
+  sortOrder: number;
+}
+
+export interface SavePromptPayload {
+  id?: string;
+  promptThemeId: string;
+  name: string;
+  text: string;
+  sortOrder: number;
+}
+
+export interface SaveImageStylePayload {
+  id?: string;
+  name: string;
+  text: string;
+  sortOrder: number;
+}

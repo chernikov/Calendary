@@ -6,7 +6,8 @@ import {
   NovaPoshtaWarehouseDto,
   OrderDto,
   OrderSummaryDto,
-  StyleCategoryDto,
+  PromptLibraryDto,
+  SheetPlanItem,
 } from './models';
 
 const BASE = `${environment.apiBaseUrl}/api`;
@@ -15,8 +16,8 @@ const BASE = `${environment.apiBaseUrl}/api`;
 export class OrderService {
   constructor(private readonly http: HttpClient) {}
 
-  styleCategories(): Observable<StyleCategoryDto[]> {
-    return this.http.get<StyleCategoryDto[]>(`${BASE}/style-categories`);
+  promptLibrary(): Observable<PromptLibraryDto> {
+    return this.http.get<PromptLibraryDto>(`${BASE}/prompt-library`);
   }
 
   createOrder(): Observable<OrderDto> {
@@ -37,8 +38,8 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photo`, form);
   }
 
-  selectStyle(orderId: string, styleCategoryId: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/style`, { styleCategoryId });
+  saveSheetPlan(orderId: string, items: SheetPlanItem[]): Observable<OrderDto> {
+    return this.http.put<OrderDto>(`${BASE}/orders/${orderId}/sheet-plan`, { items });
   }
 
   addDate(orderId: string, day: number, month: number, label: string): Observable<OrderDto> {
@@ -53,8 +54,12 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/generate`, {});
   }
 
-  regenerateSheet(orderId: string, sheetId: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/regenerate`, {});
+  regenerateSheet(
+    orderId: string,
+    sheetId: string,
+    change?: { promptId?: string; imageStyleId?: string },
+  ): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/regenerate`, change ?? {});
   }
 
   simulateFailure(orderId: string, sheetId: string): Observable<OrderDto> {

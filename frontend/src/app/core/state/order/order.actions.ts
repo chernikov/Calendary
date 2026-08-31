@@ -1,5 +1,5 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, StyleCategoryDto } from '../../models';
+import { NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, PromptLibraryDto, SheetPlanItem } from '../../models';
 
 export const OrderActions = createActionGroup({
   source: 'Order',
@@ -15,17 +15,16 @@ export const OrderActions = createActionGroup({
     'Load My Orders Success': props<{ orders: OrderSummaryDto[] }>(),
     'Load My Orders Failure': props<{ error: string }>(),
 
-    'Load Style Categories': emptyProps(),
-    'Load Style Categories Success': props<{ categories: StyleCategoryDto[] }>(),
-    'Load Style Categories Failure': props<{ error: string }>(),
+    'Load Prompt Library': emptyProps(),
+    'Load Prompt Library Success': props<{ library: PromptLibraryDto }>(),
+    'Load Prompt Library Failure': props<{ error: string }>(),
 
     'Upload Photo': props<{ orderId: string; photo: File }>(),
     'Upload Photo Success': props<{ order: OrderDto }>(),
     'Upload Photo Failure': props<{ error: string }>(),
 
-    'Select Style': props<{ orderId: string; styleCategoryId: string }>(),
-    'Select Style Success': props<{ order: OrderDto }>(),
-    'Select Style Failure': props<{ error: string }>(),
+    'Save Plan And Generate': props<{ orderId: string; items: SheetPlanItem[] }>(),
+    'Save Plan And Generate Failure': props<{ error: string }>(),
 
     'Add Personal Date': props<{ orderId: string; day: number; month: number; label: string }>(),
     'Add Personal Date Success': props<{ order: OrderDto }>(),

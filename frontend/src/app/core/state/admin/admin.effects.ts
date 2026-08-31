@@ -93,4 +93,129 @@ export class AdminEffects {
       ),
     ),
   );
+
+  loadPromptThemes$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadPromptThemes),
+      switchMap(() =>
+        this.admin.listPromptThemes().pipe(
+          map((themes) => AdminActions.loadPromptThemesSuccess({ themes })),
+          catchError(() => of(AdminActions.loadPromptThemesFailure({ error: 'Не вдалося завантажити теми.' }))),
+        ),
+      ),
+    ),
+  );
+
+  // Every prompt-library mutation reloads the theme list — payloads are tiny and it keeps the
+  // store consistent without per-mutation success reducers.
+  savePromptTheme$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.savePromptTheme),
+      switchMap(({ theme }) =>
+        this.admin.savePromptTheme(theme).pipe(
+          map(() => AdminActions.loadPromptThemes()),
+          catchError(() => of(AdminActions.promptLibraryMutationFailure({ error: 'Не вдалося зберегти тему.' }))),
+        ),
+      ),
+    ),
+  );
+
+  deletePromptTheme$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.deletePromptTheme),
+      switchMap(({ themeId }) =>
+        this.admin.deletePromptTheme(themeId).pipe(
+          map(() => AdminActions.loadPromptThemes()),
+          catchError((err) =>
+            of(
+              AdminActions.promptLibraryMutationFailure({
+                error:
+                  err?.status === 409
+                    ? 'Тему не можна видалити: її промпти вже використані в замовленнях.'
+                    : 'Не вдалося видалити тему.',
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  savePrompt$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.savePrompt),
+      switchMap(({ prompt }) =>
+        this.admin.savePrompt(prompt).pipe(
+          map(() => AdminActions.loadPromptThemes()),
+          catchError(() => of(AdminActions.promptLibraryMutationFailure({ error: 'Не вдалося зберегти промпт.' }))),
+        ),
+      ),
+    ),
+  );
+
+  deletePrompt$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.deletePrompt),
+      switchMap(({ promptId }) =>
+        this.admin.deletePrompt(promptId).pipe(
+          map(() => AdminActions.loadPromptThemes()),
+          catchError((err) =>
+            of(
+              AdminActions.promptLibraryMutationFailure({
+                error:
+                  err?.status === 409
+                    ? 'Промпт не можна видалити: він уже використаний в замовленнях.'
+                    : 'Не вдалося видалити промпт.',
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  loadImageStyles$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadImageStyles),
+      switchMap(() =>
+        this.admin.listImageStyles().pipe(
+          map((styles) => AdminActions.loadImageStylesSuccess({ styles })),
+          catchError(() => of(AdminActions.loadImageStylesFailure({ error: 'Не вдалося завантажити стилі.' }))),
+        ),
+      ),
+    ),
+  );
+
+  saveImageStyle$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.saveImageStyle),
+      switchMap(({ style }) =>
+        this.admin.saveImageStyle(style).pipe(
+          map(() => AdminActions.loadImageStyles()),
+          catchError(() => of(AdminActions.promptLibraryMutationFailure({ error: 'Не вдалося зберегти стиль.' }))),
+        ),
+      ),
+    ),
+  );
+
+  deleteImageStyle$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.deleteImageStyle),
+      switchMap(({ styleId }) =>
+        this.admin.deleteImageStyle(styleId).pipe(
+          map(() => AdminActions.loadImageStyles()),
+          catchError((err) =>
+            of(
+              AdminActions.promptLibraryMutationFailure({
+                error:
+                  err?.status === 409
+                    ? 'Стиль не можна видалити: він уже використаний в замовленнях.'
+                    : 'Не вдалося видалити стиль.',
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }

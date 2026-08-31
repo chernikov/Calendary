@@ -31,44 +31,49 @@ public class AiImageGenerationService(
 
     public async Task<IReadOnlyList<Sheet>> StartOrderGenerationAsync(Guid orderId, CancellationToken ct = default)
     {
-        var existing = await db.Sheets.Where(s => s.OrderId == orderId).ToListAsync(ct);
-        if (existing.Count > 0)
+        var order = await db.Orders.FirstAsync(o => o.Id == orderId, ct);
+        var sheets = await db.Sheets
+            .Where(s => s.OrderId == orderId)
+            .OrderBy(s => s.Index)
+            .ToListAsync(ct);
+
+        // Sheets (with the user's per-sheet prompt/style picks) are created by the sheet-plan
+        // endpoint before generation; a second call while generation is underway is a no-op.
+        if (order.Status is not (OrderStatus.DetailsSubmitted or OrderStatus.PhotoUploaded))
         {
-            return existing;
+            return sheets;
+        }
+        if (sheets.Count != 13 || sheets.Any(s => s.PromptId is null || s.ImageStyleId is null))
+        {
+            throw new InvalidOperationException("Order does not have a complete sheet plan.");
         }
 
-        var sheets = new List<Sheet>
+        foreach (var sheet in sheets)
         {
-            new() { OrderId = orderId, Kind = SheetKind.Cover, Index = 0, VariantCount = 1 }
-        };
-        for (var month = 1; month <= 12; month++)
-        {
-            sheets.Add(new Sheet { OrderId = orderId, Kind = SheetKind.Month, Index = month, VariantCount = 1 });
+            sheet.VariantCount = 1;
         }
-
-        db.Sheets.AddRange(sheets);
-
-        var order = await db.Orders.Include(o => o.StyleCategory).FirstAsync(o => o.Id == orderId, ct);
         order.SetStatus(OrderStatus.Generating);
 
         await db.SaveChangesAsync(ct);
 
         var photoUrl = order.PhotoUrl ?? throw new InvalidOperationException("Order has no uploaded photo.");
-        var styleCode = order.StyleCategory?.Code ?? throw new InvalidOperationException("Order has no style category.");
-        _ = Task.Run(() => GenerateOrderAsync(orderId, photoUrl, styleCode), CancellationToken.None);
+        _ = Task.Run(() => GenerateOrderAsync(orderId, photoUrl), CancellationToken.None);
 
         return sheets;
     }
 
     public async Task<bool> RegenerateSheetAsync(Guid orderId, Guid sheetId, CancellationToken ct = default)
     {
-        var order = await db.Orders.Include(o => o.StyleCategory).FirstAsync(o => o.Id == orderId, ct);
+        var order = await db.Orders.FirstAsync(o => o.Id == orderId, ct);
         if (order.RegenerationsRemaining <= 0)
         {
             return false;
         }
 
-        var sheet = await db.Sheets.FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
+        var sheet = await db.Sheets
+            .Include(s => s.Prompt)
+            .Include(s => s.ImageStyle)
+            .FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
         order.RegenerationsRemaining -= 1;
         sheet.Status = SheetStatus.Pending;
         sheet.GeneratingStartedAtUtc = null;
@@ -77,20 +82,19 @@ public class AiImageGenerationService(
         await db.SaveChangesAsync(ct);
 
         var referenceDataUrl = await ResolveReferenceDataUrlAsync(order.PhotoUrl!, ct);
-        var prompt = BuildPrompt(order.StyleCategory!.Code, sheet.Kind, sheet.Index);
+        var prompt = BuildPrompt(sheet);
         _ = Task.Run(() => GenerateOneSheetAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
 
         return true;
     }
 
-    private async Task GenerateOrderAsync(Guid orderId, string photoUrl, string styleCode)
+    private async Task GenerateOrderAsync(Guid orderId, string photoUrl)
     {
         var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl);
 
-        // Cover first — the months' prompts describe themselves as matching "the cover image"'s
-        // style, so generating it first (and letting it finish) keeps that framing honest even
-        // though nothing here actually feeds the cover's pixels back into the month prompts.
-        await GenerateOneSheetAsync(orderId, kind: SheetKind.Cover, index: 0, referenceDataUrl, styleCode);
+        // Cover first, so the customer sees it (and can confirm it) while the months are still
+        // being produced.
+        await GenerateOneSheetAsync(orderId, kind: SheetKind.Cover, index: 0, referenceDataUrl);
 
         using var throttle = new SemaphoreSlim(MaxConcurrentGenerations);
         var monthTasks = Enumerable.Range(1, 12).Select(async month =>
@@ -98,7 +102,7 @@ public class AiImageGenerationService(
             await throttle.WaitAsync();
             try
             {
-                await GenerateOneSheetAsync(orderId, kind: SheetKind.Month, index: month, referenceDataUrl, styleCode);
+                await GenerateOneSheetAsync(orderId, kind: SheetKind.Month, index: month, referenceDataUrl);
             }
             finally
             {
@@ -108,13 +112,16 @@ public class AiImageGenerationService(
         await Task.WhenAll(monthTasks);
     }
 
-    private async Task GenerateOneSheetAsync(Guid orderId, SheetKind kind, int index, string referenceDataUrl, string styleCode)
+    private async Task GenerateOneSheetAsync(Guid orderId, SheetKind kind, int index, string referenceDataUrl)
     {
         using var scope = scopeFactory.CreateScope();
         var scopedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var sheet = await scopedDb.Sheets.FirstAsync(s => s.OrderId == orderId && s.Kind == kind && s.Index == index);
+        var sheet = await scopedDb.Sheets
+            .Include(s => s.Prompt)
+            .Include(s => s.ImageStyle)
+            .FirstAsync(s => s.OrderId == orderId && s.Kind == kind && s.Index == index);
 
-        await RunGenerationAsync(scopedDb, sheet, BuildPrompt(styleCode, kind, index), referenceDataUrl);
+        await RunGenerationAsync(scopedDb, sheet, BuildPrompt(sheet), referenceDataUrl);
         await OrderProgressionHelper.AdvanceOrderStatusAsync(scopedDb, orderId);
     }
 
@@ -163,8 +170,12 @@ public class AiImageGenerationService(
         return DataUrl.Build(reference.ContentType, reference.Content);
     }
 
-    private static string BuildPrompt(string styleCode, SheetKind kind, int index) =>
-        kind == SheetKind.Cover
-            ? CalendarPrompts.BuildCoverPrompt(styleCode)
-            : CalendarPrompts.BuildMonthPrompt(styleCode, index);
+    private static string BuildPrompt(Sheet sheet)
+    {
+        var scene = sheet.Prompt?.Text ?? throw new InvalidOperationException($"Sheet {sheet.Id} has no prompt.");
+        var style = sheet.ImageStyle?.Text ?? throw new InvalidOperationException($"Sheet {sheet.Id} has no image style.");
+        return sheet.Kind == SheetKind.Cover
+            ? CalendarPrompts.BuildCoverPrompt(scene, style)
+            : CalendarPrompts.BuildMonthPrompt(scene, style, sheet.Index);
+    }
 }

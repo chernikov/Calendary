@@ -1,10 +1,20 @@
-import { AdminOrderSummaryDto, AdminUserDto, ImageGenerationProvider, OrderDto, PagedResult } from '../../models';
+import {
+  AdminOrderSummaryDto,
+  AdminUserDto,
+  ImageGenerationProvider,
+  ImageStyleDto,
+  OrderDto,
+  PagedResult,
+  PromptThemeDto,
+} from '../../models';
 
 export interface AdminState {
   orders: PagedResult<AdminOrderSummaryDto> | null;
   users: PagedResult<AdminUserDto> | null;
   selectedOrder: OrderDto | null;
   aiProvider: ImageGenerationProvider | null;
+  promptThemes: PromptThemeDto[];
+  imageStyles: ImageStyleDto[];
   busy: boolean;
   error: string | null;
 }
@@ -14,6 +24,8 @@ export const initialAdminState: AdminState = {
   users: null,
   selectedOrder: null,
   aiProvider: null,
+  promptThemes: [],
+  imageStyles: [],
   busy: false,
   error: null,
 };

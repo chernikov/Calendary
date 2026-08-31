@@ -65,8 +65,14 @@ public class GenerationBackgroundService(IServiceScopeFactory scopeFactory, ILog
             }
         }
 
+        // Sheets now exist before generation starts (the sheet-plan step creates them as
+        // Pending), so only sheets of orders that actually entered generation are picked up.
         var ordersWithPending = await db.Sheets
-            .Where(s => s.Status == SheetStatus.Pending)
+            .Where(s => s.Status == SheetStatus.Pending &&
+                        s.Order.Status != OrderStatus.Created &&
+                        s.Order.Status != OrderStatus.PhotoUploaded &&
+                        s.Order.Status != OrderStatus.DetailsSubmitted &&
+                        s.Order.Status != OrderStatus.Cancelled)
             .Select(s => s.OrderId)
             .Distinct()
             .ToListAsync(ct);

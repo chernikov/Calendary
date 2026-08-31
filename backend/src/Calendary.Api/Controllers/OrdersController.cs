@@ -27,9 +27,9 @@ public class OrdersController(
     {
         var userId = User.GetUserId();
         return await db.Orders
-            .Include(o => o.StyleCategory)
             .Include(o => o.PersonalDates)
-            .Include(o => o.Sheets)
+            .Include(o => o.Sheets).ThenInclude(s => s.Prompt)
+            .Include(o => o.Sheets).ThenInclude(s => s.ImageStyle)
             .Include(o => o.Payment)
             .Include(o => o.Delivery)
             // Sheets and PersonalDates are sibling collections on the same query — a single join
@@ -69,7 +69,7 @@ public class OrdersController(
                 o.Price,
                 o.CreatedAtUtc,
                 o.StatusUpdatedAtUtc,
-                o.StyleCategory != null ? o.StyleCategory.Name : null,
+                o.Sheets.Where(s => s.Kind == SheetKind.Cover && s.Prompt != null).Select(s => s.Prompt!.Name).FirstOrDefault(),
                 o.Sheets.Where(s => s.Kind == SheetKind.Cover).Select(s => s.ImageUrl).FirstOrDefault()))
             .ToListAsync();
 
@@ -95,16 +95,49 @@ public class OrdersController(
         return Ok(order.ToDto());
     }
 
-    [HttpPost("{orderId:guid}/style")]
-    public async Task<ActionResult<OrderDto>> SelectStyle(Guid orderId, SelectStyleRequest request)
+    /// Saves the user's per-sheet picks (prompt + image style for the cover and each month),
+    /// creating or updating the 13 Sheet rows before generation starts.
+    [HttpPut("{orderId:guid}/sheet-plan")]
+    public async Task<ActionResult<OrderDto>> SaveSheetPlan(Guid orderId, SaveSheetPlanRequest request)
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
+        {
+            return Conflict("The sheet plan can only be changed before generation starts.");
+        }
 
-        var category = await db.StyleCategories.FindAsync(request.StyleCategoryId);
-        if (category is null) return BadRequest("Unknown style category.");
+        var items = request.Items ?? [];
+        if (items.Count != 13 || items.Select(i => i.Index).Distinct().Count() != 13 ||
+            items.Any(i => i.Index is < 0 or > 12))
+        {
+            return BadRequest("The plan must contain exactly 13 items with indexes 0 (cover) through 12.");
+        }
 
-        order.StyleCategoryId = category.Id;
+        var promptIds = items.Select(i => i.PromptId).Distinct().ToList();
+        var styleIds = items.Select(i => i.ImageStyleId).Distinct().ToList();
+        var knownPrompts = await db.Prompts.Where(p => promptIds.Contains(p.Id)).Select(p => p.Id).ToListAsync();
+        var knownStyles = await db.ImageStyles.Where(s => styleIds.Contains(s.Id)).Select(s => s.Id).ToListAsync();
+        if (knownPrompts.Count != promptIds.Count) return BadRequest("Unknown prompt.");
+        if (knownStyles.Count != styleIds.Count) return BadRequest("Unknown image style.");
+
+        foreach (var item in items.OrderBy(i => i.Index))
+        {
+            var sheet = order.Sheets.FirstOrDefault(s => s.Index == item.Index);
+            if (sheet is null)
+            {
+                sheet = new Sheet
+                {
+                    OrderId = order.Id,
+                    Kind = item.Index == 0 ? SheetKind.Cover : SheetKind.Month,
+                    Index = item.Index
+                };
+                db.Sheets.Add(sheet);
+            }
+            sheet.PromptId = item.PromptId;
+            sheet.ImageStyleId = item.ImageStyleId;
+        }
+
         order.SetStatus(OrderStatus.DetailsSubmitted);
         await db.SaveChangesAsync();
 
@@ -161,7 +194,10 @@ public class OrdersController(
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
-        if (order.StyleCategoryId is null) return BadRequest("Select a style before generating.");
+        if (order.Sheets.Count != 13 || order.Sheets.Any(s => s.PromptId is null || s.ImageStyleId is null))
+        {
+            return BadRequest("Complete the sheet plan (prompt and style for every sheet) before generating.");
+        }
 
         await generationService.StartOrderGenerationAsync(orderId);
 
@@ -170,10 +206,25 @@ public class OrdersController(
     }
 
     [HttpPost("{orderId:guid}/sheets/{sheetId:guid}/regenerate")]
-    public async Task<ActionResult<OrderDto>> RegenerateSheet(Guid orderId, Guid sheetId)
+    public async Task<ActionResult<OrderDto>> RegenerateSheet(Guid orderId, Guid sheetId, RegenerateSheetRequest? request)
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+
+        // The user may swap the sheet's prompt/style before regenerating.
+        var sheet = order.Sheets.FirstOrDefault(s => s.Id == sheetId);
+        if (sheet is null) return NotFound();
+        if (request?.PromptId is Guid promptId)
+        {
+            if (await db.Prompts.FindAsync(promptId) is null) return BadRequest("Unknown prompt.");
+            sheet.PromptId = promptId;
+        }
+        if (request?.ImageStyleId is Guid imageStyleId)
+        {
+            if (await db.ImageStyles.FindAsync(imageStyleId) is null) return BadRequest("Unknown image style.");
+            sheet.ImageStyleId = imageStyleId;
+        }
+        await db.SaveChangesAsync();
 
         var ok = await generationService.RegenerateSheetAsync(orderId, sheetId);
         if (!ok) return Conflict("No regenerations remaining.");

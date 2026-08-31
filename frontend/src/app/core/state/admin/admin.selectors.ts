@@ -7,5 +7,7 @@ export const selectAdminOrders = createSelector(selectAdminState, (state) => sta
 export const selectAdminUsers = createSelector(selectAdminState, (state) => state.users);
 export const selectAdminSelectedOrder = createSelector(selectAdminState, (state) => state.selectedOrder);
 export const selectAdminAiProvider = createSelector(selectAdminState, (state) => state.aiProvider);
+export const selectAdminPromptThemes = createSelector(selectAdminState, (state) => state.promptThemes);
+export const selectAdminImageStyles = createSelector(selectAdminState, (state) => state.imageStyles);
 export const selectAdminBusy = createSelector(selectAdminState, (state) => state.busy);
 export const selectAdminError = createSelector(selectAdminState, (state) => state.error);

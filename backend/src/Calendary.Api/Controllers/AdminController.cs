@@ -22,9 +22,9 @@ public class AdminController(
     private async Task<Order?> LoadOrderAsync(Guid orderId) =>
         await db.Orders
             .Include(o => o.User)
-            .Include(o => o.StyleCategory)
             .Include(o => o.PersonalDates)
-            .Include(o => o.Sheets)
+            .Include(o => o.Sheets).ThenInclude(s => s.Prompt)
+            .Include(o => o.Sheets).ThenInclude(s => s.ImageStyle)
             .Include(o => o.Payment)
             .Include(o => o.Delivery)
             // See OrdersController.LoadOwnedOrderAsync — Sheets/PersonalDates are sibling
@@ -134,5 +134,174 @@ public class AdminController(
         }
         await appSettings.SetImageGenerationProviderAsync(provider);
         return Ok(new ImageGenerationProviderDto(provider.ToString()));
+    }
+
+    // — Prompt library —
+
+    [HttpGet("prompt-themes")]
+    public async Task<ActionResult<IReadOnlyList<PromptThemeDto>>> ListPromptThemes()
+    {
+        var themes = await db.PromptThemes.Include(t => t.Prompts).OrderBy(t => t.SortOrder).ToListAsync();
+        return Ok(themes.Select(t => t.ToDto()).ToList());
+    }
+
+    [HttpPost("prompt-themes")]
+    public async Task<ActionResult<PromptThemeDto>> CreatePromptTheme(SavePromptThemeRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest("Name is required.");
+
+        var theme = new PromptTheme
+        {
+            Name = request.Name.Trim(),
+            Description = request.Description?.Trim() ?? "",
+            SortOrder = request.SortOrder
+        };
+        db.PromptThemes.Add(theme);
+        await db.SaveChangesAsync();
+        return Ok(theme.ToDto());
+    }
+
+    [HttpPut("prompt-themes/{themeId:guid}")]
+    public async Task<ActionResult<PromptThemeDto>> UpdatePromptTheme(Guid themeId, SavePromptThemeRequest request)
+    {
+        var theme = await db.PromptThemes.Include(t => t.Prompts).FirstOrDefaultAsync(t => t.Id == themeId);
+        if (theme is null) return NotFound();
+        if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest("Name is required.");
+
+        theme.Name = request.Name.Trim();
+        theme.Description = request.Description?.Trim() ?? "";
+        theme.SortOrder = request.SortOrder;
+        await db.SaveChangesAsync();
+        return Ok(theme.ToDto());
+    }
+
+    [HttpDelete("prompt-themes/{themeId:guid}")]
+    public async Task<IActionResult> DeletePromptTheme(Guid themeId)
+    {
+        var theme = await db.PromptThemes.Include(t => t.Prompts).FirstOrDefaultAsync(t => t.Id == themeId);
+        if (theme is null) return NotFound();
+
+        var promptIds = theme.Prompts.Select(p => p.Id).ToList();
+        if (await db.Sheets.AnyAsync(s => s.PromptId != null && promptIds.Contains(s.PromptId.Value)))
+        {
+            return Conflict("Theme contains prompts that are used by existing orders.");
+        }
+
+        db.PromptThemes.Remove(theme);
+        await db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpPost("prompts")]
+    public async Task<ActionResult<PromptDto>> CreatePrompt(SavePromptRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Text))
+        {
+            return BadRequest("Name and text are required.");
+        }
+        if (await db.PromptThemes.FindAsync(request.PromptThemeId) is null) return BadRequest("Unknown theme.");
+
+        var prompt = new Prompt
+        {
+            PromptThemeId = request.PromptThemeId,
+            Name = request.Name.Trim(),
+            Text = request.Text.Trim(),
+            SortOrder = request.SortOrder
+        };
+        db.Prompts.Add(prompt);
+        await db.SaveChangesAsync();
+        return Ok(prompt.ToDto());
+    }
+
+    [HttpPut("prompts/{promptId:guid}")]
+    public async Task<ActionResult<PromptDto>> UpdatePrompt(Guid promptId, SavePromptRequest request)
+    {
+        var prompt = await db.Prompts.FindAsync(promptId);
+        if (prompt is null) return NotFound();
+        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Text))
+        {
+            return BadRequest("Name and text are required.");
+        }
+        if (await db.PromptThemes.FindAsync(request.PromptThemeId) is null) return BadRequest("Unknown theme.");
+
+        prompt.PromptThemeId = request.PromptThemeId;
+        prompt.Name = request.Name.Trim();
+        prompt.Text = request.Text.Trim();
+        prompt.SortOrder = request.SortOrder;
+        await db.SaveChangesAsync();
+        return Ok(prompt.ToDto());
+    }
+
+    [HttpDelete("prompts/{promptId:guid}")]
+    public async Task<IActionResult> DeletePrompt(Guid promptId)
+    {
+        var prompt = await db.Prompts.FindAsync(promptId);
+        if (prompt is null) return NotFound();
+        if (await db.Sheets.AnyAsync(s => s.PromptId == promptId))
+        {
+            return Conflict("Prompt is used by existing orders.");
+        }
+
+        db.Prompts.Remove(prompt);
+        await db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpGet("image-styles")]
+    public async Task<ActionResult<IReadOnlyList<ImageStyleDto>>> ListImageStyles()
+    {
+        var styles = await db.ImageStyles.OrderBy(s => s.SortOrder).ToListAsync();
+        return Ok(styles.Select(s => s.ToDto()).ToList());
+    }
+
+    [HttpPost("image-styles")]
+    public async Task<ActionResult<ImageStyleDto>> CreateImageStyle(SaveImageStyleRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Text))
+        {
+            return BadRequest("Name and text are required.");
+        }
+
+        var style = new ImageStyle
+        {
+            Name = request.Name.Trim(),
+            Text = request.Text.Trim(),
+            SortOrder = request.SortOrder
+        };
+        db.ImageStyles.Add(style);
+        await db.SaveChangesAsync();
+        return Ok(style.ToDto());
+    }
+
+    [HttpPut("image-styles/{styleId:guid}")]
+    public async Task<ActionResult<ImageStyleDto>> UpdateImageStyle(Guid styleId, SaveImageStyleRequest request)
+    {
+        var style = await db.ImageStyles.FindAsync(styleId);
+        if (style is null) return NotFound();
+        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Text))
+        {
+            return BadRequest("Name and text are required.");
+        }
+
+        style.Name = request.Name.Trim();
+        style.Text = request.Text.Trim();
+        style.SortOrder = request.SortOrder;
+        await db.SaveChangesAsync();
+        return Ok(style.ToDto());
+    }
+
+    [HttpDelete("image-styles/{styleId:guid}")]
+    public async Task<IActionResult> DeleteImageStyle(Guid styleId)
+    {
+        var style = await db.ImageStyles.FindAsync(styleId);
+        if (style is null) return NotFound();
+        if (await db.Sheets.AnyAsync(s => s.ImageStyleId == styleId))
+        {
+            return Conflict("Style is used by existing orders.");
+        }
+
+        db.ImageStyles.Remove(style);
+        await db.SaveChangesAsync();
+        return NoContent();
     }
 }

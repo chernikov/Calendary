@@ -10,6 +10,13 @@ public class Sheet
 
     public SheetKind Kind { get; set; }
     public int Index { get; set; } // 0 = cover, 1..12 = month number
+
+    // The user's per-sheet picks: scene (prompt) + visual style, chosen before generation.
+    public Guid? PromptId { get; set; }
+    public Prompt? Prompt { get; set; }
+    public Guid? ImageStyleId { get; set; }
+    public ImageStyle? ImageStyle { get; set; }
+
     public SheetStatus Status { get; set; } = SheetStatus.Pending;
     public bool IsSelected { get; set; }
     public string? ImageUrl { get; set; }

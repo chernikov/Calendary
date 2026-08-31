@@ -1,5 +1,16 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { AdminOrderSummaryDto, AdminUserDto, ImageGenerationProvider, OrderDto, PagedResult } from '../../models';
+import {
+  AdminOrderSummaryDto,
+  AdminUserDto,
+  ImageGenerationProvider,
+  ImageStyleDto,
+  OrderDto,
+  PagedResult,
+  PromptThemeDto,
+  SaveImageStylePayload,
+  SavePromptPayload,
+  SavePromptThemePayload,
+} from '../../models';
 
 export const AdminActions = createActionGroup({
   source: 'Admin',
@@ -31,6 +42,23 @@ export const AdminActions = createActionGroup({
     'Set Ai Provider': props<{ provider: ImageGenerationProvider }>(),
     'Set Ai Provider Success': props<{ provider: ImageGenerationProvider }>(),
     'Set Ai Provider Failure': props<{ error: string }>(),
+
+    'Load Prompt Themes': emptyProps(),
+    'Load Prompt Themes Success': props<{ themes: PromptThemeDto[] }>(),
+    'Load Prompt Themes Failure': props<{ error: string }>(),
+
+    'Save Prompt Theme': props<{ theme: SavePromptThemePayload }>(),
+    'Delete Prompt Theme': props<{ themeId: string }>(),
+    'Save Prompt': props<{ prompt: SavePromptPayload }>(),
+    'Delete Prompt': props<{ promptId: string }>(),
+    'Prompt Library Mutation Failure': props<{ error: string }>(),
+
+    'Load Image Styles': emptyProps(),
+    'Load Image Styles Success': props<{ styles: ImageStyleDto[] }>(),
+    'Load Image Styles Failure': props<{ error: string }>(),
+
+    'Save Image Style': props<{ style: SaveImageStylePayload }>(),
+    'Delete Image Style': props<{ styleId: string }>(),
 
     'Clear Admin Error': emptyProps(),
   },

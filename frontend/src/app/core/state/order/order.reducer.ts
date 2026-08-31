@@ -12,12 +12,13 @@ export const orderReducer = createReducer(
   on(OrderActions.loadMyOrdersSuccess, (state, { orders }) => ({ ...state, myOrders: orders, busy: false })),
   on(OrderActions.loadMyOrdersFailure, (state, { error }) => ({ ...state, busy: false, error })),
 
-  on(OrderActions.loadStyleCategoriesSuccess, (state, { categories }) => ({ ...state, styleCategories: categories })),
-  on(OrderActions.loadStyleCategoriesFailure, (state, { error }) => ({ ...state, error })),
+  on(OrderActions.loadPromptLibrarySuccess, (state, { library }) => ({ ...state, promptLibrary: library })),
+  on(OrderActions.loadPromptLibraryFailure, (state, { error }) => ({ ...state, error })),
 
   on(
     OrderActions.uploadPhoto,
     OrderActions.startGeneration,
+    OrderActions.savePlanAndGenerate,
     OrderActions.regenerateSheet,
     OrderActions.confirmCover,
     OrderActions.checkoutAndPay,
@@ -27,7 +28,6 @@ export const orderReducer = createReducer(
 
   on(
     OrderActions.uploadPhotoSuccess,
-    OrderActions.selectStyleSuccess,
     OrderActions.addPersonalDateSuccess,
     OrderActions.removePersonalDateSuccess,
     OrderActions.startGenerationSuccess,
@@ -40,10 +40,10 @@ export const orderReducer = createReducer(
 
   on(
     OrderActions.uploadPhotoFailure,
-    OrderActions.selectStyleFailure,
     OrderActions.addPersonalDateFailure,
     OrderActions.removePersonalDateFailure,
     OrderActions.startGenerationFailure,
+    OrderActions.savePlanAndGenerateFailure,
     OrderActions.regenerateSheetFailure,
     OrderActions.confirmCoverFailure,
     OrderActions.checkoutAndPayFailure,

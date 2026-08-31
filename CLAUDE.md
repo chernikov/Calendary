@@ -8,7 +8,8 @@ Calendary — a Ukrainian custom AI-generated photo-calendar ordering app. The U
 Claude Design doc (`Calendary.dc.html`, "Broadsheet" design system); the implementation is a thin,
 end-to-end vertical slice: Docker + ASP.NET Core (.NET 10) + EF Core/MSSQL + Angular 18.
 
-Flow: landing → register/login (email+password or Google) → photo upload → style + personal dates
+Flow: landing → register/login (email+password or Google) → photo upload → per-sheet prompt+style
+plan (prompt library: themes → prompts, image styles) + personal dates
 → generation (live progress) → cover confirm → month-by-month reveal (regenerate/failure/retry) →
 review → delivery + payment → order status (auto-progressing Paid → Printing → Shipped →
 Delivered).
@@ -64,7 +65,8 @@ There are no automated tests in this repo yet.
 ## Backend architecture (`backend/src/`)
 
 Four-project split:
-- **Calendary.Domain** — entities (`User`, `Order`, `Sheet`, `StyleCategory`, `PersonalDate`,
+- **Calendary.Domain** — entities (`User`, `Order`, `Sheet`, `PromptTheme`, `Prompt`,
+  `ImageStyle`, `PersonalDate`,
   `Payment`, `Delivery`), enums, and the `Abstractions/` interfaces listed above. No EF/ASP.NET
   dependency.
 - **Calendary.Infrastructure** — `Data/AppDbContext.cs` (+ `Migrations/`), and `Services/`:

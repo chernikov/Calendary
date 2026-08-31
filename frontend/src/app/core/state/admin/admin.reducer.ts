@@ -11,6 +11,12 @@ export const adminReducer = createReducer(
     AdminActions.replacePhoto,
     AdminActions.regenerateSheet,
     AdminActions.setAiProvider,
+    AdminActions.savePromptTheme,
+    AdminActions.deletePromptTheme,
+    AdminActions.savePrompt,
+    AdminActions.deletePrompt,
+    AdminActions.saveImageStyle,
+    AdminActions.deleteImageStyle,
     (state) => ({ ...state, busy: true, error: null }),
   ),
 
@@ -36,6 +42,20 @@ export const adminReducer = createReducer(
     error: null,
   })),
 
+  on(AdminActions.loadPromptThemesSuccess, (state, { themes }) => ({
+    ...state,
+    promptThemes: themes,
+    busy: false,
+    error: null,
+  })),
+
+  on(AdminActions.loadImageStylesSuccess, (state, { styles }) => ({
+    ...state,
+    imageStyles: styles,
+    busy: false,
+    error: null,
+  })),
+
   on(
     AdminActions.loadOrdersFailure,
     AdminActions.loadUsersFailure,
@@ -44,6 +64,9 @@ export const adminReducer = createReducer(
     AdminActions.regenerateSheetFailure,
     AdminActions.loadAiProviderFailure,
     AdminActions.setAiProviderFailure,
+    AdminActions.loadPromptThemesFailure,
+    AdminActions.loadImageStylesFailure,
+    AdminActions.promptLibraryMutationFailure,
     (state, { error }) => ({ ...state, busy: false, error }),
   ),
 

@@ -24,6 +24,14 @@ const STYLESHEET_ID = 'ng-zorro-antd-styles';
             <span nz-icon nzType="user"></span>
             <span>Користувачі</span>
           </li>
+          <li nz-menu-item routerLink="/admin/prompts" routerLinkActive="ant-menu-item-selected">
+            <span nz-icon nzType="bulb"></span>
+            <span>Промпти</span>
+          </li>
+          <li nz-menu-item routerLink="/admin/styles" routerLinkActive="ant-menu-item-selected">
+            <span nz-icon nzType="bg-colors"></span>
+            <span>Стилі</span>
+          </li>
           <li nz-menu-item routerLink="/admin/settings" routerLinkActive="ant-menu-item-selected">
             <span nz-icon nzType="setting"></span>
             <span>Налаштування</span>
