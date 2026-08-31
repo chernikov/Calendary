@@ -73,3 +73,5 @@ public record ImageGenerationProviderDto(string Provider);
 public record SavePromptThemeRequest(string Name, string Description, int SortOrder);
 public record SavePromptRequest(Guid PromptThemeId, string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
 public record SaveImageStyleRequest(string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
+
+public record GenerateSheetRequest(Guid PromptId, Guid ImageStyleId);

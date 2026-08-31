@@ -1,4 +1,4 @@
-import { Component, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -11,7 +11,7 @@ import {
   selectOrderError,
   selectPromptLibrary,
 } from '../../core/state/order';
-import { ImageStyleDto, PromptDto, SheetPlanItem } from '../../core/models';
+import { ImageStyleDto, PromptDto, SheetDto, SheetPlanItem } from '../../core/models';
 
 interface PlanRow {
   promptId: string;
@@ -33,22 +33,52 @@ interface PlanRow {
         застосовується й до наступних аркушів — за бажанням змініть його на будь-якому.
       </p>
 
-      <div class="plan-grid">
-        @for (row of sheetRows; track row.index) {
-          <div
-            class="plan-tile"
-            [class.cover]="row.index === 0"
-            [class.complete]="plan[row.index].promptId && plan[row.index].styleId"
-          >
-            <div class="plan-tile-name">{{ row.name }}</div>
-            <div class="plan-badges">
+      <div class="gen-cover">
+        <div class="gen-card" [class.has-image]="imageFor(0)" [style.background-image]="bgFor(0)">
+          <div class="gen-card-name">Обкладинка</div>
+          <div class="gen-card-controls">
+            <button
+              type="button"
+              class="badge-btn"
+              [class.filled]="plan[0].promptId"
+              (click)="openPicker(0, 'prompt')"
+            >
+              {{ promptName(plan[0].promptId) || 'Образ…' }}
+            </button>
+            <button
+              type="button"
+              class="badge-btn"
+              [class.filled]="plan[0].styleId"
+              (click)="openPicker(0, 'style')"
+            >
+              {{ styleName(plan[0].styleId) || 'Стиль…' }}
+            </button>
+            @if (isGenerating(0)) {
+              <div class="gen-card-status">Генерується…</div>
+            } @else if (plan[0].promptId && plan[0].styleId) {
+              <button type="button" class="btn btn-primary btn-gen" (click)="generateCard(0)">
+                {{ imageFor(0) ? 'Перегенерувати' : 'Згенерувати' }}
+              </button>
+            }
+            @if (isFailed(0)) {
+              <div class="gen-card-error">Не вдалося — спробуйте ще раз</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="gen-grid">
+        @for (row of monthRows; track row.index) {
+          <div class="gen-card" [class.has-image]="imageFor(row.index)" [style.background-image]="bgFor(row.index)">
+            <div class="gen-card-name">{{ row.name }}</div>
+            <div class="gen-card-controls">
               <button
                 type="button"
                 class="badge-btn"
                 [class.filled]="plan[row.index].promptId"
                 (click)="openPicker(row.index, 'prompt')"
               >
-                {{ promptName(plan[row.index].promptId) || 'Обрати образ…' }}
+                {{ promptName(plan[row.index].promptId) || 'Образ…' }}
               </button>
               <button
                 type="button"
@@ -56,8 +86,18 @@ interface PlanRow {
                 [class.filled]="plan[row.index].styleId"
                 (click)="openPicker(row.index, 'style')"
               >
-                {{ styleName(plan[row.index].styleId) || 'Обрати стиль…' }}
+                {{ styleName(plan[row.index].styleId) || 'Стиль…' }}
               </button>
+              @if (isGenerating(row.index)) {
+                <div class="gen-card-status">Генерується…</div>
+              } @else if (plan[row.index].promptId && plan[row.index].styleId) {
+                <button type="button" class="btn btn-primary btn-gen" (click)="generateCard(row.index)">
+                  {{ imageFor(row.index) ? 'Перегенерувати' : 'Згенерувати' }}
+                </button>
+              }
+              @if (isFailed(row.index)) {
+                <div class="gen-card-error">Не вдалося — спробуйте ще раз</div>
+              }
             </div>
           </div>
         }
@@ -218,7 +258,7 @@ interface PlanRow {
     </div>
   `,
 })
-export class StyleDatesComponent implements OnInit {
+export class StyleDatesComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   readonly library = this.store.selectSignal(selectPromptLibrary);
   readonly order = this.store.selectSignal(selectOrder);
@@ -250,6 +290,7 @@ export class StyleDatesComponent implements OnInit {
     { index: 0, name: 'Обкладинка' },
     ...Array.from({ length: 12 }, (_, i) => ({ index: i + 1, name: this.monthNameByNumber(i + 1) })),
   ];
+  readonly monthRows = this.sheetRows.slice(1);
   readonly plan: PlanRow[] = this.sheetRows.map(() => ({ promptId: '', styleId: '', styleTouched: false }));
   private planHydrated = false;
 
@@ -288,7 +329,46 @@ export class StyleDatesComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.dispatch(OrderActions.loadPromptLibrary());
-    this.store.dispatch(OrderActions.loadOrder({ orderId: this.orderId }));
+    // Poll while on this page — per-card generation completes in the background.
+    this.store.dispatch(OrderActions.startOrderPolling({ orderId: this.orderId, intervalMs: 2000 }));
+  }
+
+  ngOnDestroy(): void {
+    this.store.dispatch(OrderActions.stopOrderPolling());
+  }
+
+  private sheetFor(index: number): SheetDto | undefined {
+    return this.order()?.sheets.find((s) => s.index === index);
+  }
+
+  imageFor(index: number): string | null {
+    return this.sheetFor(index)?.imageUrl ?? null;
+  }
+
+  bgFor(index: number): string | null {
+    const url = this.imageFor(index);
+    return url ? `url('${url}')` : null;
+  }
+
+  isGenerating(index: number): boolean {
+    return this.sheetFor(index)?.status === 'Generating';
+  }
+
+  isFailed(index: number): boolean {
+    return this.sheetFor(index)?.status === 'Failed';
+  }
+
+  generateCard(index: number): void {
+    const row = this.plan[index];
+    if (!row.promptId || !row.styleId || this.isGenerating(index)) return;
+    this.store.dispatch(
+      OrderActions.generateSheet({
+        orderId: this.orderId,
+        index,
+        promptId: row.promptId,
+        imageStyleId: row.styleId,
+      }),
+    );
   }
 
   private monthNameByNumber(month: number): string {

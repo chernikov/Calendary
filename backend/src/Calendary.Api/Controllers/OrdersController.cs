@@ -189,6 +189,49 @@ public class OrdersController(
         return Ok(order!.ToDto());
     }
 
+    /// Generates one sheet during the planning step (step 3): saves the picked prompt/style on
+    /// the sheet (creating it if needed) and kicks off generation of a single image. Can be
+    /// called repeatedly to re-generate with new picks; does not use the regeneration budget.
+    [HttpPost("{orderId:guid}/sheets/{index:int}/generate")]
+    public async Task<ActionResult<OrderDto>> GenerateSheet(Guid orderId, int index, GenerateSheetRequest request)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+        if (index is < 0 or > 12) return BadRequest("Index must be 0 (cover) through 12.");
+        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
+        {
+            return Conflict("Sheets can only be generated one-by-one before full generation starts.");
+        }
+        if (order.PhotoUrl is null) return Conflict("Upload a photo first.");
+
+        if (await db.Prompts.FindAsync(request.PromptId) is null) return BadRequest("Unknown prompt.");
+        if (await db.ImageStyles.FindAsync(request.ImageStyleId) is null) return BadRequest("Unknown image style.");
+
+        var sheet = order.Sheets.FirstOrDefault(s => s.Index == index);
+        if (sheet is null)
+        {
+            sheet = new Sheet
+            {
+                OrderId = order.Id,
+                Kind = index == 0 ? SheetKind.Cover : SheetKind.Month,
+                Index = index
+            };
+            db.Sheets.Add(sheet);
+        }
+        else if (sheet.Status == SheetStatus.Generating)
+        {
+            return Conflict("This sheet is already generating.");
+        }
+        sheet.PromptId = request.PromptId;
+        sheet.ImageStyleId = request.ImageStyleId;
+        await db.SaveChangesAsync();
+
+        await generationService.GenerateSheetPreviewAsync(orderId, sheet.Id);
+
+        order = await LoadOwnedOrderAsync(orderId);
+        return Ok(order!.ToDto());
+    }
+
     [HttpPost("{orderId:guid}/generate")]
     public async Task<ActionResult<OrderDto>> Generate(Guid orderId)
     {

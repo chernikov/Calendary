@@ -38,6 +38,10 @@ export const OrderActions = createActionGroup({
     'Start Generation Success': props<{ order: OrderDto }>(),
     'Start Generation Failure': props<{ error: string }>(),
 
+    'Generate Sheet': props<{ orderId: string; index: number; promptId: string; imageStyleId: string }>(),
+    'Generate Sheet Success': props<{ order: OrderDto }>(),
+    'Generate Sheet Failure': props<{ error: string }>(),
+
     'Regenerate Sheet': props<{ orderId: string; sheetId: string }>(),
     'Regenerate Sheet Success': props<{ order: OrderDto }>(),
     'Regenerate Sheet Failure': props<{ error: string }>(),

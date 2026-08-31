@@ -54,6 +54,10 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/generate`, {});
   }
 
+  generateSheet(orderId: string, index: number, promptId: string, imageStyleId: string): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${index}/generate`, { promptId, imageStyleId });
+  }
+
   regenerateSheet(
     orderId: string,
     sheetId: string,

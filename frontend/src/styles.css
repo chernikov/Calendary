@@ -211,26 +211,39 @@ textarea.input { min-height: 90px; resize: vertical; }
 .month-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 1fr; gap: var(--space-2); }
 @media (max-width: 640px) { .month-grid { grid-template-columns: repeat(2, 1fr); } }
 
-/* — sheet plan tiles (step 3) — */
-.plan-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-2); }
-@media (max-width: 640px) { .plan-grid { grid-template-columns: 1fr; } }
-.plan-tile {
-  display: flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-divider); border-radius: var(--radius-md); background: var(--color-surface);
+/* — sheet generation cards (step 3) — */
+.gen-cover { max-width: 200px; margin-bottom: var(--space-2); }
+.gen-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-2); }
+@media (max-width: 900px) { .gen-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px) { .gen-grid { grid-template-columns: repeat(2, 1fr); } }
+.gen-card {
+  position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 6px;
+  aspect-ratio: 3 / 4; padding: 8px; overflow: hidden;
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+  background-color: var(--color-surface); background-size: cover; background-position: center;
 }
-.plan-tile.cover { grid-column: 1 / -1; }
-.plan-tile.complete { border-color: var(--color-accent); }
-.plan-tile-name { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 14px; flex: 1; }
-.plan-badges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.gen-card.has-image { border-color: var(--color-accent); }
+.gen-card.has-image::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgb(32 30 29 / 55%) 0%, rgb(32 30 29 / 0%) 30%, rgb(32 30 29 / 0%) 55%, rgb(32 30 29 / 55%) 100%);
+}
+.gen-card > * { position: relative; z-index: 1; }
+.gen-card-name { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 13.5px; }
+.gen-card.has-image .gen-card-name { color: #fff; }
+.gen-card-controls { display: flex; flex-direction: column; gap: 4px; align-items: stretch; }
+.gen-card-status { font-size: 11.5px; text-align: center; padding: 4px 0; color: var(--color-accent-700); }
+.gen-card.has-image .gen-card-status { color: #fff; }
+.gen-card-error { font-size: 11px; text-align: center; color: var(--color-accent-2-700); }
 .badge-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 12px; letter-spacing: 0.02em; padding: 4px 12px; border-radius: 999px;
-  border: 1px dashed var(--color-neutral-400); background: var(--color-neutral-100); color: var(--color-neutral-800);
-  cursor: pointer; font-family: inherit;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 11.5px; letter-spacing: 0.02em; padding: 4px 8px; border-radius: 999px;
+  border: 1px dashed var(--color-neutral-400); background: color-mix(in srgb, var(--color-neutral-100) 92%, transparent);
+  color: var(--color-neutral-800); cursor: pointer; font-family: inherit;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .badge-btn:hover { border-color: var(--color-accent); }
-.badge-btn.filled { border: 1px solid transparent; background: var(--color-accent-100); color: var(--color-accent-800); }
+.badge-btn.filled { border: 1px solid transparent; background: color-mix(in srgb, var(--color-accent-100) 94%, transparent); color: var(--color-accent-800); }
+.btn-gen { font-size: 12px; padding: 6px 8px; }
 
 /* — prompt/style picker dialog — */
 .picker-dialog { width: min(720px, 100%); max-height: min(84vh, 760px); overflow-y: auto; }

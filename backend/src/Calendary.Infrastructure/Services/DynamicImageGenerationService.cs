@@ -45,6 +45,24 @@ public class DynamicImageGenerationService(
         return await CreateRealService(provider).RegenerateSheetAsync(orderId, sheetId, ct);
     }
 
+    public async Task GenerateSheetPreviewAsync(Guid orderId, Guid sheetId, CancellationToken ct = default)
+    {
+        var provider = await settings.GetImageGenerationProviderAsync(ct);
+        if (provider == ImageGenerationProvider.Mock)
+        {
+            // GenerationBackgroundService only picks Pending sheets of orders that entered
+            // generation, but it finishes any Generating sheet — so start it directly here.
+            var sheet = await db.Sheets.FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
+            sheet.Status = SheetStatus.Generating;
+            sheet.GeneratingStartedAtUtc = DateTime.UtcNow;
+            sheet.VariantCount += 1;
+            await db.SaveChangesAsync(ct);
+            return;
+        }
+
+        await CreateRealService(provider).GenerateSheetPreviewAsync(orderId, sheetId, ct);
+    }
+
     private AiImageGenerationService CreateRealService(ImageGenerationProvider provider)
     {
         var client = serviceProvider.GetRequiredKeyedService<IAiImageClient>(provider.ToString());
