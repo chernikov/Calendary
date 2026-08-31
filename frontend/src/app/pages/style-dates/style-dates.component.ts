@@ -11,7 +11,7 @@ import {
   selectOrderError,
   selectPromptLibrary,
 } from '../../core/state/order';
-import { SheetPlanItem } from '../../core/models';
+import { ImageStyleDto, PromptDto, SheetPlanItem } from '../../core/models';
 
 interface PlanRow {
   promptId: string;
@@ -33,35 +33,87 @@ interface PlanRow {
         застосовується й до наступних аркушів — за бажанням змініть його на будь-якому.
       </p>
 
-      <div style="display: grid; gap: var(--space-2);">
+      <div class="plan-grid">
         @for (row of sheetRows; track row.index) {
-          <div class="card" style="display: grid; grid-template-columns: 110px 1fr 1fr; gap: var(--space-2); align-items: center;">
-            <div class="card-title" style="margin: 0;">{{ row.name }}</div>
-            <div class="field" style="margin: 0;">
-              <label>Образ</label>
-              <select class="input" [ngModel]="plan[row.index].promptId" (ngModelChange)="pickPrompt(row.index, $event)">
-                <option value="" disabled>— оберіть образ —</option>
-                @for (theme of library()?.themes ?? []; track theme.id) {
-                  <optgroup [label]="theme.name">
-                    @for (prompt of theme.prompts; track prompt.id) {
-                      <option [value]="prompt.id">{{ prompt.name }}</option>
-                    }
-                  </optgroup>
-                }
-              </select>
-            </div>
-            <div class="field" style="margin: 0;">
-              <label>Стиль</label>
-              <select class="input" [ngModel]="plan[row.index].styleId" (ngModelChange)="pickStyle(row.index, $event)">
-                <option value="" disabled>— оберіть стиль —</option>
-                @for (style of library()?.styles ?? []; track style.id) {
-                  <option [value]="style.id">{{ style.name }}</option>
-                }
-              </select>
+          <div
+            class="plan-tile"
+            [class.cover]="row.index === 0"
+            [class.complete]="plan[row.index].promptId && plan[row.index].styleId"
+          >
+            <div class="plan-tile-name">{{ row.name }}</div>
+            <div class="plan-badges">
+              <button
+                type="button"
+                class="badge-btn"
+                [class.filled]="plan[row.index].promptId"
+                (click)="openPicker(row.index, 'prompt')"
+              >
+                {{ promptName(plan[row.index].promptId) || 'Обрати образ…' }}
+              </button>
+              <button
+                type="button"
+                class="badge-btn"
+                [class.filled]="plan[row.index].styleId"
+                (click)="openPicker(row.index, 'style')"
+              >
+                {{ styleName(plan[row.index].styleId) || 'Обрати стиль…' }}
+              </button>
             </div>
           </div>
         }
       </div>
+
+      @if (picker(); as p) {
+        <div class="dialog-backdrop" (click)="closePicker()">
+          <div class="dialog picker-dialog" (click)="$event.stopPropagation()">
+            <div class="dialog-title">
+              {{ p.kind === 'prompt' ? 'Образ' : 'Стиль' }} — {{ sheetRows[p.index].name }}
+            </div>
+
+            @if (p.kind === 'prompt') {
+              @for (theme of library()?.themes ?? []; track theme.id) {
+                <div>
+                  <div class="card-title" style="margin-bottom: 4px;">{{ theme.name }}</div>
+                  <p class="picker-theme-desc">{{ theme.description }}</p>
+                  <div class="picker-grid">
+                    @for (prompt of theme.prompts; track prompt.id) {
+                      <button
+                        type="button"
+                        class="picker-item"
+                        [class.selected]="plan[p.index].promptId === prompt.id"
+                        (click)="choosePrompt(prompt.id)"
+                      >
+                        <img [src]="promptImage(prompt)" [alt]="prompt.name" loading="lazy" />
+                        <span class="picker-item-name">{{ prompt.name }}</span>
+                        <span class="picker-item-desc">{{ prompt.description }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            } @else {
+              <div class="picker-grid">
+                @for (style of library()?.styles ?? []; track style.id) {
+                  <button
+                    type="button"
+                    class="picker-item"
+                    [class.selected]="plan[p.index].styleId === style.id"
+                    (click)="chooseStyle(style.id)"
+                  >
+                    <img [src]="styleImage(style)" [alt]="style.name" loading="lazy" />
+                    <span class="picker-item-name">{{ style.name }}</span>
+                    <span class="picker-item-desc">{{ style.description }}</span>
+                  </button>
+                }
+              </div>
+            }
+
+            <div class="dialog-actions">
+              <button class="btn btn-secondary" (click)="closePicker()">Закрити</button>
+            </div>
+          </div>
+        </div>
+      }
 
       <div class="hr"></div>
 
@@ -173,6 +225,7 @@ export class StyleDatesComponent implements OnInit {
   readonly loading = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
   readonly selectedMonth = signal<number | null>(null);
+  readonly picker = signal<{ index: number; kind: 'prompt' | 'style' } | null>(null);
 
   readonly months = [
     { number: 1, name: 'Січень' },
@@ -251,6 +304,50 @@ export class StyleDatesComponent implements OnInit {
 
   pickPrompt(index: number, promptId: string): void {
     this.plan[index].promptId = promptId;
+  }
+
+  openPicker(index: number, kind: 'prompt' | 'style'): void {
+    this.picker.set({ index, kind });
+  }
+
+  closePicker(): void {
+    this.picker.set(null);
+  }
+
+  choosePrompt(promptId: string): void {
+    const p = this.picker();
+    if (!p) return;
+    this.pickPrompt(p.index, promptId);
+    this.closePicker();
+  }
+
+  chooseStyle(styleId: string): void {
+    const p = this.picker();
+    if (!p) return;
+    this.pickStyle(p.index, styleId);
+    this.closePicker();
+  }
+
+  promptName(promptId: string): string {
+    if (!promptId) return '';
+    for (const theme of this.library()?.themes ?? []) {
+      const prompt = theme.prompts.find((x) => x.id === promptId);
+      if (prompt) return prompt.name;
+    }
+    return '';
+  }
+
+  styleName(styleId: string): string {
+    return this.library()?.styles.find((s) => s.id === styleId)?.name ?? '';
+  }
+
+  // Admin-generated previews land in previewImageUrl; until then show a stable placeholder.
+  promptImage(prompt: PromptDto): string {
+    return prompt.previewImageUrl ?? `https://picsum.photos/seed/prompt-${prompt.id}/240/300`;
+  }
+
+  styleImage(style: ImageStyleDto): string {
+    return style.previewImageUrl ?? `https://picsum.photos/seed/style-${style.id}/240/300`;
   }
 
   // The chosen style “sticks”: it flows down to every later sheet the user hasn't overridden.

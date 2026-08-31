@@ -10,9 +10,11 @@ public static class DtoMapping
         t.Id, t.Name, t.Description, t.SortOrder,
         t.Prompts.OrderBy(p => p.SortOrder).Select(p => p.ToDto()).ToList());
 
-    public static PromptDto ToDto(this Prompt p) => new(p.Id, p.PromptThemeId, p.Name, p.Text, p.SortOrder);
+    public static PromptDto ToDto(this Prompt p) =>
+        new(p.Id, p.PromptThemeId, p.Name, p.Text, p.Description, p.PreviewImageUrl, p.SortOrder);
 
-    public static ImageStyleDto ToDto(this ImageStyle s) => new(s.Id, s.Name, s.Text, s.SortOrder);
+    public static ImageStyleDto ToDto(this ImageStyle s) =>
+        new(s.Id, s.Name, s.Text, s.Description, s.PreviewImageUrl, s.SortOrder);
 
     public static PersonalDateDto ToDto(this PersonalDate d) => new(d.Id, d.Day, d.Month, d.Label);
 

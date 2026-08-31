@@ -13,6 +13,8 @@ export interface PromptDto {
   promptThemeId: string;
   name: string;
   text: string;
+  description: string;
+  previewImageUrl: string | null;
   sortOrder: number;
 }
 
@@ -28,6 +30,8 @@ export interface ImageStyleDto {
   id: string;
   name: string;
   text: string;
+  description: string;
+  previewImageUrl: string | null;
   sortOrder: number;
 }
 
@@ -172,6 +176,8 @@ export interface SavePromptPayload {
   promptThemeId: string;
   name: string;
   text: string;
+  description: string;
+  previewImageUrl: string | null;
   sortOrder: number;
 }
 
@@ -179,5 +185,7 @@ export interface SaveImageStylePayload {
   id?: string;
   name: string;
   text: string;
+  description: string;
+  previewImageUrl: string | null;
   sortOrder: number;
 }

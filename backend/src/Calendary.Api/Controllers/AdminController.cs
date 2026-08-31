@@ -206,6 +206,8 @@ public class AdminController(
             PromptThemeId = request.PromptThemeId,
             Name = request.Name.Trim(),
             Text = request.Text.Trim(),
+            Description = request.Description?.Trim() ?? "",
+            PreviewImageUrl = string.IsNullOrWhiteSpace(request.PreviewImageUrl) ? null : request.PreviewImageUrl.Trim(),
             SortOrder = request.SortOrder
         };
         db.Prompts.Add(prompt);
@@ -227,6 +229,8 @@ public class AdminController(
         prompt.PromptThemeId = request.PromptThemeId;
         prompt.Name = request.Name.Trim();
         prompt.Text = request.Text.Trim();
+        prompt.Description = request.Description?.Trim() ?? "";
+        prompt.PreviewImageUrl = string.IsNullOrWhiteSpace(request.PreviewImageUrl) ? null : request.PreviewImageUrl.Trim();
         prompt.SortOrder = request.SortOrder;
         await db.SaveChangesAsync();
         return Ok(prompt.ToDto());
@@ -266,6 +270,8 @@ public class AdminController(
         {
             Name = request.Name.Trim(),
             Text = request.Text.Trim(),
+            Description = request.Description?.Trim() ?? "",
+            PreviewImageUrl = string.IsNullOrWhiteSpace(request.PreviewImageUrl) ? null : request.PreviewImageUrl.Trim(),
             SortOrder = request.SortOrder
         };
         db.ImageStyles.Add(style);
@@ -285,6 +291,8 @@ public class AdminController(
 
         style.Name = request.Name.Trim();
         style.Text = request.Text.Trim();
+        style.Description = request.Description?.Trim() ?? "";
+        style.PreviewImageUrl = string.IsNullOrWhiteSpace(request.PreviewImageUrl) ? null : request.PreviewImageUrl.Trim();
         style.SortOrder = request.SortOrder;
         await db.SaveChangesAsync();
         return Ok(style.ToDto());
