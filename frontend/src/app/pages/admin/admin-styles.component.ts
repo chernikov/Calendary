@@ -40,6 +40,8 @@ import { SaveImageStylePayload } from '../../core/models';
         <div style="display: grid; gap: 8px;">
           <input nz-input placeholder="Назва (укр)" [(ngModel)]="f.name" />
           <textarea nz-input rows="2" placeholder="Текст стилю англійською" [(ngModel)]="f.text"></textarea>
+          <input nz-input placeholder="Короткий опис для клієнта (укр, 5–10 слів)" [(ngModel)]="f.description" />
+          <input nz-input placeholder="URL превʼю-зображення (необовʼязково)" [(ngModel)]="f.previewImageUrl" />
           <input nz-input type="number" placeholder="Порядок" [(ngModel)]="f.sortOrder" style="max-width: 120px;" />
           <div>
             <button nz-button nzType="primary" [disabled]="!f.name.trim() || !f.text.trim() || busy()" (click)="save()">
@@ -99,13 +101,20 @@ export class AdminStylesComponent implements OnInit {
   }
 
   startNew(): void {
-    this.form = { name: '', text: '', sortOrder: (this.styles().length ?? 0) + 1 };
+    this.form = { name: '', text: '', description: '', previewImageUrl: null, sortOrder: (this.styles().length ?? 0) + 1 };
   }
 
   edit(styleId: string): void {
     const style = this.styles().find((s) => s.id === styleId);
     if (!style) return;
-    this.form = { id: style.id, name: style.name, text: style.text, sortOrder: style.sortOrder };
+    this.form = {
+      id: style.id,
+      name: style.name,
+      text: style.text,
+      description: style.description,
+      previewImageUrl: style.previewImageUrl,
+      sortOrder: style.sortOrder,
+    };
   }
 
   save(): void {

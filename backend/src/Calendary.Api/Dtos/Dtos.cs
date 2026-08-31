@@ -8,8 +8,8 @@ public record UserDto(Guid Id, string? DisplayName, string? Email, bool EmailCon
 public record AuthResponse(string BearerToken, UserDto User);
 
 public record PromptThemeDto(Guid Id, string Name, string Description, int SortOrder, IReadOnlyList<PromptDto> Prompts);
-public record PromptDto(Guid Id, Guid PromptThemeId, string Name, string Text, int SortOrder);
-public record ImageStyleDto(Guid Id, string Name, string Text, int SortOrder);
+public record PromptDto(Guid Id, Guid PromptThemeId, string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
+public record ImageStyleDto(Guid Id, string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
 public record PromptLibraryDto(IReadOnlyList<PromptThemeDto> Themes, IReadOnlyList<ImageStyleDto> Styles);
 
 public record SheetPlanItem(int Index, Guid PromptId, Guid ImageStyleId);
@@ -71,5 +71,5 @@ public record SetImageGenerationProviderRequest(string Provider);
 public record ImageGenerationProviderDto(string Provider);
 
 public record SavePromptThemeRequest(string Name, string Description, int SortOrder);
-public record SavePromptRequest(Guid PromptThemeId, string Name, string Text, int SortOrder);
-public record SaveImageStyleRequest(string Name, string Text, int SortOrder);
+public record SavePromptRequest(Guid PromptThemeId, string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
+public record SaveImageStyleRequest(string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);

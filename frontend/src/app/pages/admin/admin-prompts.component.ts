@@ -109,6 +109,8 @@ import { SavePromptPayload, SavePromptThemePayload } from '../../core/models';
             <div style="display: grid; gap: 8px;">
               <input nz-input placeholder="Назва образу (укр)" [(ngModel)]="promptForm.name" />
               <textarea nz-input rows="3" placeholder="Текст промпта англійською" [(ngModel)]="promptForm.text"></textarea>
+              <input nz-input placeholder="Короткий опис для клієнта (укр, 5–10 слів)" [(ngModel)]="promptForm.description" />
+              <input nz-input placeholder="URL превʼю-зображення (необовʼязково)" [(ngModel)]="promptForm.previewImageUrl" />
               <input nz-input type="number" placeholder="Порядок" [(ngModel)]="promptForm.sortOrder" style="max-width: 120px;" />
               <div>
                 <button
@@ -167,7 +169,14 @@ export class AdminPromptsComponent implements OnInit {
 
   startNewPrompt(themeId: string): void {
     const theme = this.themes().find((t) => t.id === themeId);
-    this.promptForm = { promptThemeId: themeId, name: '', text: '', sortOrder: (theme?.prompts.length ?? 0) + 1 };
+    this.promptForm = {
+      promptThemeId: themeId,
+      name: '',
+      text: '',
+      description: '',
+      previewImageUrl: null,
+      sortOrder: (theme?.prompts.length ?? 0) + 1,
+    };
   }
 
   editPrompt(themeId: string, promptId: string): void {
@@ -180,6 +189,8 @@ export class AdminPromptsComponent implements OnInit {
       promptThemeId: prompt.promptThemeId,
       name: prompt.name,
       text: prompt.text,
+      description: prompt.description,
+      previewImageUrl: prompt.previewImageUrl,
       sortOrder: prompt.sortOrder,
     };
   }
