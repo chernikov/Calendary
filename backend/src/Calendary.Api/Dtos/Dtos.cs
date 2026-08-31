@@ -40,6 +40,15 @@ public record OrderDto(
     DeliveryDto? Delivery
 );
 
+public record OrderSummaryDto(
+    Guid Id,
+    string Status,
+    decimal Price,
+    DateTime CreatedAtUtc,
+    DateTime StatusUpdatedAtUtc,
+    string? StyleName,
+    string? CoverImageUrl);
+
 // — Admin —
 public record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize);
 

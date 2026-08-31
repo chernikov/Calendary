@@ -56,6 +56,26 @@ public class OrdersController(
         return order is null ? NotFound() : Ok(order.ToDto());
     }
 
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<OrderSummaryDto>>> List()
+    {
+        var userId = User.GetUserId();
+        var orders = await db.Orders
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAtUtc)
+            .Select(o => new OrderSummaryDto(
+                o.Id,
+                o.Status.ToString(),
+                o.Price,
+                o.CreatedAtUtc,
+                o.StatusUpdatedAtUtc,
+                o.StyleCategory != null ? o.StyleCategory.Name : null,
+                o.Sheets.Where(s => s.Kind == SheetKind.Cover).Select(s => s.ImageUrl).FirstOrDefault()))
+            .ToListAsync();
+
+        return Ok(orders);
+    }
+
     [HttpPost("{orderId:guid}/photo")]
     [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
     public async Task<ActionResult<OrderDto>> UploadPhoto(Guid orderId, [FromForm] IFormFile? photo, CancellationToken ct)

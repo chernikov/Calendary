@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/start/start.component').then((m) => m.StartComponent),
   },
   {
+    path: 'orders',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/orders/orders.component').then((m) => m.OrdersComponent),
+  },
+  {
     path: 'order/:orderId/upload',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/upload/upload.component').then((m) => m.UploadComponent),

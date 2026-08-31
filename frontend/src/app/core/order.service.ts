@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import {
   NovaPoshtaWarehouseDto,
   OrderDto,
+  OrderSummaryDto,
   StyleCategoryDto,
 } from './models';
 
@@ -24,6 +25,10 @@ export class OrderService {
 
   getOrder(orderId: string): Observable<OrderDto> {
     return this.http.get<OrderDto>(`${BASE}/orders/${orderId}`);
+  }
+
+  listOrders(): Observable<OrderSummaryDto[]> {
+    return this.http.get<OrderSummaryDto[]>(`${BASE}/orders`);
   }
 
   uploadPhoto(orderId: string, photo: File): Observable<OrderDto> {

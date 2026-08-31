@@ -5,6 +5,7 @@ import { ORDER_FEATURE_KEY, OrderState } from './order.state';
 export const selectOrderState = createFeatureSelector<OrderState>(ORDER_FEATURE_KEY);
 
 export const selectOrder = createSelector(selectOrderState, (state) => state.order);
+export const selectMyOrders = createSelector(selectOrderState, (state) => state.myOrders);
 export const selectStyleCategories = createSelector(selectOrderState, (state) => state.styleCategories);
 export const selectWarehouses = createSelector(selectOrderState, (state) => state.warehouses);
 export const selectOrderBusy = createSelector(selectOrderState, (state) => state.busy);
