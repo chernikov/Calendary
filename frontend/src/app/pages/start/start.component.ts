@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, ViewChild, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { OrderService } from '../../core/order.service';
 import { environment } from '../../../environments/environment';
@@ -78,7 +78,12 @@ export class StartComponent implements AfterViewInit {
     private readonly auth: AuthService,
     private readonly orders: OrderService,
     private readonly router: Router,
-  ) {}
+    route: ActivatedRoute,
+  ) {
+    if (route.snapshot.queryParamMap.get('mode') === 'login') {
+      this.mode.set('login');
+    }
+  }
 
   ngAfterViewInit(): void {
     if (!environment.googleClientId) return;

@@ -6,11 +6,6 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink],
   template: `
-    <nav class="nav">
-      <span class="nav-brand">Calendary</span>
-      <a routerLink="/start">Почати</a>
-    </nav>
-
     <div class="page">
       <h1 style="font-size: 48px; max-width: 640px;">Календар на дванадцять місяців — з вашими образами</h1>
       <p class="text-muted" style="font-size: 17px; max-width: 520px; margin-bottom: var(--space-6);">
