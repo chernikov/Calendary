@@ -139,13 +139,6 @@ namespace Calendary.Infrastructure.Migrations
                             Name = "Аніме",
                             SortOrder = 5,
                             Text = "anime art style, clean linework, vivid cel shading, expressive eyes"
-                        },
-                        new
-                        {
-                            Id = new Guid("55555555-5555-5555-5555-555555555506"),
-                            Name = "Комікс",
-                            SortOrder = 6,
-                            Text = "comic book art style, bold outlines, halftone shading, dynamic composition"
                         });
                 });
 
@@ -347,6 +340,14 @@ namespace Calendary.Infrastructure.Migrations
                         },
                         new
                         {
+                            Id = new Guid("44444444-4444-4444-4444-444444444418"),
+                            Name = "Супергерой",
+                            PromptThemeId = new Guid("33333333-3333-3333-3333-333333333302"),
+                            SortOrder = 5,
+                            Text = "a superhero in a sleek costume with a flowing cape, dramatic pose over a night city skyline"
+                        },
+                        new
+                        {
                             Id = new Guid("44444444-4444-4444-4444-444444444410"),
                             Name = "Альпініст",
                             PromptThemeId = new Guid("33333333-3333-3333-3333-333333333303"),
@@ -379,6 +380,14 @@ namespace Calendary.Infrastructure.Migrations
                         },
                         new
                         {
+                            Id = new Guid("44444444-4444-4444-4444-444444444419"),
+                            Name = "Дослідник джунглів",
+                            PromptThemeId = new Guid("33333333-3333-3333-3333-333333333303"),
+                            SortOrder = 5,
+                            Text = "a jungle explorer with a khaki outfit and a machete, deep in lush tropical rainforest ruins"
+                        },
+                        new
+                        {
                             Id = new Guid("44444444-4444-4444-4444-444444444414"),
                             Name = "Шеф-кухар",
                             PromptThemeId = new Guid("33333333-3333-3333-3333-333333333304"),
@@ -408,6 +417,14 @@ namespace Calendary.Infrastructure.Migrations
                             PromptThemeId = new Guid("33333333-3333-3333-3333-333333333304"),
                             SortOrder = 4,
                             Text = "a firefighter in full turnout gear with a helmet, heroic pose near a fire engine"
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444420"),
+                            Name = "Астронавт",
+                            PromptThemeId = new Guid("33333333-3333-3333-3333-333333333304"),
+                            SortOrder = 5,
+                            Text = "an astronaut in a detailed spacesuit with a reflective visor, beside a spacecraft under a starry sky"
                         });
                 });
 

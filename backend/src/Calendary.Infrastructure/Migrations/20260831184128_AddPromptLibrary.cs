@@ -98,8 +98,7 @@ namespace Calendary.Infrastructure.Migrations
                     { new Guid("55555555-5555-5555-5555-555555555502"), "Графіка", 2, "detailed pencil and ink illustration, hand-drawn graphic art, fine linework" },
                     { new Guid("55555555-5555-5555-5555-555555555503"), "Чорно-біле", 3, "black and white photography, dramatic monochrome contrast, timeless mood" },
                     { new Guid("55555555-5555-5555-5555-555555555504"), "3D-мультфільм", 4, "3D animated feature film style, expressive stylized character, vibrant colors, soft lighting" },
-                    { new Guid("55555555-5555-5555-5555-555555555505"), "Аніме", 5, "anime art style, clean linework, vivid cel shading, expressive eyes" },
-                    { new Guid("55555555-5555-5555-5555-555555555506"), "Комікс", 6, "comic book art style, bold outlines, halftone shading, dynamic composition" }
+                    { new Guid("55555555-5555-5555-5555-555555555505"), "Аніме", 5, "anime art style, clean linework, vivid cel shading, expressive eyes" }
                 });
 
             migrationBuilder.InsertData(
@@ -134,7 +133,10 @@ namespace Calendary.Infrastructure.Migrations
                     { new Guid("44444444-4444-4444-4444-444444444414"), "Шеф-кухар", new Guid("33333333-3333-3333-3333-333333333304"), 1, "a head chef in a pristine white uniform plating a dish, in a busy professional kitchen" },
                     { new Guid("44444444-4444-4444-4444-444444444415"), "Лікар", new Guid("33333333-3333-3333-3333-333333333304"), 2, "a doctor in a white coat with a stethoscope, in a bright modern hospital" },
                     { new Guid("44444444-4444-4444-4444-444444444416"), "Диригент", new Guid("33333333-3333-3333-3333-333333333304"), 3, "an orchestra conductor in a tailcoat mid-performance, baton raised before a grand orchestra" },
-                    { new Guid("44444444-4444-4444-4444-444444444417"), "Пожежник", new Guid("33333333-3333-3333-3333-333333333304"), 4, "a firefighter in full turnout gear with a helmet, heroic pose near a fire engine" }
+                    { new Guid("44444444-4444-4444-4444-444444444417"), "Пожежник", new Guid("33333333-3333-3333-3333-333333333304"), 4, "a firefighter in full turnout gear with a helmet, heroic pose near a fire engine" },
+                    { new Guid("44444444-4444-4444-4444-444444444418"), "Супергерой", new Guid("33333333-3333-3333-3333-333333333302"), 5, "a superhero in a sleek costume with a flowing cape, dramatic pose over a night city skyline" },
+                    { new Guid("44444444-4444-4444-4444-444444444419"), "Дослідник джунглів", new Guid("33333333-3333-3333-3333-333333333303"), 5, "a jungle explorer with a khaki outfit and a machete, deep in lush tropical rainforest ruins" },
+                    { new Guid("44444444-4444-4444-4444-444444444420"), "Астронавт", new Guid("33333333-3333-3333-3333-333333333304"), 5, "an astronaut in a detailed spacesuit with a reflective visor, beside a spacecraft under a starry sky" }
                 });
 
             migrationBuilder.CreateIndex(

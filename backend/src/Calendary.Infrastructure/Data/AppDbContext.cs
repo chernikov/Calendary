@@ -120,14 +120,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444407"), PromptThemeId = cinema, Name = "Ковбой вестерну", Text = "a spaghetti western gunslinger with a poncho and revolver, in a dusty frontier town", SortOrder = 2 },
             new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444408"), PromptThemeId = cinema, Name = "Шпигун", Text = "an elegant secret agent in a tailored suit with spy gadgets, in a glamorous casino or rooftop scene", SortOrder = 3 },
             new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444409"), PromptThemeId = cinema, Name = "Зірка мюзиклу", Text = "a golden-age musical performer in a dazzling stage costume, under theatrical spotlights", SortOrder = 4 },
+            new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444418"), PromptThemeId = cinema, Name = "Супергерой", Text = "a superhero in a sleek costume with a flowing cape, dramatic pose over a night city skyline", SortOrder = 5 },
             new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444410"), PromptThemeId = adventure, Name = "Альпініст", Text = "a mountaineer with climbing gear and ropes, high on a dramatic snowy peak", SortOrder = 1 },
             new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444411"), PromptThemeId = adventure, Name = "Пілот", Text = "a bush pilot with a leather jacket and aviator goggles, beside a vintage propeller plane", SortOrder = 2 },
             new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444412"), PromptThemeId = adventure, Name = "Дайвер", Text = "a scuba diver with full diving gear, exploring a vivid coral reef underwater", SortOrder = 3 },
             new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444413"), PromptThemeId = adventure, Name = "Полярник", Text = "a polar explorer in an expedition parka with sled dogs, amid arctic ice fields", SortOrder = 4 },
+            new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444419"), PromptThemeId = adventure, Name = "Дослідник джунглів", Text = "a jungle explorer with a khaki outfit and a machete, deep in lush tropical rainforest ruins", SortOrder = 5 },
             new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444414"), PromptThemeId = professions, Name = "Шеф-кухар", Text = "a head chef in a pristine white uniform plating a dish, in a busy professional kitchen", SortOrder = 1 },
             new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444415"), PromptThemeId = professions, Name = "Лікар", Text = "a doctor in a white coat with a stethoscope, in a bright modern hospital", SortOrder = 2 },
             new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444416"), PromptThemeId = professions, Name = "Диригент", Text = "an orchestra conductor in a tailcoat mid-performance, baton raised before a grand orchestra", SortOrder = 3 },
-            new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444417"), PromptThemeId = professions, Name = "Пожежник", Text = "a firefighter in full turnout gear with a helmet, heroic pose near a fire engine", SortOrder = 4 }
+            new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444417"), PromptThemeId = professions, Name = "Пожежник", Text = "a firefighter in full turnout gear with a helmet, heroic pose near a fire engine", SortOrder = 4 },
+            new Prompt { Id = Guid.Parse("44444444-4444-4444-4444-444444444420"), PromptThemeId = professions, Name = "Астронавт", Text = "an astronaut in a detailed spacesuit with a reflective visor, beside a spacecraft under a starry sky", SortOrder = 5 }
         );
 
         modelBuilder.Entity<ImageStyle>().HasData(
@@ -135,8 +138,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555502"), Name = "Графіка", Text = "detailed pencil and ink illustration, hand-drawn graphic art, fine linework", SortOrder = 2 },
             new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555503"), Name = "Чорно-біле", Text = "black and white photography, dramatic monochrome contrast, timeless mood", SortOrder = 3 },
             new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555504"), Name = "3D-мультфільм", Text = "3D animated feature film style, expressive stylized character, vibrant colors, soft lighting", SortOrder = 4 },
-            new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555505"), Name = "Аніме", Text = "anime art style, clean linework, vivid cel shading, expressive eyes", SortOrder = 5 },
-            new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555506"), Name = "Комікс", Text = "comic book art style, bold outlines, halftone shading, dynamic composition", SortOrder = 6 }
+            new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555505"), Name = "Аніме", Text = "anime art style, clean linework, vivid cel shading, expressive eyes", SortOrder = 5 }
         );
     }
 }
