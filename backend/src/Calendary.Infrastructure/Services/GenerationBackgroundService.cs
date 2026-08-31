@@ -1,3 +1,4 @@
+using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
 using Calendary.Infrastructure.Data;
@@ -10,6 +11,10 @@ namespace Calendary.Infrastructure.Services;
 
 /// Simulates AI image generation server-side so the frontend has something real to poll:
 /// up to 3 sheets per order are "in flight" at once, each taking ~4s, cover first.
+///
+/// Always registered and always ticking; each tick checks the current
+/// AppSettings.ImageGenerationProvider (via IAppSettingsService) and no-ops unless it's Mock, so
+/// it can safely run alongside real-provider generation without progressing sheets it doesn't own.
 public class GenerationBackgroundService(IServiceScopeFactory scopeFactory, ILogger<GenerationBackgroundService> logger)
     : BackgroundService
 {
@@ -36,6 +41,13 @@ public class GenerationBackgroundService(IServiceScopeFactory scopeFactory, ILog
     private async Task TickAsync(CancellationToken ct)
     {
         using var scope = scopeFactory.CreateScope();
+
+        var settings = scope.ServiceProvider.GetRequiredService<IAppSettingsService>();
+        if (await settings.GetImageGenerationProviderAsync(ct) != ImageGenerationProvider.Mock)
+        {
+            return;
+        }
+
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var now = DateTime.UtcNow;

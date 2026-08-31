@@ -51,5 +51,9 @@ export const orderReducer = createReducer(
   on(OrderActions.loadWarehousesFailure, (state) => ({ ...state, warehouses: [] })),
   on(OrderActions.clearWarehouses, (state) => ({ ...state, warehouses: [] })),
 
+  on(OrderActions.downloadPdf, (state) => ({ ...state, downloadingPdf: true, error: null })),
+  on(OrderActions.downloadPdfSuccess, (state) => ({ ...state, downloadingPdf: false })),
+  on(OrderActions.downloadPdfFailure, (state, { error }) => ({ ...state, downloadingPdf: false, error })),
+
   on(OrderActions.clearOrderError, (state) => ({ ...state, error: null })),
 );

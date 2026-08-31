@@ -10,14 +10,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Calendary.Infrastructure.Services;
 
-/// Real IImageGenerationService, calling out to whichever provider Calendary.AI is configured
-/// for (see AI/Options/AiOptions.cs). Not registered by default — see README "Going live with
-/// real AI generation" for the three steps to switch over from MockImageGenerationService.
+/// Real IImageGenerationService, calling out to whichever provider is currently selected (a
+/// runtime DB setting, see IAppSettingsService). Never DI-resolved directly — it's a plain class,
+/// instantiated on demand per call by DynamicImageGenerationService (the only thing actually
+/// registered for IImageGenerationService), which resolves the correct keyed IAiImageClient first.
 ///
-/// Unlike the mock, this service drives generation itself (fire-and-forget background work per
-/// order/sheet using its own DI scope) rather than relying on GenerationBackgroundService's
-/// timer-based simulation, so the two must not run at the same time — remove
-/// GenerationBackgroundService's hosted-service registration when switching to this.
+/// Unlike the mock path, this service drives generation itself (fire-and-forget background work
+/// per order/sheet using its own DI scope) rather than relying on GenerationBackgroundService's
+/// timer-based simulation — GenerationBackgroundService no-ops while the current provider isn't
+/// Mock, so the two never fight over the same sheets.
 public class AiImageGenerationService(
     AppDbContext db,
     IAiImageClient aiClient,

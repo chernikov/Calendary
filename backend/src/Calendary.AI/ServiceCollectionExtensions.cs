@@ -7,26 +7,21 @@ namespace Calendary.AI;
 
 public static class ServiceCollectionExtensions
 {
-    /// Registers AiOptions (bound to the "AI" appsettings section) and a single IAiImageClient —
-    /// whichever provider AiOptions.Provider selects. Swapping providers is a config change only;
-    /// no code/DI changes needed.
+    /// Registers AiOptions (bound to the "AI" appsettings section) and both concrete clients as
+    /// keyed IAiImageClient services ("OpenAI" / "Gemini"), so the caller (Calendary.Infrastructure's
+    /// DynamicImageGenerationService) can resolve whichever one is currently selected at runtime —
+    /// this project has no knowledge of where that selection is stored (a DB setting, outside
+    /// Calendary.AI's zero-dependency scope). Both AI:OpenAI:ApiKey and AI:Gemini:ApiKey must be
+    /// configured for both real options to work, since either can be selected at any time.
     public static IServiceCollection AddCalendaryAi(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<AiOptions>(configuration.GetSection(AiOptions.SectionName));
 
-        var provider = configuration.GetSection(AiOptions.SectionName)
-            .GetValue<AiProvider?>(nameof(AiOptions.Provider)) ?? AiProvider.OpenAI;
+        services.AddHttpClient<OpenAiImageClient>();
+        services.AddHttpClient<GeminiImageClient>();
 
-        switch (provider)
-        {
-            case AiProvider.Gemini:
-                services.AddHttpClient<IAiImageClient, GeminiImageClient>();
-                break;
-            case AiProvider.OpenAI:
-            default:
-                services.AddHttpClient<IAiImageClient, OpenAiImageClient>();
-                break;
-        }
+        services.AddKeyedScoped<IAiImageClient>("OpenAI", (sp, _) => sp.GetRequiredService<OpenAiImageClient>());
+        services.AddKeyedScoped<IAiImageClient>("Gemini", (sp, _) => sp.GetRequiredService<GeminiImageClient>());
 
         return services;
     }

@@ -8,6 +8,7 @@ export const selectOrder = createSelector(selectOrderState, (state) => state.ord
 export const selectStyleCategories = createSelector(selectOrderState, (state) => state.styleCategories);
 export const selectWarehouses = createSelector(selectOrderState, (state) => state.warehouses);
 export const selectOrderBusy = createSelector(selectOrderState, (state) => state.busy);
+export const selectDownloadingPdf = createSelector(selectOrderState, (state) => state.downloadingPdf);
 export const selectOrderError = createSelector(selectOrderState, (state) => state.error);
 
 export const selectCoverSheet = createSelector(selectOrder, (order): SheetDto | undefined =>

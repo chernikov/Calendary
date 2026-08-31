@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, interval, map, of, startWith, switchMap, takeUntil } from 'rxjs';
+import { catchError, interval, map, of, startWith, switchMap, takeUntil, tap } from 'rxjs';
 import { OrderService } from '../../order.service';
 import { OrderActions } from './order.actions';
 
@@ -189,4 +189,26 @@ export class OrderEffects {
       ),
     ),
   );
+
+  downloadPdf$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.downloadPdf),
+      switchMap(({ orderId }) =>
+        this.orders.downloadPdf(orderId).pipe(
+          tap((blob) => this.triggerBrowserDownload(blob, `calendary-${orderId}.pdf`)),
+          map(() => OrderActions.downloadPdfSuccess()),
+          catchError(() => of(OrderActions.downloadPdfFailure({ error: 'Не вдалося сформувати PDF.' }))),
+        ),
+      ),
+    ),
+  );
+
+  private triggerBrowserDownload(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
 }

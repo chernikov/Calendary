@@ -14,10 +14,12 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-builder.Services.AddScoped<IImageGenerationService, AiImageGenerationService>();
+builder.Services.AddScoped<IImageGenerationService, DynamicImageGenerationService>();
+builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
 builder.Services.AddCalendaryAi(builder.Configuration);
 builder.Services.AddScoped<IPaymentService, MockPaymentService>();
 builder.Services.AddSingleton<INovaPoshtaService, MockNovaPoshtaService>();
+builder.Services.AddHttpClient<ICalendarPdfService, CalendarPdfService>();
 builder.Services.AddScoped<ISessionTokenService, SessionTokenService>();
 builder.Services.AddScoped<IPasswordAuthService, PasswordAuthService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
@@ -26,6 +28,7 @@ builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
 builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection(ResendOptions.SectionName));
 
 builder.Services.AddHostedService<FulfillmentBackgroundService>();
+builder.Services.AddHostedService<GenerationBackgroundService>();
 
 builder.Services.AddAuthentication(BearerTokenAuth.Scheme)
     .AddScheme<AuthenticationSchemeOptions, BearerTokenAuthenticationHandler>(BearerTokenAuth.Scheme, _ => { });

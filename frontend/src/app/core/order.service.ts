@@ -73,6 +73,10 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/cancel`, {});
   }
 
+  downloadPdf(orderId: string): Observable<Blob> {
+    return this.http.get(`${BASE}/orders/${orderId}/pdf`, { responseType: 'blob' });
+  }
+
   novaPoshtaCities(query: string): Observable<string[]> {
     return this.http.get<string[]>(`${BASE}/nova-poshta/cities`, { params: { query } });
   }

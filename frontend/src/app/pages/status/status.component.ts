@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { OrderActions, selectOrder, selectOrderBusy } from '../../core/state/order';
+import { OrderActions, selectDownloadingPdf, selectOrder, selectOrderBusy } from '../../core/state/order';
 import { OrderDto, OrderStatus } from '../../core/models';
 
 const TIMELINE: { status: OrderStatus; label: string }[] = [
@@ -46,6 +46,10 @@ const TIMELINE: { status: OrderStatus; label: string }[] = [
           </div>
         }
 
+        @if (o.status !== 'Cancelled') {
+          <button class="btn btn-secondary" [disabled]="downloadingPdf()" (click)="downloadPdf(o)">Завантажити PDF</button>
+        }
+
         @if (isCancellable(o)) {
           <button class="btn btn-danger" [disabled]="busy()" (click)="cancel(o)">Скасувати замовлення</button>
         }
@@ -57,6 +61,7 @@ export class StatusComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   readonly order = this.store.selectSignal(selectOrder);
   readonly busy = this.store.selectSignal(selectOrderBusy);
+  readonly downloadingPdf = this.store.selectSignal(selectDownloadingPdf);
   readonly timeline = TIMELINE;
   private readonly orderId: string;
 
@@ -84,5 +89,9 @@ export class StatusComponent implements OnInit, OnDestroy {
 
   cancel(o: OrderDto): void {
     this.store.dispatch(OrderActions.cancelOrder({ orderId: o.id }));
+  }
+
+  downloadPdf(o: OrderDto): void {
+    this.store.dispatch(OrderActions.downloadPdf({ orderId: o.id }));
   }
 }

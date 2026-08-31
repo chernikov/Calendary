@@ -60,6 +60,7 @@ public class OpenAiImageClient(HttpClient httpClient, IOptions<AiOptions> option
             model = _options.Model,
             prompt,
             size = _options.ImageSize,
+            quality = _options.Quality,
             n = 1
         };
         return new HttpRequestMessage(HttpMethod.Post, $"{_options.BaseUrl}/images/generations")
@@ -77,7 +78,8 @@ public class OpenAiImageClient(HttpClient httpClient, IOptions<AiOptions> option
         {
             { new StringContent(_options.Model), "model" },
             { new StringContent(prompt), "prompt" },
-            { new StringContent(_options.ImageSize), "size" }
+            { new StringContent(_options.ImageSize), "size" },
+            { new StringContent(_options.Quality), "quality" }
         };
         var imageContent = new ByteArrayContent(bytes);
         imageContent.Headers.ContentType = new MediaTypeHeaderValue(mimeType);

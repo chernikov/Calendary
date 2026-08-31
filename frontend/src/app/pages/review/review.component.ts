@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { OrderActions, selectOrder } from '../../core/state/order';
+import { OrderActions, selectDownloadingPdf, selectOrder } from '../../core/state/order';
 import { OrderDto } from '../../core/models';
 
 const MONTH_NAMES = [
@@ -47,6 +47,17 @@ const MONTH_NAMES = [
           <span class="money" style="font-size: 30px; font-weight: 500;">{{ o.price }} ₴</span>
         </div>
 
+        @if (o.status === 'ReviewReady' || isPastReview(o)) {
+          <button
+            class="btn btn-secondary btn-block"
+            style="max-width: 320px; margin-bottom: var(--space-2);"
+            [disabled]="downloadingPdf()"
+            (click)="downloadPdf(o)"
+          >
+            Завантажити PDF
+          </button>
+        }
+
         <button class="btn btn-primary btn-block" style="max-width: 320px;" (click)="proceed(o)">До оплати</button>
       }
     </div>
@@ -56,6 +67,7 @@ const MONTH_NAMES = [
 export class ReviewComponent implements OnInit {
   private readonly store = inject(Store);
   readonly order = this.store.selectSignal(selectOrder);
+  readonly downloadingPdf = this.store.selectSignal(selectDownloadingPdf);
   private readonly orderId: string;
 
   constructor(
@@ -79,5 +91,9 @@ export class ReviewComponent implements OnInit {
 
   proceed(o: OrderDto): void {
     this.router.navigate(['/order', o.id, 'checkout']);
+  }
+
+  downloadPdf(o: OrderDto): void {
+    this.store.dispatch(OrderActions.downloadPdf({ orderId: o.id }));
   }
 }

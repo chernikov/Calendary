@@ -1,4 +1,5 @@
 using Calendary.Domain.Entities;
+using Calendary.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Infrastructure.Data;
@@ -13,6 +14,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Delivery> Deliveries => Set<Delivery>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
+    public DbSet<AppSettings> AppSettings => Set<AppSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,6 +68,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             new StyleCategory { Id = Guid.Parse("11111111-1111-1111-1111-111111111102"), Code = "cinema", Name = "Кіно", Description = "нуар, вестерн, шпигун, мюзикл…", SortOrder = 2 },
             new StyleCategory { Id = Guid.Parse("11111111-1111-1111-1111-111111111103"), Code = "adventure", Name = "Пригоди", Description = "альпініст, пілот, дайвер, полярник…", SortOrder = 3 },
             new StyleCategory { Id = Guid.Parse("11111111-1111-1111-1111-111111111104"), Code = "professions", Name = "Професії", Description = "шеф, лікар, диригент, пожежник…", SortOrder = 4 }
+        );
+
+        modelBuilder.Entity<AppSettings>().HasData(
+            new AppSettings
+            {
+                Id = Guid.Parse("22222222-2222-2222-2222-222222222201"),
+                ImageGenerationProvider = ImageGenerationProvider.OpenAI
+            }
         );
     }
 }

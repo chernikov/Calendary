@@ -16,7 +16,8 @@ namespace Calendary.Api.Controllers;
 public class OrdersController(
     AppDbContext db,
     IImageGenerationService generationService,
-    IPaymentService paymentService) : ControllerBase
+    IPaymentService paymentService,
+    ICalendarPdfService pdfService) : ControllerBase
 {
     private const int MaxLabelLength = 22;
 
@@ -29,6 +30,11 @@ public class OrdersController(
             .Include(o => o.Sheets)
             .Include(o => o.Payment)
             .Include(o => o.Delivery)
+            // Sheets and PersonalDates are sibling collections on the same query — a single join
+            // multiplies rows (sheets × dates), and each Sheet.ImageUrl can be a multi-MB base64
+            // data: URL once real AI generation is live, so that cartesian product balloons into a
+            // gigantic result set. AsSplitQuery issues one query per collection instead.
+            .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
     }
 
@@ -252,6 +258,19 @@ public class OrdersController(
 
         order = await LoadOwnedOrderAsync(orderId);
         return result.Succeeded ? Ok(order!.ToDto()) : StatusCode(402, order!.ToDto());
+    }
+
+    [HttpGet("{orderId:guid}/pdf")]
+    public async Task<IActionResult> DownloadPdf(Guid orderId)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+
+        var sheetsReady = order.Sheets.Count == 13 && order.Sheets.All(s => s.Status == SheetStatus.Ready);
+        if (!sheetsReady) return Conflict("Calendar is not fully generated yet.");
+
+        var pdfBytes = await pdfService.GenerateAsync(orderId);
+        return File(pdfBytes, "application/pdf", $"calendary-{orderId}.pdf");
     }
 
     [HttpPost("{orderId:guid}/cancel")]

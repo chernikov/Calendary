@@ -60,6 +60,10 @@ export const OrderActions = createActionGroup({
     'Cancel Order Success': props<{ order: OrderDto }>(),
     'Cancel Order Failure': props<{ error: string }>(),
 
+    'Download Pdf': props<{ orderId: string }>(),
+    'Download Pdf Success': emptyProps(),
+    'Download Pdf Failure': props<{ error: string }>(),
+
     'Clear Order Error': emptyProps(),
   },
 });

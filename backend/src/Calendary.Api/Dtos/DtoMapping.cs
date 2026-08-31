@@ -4,7 +4,7 @@ namespace Calendary.Api.Dtos;
 
 public static class DtoMapping
 {
-    public static UserDto ToDto(this User u) => new(u.Id, u.DisplayName, u.Email, u.EmailConfirmed);
+    public static UserDto ToDto(this User u) => new(u.Id, u.DisplayName, u.Email, u.EmailConfirmed, u.Role.ToString());
 
     public static StyleCategoryDto ToDto(this StyleCategory c) => new(c.Id, c.Code, c.Name, c.Description, c.SortOrder);
 
@@ -34,4 +34,12 @@ public static class DtoMapping
         o.Payment?.ToDto(),
         o.Delivery?.ToDto()
     );
+
+    public static AdminOrderSummaryDto ToAdminSummaryDto(this Order o) => new(
+        o.Id, o.Status.ToString(), o.UserId, o.User.Email, o.User.DisplayName,
+        o.Price, o.CreatedAtUtc, o.StatusUpdatedAtUtc);
+
+    public static AdminUserDto ToAdminDto(this User u) => new(
+        u.Id, u.Email, u.DisplayName, u.Role.ToString(), u.AuthProvider.ToString(),
+        u.EmailConfirmed, u.CreatedAtUtc, u.Orders.Count);
 }

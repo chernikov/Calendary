@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
+import { adminGuard } from './core/admin.guard';
 
 export const routes: Routes = [
   {
@@ -49,6 +50,31 @@ export const routes: Routes = [
     path: 'order/:orderId/status',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/status/status.component').then((m) => m.StatusComponent),
+  },
+  {
+    path: 'admin',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./pages/admin/admin-shell.component').then((m) => m.AdminShellComponent),
+    children: [
+      {
+        path: 'orders',
+        loadComponent: () => import('./pages/admin/admin-orders.component').then((m) => m.AdminOrdersComponent),
+      },
+      {
+        path: 'orders/:orderId',
+        loadComponent: () =>
+          import('./pages/admin/admin-order-detail.component').then((m) => m.AdminOrderDetailComponent),
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('./pages/admin/admin-users.component').then((m) => m.AdminUsersComponent),
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./pages/admin/admin-settings.component').then((m) => m.AdminSettingsComponent),
+      },
+      { path: '', redirectTo: 'orders', pathMatch: 'full' },
+    ],
   },
   { path: '**', redirectTo: '' },
 ];

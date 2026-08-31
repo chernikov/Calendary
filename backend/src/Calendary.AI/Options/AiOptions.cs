@@ -6,8 +6,10 @@ public enum AiProvider
     Gemini
 }
 
-/// Root of the "AI" appsettings section. Only the sub-section matching `Provider` needs a real
-/// key — the other one can be left blank until you switch providers.
+/// Root of the "AI" appsettings section. Both OpenAI and Gemini keys should be configured —
+/// which provider is actually used is now a runtime DB setting (Calendary.Domain's
+/// ImageGenerationProvider, via IAppSettingsService), not this Provider value. `Provider` is kept
+/// only as a legacy config field; it is no longer read by ServiceCollectionExtensions.
 public class AiOptions
 {
     public const string SectionName = "AI";
@@ -23,6 +25,11 @@ public class OpenAiOptions
     public string BaseUrl { get; set; } = "https://api.openai.com/v1";
     public string Model { get; set; } = "gpt-image-1";
     public string ImageSize { get; set; } = "1024x1536"; // portrait, closest to a 3:4 calendar sheet
+
+    /// "low" | "medium" | "high" | "auto". Left unset, gpt-image-1 defaults to "auto", which
+    /// tends toward high-quality (and high-cost, multi-MB) output — "low" is far cheaper and
+    /// plenty for dev/staging testing.
+    public string Quality { get; set; } = "low";
 }
 
 public class GeminiOptions

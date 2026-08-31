@@ -5,6 +5,7 @@ export interface OrderState {
   styleCategories: StyleCategoryDto[];
   warehouses: NovaPoshtaWarehouseDto[];
   busy: boolean;
+  downloadingPdf: boolean;
   error: string | null;
 }
 
@@ -13,6 +14,7 @@ export const initialOrderState: OrderState = {
   styleCategories: [],
   warehouses: [],
   busy: false,
+  downloadingPdf: false,
   error: null,
 };
 

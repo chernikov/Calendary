@@ -9,6 +9,7 @@ public class User
     public string? DisplayName { get; set; }
     public string? PasswordHash { get; set; }
     public AuthProvider AuthProvider { get; set; }
+    public UserRole Role { get; set; } = UserRole.Customer;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
     public bool EmailConfirmed { get; set; }
