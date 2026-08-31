@@ -88,6 +88,23 @@ public class AiImageGenerationService(
         return true;
     }
 
+    public async Task GenerateSheetPreviewAsync(Guid orderId, Guid sheetId, CancellationToken ct = default)
+    {
+        var order = await db.Orders.FirstAsync(o => o.Id == orderId, ct);
+        var sheet = await db.Sheets
+            .Include(s => s.Prompt)
+            .Include(s => s.ImageStyle)
+            .FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
+        sheet.Status = SheetStatus.Pending;
+        sheet.GeneratingStartedAtUtc = null;
+        sheet.VariantCount += 1;
+        await db.SaveChangesAsync(ct);
+
+        var referenceDataUrl = await ResolveReferenceDataUrlAsync(order.PhotoUrl!, ct);
+        var prompt = BuildPrompt(sheet);
+        _ = Task.Run(() => GenerateOneSheetAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
+    }
+
     private async Task GenerateOrderAsync(Guid orderId, string photoUrl)
     {
         var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl);
@@ -120,6 +137,13 @@ public class AiImageGenerationService(
             .Include(s => s.Prompt)
             .Include(s => s.ImageStyle)
             .FirstAsync(s => s.OrderId == orderId && s.Kind == kind && s.Index == index);
+
+        // Sheets already generated one-by-one during the planning step keep their image.
+        if (sheet.Status == SheetStatus.Ready && sheet.ImageUrl is not null)
+        {
+            await OrderProgressionHelper.AdvanceOrderStatusAsync(scopedDb, orderId);
+            return;
+        }
 
         await RunGenerationAsync(scopedDb, sheet, BuildPrompt(sheet), referenceDataUrl);
         await OrderProgressionHelper.AdvanceOrderStatusAsync(scopedDb, orderId);

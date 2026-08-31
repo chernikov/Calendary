@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, interval, map, of, startWith, switchMap, takeUntil, tap } from 'rxjs';
+import { catchError, interval, map, mergeMap, of, startWith, switchMap, takeUntil, tap } from 'rxjs';
 import { OrderService } from '../../order.service';
 import { photoUploadErrorMessage } from '../../photo-upload-error';
 import { OrderActions } from './order.actions';
@@ -103,6 +103,19 @@ export class OrderEffects {
         this.orders.addDate(orderId, day, month, label).pipe(
           map((order) => OrderActions.addPersonalDateSuccess({ order })),
           catchError(() => of(OrderActions.addPersonalDateFailure({ error: 'Не вдалося додати дату.' }))),
+        ),
+      ),
+    ),
+  );
+
+  generateSheet$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.generateSheet),
+      // mergeMap: the user may fire several cards in quick succession.
+      mergeMap(({ orderId, index, promptId, imageStyleId }) =>
+        this.orders.generateSheet(orderId, index, promptId, imageStyleId).pipe(
+          map((order) => OrderActions.generateSheetSuccess({ order })),
+          catchError(() => of(OrderActions.generateSheetFailure({ error: 'Не вдалося згенерувати зображення.' }))),
         ),
       ),
     ),
