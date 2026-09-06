@@ -1,10 +1,11 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
 import { OrderActions, selectCoverSheet, selectOrder, selectOrderBusy, selectOrderError } from '../../core/state/order';
 import { SheetDto } from '../../core/models';
+import { ImageLightboxComponent } from '../../shared/image-lightbox.component';
 
 @Component({
   selector: 'app-cover',
@@ -17,8 +18,9 @@ import { SheetDto } from '../../core/models';
 
       @if (cover(); as c) {
         @if (c.imageUrl) {
-          <div style="aspect-ratio: 3/4; background-size: cover; background-position: center; border-radius: var(--radius-md); border: 1.5px solid var(--color-accent);"
-               [style.background-image]="'url(' + c.imageUrl + ')'"></div>
+          <div style="aspect-ratio: 3/4; background-size: cover; background-position: center; border-radius: var(--radius-md); border: 1.5px solid var(--color-accent); cursor: zoom-in;"
+               [style.background-image]="'url(' + c.imageUrl + ')'"
+               (click)="zoomUrl.set(c.imageUrl!)"></div>
         } @else {
           <div class="sheet-thumb generating" style="aspect-ratio: 3/4; width: 100%;"></div>
           <p class="text-muted" style="font-size: 13px; margin-top: var(--space-2);">Обкладинка ще генерується…</p>
@@ -41,8 +43,13 @@ import { SheetDto } from '../../core/models';
           </button>
         </div>
       }
+
+      @if (zoomUrl(); as z) {
+        <app-image-lightbox [url]="z" (closed)="zoomUrl.set(null)" />
+      }
     </div>
   `,
+  imports: [ImageLightboxComponent],
 })
 export class CoverComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
@@ -50,6 +57,7 @@ export class CoverComponent implements OnInit, OnDestroy {
   readonly cover = this.store.selectSignal(selectCoverSheet);
   readonly busy = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
+  readonly zoomUrl = signal<string | null>(null);
   private readonly orderId: string;
 
   constructor(
