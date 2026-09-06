@@ -57,7 +57,7 @@ public class AiImageGenerationService(
         await db.SaveChangesAsync(ct);
 
         var photoUrl = order.PhotoUrl ?? throw new InvalidOperationException("Order has no uploaded photo.");
-        _ = Task.Run(() => GenerateOrderAsync(orderId, photoUrl), CancellationToken.None);
+        _ = Task.Run(() => GenerateOrderWithFailureHandlingAsync(orderId, photoUrl), CancellationToken.None);
 
         return sheets;
     }
@@ -83,7 +83,7 @@ public class AiImageGenerationService(
 
         var referenceDataUrl = await ResolveReferenceDataUrlAsync(order.PhotoUrl!, ct);
         var prompt = BuildPrompt(sheet);
-        _ = Task.Run(() => GenerateOneSheetAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
+        _ = Task.Run(() => GenerateOneSheetWithFailureHandlingAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
 
         return true;
     }
@@ -102,7 +102,53 @@ public class AiImageGenerationService(
 
         var referenceDataUrl = await ResolveReferenceDataUrlAsync(order.PhotoUrl!, ct);
         var prompt = BuildPrompt(sheet);
-        _ = Task.Run(() => GenerateOneSheetAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
+        _ = Task.Run(() => GenerateOneSheetWithFailureHandlingAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
+    }
+
+    // Entry point for the fire-and-forget Task.Run: without this, an exception thrown before any
+    // sheet reaches RunGenerationAsync (e.g. reading the reference photo fails) becomes an
+    // unobserved task exception and every sheet is left stuck in Generating/Pending forever, with
+    // no way for the user to retry. Any sheet not already Ready/Failed is force-failed instead.
+    private async Task GenerateOrderWithFailureHandlingAsync(Guid orderId, string photoUrl)
+    {
+        try
+        {
+            await GenerateOrderAsync(orderId, photoUrl);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unhandled failure generating order {OrderId}", orderId);
+            using var scope = scopeFactory.CreateScope();
+            var scopedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var stuckSheets = await scopedDb.Sheets
+                .Where(s => s.OrderId == orderId && s.Status != SheetStatus.Ready && s.Status != SheetStatus.Failed)
+                .ToListAsync();
+            foreach (var sheet in stuckSheets)
+            {
+                sheet.Status = SheetStatus.Failed;
+            }
+            await scopedDb.SaveChangesAsync();
+        }
+    }
+
+    private async Task GenerateOneSheetWithFailureHandlingAsync(Guid orderId, Guid sheetId, string prompt, string referenceDataUrl)
+    {
+        try
+        {
+            await GenerateOneSheetAsync(orderId, sheetId, prompt, referenceDataUrl);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unhandled failure generating sheet {SheetId} for order {OrderId}", sheetId, orderId);
+            using var scope = scopeFactory.CreateScope();
+            var scopedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var sheet = await scopedDb.Sheets.FirstOrDefaultAsync(s => s.Id == sheetId);
+            if (sheet is not null && sheet.Status != SheetStatus.Ready)
+            {
+                sheet.Status = SheetStatus.Failed;
+                await scopedDb.SaveChangesAsync();
+            }
+        }
     }
 
     private async Task GenerateOrderAsync(Guid orderId, string photoUrl)
@@ -165,21 +211,32 @@ public class AiImageGenerationService(
         sheet.GeneratingStartedAtUtc = DateTime.UtcNow;
         await scopedDb.SaveChangesAsync();
 
-        var result = await aiClient.GenerateImageAsync(new AiImageRequest(prompt, referenceDataUrl));
+        try
+        {
+            var result = await aiClient.GenerateImageAsync(new AiImageRequest(prompt, referenceDataUrl));
 
-        if (result.Success && DataUrl.TryParse(result.ImageDataUrl, out var contentType, out var bytes))
-        {
-            sheet.Status = SheetStatus.Ready;
-            sheet.ImageUrl = await fileStorage.SaveAsync(bytes, contentType, "sheets");
-            sheet.ReadyAtUtc = DateTime.UtcNow;
+            if (result.Success && DataUrl.TryParse(result.ImageDataUrl, out var contentType, out var bytes))
+            {
+                sheet.Status = SheetStatus.Ready;
+                sheet.ImageUrl = await fileStorage.SaveAsync(bytes, contentType, "sheets");
+                sheet.ReadyAtUtc = DateTime.UtcNow;
+            }
+            else
+            {
+                sheet.Status = SheetStatus.Failed;
+                logger.LogWarning(
+                    "AI generation failed for sheet {SheetId}: {Error}",
+                    sheet.Id,
+                    result.Error ?? "provider returned a malformed image payload");
+            }
         }
-        else
+        catch (Exception ex)
         {
+            // Any unexpected failure (network error, provider exception, file-storage I/O) must
+            // still move the sheet out of Generating — otherwise it's stuck forever, since the
+            // frontend only offers a retry once a sheet is Ready or explicitly Failed.
             sheet.Status = SheetStatus.Failed;
-            logger.LogWarning(
-                "AI generation failed for sheet {SheetId}: {Error}",
-                sheet.Id,
-                result.Error ?? "provider returned a malformed image payload");
+            logger.LogError(ex, "AI generation threw for sheet {SheetId}", sheet.Id);
         }
 
         await scopedDb.SaveChangesAsync();
