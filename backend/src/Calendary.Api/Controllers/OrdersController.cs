@@ -386,7 +386,10 @@ public class OrdersController(
         var sheetsReady = order.Sheets.Count == 13 && order.Sheets.All(s => s.Status == SheetStatus.Ready);
         if (!sheetsReady) return Conflict("Calendar is not fully generated yet.");
 
-        var pdfBytes = await pdfService.GenerateAsync(orderId);
+        // Before payment, this doubles as the customer-facing preview — stamp it so it can't pass
+        // as the final print file.
+        var watermark = order.Status != OrderStatus.Paid;
+        var pdfBytes = await pdfService.GenerateAsync(orderId, watermark);
         return File(pdfBytes, "application/pdf", $"calendary-{orderId}.pdf");
     }
 
