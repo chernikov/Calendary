@@ -89,6 +89,14 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/cancel`, {});
   }
 
+  archiveOrder(orderId: string): Observable<void> {
+    return this.http.post<void>(`${BASE}/orders/${orderId}/archive`, {});
+  }
+
+  unarchiveOrder(orderId: string): Observable<void> {
+    return this.http.post<void>(`${BASE}/orders/${orderId}/unarchive`, {});
+  }
+
   downloadPdf(orderId: string): Observable<Blob> {
     return this.http.get(`${BASE}/orders/${orderId}/pdf`, { responseType: 'blob' });
   }

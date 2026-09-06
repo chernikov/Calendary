@@ -70,7 +70,8 @@ public class OrdersController(
                 o.CreatedAtUtc,
                 o.StatusUpdatedAtUtc,
                 o.Sheets.Where(s => s.Kind == SheetKind.Cover && s.Prompt != null).Select(s => s.Prompt!.Name).FirstOrDefault(),
-                o.Sheets.Where(s => s.Kind == SheetKind.Cover).Select(s => s.ImageUrl).FirstOrDefault()))
+                o.Sheets.Where(s => s.Kind == SheetKind.Cover).Select(s => s.ImageUrl).FirstOrDefault(),
+                o.IsArchived))
             .ToListAsync();
 
         return Ok(orders);
@@ -402,5 +403,29 @@ public class OrdersController(
         order.SetStatus(OrderStatus.Cancelled);
         await db.SaveChangesAsync();
         return Ok(order.ToDto());
+    }
+
+    // Archiving is purely a list-visibility flag — orthogonal to the OrderStatus state machine,
+    // so it's set directly rather than via SetStatus().
+    [HttpPost("{orderId:guid}/archive")]
+    public async Task<IActionResult> Archive(Guid orderId)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+
+        order.IsArchived = true;
+        await db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpPost("{orderId:guid}/unarchive")]
+    public async Task<IActionResult> Unarchive(Guid orderId)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+
+        order.IsArchived = false;
+        await db.SaveChangesAsync();
+        return NoContent();
     }
 }

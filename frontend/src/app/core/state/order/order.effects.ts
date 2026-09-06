@@ -224,6 +224,30 @@ export class OrderEffects {
     ),
   );
 
+  archiveOrder$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.archiveOrder),
+      mergeMap(({ orderId }) =>
+        this.orders.archiveOrder(orderId).pipe(
+          map(() => OrderActions.archiveOrderSuccess({ orderId })),
+          catchError(() => of(OrderActions.archiveOrderFailure({ error: 'Не вдалося архівувати замовлення.' }))),
+        ),
+      ),
+    ),
+  );
+
+  unarchiveOrder$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.unarchiveOrder),
+      mergeMap(({ orderId }) =>
+        this.orders.unarchiveOrder(orderId).pipe(
+          map(() => OrderActions.unarchiveOrderSuccess({ orderId })),
+          catchError(() => of(OrderActions.unarchiveOrderFailure({ error: 'Не вдалося відновити замовлення.' }))),
+        ),
+      ),
+    ),
+  );
+
   downloadPdf$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.downloadPdf),
