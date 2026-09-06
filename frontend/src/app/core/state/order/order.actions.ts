@@ -67,6 +67,14 @@ export const OrderActions = createActionGroup({
     'Cancel Order Success': props<{ order: OrderDto }>(),
     'Cancel Order Failure': props<{ error: string }>(),
 
+    'Archive Order': props<{ orderId: string }>(),
+    'Archive Order Success': props<{ orderId: string }>(),
+    'Archive Order Failure': props<{ error: string }>(),
+
+    'Unarchive Order': props<{ orderId: string }>(),
+    'Unarchive Order Success': props<{ orderId: string }>(),
+    'Unarchive Order Failure': props<{ error: string }>(),
+
     'Download Pdf': props<{ orderId: string }>(),
     'Download Pdf Success': emptyProps(),
     'Download Pdf Failure': props<{ error: string }>(),

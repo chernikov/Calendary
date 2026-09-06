@@ -11,6 +11,7 @@ public class Order
     public OrderStatus Status { get; set; } = OrderStatus.Created;
     public DateTime StatusUpdatedAtUtc { get; set; } = DateTime.UtcNow;
     public string? PhotoUrl { get; set; }
+    public bool IsArchived { get; set; }
 
     public decimal Price { get; set; } = 1600m;
     public int RegenerationsRemaining { get; set; } = 10;

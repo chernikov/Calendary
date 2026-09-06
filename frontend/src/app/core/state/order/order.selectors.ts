@@ -6,6 +6,8 @@ export const selectOrderState = createFeatureSelector<OrderState>(ORDER_FEATURE_
 
 export const selectOrder = createSelector(selectOrderState, (state) => state.order);
 export const selectMyOrders = createSelector(selectOrderState, (state) => state.myOrders);
+export const selectActiveOrders = createSelector(selectMyOrders, (orders) => orders.filter((o) => !o.isArchived));
+export const selectArchivedOrders = createSelector(selectMyOrders, (orders) => orders.filter((o) => o.isArchived));
 export const selectPromptLibrary = createSelector(selectOrderState, (state) => state.promptLibrary);
 export const selectWarehouses = createSelector(selectOrderState, (state) => state.warehouses);
 export const selectOrderBusy = createSelector(selectOrderState, (state) => state.busy);

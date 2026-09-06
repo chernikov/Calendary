@@ -54,7 +54,8 @@ public record OrderSummaryDto(
     DateTime CreatedAtUtc,
     DateTime StatusUpdatedAtUtc,
     string? StyleName,
-    string? CoverImageUrl);
+    string? CoverImageUrl,
+    bool IsArchived);
 
 // — Admin —
 public record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize);

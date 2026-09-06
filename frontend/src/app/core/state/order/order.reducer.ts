@@ -53,6 +53,16 @@ export const orderReducer = createReducer(
     (state, { error }) => ({ ...state, busy: false, error }),
   ),
 
+  on(OrderActions.archiveOrderSuccess, (state, { orderId }) => ({
+    ...state,
+    myOrders: state.myOrders.map((o) => (o.id === orderId ? { ...o, isArchived: true } : o)),
+  })),
+  on(OrderActions.unarchiveOrderSuccess, (state, { orderId }) => ({
+    ...state,
+    myOrders: state.myOrders.map((o) => (o.id === orderId ? { ...o, isArchived: false } : o)),
+  })),
+  on(OrderActions.archiveOrderFailure, OrderActions.unarchiveOrderFailure, (state, { error }) => ({ ...state, error })),
+
   on(OrderActions.loadWarehousesSuccess, (state, { warehouses }) => ({ ...state, warehouses })),
   on(OrderActions.loadWarehousesFailure, (state) => ({ ...state, warehouses: [] })),
   on(OrderActions.clearWarehouses, (state) => ({ ...state, warehouses: [] })),

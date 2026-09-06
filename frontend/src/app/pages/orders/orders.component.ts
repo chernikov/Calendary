@@ -1,11 +1,17 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { OrderSummaryDto } from '../../core/models';
 import { isOrderInProgress, orderStatusLabel, orderStatusTagClass, orderStepLink } from '../../core/order-status';
 import { OrderService } from '../../core/order.service';
-import { OrderActions, selectMyOrders, selectOrderBusy, selectOrderError } from '../../core/state/order';
+import {
+  OrderActions,
+  selectActiveOrders,
+  selectArchivedOrders,
+  selectOrderBusy,
+  selectOrderError,
+} from '../../core/state/order';
 
 @Component({
   selector: 'app-orders',
@@ -22,40 +28,87 @@ import { OrderActions, selectMyOrders, selectOrderBusy, selectOrderError } from 
         <p style="color: var(--color-accent-2-700); font-size: 13px;">{{ error() }}</p>
       }
 
-      @if (orders().length === 0) {
+      @if (activeOrders().length === 0 && archivedOrders().length === 0) {
         <p class="text-muted" style="margin-top: var(--space-4);">
           {{ busy() ? 'Завантажуємо…' : 'Тут поки порожньо. Створіть свій перший календар.' }}
         </p>
       } @else {
-        <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
-          @for (o of orders(); track o.id) {
-            <a
-              class="card selectable"
-              style="flex-direction: row; align-items: center; gap: var(--space-3); text-decoration: none; color: inherit;"
-              [routerLink]="stepLink(o)"
-            >
-              @if (o.coverImageUrl) {
-                <img
-                  [src]="o.coverImageUrl"
-                  alt="Обкладинка календаря"
-                  style="width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); flex: none;"
-                />
-              }
-              <div style="flex: 1; min-width: 0;">
-                <div class="card-title">{{ o.styleName || 'Без стилю' }}</div>
-                <div class="card-meta">
-                  <span>{{ o.createdAtUtc | date: 'dd.MM.yyyy' }}</span>
-                  <span>·</span>
-                  <span>{{ o.price }} ₴</span>
+        @if (activeOrders().length === 0) {
+          <p class="text-muted" style="margin-top: var(--space-4);">Активних замовлень немає.</p>
+        } @else {
+          <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
+            @for (o of activeOrders(); track o.id) {
+              <a
+                class="card selectable"
+                style="flex-direction: row; align-items: center; gap: var(--space-3); text-decoration: none; color: inherit;"
+                [routerLink]="stepLink(o)"
+              >
+                @if (o.coverImageUrl) {
+                  <img
+                    [src]="o.coverImageUrl"
+                    alt="Обкладинка календаря"
+                    style="width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); flex: none;"
+                  />
+                }
+                <div style="flex: 1; min-width: 0;">
+                  <div class="card-title">{{ o.styleName || 'Без стилю' }}</div>
+                  <div class="card-meta">
+                    <span>{{ o.createdAtUtc | date: 'dd.MM.yyyy' }}</span>
+                    <span>·</span>
+                    <span>{{ o.price }} ₴</span>
+                  </div>
                 </div>
-              </div>
-              <span [class]="tagClass(o)">{{ statusLabel(o) }}</span>
-              <span class="text-muted" style="font-size: 13px; white-space: nowrap;">
-                {{ inProgress(o) ? 'Продовжити' : 'Статус' }}
-              </span>
-            </a>
+                <span [class]="tagClass(o)">{{ statusLabel(o) }}</span>
+                <span class="text-muted" style="font-size: 13px; white-space: nowrap;">
+                  {{ inProgress(o) ? 'Продовжити' : 'Статус' }}
+                </span>
+                <button
+                  type="button"
+                  class="btn btn-ghost"
+                  style="flex: none;"
+                  (click)="$event.preventDefault(); $event.stopPropagation(); archive(o)"
+                >
+                  Архівувати
+                </button>
+              </a>
+            }
+          </div>
+        }
+
+        @if (archivedOrders().length > 0) {
+          <div class="hr"></div>
+          <button type="button" class="btn btn-secondary" (click)="showArchived.set(!showArchived())">
+            {{ showArchived() ? 'Сховати архівовані' : 'Архівовані' }} ({{ archivedOrders().length }})
+          </button>
+
+          @if (showArchived()) {
+            <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-3);">
+              @for (o of archivedOrders(); track o.id) {
+                <div class="card" style="flex-direction: row; align-items: center; gap: var(--space-3); opacity: 0.7;">
+                  @if (o.coverImageUrl) {
+                    <img
+                      [src]="o.coverImageUrl"
+                      alt="Обкладинка календаря"
+                      style="width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); flex: none;"
+                    />
+                  }
+                  <div style="flex: 1; min-width: 0;">
+                    <div class="card-title">{{ o.styleName || 'Без стилю' }}</div>
+                    <div class="card-meta">
+                      <span>{{ o.createdAtUtc | date: 'dd.MM.yyyy' }}</span>
+                      <span>·</span>
+                      <span>{{ o.price }} ₴</span>
+                    </div>
+                  </div>
+                  <span [class]="tagClass(o)">{{ statusLabel(o) }}</span>
+                  <button type="button" class="btn btn-secondary" style="flex: none;" (click)="unarchive(o)">
+                    Відновити
+                  </button>
+                </div>
+              }
+            </div>
           }
-        </div>
+        }
       }
     </div>
   `,
@@ -65,9 +118,11 @@ export class OrdersComponent implements OnInit {
   private readonly orderService = inject(OrderService);
   private readonly router = inject(Router);
 
-  readonly orders = this.store.selectSignal(selectMyOrders);
+  readonly activeOrders = this.store.selectSignal(selectActiveOrders);
+  readonly archivedOrders = this.store.selectSignal(selectArchivedOrders);
   readonly busy = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
+  readonly showArchived = signal(false);
 
   creating = false;
 
@@ -86,5 +141,13 @@ export class OrdersComponent implements OnInit {
       next: (order) => this.router.navigate(['/order', order.id, 'upload']),
       error: () => (this.creating = false),
     });
+  }
+
+  archive(o: OrderSummaryDto): void {
+    this.store.dispatch(OrderActions.archiveOrder({ orderId: o.id }));
+  }
+
+  unarchive(o: OrderSummaryDto): void {
+    this.store.dispatch(OrderActions.unarchiveOrder({ orderId: o.id }));
   }
 }

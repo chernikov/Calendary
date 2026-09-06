@@ -125,6 +125,7 @@ export interface OrderSummaryDto {
   statusUpdatedAtUtc: string;
   styleName: string | null;
   coverImageUrl: string | null;
+  isArchived: boolean;
 }
 
 export interface NovaPoshtaWarehouseDto {
