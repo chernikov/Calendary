@@ -24,9 +24,11 @@ const STEP: Record<OrderStatus, string[]> = {
   DetailsSubmitted: ['generating'],
   Generating: ['generating'],
   GenerationFailed: ['generating'],
-  CoverReady: ['cover'],
-  CoverConfirmed: ['months', '1'],
-  ReviewReady: ['review'],
+  // Cover-confirm/month-by-month/review are no longer part of the primary flow — both statuses
+  // resolve on the generating page, which now owns the "generate watermarked PDF" action.
+  CoverReady: ['generating'],
+  CoverConfirmed: ['generating'],
+  ReviewReady: ['checkout'],
   AwaitingPayment: ['checkout'],
   Paid: ['status'],
   Printing: ['status'],

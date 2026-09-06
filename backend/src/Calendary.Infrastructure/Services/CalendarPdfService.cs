@@ -36,7 +36,7 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
-    public async Task<byte[]> GenerateAsync(Guid orderId, CancellationToken ct = default)
+    public async Task<byte[]> GenerateAsync(Guid orderId, bool watermark, CancellationToken ct = default)
     {
         var order = await db.Orders
             .Include(o => o.PersonalDates)
@@ -65,14 +65,14 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
 
         var document = Document.Create(container =>
         {
-            container.Page(page => ComposeCoverPage(page, coverBytes));
+            container.Page(page => ComposeCoverPage(page, coverBytes, watermark));
 
             for (var i = 0; i < monthSheets.Count; i++)
             {
                 var month = monthSheets[i].Index;
                 var imageBytes = monthBytes[i];
                 var datesForMonth = order.PersonalDates.Where(d => d.Month == month).ToList();
-                container.Page(page => ComposeMonthPage(page, imageBytes, month, calendarYear, datesForMonth));
+                container.Page(page => ComposeMonthPage(page, imageBytes, month, calendarYear, datesForMonth, watermark));
             }
         });
 
@@ -95,15 +95,19 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
         return await httpClient.GetByteArrayAsync(imageUrl, ct);
     }
 
-    private static void ComposeCoverPage(PageDescriptor page, byte[] coverBytes)
+    private static void ComposeCoverPage(PageDescriptor page, byte[] coverBytes, bool watermark)
     {
         page.Size(PageSizes.A4);
         page.Margin(0);
         page.Content().Image(coverBytes).FitArea();
+        if (watermark)
+        {
+            page.Foreground().Element(ComposeWatermark);
+        }
     }
 
     private static void ComposeMonthPage(
-        PageDescriptor page, byte[] imageBytes, int month, int calendarYear, IReadOnlyList<PersonalDate> dates)
+        PageDescriptor page, byte[] imageBytes, int month, int calendarYear, IReadOnlyList<PersonalDate> dates, bool watermark)
     {
         page.Size(PageSizes.A4);
         page.Margin(24);
@@ -114,6 +118,24 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
             column.Item().Height(380).Image(imageBytes).FitArea();
             column.Item().Element(e => ComposeCalendarGrid(e, month, calendarYear, dates));
         });
+        if (watermark)
+        {
+            page.Foreground().Element(ComposeWatermark);
+        }
+    }
+
+    // A visible-but-unobtrusive diagonal stamp so a pre-payment PDF can't pass as the final print
+    // file; DownloadPdf only omits this once the order is Paid.
+    private static void ComposeWatermark(IContainer container)
+    {
+        container
+            .AlignCenter()
+            .AlignMiddle()
+            .Rotate(-30)
+            .Text("ПЕРЕГЛЯД — ДО ОПЛАТИ")
+            .FontSize(36)
+            .Bold()
+            .FontColor(Color.FromHex("#80201e1d"));
     }
 
     // Direct port of calendarCells()/hasDate() from

@@ -106,27 +106,26 @@ public class GenerationBackgroundService(IServiceScopeFactory scopeFactory, ILog
 
     private static async Task AdvanceOrderStatusesAsync(AppDbContext db, CancellationToken ct)
     {
-        var generatingOrders = await db.Orders
-            .Where(o => o.Status == OrderStatus.Generating)
+        var activeOrders = await db.Orders
+            .Where(o => o.Status == OrderStatus.Generating
+                || o.Status == OrderStatus.CoverReady
+                || o.Status == OrderStatus.CoverConfirmed)
             .Include(o => o.Sheets)
             .ToListAsync(ct);
 
-        foreach (var order in generatingOrders)
+        foreach (var order in activeOrders)
         {
-            var cover = order.Sheets.FirstOrDefault(s => s.Kind == SheetKind.Cover);
-            if (cover is { Status: SheetStatus.Ready })
+            if (order.Status == OrderStatus.Generating)
             {
-                order.SetStatus(OrderStatus.CoverReady);
+                var cover = order.Sheets.FirstOrDefault(s => s.Kind == SheetKind.Cover);
+                if (cover is { Status: SheetStatus.Ready })
+                {
+                    order.SetStatus(OrderStatus.CoverReady);
+                }
             }
-        }
 
-        var coverDoneOrders = await db.Orders
-            .Where(o => o.Status == OrderStatus.CoverConfirmed)
-            .Include(o => o.Sheets)
-            .ToListAsync(ct);
-
-        foreach (var order in coverDoneOrders)
-        {
+            // Reachable straight from Generating/CoverReady now too — the frontend no longer
+            // requires the user to confirm the cover before all sheets are ready.
             if (order.Sheets.Count == 13 && order.Sheets.All(s => s.Status == SheetStatus.Ready))
             {
                 order.SetStatus(OrderStatus.ReviewReady);

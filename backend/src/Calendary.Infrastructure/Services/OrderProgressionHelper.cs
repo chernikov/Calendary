@@ -23,7 +23,9 @@ internal static class OrderProgressionHelper
             }
         }
 
-        if (order.Status == OrderStatus.CoverConfirmed &&
+        // Reachable straight from Generating/CoverReady now too — the frontend no longer requires
+        // the user to confirm the cover before all sheets are ready.
+        if (order.Status is OrderStatus.Generating or OrderStatus.CoverReady or OrderStatus.CoverConfirmed &&
             order.Sheets.Count == 13 && order.Sheets.All(s => s.Status == SheetStatus.Ready))
         {
             order.SetStatus(OrderStatus.ReviewReady);
