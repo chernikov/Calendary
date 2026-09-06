@@ -12,6 +12,7 @@ import {
   selectPromptLibrary,
 } from '../../core/state/order';
 import { ImageStyleDto, PromptDto, SheetDto, SheetPlanItem } from '../../core/models';
+import { ImageLightboxComponent } from '../../shared/image-lightbox.component';
 
 interface PlanRow {
   promptId: string;
@@ -23,7 +24,7 @@ interface PlanRow {
 @Component({
   selector: 'app-style-dates',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ImageLightboxComponent],
   template: `
     <div class="page">
       <div class="step-label"><span>Крок 3 із 5</span></div>
@@ -35,6 +36,9 @@ interface PlanRow {
 
       <div class="gen-cover">
         <div class="gen-card" [class.has-image]="imageFor(0)" [style.background-image]="bgFor(0)">
+          @if (imageFor(0)) {
+            <button type="button" class="zoom-trigger" (click)="$event.stopPropagation(); zoomUrl.set(imageFor(0)!)">⤢</button>
+          }
           <div class="gen-card-name">Обкладинка</div>
           <div class="gen-card-controls">
             <button
@@ -70,6 +74,9 @@ interface PlanRow {
       <div class="gen-grid">
         @for (row of monthRows; track row.index) {
           <div class="gen-card" [class.has-image]="imageFor(row.index)" [style.background-image]="bgFor(row.index)">
+            @if (imageFor(row.index)) {
+              <button type="button" class="zoom-trigger" (click)="$event.stopPropagation(); zoomUrl.set(imageFor(row.index)!)">⤢</button>
+            }
             <div class="gen-card-name">{{ row.name }}</div>
             <div class="gen-card-controls">
               <button
@@ -255,6 +262,10 @@ interface PlanRow {
       >
         Почати генерацію
       </button>
+
+      @if (zoomUrl(); as z) {
+        <app-image-lightbox [url]="z" (closed)="zoomUrl.set(null)" />
+      }
     </div>
   `,
 })
@@ -266,6 +277,7 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
   readonly error = this.store.selectSignal(selectOrderError);
   readonly selectedMonth = signal<number | null>(null);
   readonly picker = signal<{ index: number; kind: 'prompt' | 'style' } | null>(null);
+  readonly zoomUrl = signal<string | null>(null);
 
   readonly months = [
     { number: 1, name: 'Січень' },
