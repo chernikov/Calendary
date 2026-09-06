@@ -17,7 +17,15 @@ import { ImageLightboxComponent } from '../../shared/image-lightbox.component';
       <p class="text-muted">Вона задає стиль усіх дванадцяти місяців. Після підтвердження змінити її не вийде.</p>
 
       @if (cover(); as c) {
-        @if (c.imageUrl) {
+        @if (c.status === 'Failed') {
+          <div class="card" style="border: 1px solid var(--color-accent-2-300); background: var(--color-accent-2-100);">
+            <div class="card-title">Не вдалося згенерувати обкладинку</div>
+            <p class="card-body">Спробуйте ще раз.</p>
+            <button class="btn btn-primary" style="align-self: flex-start;" [disabled]="busy()" (click)="regenerate(c)">
+              Спробувати ще раз
+            </button>
+          </div>
+        } @else if (c.imageUrl) {
           <div style="aspect-ratio: 3/4; background-size: cover; background-position: center; border-radius: var(--radius-md); border: 1.5px solid var(--color-accent); cursor: zoom-in;"
                [style.background-image]="'url(' + c.imageUrl + ')'"
                (click)="zoomUrl.set(c.imageUrl!)"></div>
