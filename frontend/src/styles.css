@@ -247,6 +247,7 @@ textarea.input { min-height: 90px; resize: vertical; }
   background: linear-gradient(180deg, rgb(32 30 29 / 55%) 0%, rgb(32 30 29 / 0%) 30%, rgb(32 30 29 / 0%) 55%, rgb(32 30 29 / 55%) 100%);
 }
 .gen-card > * { position: relative; z-index: 1; }
+.gen-card > .zoom-trigger { position: absolute; z-index: 2; }
 .gen-card-name { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 13.5px; }
 .gen-card.has-image .gen-card-name { color: #fff; }
 .gen-card-controls { display: flex; flex-direction: column; gap: 4px; align-items: stretch; }
