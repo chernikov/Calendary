@@ -29,7 +29,7 @@ import { RouterLink } from '@angular/router';
         </div>
         <div>
           <div class="d" style="font-family: var(--font-heading); font-weight: 600; font-size: 20px; margin-bottom: 8px;">Друк і доставка</div>
-          <p class="card-body">Друкуємо на A3 з твердою обкладинкою і надсилаємо Новою поштою у твердому тубусі.</p>
+          <p class="card-body">Друкуємо на A3. Доставка Новою поштою входить у ціну.</p>
         </div>
       </div>
     </div>
