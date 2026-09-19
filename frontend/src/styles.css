@@ -313,15 +313,9 @@ textarea.input { min-height: 90px; resize: vertical; }
   background: var(--color-surface); font-family: inherit; cursor: pointer;
 }
 .sheet-summary-chip:hover { border-color: var(--color-accent); }
+.sheet-summary-chip.active { border-color: var(--color-accent); background: var(--color-accent-100); color: var(--color-accent-800); }
 .sheet-summary-chip img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); background: var(--color-neutral-200); }
 .sheet-summary-chip .swatch { width: 100%; aspect-ratio: 1; border-radius: var(--radius-sm); background: var(--color-neutral-200); }
-
-.sheet-tabs { display: flex; gap: 4px; }
-.sheet-tab {
-  flex: 1; padding: 8px 4px; border: 1px solid var(--color-divider); border-radius: var(--radius-sm);
-  background: var(--color-surface); font-family: inherit; font-size: 12.5px; cursor: pointer;
-}
-.sheet-tab.active { border-color: var(--color-accent); background: var(--color-accent-100); color: var(--color-accent-800); }
 
 .sheet-preview {
   position: relative; width: 100%; aspect-ratio: 3 / 4; max-height: 55vh; border-radius: var(--radius-md);
@@ -340,6 +334,20 @@ textarea.input { min-height: 90px; resize: vertical; }
 .sheet-preview-arrow.prev { left: 8px; }
 .sheet-preview-arrow.next { right: 8px; }
 .sheet-preview-arrow:disabled { opacity: 0.3; cursor: default; }
+
+/* On mobile the picker body already fills the screen — the preview lives in its own popup
+   (.sheet-preview-modal) instead of competing for the same vertical space. */
+@media (max-width: 640px) { .sheet-preview-inline { display: none; } }
+
+.sheet-preview-modal-backdrop {
+  position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-neutral-900) 60%, transparent);
+}
+.sheet-preview-modal {
+  width: min(420px, 100%); display: flex; flex-direction: column; gap: var(--space-3);
+  padding: var(--space-3); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-lg);
+}
+@media (min-width: 641px) { .sheet-preview-modal-backdrop { display: none; } }
 .month-tile {
   display: flex; flex-direction: column; gap: 6px;
   padding: var(--space-2); text-align: left; cursor: pointer;
