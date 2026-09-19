@@ -23,7 +23,7 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
     <div class="page page-narrow">
       @if (order(); as o) {
         <h2 style="font-size: 28px;">Куди доставити</h2>
-        <p class="text-muted">Доставка Новою поштою входить у ціну. Надсилаємо у твердому тубусі.</p>
+        <p class="text-muted">Доставка Новою поштою входить у ціну.</p>
 
         <div style="display: flex; flex-direction: column; gap: 14px; margin: var(--space-3) 0;">
           <div class="field">
