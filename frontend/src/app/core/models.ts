@@ -1,16 +1,49 @@
+export type UserRole = 'Customer' | 'Admin';
+
 export interface UserDto {
   id: string;
   displayName: string | null;
   email: string | null;
-  phone: string | null;
+  emailConfirmed: boolean;
+  role: UserRole;
 }
 
-export interface StyleCategoryDto {
+export interface PromptDto {
   id: string;
-  code: string;
+  promptThemeId: string;
+  name: string;
+  text: string;
+  description: string;
+  previewImageUrl: string | null;
+  sortOrder: number;
+}
+
+export interface PromptThemeDto {
+  id: string;
   name: string;
   description: string;
   sortOrder: number;
+  prompts: PromptDto[];
+}
+
+export interface ImageStyleDto {
+  id: string;
+  name: string;
+  text: string;
+  description: string;
+  previewImageUrl: string | null;
+  sortOrder: number;
+}
+
+export interface PromptLibraryDto {
+  themes: PromptThemeDto[];
+  styles: ImageStyleDto[];
+}
+
+export interface SheetPlanItem {
+  index: number;
+  promptId: string;
+  imageStyleId: string;
 }
 
 export interface PersonalDateDto {
@@ -31,6 +64,10 @@ export interface SheetDto {
   isSelected: boolean;
   imageUrl: string | null;
   variantCount: number;
+  promptId: string | null;
+  promptName: string | null;
+  imageStyleId: string | null;
+  imageStyleName: string | null;
 }
 
 export interface PaymentDto {
@@ -69,7 +106,6 @@ export interface OrderDto {
   id: string;
   status: OrderStatus;
   photoUrl: string | null;
-  styleCategory: StyleCategoryDto | null;
   price: number;
   regenerationsRemaining: number;
   createdAtUtc: string;
@@ -81,8 +117,94 @@ export interface OrderDto {
   delivery: DeliveryDto | null;
 }
 
+export interface OrderSummaryDto {
+  id: string;
+  status: OrderStatus;
+  price: number;
+  createdAtUtc: string;
+  statusUpdatedAtUtc: string;
+  styleName: string | null;
+  coverImageUrl: string | null;
+  isArchived: boolean;
+}
+
 export interface NovaPoshtaWarehouseDto {
   number: string;
   address: string;
   closesAt: string;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface AdminOrderSummaryDto {
+  id: string;
+  status: OrderStatus;
+  userId: string;
+  userEmail: string | null;
+  userDisplayName: string | null;
+  price: number;
+  createdAtUtc: string;
+  statusUpdatedAtUtc: string;
+}
+
+export interface AdminUserDto {
+  id: string;
+  email: string | null;
+  displayName: string | null;
+  role: UserRole;
+  authProvider: 'Password' | 'Google';
+  emailConfirmed: boolean;
+  createdAtUtc: string;
+  orderCount: number;
+}
+
+export type ImageGenerationProvider = 'Mock' | 'OpenAI' | 'Gemini';
+
+export interface ConfigStatusDto {
+  openAiConfigured: boolean;
+  geminiConfigured: boolean;
+  googleConfigured: boolean;
+  resendConfigured: boolean;
+  monobankConfigured: boolean;
+}
+
+export interface BackupSnapshotDto {
+  timeUtc: string;
+  tags: string[];
+}
+
+export interface BackupStatusDto {
+  configured: boolean;
+  snapshots: BackupSnapshotDto[];
+}
+
+export interface SavePromptThemePayload {
+  id?: string;
+  name: string;
+  description: string;
+  sortOrder: number;
+}
+
+export interface SavePromptPayload {
+  id?: string;
+  promptThemeId: string;
+  name: string;
+  text: string;
+  description: string;
+  previewImageUrl: string | null;
+  sortOrder: number;
+}
+
+export interface SaveImageStylePayload {
+  id?: string;
+  name: string;
+  text: string;
+  description: string;
+  previewImageUrl: string | null;
+  sortOrder: number;
 }

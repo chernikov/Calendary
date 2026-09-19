@@ -69,7 +69,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "deploy/docker-compose.staging.yml"
+          source: "deploy/docker-compose.staging.yml,deploy/backup.sh"
           target: "/opt/calendary"
           strip_components: 1
 
@@ -84,6 +84,42 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             cd /opt/calendary
             docker network inspect web >/dev/null 2>&1 || docker network create web
+
+            touch .env.staging
+            grep -v '^GOOGLE_CLIENT_ID=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            grep -v '^GOOGLE_CLIENT_SECRET=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'GOOGLE_CLIENT_ID=%s\n' "${{ secrets.GOOGLE_CLIENT_ID }}" >> .env.staging
+            printf 'GOOGLE_CLIENT_SECRET=%s\n' "${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env.staging
+            grep -v '^RESEND_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'RESEND_API_KEY=%s\n' "${{ secrets.RESEND_API_KEY }}" >> .env.staging
+            grep -v '^AI_OPENAI_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            grep -v '^AI_GEMINI_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'AI_OPENAI_API_KEY=%s\n' "${{ secrets.AI_OPENAI_API_KEY }}" >> .env.staging
+            printf 'AI_GEMINI_API_KEY=%s\n' "${{ secrets.AI_GEMINI_API_KEY }}" >> .env.staging
+            # Sourced from MONOBANK_MERCHANT_TOKEN_STAGING (a separate sandbox/test token from
+            # prod's) — the .env.staging *variable name* stays MONOBANK_MERCHANT_TOKEN so
+            # docker-compose.staging.yml reads it the same way docker-compose.prod.yml does.
+            grep -v '^MONOBANK_MERCHANT_TOKEN=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'MONOBANK_MERCHANT_TOKEN=%s\n' "${{ secrets.MONOBANK_MERCHANT_TOKEN_STAGING }}" >> .env.staging
+            # Unlike Monobank, this is the same NOVA_POSHTA_API_KEY secret as prod's — a
+            # read-only address/branch lookup has no sandbox/live distinction or financial risk.
+            grep -v '^NOVA_POSHTA_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'NOVA_POSHTA_API_KEY=%s\n' "${{ secrets.NOVA_POSHTA_API_KEY }}" >> .env.staging
+            # Same Spaces account/creds/region as prod's, but a SEPARATE bucket — sourced from
+            # DO_SPACES_BUCKET_STAGING. The .env.staging *variable name* stays DO_SPACES_BUCKET so
+            # docker-compose.staging.yml/backup.sh read it the same way prod's .env does.
+            for key in DO_SPACES_KEY DO_SPACES_SECRET DO_SPACES_BUCKET DO_SPACES_REGION RESTIC_PASSWORD; do
+              grep -v "^${key}=" .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            done
+            printf 'DO_SPACES_KEY=%s\n' "${{ secrets.DO_SPACES_KEY }}" >> .env.staging
+            printf 'DO_SPACES_SECRET=%s\n' "${{ secrets.DO_SPACES_SECRET }}" >> .env.staging
+            printf 'DO_SPACES_BUCKET=%s\n' "${{ secrets.DO_SPACES_BUCKET_STAGING }}" >> .env.staging
+            printf 'DO_SPACES_REGION=%s\n' "${{ secrets.DO_SPACES_REGION }}" >> .env.staging
+            printf 'RESTIC_PASSWORD=%s\n' "${{ secrets.RESTIC_PASSWORD }}" >> .env.staging
+
+            chmod +x backup.sh
+            ./backup.sh --quick --target staging || echo "::warning::pre-migration backup failed, continuing deploy"
+
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging pull
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging up -d --remove-orphans
             docker image prune -f

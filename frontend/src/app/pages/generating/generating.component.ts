@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, interval, startWith, switchMap } from 'rxjs';
-import { OrderService } from '../../core/order.service';
-import { OrderDto } from '../../core/models';
+import { Store } from '@ngrx/store';
+import { Actions, ofType } from '@ngrx/effects';
+import { OrderActions, selectDownloadingPdf, selectOrder } from '../../core/state/order';
+import { OrderDto, PersonalDateDto } from '../../core/models';
 
 @Component({
   selector: 'app-generating',
@@ -34,9 +36,27 @@ import { OrderDto } from '../../core/models';
           }
         </div>
 
-        @if (o.status === 'CoverReady' || o.status === 'CoverConfirmed' || o.status === 'ReviewReady') {
-          <button class="btn btn-primary" style="min-height: 48px; font-size: 15px; padding-inline: 26px;" (click)="proceed(o)">
-            Обрати обкладинку
+        @if (personalDates(o).length > 0) {
+          <div class="hr"></div>
+          <h3 style="font-size: 17px;">Персональні дати</h3>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            @for (d of personalDates(o); track d.id) {
+              <div style="font-size: 13.5px;">
+                <span class="money" style="color: var(--color-accent-700);">{{ pad(d.day) }}.{{ pad(d.month) }}</span>
+                — {{ d.label }}
+              </div>
+            }
+          </div>
+        }
+
+        @if (readyCount(o) === o.sheets.length) {
+          <button
+            class="btn btn-primary"
+            style="min-height: 48px; font-size: 15px; padding-inline: 26px; margin-top: var(--space-4);"
+            [disabled]="downloadingPdf()"
+            (click)="generateCalendar(o)"
+          >
+            {{ downloadingPdf() ? 'Генеруємо…' : 'Генерувати календар' }}
           </button>
         }
       }
@@ -44,29 +64,30 @@ import { OrderDto } from '../../core/models';
   `,
 })
 export class GeneratingComponent implements OnInit, OnDestroy {
-  readonly order = signal<OrderDto | null>(null);
+  private readonly store = inject(Store);
+  readonly order = this.store.selectSignal(selectOrder);
+  readonly downloadingPdf = this.store.selectSignal(selectDownloadingPdf);
   private readonly orderId: string;
-  private sub?: Subscription;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly orders: OrderService,
+    private readonly actions$: Actions,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
+    // "Генерувати календар" downloads the (watermarked, pre-payment) PDF and moves straight to
+    // checkout — cover-confirm/months/review are no longer part of the primary flow.
+    this.actions$
+      .pipe(ofType(OrderActions.downloadPdfSuccess), takeUntilDestroyed())
+      .subscribe(() => this.router.navigate(['/order', this.orderId, 'checkout']));
   }
 
   ngOnInit(): void {
-    this.sub = interval(1500)
-      .pipe(
-        startWith(0),
-        switchMap(() => this.orders.getOrder(this.orderId)),
-      )
-      .subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.startOrderPolling({ orderId: this.orderId, intervalMs: 1500 }));
   }
 
   ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+    this.store.dispatch(OrderActions.stopOrderPolling());
   }
 
   readyCount(o: OrderDto): number {
@@ -77,7 +98,11 @@ export class GeneratingComponent implements OnInit, OnDestroy {
     return n.toString().padStart(2, '0');
   }
 
-  proceed(o: OrderDto): void {
-    this.router.navigate(['/order', o.id, 'cover']);
+  personalDates(o: OrderDto): PersonalDateDto[] {
+    return [...o.personalDates].sort((a, b) => a.month - b.month || a.day - b.day);
+  }
+
+  generateCalendar(o: OrderDto): void {
+    this.store.dispatch(OrderActions.downloadPdf({ orderId: o.id }));
   }
 }

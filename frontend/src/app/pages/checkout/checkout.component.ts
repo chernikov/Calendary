@@ -1,8 +1,19 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { OrderService } from '../../core/order.service';
-import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
+import { Store } from '@ngrx/store';
+import { Actions, ofType } from '@ngrx/effects';
+import {
+  OrderActions,
+  selectCities,
+  selectOrder,
+  selectOrderBusy,
+  selectOrderError,
+  selectWarehouses,
+} from '../../core/state/order';
+import { AuthService } from '../../core/auth.service';
+import { NovaPoshtaWarehouseDto } from '../../core/models';
 
 @Component({
   selector: 'app-checkout',
@@ -12,7 +23,7 @@ import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
     <div class="page page-narrow">
       @if (order(); as o) {
         <h2 style="font-size: 28px;">Куди доставити</h2>
-        <p class="text-muted">Доставка Новою поштою входить у ціну. Надсилаємо у твердому тубусі.</p>
+        <p class="text-muted">Доставка Новою поштою входить у ціну.</p>
 
         <div style="display: flex; flex-direction: column; gap: 14px; margin: var(--space-3) 0;">
           <div class="field">
@@ -23,9 +34,21 @@ import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
             <label>Телефон</label>
             <input class="input" [(ngModel)]="phone" placeholder="+380 67 000 00 00" />
           </div>
-          <div class="field">
+          <div class="field" style="position: relative;">
             <label>Місто</label>
-            <input class="input" [(ngModel)]="city" (ngModelChange)="onCityChange($event)" />
+            <input class="input" [(ngModel)]="city" (ngModelChange)="onCityChange($event)" autocomplete="off" />
+            @if (showCitySuggestions() && cities().length > 0) {
+              <div style="position: absolute; top: 100%; left: 0; right: 0; z-index: 10; margin-top: 2px; max-height: 220px; overflow-y: auto; background: var(--color-surface); border: 1px solid var(--color-divider); border-radius: var(--radius-sm); box-shadow: var(--shadow-md);">
+                @for (c of cities(); track c) {
+                  <div
+                    style="padding: 8px 11px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--color-divider);"
+                    (click)="pickCity(c)"
+                  >
+                    {{ c }}
+                  </div>
+                }
+              </div>
+            }
           </div>
 
           @if (warehouses().length > 0) {
@@ -68,11 +91,18 @@ import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
           <p style="color: var(--color-accent-2-700); font-size: 13px; margin-top: var(--space-2);">{{ error() }}</p>
         }
 
+        @if (auth.needsEmailConfirmation()) {
+          <p class="text-muted" style="font-size: 12px; margin-top: var(--space-2);">
+            Пошту не підтверджено — ви можете не отримати сповіщення про статус замовлення.
+            <button class="btn btn-ghost" style="padding: 0;" (click)="auth.openConfirmModal()">Підтвердити</button>
+          </p>
+        }
+
         <button
           class="btn btn-primary btn-block"
           style="min-height: 50px; font-size: 15px;"
           [disabled]="!canSubmit() || busy()"
-          (click)="submit(o)"
+          (click)="submit()"
         >
           Оплатити {{ o.price }} ₴
         </button>
@@ -84,12 +114,15 @@ import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
   `,
 })
 export class CheckoutComponent implements OnInit {
-  readonly order = signal<OrderDto | null>(null);
-  readonly warehouses = signal<NovaPoshtaWarehouseDto[]>([]);
+  private readonly store = inject(Store);
+  readonly order = this.store.selectSignal(selectOrder);
+  readonly cities = this.store.selectSignal(selectCities);
+  readonly warehouses = this.store.selectSignal(selectWarehouses);
+  readonly showCitySuggestions = signal(false);
   readonly selectedWarehouse = signal<NovaPoshtaWarehouseDto | null>(null);
   readonly method = signal<string>('ApplePay');
-  readonly busy = signal(false);
-  readonly error = signal<string | null>(null);
+  readonly busy = this.store.selectSignal(selectOrderBusy);
+  readonly error = this.store.selectSignal(selectOrderError);
 
   readonly paymentMethods = [
     { value: 'ApplePay', label: 'Apple Pay' },
@@ -108,57 +141,59 @@ export class CheckoutComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly orders: OrderService,
+    private readonly actions$: Actions,
+    readonly auth: AuthService,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
+    this.actions$
+      .pipe(ofType(OrderActions.checkoutAndPaySuccess), takeUntilDestroyed())
+      .subscribe(() => this.router.navigate(['/order', this.orderId, 'status']));
   }
 
   ngOnInit(): void {
-    this.orders.getOrder(this.orderId).subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.loadOrder({ orderId: this.orderId }));
   }
 
   onCityChange(city: string): void {
     this.selectedWarehouse.set(null);
-    this.warehouses.set([]);
+    this.store.dispatch(OrderActions.clearWarehouses());
+    this.showCitySuggestions.set(true);
     clearTimeout(this.cityDebounce);
-    if (!city.trim()) return;
+    if (!city.trim()) {
+      this.store.dispatch(OrderActions.clearCities());
+      return;
+    }
     this.cityDebounce = setTimeout(() => {
-      this.orders.novaPoshtaWarehouses(city.trim()).subscribe((w) => this.warehouses.set(w));
+      this.store.dispatch(OrderActions.loadCities({ query: city.trim() }));
     }, 300);
+  }
+
+  pickCity(city: string): void {
+    this.city = city;
+    this.showCitySuggestions.set(false);
+    this.store.dispatch(OrderActions.clearCities());
+    this.store.dispatch(OrderActions.loadWarehouses({ city }));
   }
 
   canSubmit(): boolean {
     return !!(this.recipientName && this.phone && this.city && this.selectedWarehouse() && this.method());
   }
 
-  submit(o: OrderDto): void {
+  submit(): void {
     const w = this.selectedWarehouse();
     if (!w) return;
-    this.busy.set(true);
-    this.error.set(null);
-
-    this.orders
-      .checkout(this.orderId, {
-        recipientName: this.recipientName,
-        phone: this.phone,
-        city: this.city,
-        warehouseNumber: w.number,
-        warehouseAddress: w.address,
-      })
-      .subscribe({
-        next: () => {
-          this.orders.pay(this.orderId, this.method()).subscribe({
-            next: () => this.router.navigate(['/order', o.id, 'status']),
-            error: () => {
-              this.error.set('Оплата не пройшла. Спробуйте ще раз.');
-              this.busy.set(false);
-            },
-          });
+    this.store.dispatch(
+      OrderActions.checkoutAndPay({
+        orderId: this.orderId,
+        delivery: {
+          recipientName: this.recipientName,
+          phone: this.phone,
+          city: this.city,
+          warehouseNumber: w.number,
+          warehouseAddress: w.address,
         },
-        error: () => {
-          this.error.set('Не вдалося зберегти дані доставки.');
-          this.busy.set(false);
-        },
-      });
+        method: this.method(),
+      }),
+    );
   }
 }

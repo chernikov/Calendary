@@ -69,7 +69,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "deploy/docker-compose.prod.yml,deploy/docker-compose.edge.yml,deploy/Caddyfile"
+          source: "deploy/docker-compose.prod.yml,deploy/docker-compose.edge.yml,deploy/Caddyfile,deploy/backup.sh"
           target: "/opt/calendary"
           strip_components: 1
 
@@ -84,6 +84,36 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             cd /opt/calendary
             docker network inspect web >/dev/null 2>&1 || docker network create web
+
+            touch .env
+            grep -v '^GOOGLE_CLIENT_ID=' .env > .env.tmp || true; mv .env.tmp .env
+            grep -v '^GOOGLE_CLIENT_SECRET=' .env > .env.tmp || true; mv .env.tmp .env
+            printf 'GOOGLE_CLIENT_ID=%s\n' "${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+            printf 'GOOGLE_CLIENT_SECRET=%s\n' "${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+            grep -v '^RESEND_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
+            printf 'RESEND_API_KEY=%s\n' "${{ secrets.RESEND_API_KEY }}" >> .env
+            grep -v '^MONOBANK_MERCHANT_TOKEN=' .env > .env.tmp || true; mv .env.tmp .env
+            printf 'MONOBANK_MERCHANT_TOKEN=%s\n' "${{ secrets.MONOBANK_MERCHANT_TOKEN }}" >> .env
+            grep -v '^NOVA_POSHTA_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
+            printf 'NOVA_POSHTA_API_KEY=%s\n' "${{ secrets.NOVA_POSHTA_API_KEY }}" >> .env
+            # Same Spaces account/creds/region for both stacks — only the bucket is split
+            # (DO_SPACES_BUCKET here / DO_SPACES_BUCKET_STAGING in deploy-staging.yml) for cleaner
+            # data isolation; backup.sh also scopes each stack to its own restic repo path
+            # regardless (calendary/prod vs calendary/staging).
+            for key in DO_SPACES_KEY DO_SPACES_SECRET DO_SPACES_BUCKET DO_SPACES_REGION RESTIC_PASSWORD; do
+              grep -v "^${key}=" .env > .env.tmp || true; mv .env.tmp .env
+            done
+            printf 'DO_SPACES_KEY=%s\n' "${{ secrets.DO_SPACES_KEY }}" >> .env
+            printf 'DO_SPACES_SECRET=%s\n' "${{ secrets.DO_SPACES_SECRET }}" >> .env
+            printf 'DO_SPACES_BUCKET=%s\n' "${{ secrets.DO_SPACES_BUCKET }}" >> .env
+            printf 'DO_SPACES_REGION=%s\n' "${{ secrets.DO_SPACES_REGION }}" >> .env
+            printf 'RESTIC_PASSWORD=%s\n' "${{ secrets.RESTIC_PASSWORD }}" >> .env
+
+            chmod +x backup.sh
+            # Non-blocking safety net right before the next `docker compose up -d` runs
+            # Program.cs's db.Database.Migrate() — a backup-infra hiccup (e.g. Spaces not
+            # configured yet) must not be able to block every future deploy. See #305.
+            ./backup.sh --quick --target prod || echo "::warning::pre-migration backup failed, continuing deploy"
 
             # App stack first — this frees ports 80/443 by removing the old in-stack
             # Caddy (if present) as an orphan, before the edge stack claims them.

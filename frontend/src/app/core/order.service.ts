@@ -5,7 +5,9 @@ import { environment } from '../../environments/environment';
 import {
   NovaPoshtaWarehouseDto,
   OrderDto,
-  StyleCategoryDto,
+  OrderSummaryDto,
+  PromptLibraryDto,
+  SheetPlanItem,
 } from './models';
 
 const BASE = `${environment.apiBaseUrl}/api`;
@@ -14,8 +16,8 @@ const BASE = `${environment.apiBaseUrl}/api`;
 export class OrderService {
   constructor(private readonly http: HttpClient) {}
 
-  styleCategories(): Observable<StyleCategoryDto[]> {
-    return this.http.get<StyleCategoryDto[]>(`${BASE}/style-categories`);
+  promptLibrary(): Observable<PromptLibraryDto> {
+    return this.http.get<PromptLibraryDto>(`${BASE}/prompt-library`);
   }
 
   createOrder(): Observable<OrderDto> {
@@ -26,12 +28,18 @@ export class OrderService {
     return this.http.get<OrderDto>(`${BASE}/orders/${orderId}`);
   }
 
-  uploadPhoto(orderId: string, photoDataUrl: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photo`, { photoDataUrl });
+  listOrders(): Observable<OrderSummaryDto[]> {
+    return this.http.get<OrderSummaryDto[]>(`${BASE}/orders`);
   }
 
-  selectStyle(orderId: string, styleCategoryId: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/style`, { styleCategoryId });
+  uploadPhoto(orderId: string, photo: File): Observable<OrderDto> {
+    const form = new FormData();
+    form.append('photo', photo, photo.name);
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photo`, form);
+  }
+
+  saveSheetPlan(orderId: string, items: SheetPlanItem[]): Observable<OrderDto> {
+    return this.http.put<OrderDto>(`${BASE}/orders/${orderId}/sheet-plan`, { items });
   }
 
   addDate(orderId: string, day: number, month: number, label: string): Observable<OrderDto> {
@@ -46,8 +54,16 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/generate`, {});
   }
 
-  regenerateSheet(orderId: string, sheetId: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/regenerate`, {});
+  generateSheet(orderId: string, index: number, promptId: string, imageStyleId: string): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${index}/generate`, { promptId, imageStyleId });
+  }
+
+  regenerateSheet(
+    orderId: string,
+    sheetId: string,
+    change?: { promptId?: string; imageStyleId?: string },
+  ): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/regenerate`, change ?? {});
   }
 
   simulateFailure(orderId: string, sheetId: string): Observable<OrderDto> {
@@ -71,6 +87,18 @@ export class OrderService {
 
   cancel(orderId: string): Observable<OrderDto> {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/cancel`, {});
+  }
+
+  archiveOrder(orderId: string): Observable<void> {
+    return this.http.post<void>(`${BASE}/orders/${orderId}/archive`, {});
+  }
+
+  unarchiveOrder(orderId: string): Observable<void> {
+    return this.http.post<void>(`${BASE}/orders/${orderId}/unarchive`, {});
+  }
+
+  downloadPdf(orderId: string): Observable<Blob> {
+    return this.http.get(`${BASE}/orders/${orderId}/pdf`, { responseType: 'blob' });
   }
 
   novaPoshtaCities(query: string): Observable<string[]> {

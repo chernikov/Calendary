@@ -27,6 +27,23 @@ services:
       ConnectionStrings__Default: "Server=mssql,1433;Database=Calendary;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
       Cors__AllowedOrigins__0: "https://${STAGING_DOMAIN}"
       ASPNETCORE_ENVIRONMENT: "Staging"
+      AI__Provider: "${AI_PROVIDER:-OpenAI}"
+      AI__OpenAI__ApiKey: "${AI_OPENAI_API_KEY:-}"
+      AI__Gemini__ApiKey: "${AI_GEMINI_API_KEY:-}"
+      Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
+      Google__ClientSecret: "${GOOGLE_CLIENT_SECRET:-}"
+      Resend__ApiKey: "${RESEND_API_KEY:-}"
+      Monobank__MerchantToken: "${MONOBANK_MERCHANT_TOKEN:-}"
+      NovaPoshta__ApiKey: "${NOVA_POSHTA_API_KEY:-}"
+      # Read-only admin backup-status view (ResticBackupStatusService) — same values backup.sh
+      # itself reads from this file; the backend never writes to this repository.
+      Backup__DoSpacesKey: "${DO_SPACES_KEY:-}"
+      Backup__DoSpacesSecret: "${DO_SPACES_SECRET:-}"
+      Backup__DoSpacesBucket: "${DO_SPACES_BUCKET:-}"
+      Backup__DoSpacesRegion: "${DO_SPACES_REGION:-}"
+      Backup__ResticPassword: "${RESTIC_PASSWORD:-}"
+    volumes:
+      - media-staging-data:/app/App_Data/media
     depends_on:
       mssql:
         condition: service_healthy
@@ -43,3 +60,4 @@ services:
 
 volumes:
   mssql-staging-data:
+  media-staging-data:

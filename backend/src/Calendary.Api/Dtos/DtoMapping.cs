@@ -4,14 +4,23 @@ namespace Calendary.Api.Dtos;
 
 public static class DtoMapping
 {
-    public static UserDto ToDto(this User u) => new(u.Id, u.DisplayName, u.Email, u.Phone);
+    public static UserDto ToDto(this User u) => new(u.Id, u.DisplayName, u.Email, u.EmailConfirmed, u.Role.ToString());
 
-    public static StyleCategoryDto ToDto(this StyleCategory c) => new(c.Id, c.Code, c.Name, c.Description, c.SortOrder);
+    public static PromptThemeDto ToDto(this PromptTheme t) => new(
+        t.Id, t.Name, t.Description, t.SortOrder,
+        t.Prompts.OrderBy(p => p.SortOrder).Select(p => p.ToDto()).ToList());
+
+    public static PromptDto ToDto(this Prompt p) =>
+        new(p.Id, p.PromptThemeId, p.Name, p.Text, p.Description, p.PreviewImageUrl, p.SortOrder);
+
+    public static ImageStyleDto ToDto(this ImageStyle s) =>
+        new(s.Id, s.Name, s.Text, s.Description, s.PreviewImageUrl, s.SortOrder);
 
     public static PersonalDateDto ToDto(this PersonalDate d) => new(d.Id, d.Day, d.Month, d.Label);
 
     public static SheetDto ToDto(this Sheet s) => new(
-        s.Id, s.Kind.ToString(), s.Index, s.Status.ToString(), s.IsSelected, s.ImageUrl, s.VariantCount);
+        s.Id, s.Kind.ToString(), s.Index, s.Status.ToString(), s.IsSelected, s.ImageUrl, s.VariantCount,
+        s.PromptId, s.Prompt?.Name, s.ImageStyleId, s.ImageStyle?.Name);
 
     public static PaymentDto ToDto(this Payment p) => new(
         p.Method.ToString(), p.Status.ToString(), p.Amount, p.PaidAtUtc);
@@ -23,7 +32,6 @@ public static class DtoMapping
         o.Id,
         o.Status.ToString(),
         o.PhotoUrl,
-        o.StyleCategory?.ToDto(),
         o.Price,
         o.RegenerationsRemaining,
         o.CreatedAtUtc,
@@ -34,4 +42,12 @@ public static class DtoMapping
         o.Payment?.ToDto(),
         o.Delivery?.ToDto()
     );
+
+    public static AdminOrderSummaryDto ToAdminSummaryDto(this Order o) => new(
+        o.Id, o.Status.ToString(), o.UserId, o.User.Email, o.User.DisplayName,
+        o.Price, o.CreatedAtUtc, o.StatusUpdatedAtUtc);
+
+    public static AdminUserDto ToAdminDto(this User u) => new(
+        u.Id, u.Email, u.DisplayName, u.Role.ToString(), u.AuthProvider.ToString(),
+        u.EmailConfirmed, u.CreatedAtUtc, u.Orders.Count);
 }

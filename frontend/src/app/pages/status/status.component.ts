@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription, interval, startWith, switchMap } from 'rxjs';
-import { OrderService } from '../../core/order.service';
+import { Store } from '@ngrx/store';
+import { OrderActions, selectDownloadingPdf, selectOrder, selectOrderBusy } from '../../core/state/order';
 import { OrderDto, OrderStatus } from '../../core/models';
 
 const TIMELINE: { status: OrderStatus; label: string }[] = [
@@ -46,6 +46,10 @@ const TIMELINE: { status: OrderStatus; label: string }[] = [
           </div>
         }
 
+        @if (o.status !== 'Cancelled') {
+          <button class="btn btn-secondary" [disabled]="downloadingPdf()" (click)="downloadPdf(o)">Завантажити PDF</button>
+        }
+
         @if (isCancellable(o)) {
           <button class="btn btn-danger" [disabled]="busy()" (click)="cancel(o)">Скасувати замовлення</button>
         }
@@ -54,30 +58,25 @@ const TIMELINE: { status: OrderStatus; label: string }[] = [
   `,
 })
 export class StatusComponent implements OnInit, OnDestroy {
-  readonly order = signal<OrderDto | null>(null);
-  readonly busy = signal(false);
+  private readonly store = inject(Store);
+  readonly order = this.store.selectSignal(selectOrder);
+  readonly busy = this.store.selectSignal(selectOrderBusy);
+  readonly downloadingPdf = this.store.selectSignal(selectDownloadingPdf);
   readonly timeline = TIMELINE;
   private readonly orderId: string;
-  private sub?: Subscription;
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly orders: OrderService,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
   }
 
   ngOnInit(): void {
-    this.sub = interval(2000)
-      .pipe(
-        startWith(0),
-        switchMap(() => this.orders.getOrder(this.orderId)),
-      )
-      .subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.startOrderPolling({ orderId: this.orderId, intervalMs: 2000 }));
   }
 
   ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+    this.store.dispatch(OrderActions.stopOrderPolling());
   }
 
   stepIndex(o: OrderDto): number {
@@ -89,13 +88,10 @@ export class StatusComponent implements OnInit, OnDestroy {
   }
 
   cancel(o: OrderDto): void {
-    this.busy.set(true);
-    this.orders.cancel(o.id).subscribe({
-      next: (updated) => {
-        this.order.set(updated);
-        this.busy.set(false);
-      },
-      error: () => this.busy.set(false),
-    });
+    this.store.dispatch(OrderActions.cancelOrder({ orderId: o.id }));
+  }
+
+  downloadPdf(o: OrderDto): void {
+    this.store.dispatch(OrderActions.downloadPdf({ orderId: o.id }));
   }
 }

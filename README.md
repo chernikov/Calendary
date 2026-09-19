@@ -5,7 +5,7 @@ Custom AI-generated photo calendar ordering app. A thin, end-to-end vertical sli
 
 ## Flow implemented
 
-Landing → passwordless start (email/phone) → photo upload → style + personal dates → generation
+Landing → register/login (email+password or Google) → photo upload → style + personal dates → generation
 (live progress) → cover pick → month-by-month reveal (regenerate/failure/retry) → review →
 delivery + payment (Nova Poshta + Apple/Google Pay/monobank/card) → order status (auto-progressing
 Paid → Printing → Shipped → Delivered, with cancellation while unpaid).
@@ -13,7 +13,7 @@ Paid → Printing → Shipped → Delivered, with cancellation while unpaid).
 ## Stack
 
 - **backend/** — ASP.NET Core (.NET 10) Web API, EF Core + SQL Server, split into
-  `Calendary.Domain` / `Calendary.Infrastructure` / `Calendary.Api`.
+  `Calendary.Domain` / `Calendary.Infrastructure` / `Calendary.Api` / `Calendary.AI`.
 - **frontend/** — Angular 18 standalone app, styled with the Broadsheet design tokens
   (`frontend/src/styles.css`), served via nginx in production.
 - **docker-compose.yml** — wires up `mssql`, `backend`, `frontend`.
@@ -39,11 +39,79 @@ EF Core migrations apply automatically on backend startup.
   collected. Swap `IPaymentService` for a real provider (Stripe, WayForPay, etc.).
 - **Nova Poshta** — `MockNovaPoshtaService` returns a small static city/warehouse list instead of
   calling the real Nova Poshta API.
-- **Auth** — passwordless "magic link" tokens are minted and hidden in the API response itself
-  (no real email/SMS/Google OAuth). Session tokens are an in-memory opaque bearer store
-  (`DevAuthService`), which resets on backend restart — fine for a demo, not for production.
 - **Order fulfillment timing** — `FulfillmentBackgroundService` advances Paid → Printing → Shipped
   → Delivered purely by elapsed wall-clock time (8s / 10s / 20s), not real print/courier events.
+
+## Auth — email+password and Google Sign-In
+
+Both are real (not mocked). `POST /api/auth/register` / `/login` use
+`Microsoft.AspNetCore.Identity`'s standalone `PasswordHasher<User>` (no full Identity/EF
+UserManager stack). `POST /api/auth/google` verifies a Google Identity Services ID token
+client-side-obtained credential via `Google.Apis.Auth`'s `GoogleJsonWebSignature.ValidateAsync` —
+an ID-token flow, not server-side OAuth code exchange, so no redirect URI is needed (the Client
+Secret isn't actually used by this flow, but is still configured/available). Sessions are
+DB-backed (`UserSession`, bearer token stored as a SHA-256 hash) rather than in-memory, so a
+container restart (which happens on every deploy) doesn't log everyone out.
+
+Config lives in the `Google` appsettings section (`ClientId`/`ClientSecret`, both blank in the
+committed `appsettings.json`, same convention as the `AI` section). The frontend's
+`environment.googleClientId` is a plain committed literal, not a secret — it's sent to the browser
+and to Google on every sign-in regardless.
+
+**GCP setup**: OAuth Client ID/Secret live under the `calendary-ua` GCP project
+(`calendary`/`calendary-app` were already taken globally). The IAP `brands`/OAuth-client REST API
+that normally scripts this requires the project to belong to a Workspace organization, which a
+personal-account project doesn't — so the OAuth consent screen and Web OAuth client (Authorized
+JavaScript origins: `https://calendary.com.ua`, `https://staging.calendary.com.ua`,
+`http://localhost:4200`) were created manually via Cloud Console → APIs & Services.
+
+## Transactional email — Resend
+
+`IEmailService`/`ResendEmailService` (Infrastructure) call the Resend API directly over HTTP (no
+SDK). Currently used for one thing: a welcome email on `/api/auth/register` — best-effort, wrapped
+in try/catch so a Resend outage never fails registration itself. Config is the `Resend` appsettings
+section (`ApiKey`/`FromEmail`/`FromName`, same blank-by-default/env-injected convention as `AI` and
+`Google`); with no `ApiKey` configured, `ResendEmailService` just logs and skips sending — safe for
+local dev.
+
+`calendary.com.ua`'s sending domain (DKIM `resend._domainkey` TXT record, `send`/`rsend` CNAMEs) is
+verified directly in DigitalOcean DNS. `RESEND_API_KEY` is a GitHub secret, threaded into the
+droplet's `.env`/`.env.staging` on every deploy the same way as the Google OAuth secrets.
+
+## Calendary.AI — real AI image generation
+
+`backend/src/Calendary.AI` is a standalone project (no dependency on the other three) holding the
+actual AI provider integration, built but **not wired in by default**:
+
+- `Options/AiOptions.cs` — binds the `AI` section of `appsettings.json`: `Provider` (`OpenAI` or
+  `Gemini`) plus one sub-section per provider (`ApiKey`, `BaseUrl`, `Model`). Both API keys are
+  blank in the committed `appsettings.json` — set the real one via environment variable
+  (`AI__OpenAI__ApiKey` / `AI__Gemini__ApiKey`, wired optionally into
+  `deploy/docker-compose.{prod,staging}.yml` from `AI_OPENAI_API_KEY` / `AI_GEMINI_API_KEY` in
+  `.env`), never committed.
+- `Clients/` — `IAiImageClient` plus one real HTTP implementation per provider
+  (`OpenAiImageClient` calls `/images/edits` when a reference photo is supplied, else
+  `/images/generations`; `GeminiImageClient` calls `generateContent` with the photo as inline
+  image data). `ServiceCollectionExtensions.AddCalendaryAi()` registers only the implementation
+  `AiOptions.Provider` selects.
+- `Prompts/CalendarPrompts.cs` — wraps the DB-stored prompt library texts (per-sheet scene from
+  `Prompt.Text` + visual style from `ImageStyle.Text`) and a seasonal hint per month, composed
+  into `BuildCoverPrompt` / `BuildMonthPrompt`. Prompts are in English (both
+  providers follow English instructions more reliably) even though the product copy is Ukrainian.
+
+`Calendary.Infrastructure/Services/AiImageGenerationService.cs` is a real `IImageGenerationService`
+built on top of this — unlike the mock, it drives generation itself (fire-and-forget per-order/
+per-sheet work using its own DI scope, throttled to 3 concurrent months) rather than relying on
+`GenerationBackgroundService`'s timer-based simulation.
+
+**Going live** (three steps, done together):
+1. Set a real key in `AI:OpenAI:ApiKey` or `AI:Gemini:ApiKey` (and `AI:Provider` to match).
+2. In `Program.cs`: call `builder.Services.AddCalendaryAi(builder.Configuration)` and register
+   `AiImageGenerationService` instead of `MockImageGenerationService`.
+3. Remove `GenerationBackgroundService`'s hosted-service registration — it would otherwise race
+   the real generation calls on the same `Sheet` rows (both flip `Pending` → `Generating` →
+   `Ready`). `AiImageGenerationService` doesn't need it: it advances `Order.Status` itself via
+   `OrderProgressionHelper` after each sheet completes.
 
 ## Deployment — production + staging
 
@@ -84,9 +152,37 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `DEPLOY_HOST` | `207.154.222.66` |
 | `DEPLOY_USER` | `root` |
 | `DEPLOY_SSH_KEY` | private key matching an authorized key on the droplet |
+| `GOOGLE_CLIENT_ID` | OAuth Web client ID from the `calendary-ua` GCP project |
+| `GOOGLE_CLIENT_SECRET` | matching OAuth client secret |
+| `RESEND_API_KEY` | Resend API key for transactional email |
+| `MONOBANK_MERCHANT_TOKEN` / `MONOBANK_MERCHANT_TOKEN_STAGING` | Monobank merchant token — separate prod/sandbox tokens, threaded into the same `.env` variable name in each stack |
+| `NOVA_POSHTA_API_KEY` | Nova Poshta Address-API key — one shared value for both stacks (read-only lookup, no sandbox/live split) |
+| `DO_SPACES_KEY` / `DO_SPACES_SECRET` | DigitalOcean Spaces access key/secret for off-droplet backups (see "Backups" below) — one shared value for both stacks |
+| `DO_SPACES_BUCKET` / `DO_SPACES_BUCKET_STAGING` | Separate bucket names per stack, e.g. `calendary-backups` / `calendary-backups-staging` — cleaner data isolation, same account/region otherwise |
+| `DO_SPACES_REGION` | Spaces region, e.g. `fra1` — shared by both stacks' buckets |
+| `RESTIC_PASSWORD` | Encrypts every backup — generate with `openssl rand -base64 32` and also save it somewhere other than GH/the droplet; losing it makes existing backups permanently undecryptable |
 
 `GITHUB_TOKEN` (built-in) handles both pushing images to GHCR and the droplet's `docker login`
-during deploy — no extra registry secret needed.
+during deploy — no extra registry secret needed. Unlike the AI provider keys (a manual one-off
+`.env` edit on prod; staging does thread them — see issue #330), the secrets above are genuinely
+threaded through on every deploy: both `deploy.yml` and `deploy-staging.yml` upsert them into the
+droplet's `.env`/`.env.staging` from the GH secret before `docker compose up` — rotate the secret
+in GH, the next deploy picks it up automatically.
+
+## Backups
+
+`deploy/backup.sh`, run daily by the `calendary-backup.timer` systemd timer (installed by
+`bootstrap.sh`), backs up both stacks' MSSQL databases and media volumes into a
+[restic](https://restic.net) repository on DigitalOcean Spaces (encrypted, deduplicated, pruned to
+7 daily + 4 weekly snapshots automatically). The same script also runs in `--quick` mode as a
+pre-migration safety net right before every deploy's `docker compose up -d`. The credentials
+(`DO_SPACES_KEY`/`DO_SPACES_SECRET`/`DO_SPACES_BUCKET`/`DO_SPACES_REGION`/`RESTIC_PASSWORD`) are
+threaded into `.env`/`.env.staging` from the GH secrets above on every deploy, same as the other
+integration keys — but the daily timer itself still runs independently of CI, straight off
+whatever is currently in the droplet's `.env` files.
+
+See **`deploy/RESTORE.md`** for the restore procedure — rehearsable end-to-end against staging via
+the manual-only `restore-staging.yml` workflow.
 
 ## Known gaps vs. the full design doc
 

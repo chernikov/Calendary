@@ -1,7 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { OrderService } from '../../core/order.service';
+import { Store } from '@ngrx/store';
+import { OrderActions, selectDownloadingPdf, selectOrder } from '../../core/state/order';
 import { OrderDto } from '../../core/models';
+import { ImageLightboxComponent } from '../../shared/image-lightbox.component';
 
 const MONTH_NAMES = [
   'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
@@ -24,11 +26,16 @@ const MONTH_NAMES = [
           @for (sheet of o.sheets; track sheet.id) {
             <a
               [routerLink]="sheet.kind === 'Cover' ? ['/order', o.id, 'cover'] : ['/order', o.id, 'months', sheet.index]"
-              style="text-decoration: none; color: inherit;"
+              style="text-decoration: none; color: inherit; position: relative; display: block;"
             >
               @if (sheet.imageUrl) {
                 <div style="aspect-ratio: 3/4; background-size: cover; background-position: center; border-radius: var(--radius-sm);"
                      [style.background-image]="'url(' + sheet.imageUrl + ')'"></div>
+                <button
+                  type="button"
+                  class="zoom-trigger"
+                  (click)="$event.preventDefault(); $event.stopPropagation(); zoomUrl.set(sheet.imageUrl!)"
+                >⤢</button>
               } @else {
                 <div class="sheet-thumb" style="width: 100%; height: auto; aspect-ratio: 3/4;"></div>
               }
@@ -46,26 +53,43 @@ const MONTH_NAMES = [
           <span class="money" style="font-size: 30px; font-weight: 500;">{{ o.price }} ₴</span>
         </div>
 
+        @if (o.status === 'ReviewReady' || isPastReview(o)) {
+          <button
+            class="btn btn-secondary btn-block"
+            style="max-width: 320px; margin-bottom: var(--space-2);"
+            [disabled]="downloadingPdf()"
+            (click)="downloadPdf(o)"
+          >
+            Завантажити PDF
+          </button>
+        }
+
         <button class="btn btn-primary btn-block" style="max-width: 320px;" (click)="proceed(o)">До оплати</button>
+      }
+
+      @if (zoomUrl(); as z) {
+        <app-image-lightbox [url]="z" (closed)="zoomUrl.set(null)" />
       }
     </div>
   `,
-  imports: [RouterLink],
+  imports: [RouterLink, ImageLightboxComponent],
 })
 export class ReviewComponent implements OnInit {
-  readonly order = signal<OrderDto | null>(null);
+  private readonly store = inject(Store);
+  readonly order = this.store.selectSignal(selectOrder);
+  readonly downloadingPdf = this.store.selectSignal(selectDownloadingPdf);
+  readonly zoomUrl = signal<string | null>(null);
   private readonly orderId: string;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly orders: OrderService,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
   }
 
   ngOnInit(): void {
-    this.orders.getOrder(this.orderId).subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.loadOrder({ orderId: this.orderId }));
   }
 
   monthName(index: number): string {
@@ -78,5 +102,9 @@ export class ReviewComponent implements OnInit {
 
   proceed(o: OrderDto): void {
     this.router.navigate(['/order', o.id, 'checkout']);
+  }
+
+  downloadPdf(o: OrderDto): void {
+    this.store.dispatch(OrderActions.downloadPdf({ orderId: o.id }));
   }
 }

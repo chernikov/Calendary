@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
+import { adminGuard } from './core/admin.guard';
 
 export const routes: Routes = [
   {
@@ -9,6 +10,11 @@ export const routes: Routes = [
   {
     path: 'start',
     loadComponent: () => import('./pages/start/start.component').then((m) => m.StartComponent),
+  },
+  {
+    path: 'orders',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/orders/orders.component').then((m) => m.OrdersComponent),
   },
   {
     path: 'order/:orderId/upload',
@@ -49,6 +55,39 @@ export const routes: Routes = [
     path: 'order/:orderId/status',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/status/status.component').then((m) => m.StatusComponent),
+  },
+  {
+    path: 'admin',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./pages/admin/admin-shell.component').then((m) => m.AdminShellComponent),
+    children: [
+      {
+        path: 'orders',
+        loadComponent: () => import('./pages/admin/admin-orders.component').then((m) => m.AdminOrdersComponent),
+      },
+      {
+        path: 'orders/:orderId',
+        loadComponent: () =>
+          import('./pages/admin/admin-order-detail.component').then((m) => m.AdminOrderDetailComponent),
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('./pages/admin/admin-users.component').then((m) => m.AdminUsersComponent),
+      },
+      {
+        path: 'prompts',
+        loadComponent: () => import('./pages/admin/admin-prompts.component').then((m) => m.AdminPromptsComponent),
+      },
+      {
+        path: 'styles',
+        loadComponent: () => import('./pages/admin/admin-styles.component').then((m) => m.AdminStylesComponent),
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./pages/admin/admin-settings.component').then((m) => m.AdminSettingsComponent),
+      },
+      { path: '', redirectTo: 'orders', pathMatch: 'full' },
+    ],
   },
   { path: '**', redirectTo: '' },
 ];

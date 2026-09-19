@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Calendar glyph in the Broadsheet palette: accent header, marked date in accent-2 -->
+  <rect x="4" y="8" width="56" height="52" rx="8" fill="#f8f4f4" stroke="#201e1d" stroke-opacity=".25" stroke-width="2"/>
+  <path d="M4 16a8 8 0 0 1 8-8h40a8 8 0 0 1 8 8v10H4z" fill="#0088b0"/>
+  <rect x="15" y="2" width="6" height="13" rx="3" fill="#201e1d"/>
+  <rect x="43" y="2" width="6" height="13" rx="3" fill="#201e1d"/>
+  <circle cx="17" cy="37" r="4.5" fill="#bab6b6"/>
+  <circle cx="32" cy="37" r="4.5" fill="#bab6b6"/>
+  <circle cx="47" cy="37" r="4.5" fill="#bab6b6"/>
+  <circle cx="17" cy="51" r="4.5" fill="#bab6b6"/>
+  <circle cx="32" cy="51" r="4.5" fill="#d6006c"/>
+  <circle cx="47" cy="51" r="4.5" fill="#bab6b6"/>
+</svg>

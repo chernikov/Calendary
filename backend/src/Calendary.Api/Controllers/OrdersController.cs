@@ -1,5 +1,6 @@
 using Calendary.Api.Auth;
 using Calendary.Api.Dtos;
+using Calendary.Api.Photos;
 using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
@@ -16,7 +17,10 @@ namespace Calendary.Api.Controllers;
 public class OrdersController(
     AppDbContext db,
     IImageGenerationService generationService,
-    IPaymentService paymentService) : ControllerBase
+    IPaymentService paymentService,
+    ICalendarPdfService pdfService,
+    IFileStorage fileStorage,
+    ILogger<OrdersController> logger) : ControllerBase
 {
     private const int MaxLabelLength = 22;
 
@@ -24,13 +28,25 @@ public class OrdersController(
     {
         var userId = User.GetUserId();
         return await db.Orders
-            .Include(o => o.StyleCategory)
             .Include(o => o.PersonalDates)
-            .Include(o => o.Sheets)
+            .Include(o => o.Sheets).ThenInclude(s => s.Prompt)
+            .Include(o => o.Sheets).ThenInclude(s => s.ImageStyle)
             .Include(o => o.Payment)
             .Include(o => o.Delivery)
+            // Sheets and PersonalDates are sibling collections on the same query — a single join
+            // multiplies rows (sheets × dates). AsSplitQuery issues one query per collection.
+            .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
     }
+
+    // Expiry only matters while the order is still moving through the funnel — once payment is
+    // captured it's fulfillment's problem, not a reason to block anything. Keep in sync with
+    // OrderExpiryBackgroundService's exemption list (auto-archives expired orders on the same rule).
+    private static readonly OrderStatus[] ExemptFromExpiry =
+        [OrderStatus.Paid, OrderStatus.Printing, OrderStatus.Shipped, OrderStatus.Delivered];
+
+    private static bool IsExpired(Order order) =>
+        !ExemptFromExpiry.Contains(order.Status) && DateTime.UtcNow > order.ExpiresAtUtc;
 
     [HttpPost]
     public async Task<ActionResult<OrderDto>> Create()
@@ -50,33 +66,90 @@ public class OrdersController(
         return order is null ? NotFound() : Ok(order.ToDto());
     }
 
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<OrderSummaryDto>>> List()
+    {
+        var userId = User.GetUserId();
+        var orders = await db.Orders
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAtUtc)
+            .Select(o => new OrderSummaryDto(
+                o.Id,
+                o.Status.ToString(),
+                o.Price,
+                o.CreatedAtUtc,
+                o.StatusUpdatedAtUtc,
+                o.Sheets.Where(s => s.Kind == SheetKind.Cover && s.Prompt != null).Select(s => s.Prompt!.Name).FirstOrDefault(),
+                o.Sheets.Where(s => s.Kind == SheetKind.Cover).Select(s => s.ImageUrl).FirstOrDefault(),
+                o.IsArchived))
+            .ToListAsync();
+
+        return Ok(orders);
+    }
+
     [HttpPost("{orderId:guid}/photo")]
-    public async Task<ActionResult<OrderDto>> UploadPhoto(Guid orderId, UploadPhotoRequest request)
+    [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
+    public async Task<ActionResult<OrderDto>> UploadPhoto(Guid orderId, [FromForm] IFormFile? photo, CancellationToken ct)
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
 
-        if (string.IsNullOrWhiteSpace(request.PhotoDataUrl))
+        var intake = await PhotoIntake.ReadAsync(photo, ct);
+        if (!intake.Ok)
         {
-            return BadRequest("photoDataUrl is required.");
+            return BadRequest(new { error = intake.Error });
         }
 
-        order.PhotoUrl = request.PhotoDataUrl;
+        order.PhotoUrl = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
         order.SetStatus(OrderStatus.PhotoUploaded);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
         return Ok(order.ToDto());
     }
 
-    [HttpPost("{orderId:guid}/style")]
-    public async Task<ActionResult<OrderDto>> SelectStyle(Guid orderId, SelectStyleRequest request)
+    /// Saves the user's per-sheet picks (prompt + image style for the cover and each month),
+    /// creating or updating the 13 Sheet rows before generation starts.
+    [HttpPut("{orderId:guid}/sheet-plan")]
+    public async Task<ActionResult<OrderDto>> SaveSheetPlan(Guid orderId, SaveSheetPlanRequest request)
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
+        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
+        {
+            return Conflict("The sheet plan can only be changed before generation starts.");
+        }
 
-        var category = await db.StyleCategories.FindAsync(request.StyleCategoryId);
-        if (category is null) return BadRequest("Unknown style category.");
+        var items = request.Items ?? [];
+        if (items.Count != 13 || items.Select(i => i.Index).Distinct().Count() != 13 ||
+            items.Any(i => i.Index is < 0 or > 12))
+        {
+            return BadRequest("The plan must contain exactly 13 items with indexes 0 (cover) through 12.");
+        }
 
-        order.StyleCategoryId = category.Id;
+        var promptIds = items.Select(i => i.PromptId).Distinct().ToList();
+        var styleIds = items.Select(i => i.ImageStyleId).Distinct().ToList();
+        var knownPrompts = await db.Prompts.Where(p => promptIds.Contains(p.Id)).Select(p => p.Id).ToListAsync();
+        var knownStyles = await db.ImageStyles.Where(s => styleIds.Contains(s.Id)).Select(s => s.Id).ToListAsync();
+        if (knownPrompts.Count != promptIds.Count) return BadRequest("Unknown prompt.");
+        if (knownStyles.Count != styleIds.Count) return BadRequest("Unknown image style.");
+
+        foreach (var item in items.OrderBy(i => i.Index))
+        {
+            var sheet = order.Sheets.FirstOrDefault(s => s.Index == item.Index);
+            if (sheet is null)
+            {
+                sheet = new Sheet
+                {
+                    OrderId = order.Id,
+                    Kind = item.Index == 0 ? SheetKind.Cover : SheetKind.Month,
+                    Index = item.Index
+                };
+                db.Sheets.Add(sheet);
+            }
+            sheet.PromptId = item.PromptId;
+            sheet.ImageStyleId = item.ImageStyleId;
+        }
+
         order.SetStatus(OrderStatus.DetailsSubmitted);
         await db.SaveChangesAsync();
 
@@ -128,12 +201,60 @@ public class OrdersController(
         return Ok(order!.ToDto());
     }
 
+    /// Generates one sheet during the planning step (step 3): saves the picked prompt/style on
+    /// the sheet (creating it if needed) and kicks off generation of a single image. Can be
+    /// called repeatedly to re-generate with new picks; does not use the regeneration budget.
+    [HttpPost("{orderId:guid}/sheets/{index:int}/generate")]
+    public async Task<ActionResult<OrderDto>> GenerateSheet(Guid orderId, int index, GenerateSheetRequest request)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
+        if (index is < 0 or > 12) return BadRequest("Index must be 0 (cover) through 12.");
+        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
+        {
+            return Conflict("Sheets can only be generated one-by-one before full generation starts.");
+        }
+        if (order.PhotoUrl is null) return Conflict("Upload a photo first.");
+
+        if (await db.Prompts.FindAsync(request.PromptId) is null) return BadRequest("Unknown prompt.");
+        if (await db.ImageStyles.FindAsync(request.ImageStyleId) is null) return BadRequest("Unknown image style.");
+
+        var sheet = order.Sheets.FirstOrDefault(s => s.Index == index);
+        if (sheet is null)
+        {
+            sheet = new Sheet
+            {
+                OrderId = order.Id,
+                Kind = index == 0 ? SheetKind.Cover : SheetKind.Month,
+                Index = index
+            };
+            db.Sheets.Add(sheet);
+        }
+        else if (sheet.Status == SheetStatus.Generating)
+        {
+            return Conflict("This sheet is already generating.");
+        }
+        sheet.PromptId = request.PromptId;
+        sheet.ImageStyleId = request.ImageStyleId;
+        await db.SaveChangesAsync();
+
+        await generationService.GenerateSheetPreviewAsync(orderId, sheet.Id);
+
+        order = await LoadOwnedOrderAsync(orderId);
+        return Ok(order!.ToDto());
+    }
+
     [HttpPost("{orderId:guid}/generate")]
     public async Task<ActionResult<OrderDto>> Generate(Guid orderId)
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
-        if (order.StyleCategoryId is null) return BadRequest("Select a style before generating.");
+        if (IsExpired(order)) return Conflict("Order has expired.");
+        if (order.Sheets.Count != 13 || order.Sheets.Any(s => s.PromptId is null || s.ImageStyleId is null))
+        {
+            return BadRequest("Complete the sheet plan (prompt and style for every sheet) before generating.");
+        }
 
         await generationService.StartOrderGenerationAsync(orderId);
 
@@ -142,10 +263,25 @@ public class OrdersController(
     }
 
     [HttpPost("{orderId:guid}/sheets/{sheetId:guid}/regenerate")]
-    public async Task<ActionResult<OrderDto>> RegenerateSheet(Guid orderId, Guid sheetId)
+    public async Task<ActionResult<OrderDto>> RegenerateSheet(Guid orderId, Guid sheetId, RegenerateSheetRequest? request)
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+
+        // The user may swap the sheet's prompt/style before regenerating.
+        var sheet = order.Sheets.FirstOrDefault(s => s.Id == sheetId);
+        if (sheet is null) return NotFound();
+        if (request?.PromptId is Guid promptId)
+        {
+            if (await db.Prompts.FindAsync(promptId) is null) return BadRequest("Unknown prompt.");
+            sheet.PromptId = promptId;
+        }
+        if (request?.ImageStyleId is Guid imageStyleId)
+        {
+            if (await db.ImageStyles.FindAsync(imageStyleId) is null) return BadRequest("Unknown image style.");
+            sheet.ImageStyleId = imageStyleId;
+        }
+        await db.SaveChangesAsync();
 
         var ok = await generationService.RegenerateSheetAsync(orderId, sheetId);
         if (!ok) return Conflict("No regenerations remaining.");
@@ -198,6 +334,7 @@ public class OrdersController(
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
 
         if (order.Delivery is null)
         {
@@ -222,6 +359,17 @@ public class OrdersController(
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
+
+        // Idempotency: a retried/duplicate POST (double-click, frontend retry, provider webhook
+        // racing the synchronous response) must not charge a second time. Retrying after a
+        // *failed* payment is still allowed — only a prior success short-circuits.
+        if (order.Status == OrderStatus.Paid || order.Payment?.Status == PaymentStatus.Succeeded)
+        {
+            logger.LogInformation("Pay: order {OrderId} is already paid, skipping charge", orderId);
+            return Ok(order.ToDto());
+        }
+
         if (!Enum.TryParse<PaymentMethod>(request.Method, true, out var method))
         {
             return BadRequest("Unknown payment method.");
@@ -242,16 +390,36 @@ public class OrdersController(
             order.Payment.Status = PaymentStatus.Succeeded;
             order.Payment.PaidAtUtc = DateTime.UtcNow;
             order.SetStatus(OrderStatus.Paid);
+            logger.LogInformation(
+                "Pay: order {OrderId} charged successfully via {Method}, amount {Amount}", orderId, method, order.Price);
         }
         else
         {
             order.Payment.Status = PaymentStatus.Failed;
+            logger.LogWarning(
+                "Pay: order {OrderId} charge failed via {Method}: {Reason}", orderId, method, result.FailureReason ?? "unknown");
         }
 
         await db.SaveChangesAsync();
 
         order = await LoadOwnedOrderAsync(orderId);
         return result.Succeeded ? Ok(order!.ToDto()) : StatusCode(402, order!.ToDto());
+    }
+
+    [HttpGet("{orderId:guid}/pdf")]
+    public async Task<IActionResult> DownloadPdf(Guid orderId)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+
+        var sheetsReady = order.Sheets.Count == 13 && order.Sheets.All(s => s.Status == SheetStatus.Ready);
+        if (!sheetsReady) return Conflict("Calendar is not fully generated yet.");
+
+        // Before payment, this doubles as the customer-facing preview — stamp it so it can't pass
+        // as the final print file.
+        var watermark = order.Status != OrderStatus.Paid;
+        var pdfBytes = await pdfService.GenerateAsync(orderId, watermark);
+        return File(pdfBytes, "application/pdf", $"calendary-{orderId}.pdf");
     }
 
     [HttpPost("{orderId:guid}/cancel")]
@@ -267,5 +435,29 @@ public class OrdersController(
         order.SetStatus(OrderStatus.Cancelled);
         await db.SaveChangesAsync();
         return Ok(order.ToDto());
+    }
+
+    // Archiving is purely a list-visibility flag — orthogonal to the OrderStatus state machine,
+    // so it's set directly rather than via SetStatus().
+    [HttpPost("{orderId:guid}/archive")]
+    public async Task<IActionResult> Archive(Guid orderId)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+
+        order.IsArchived = true;
+        await db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpPost("{orderId:guid}/unarchive")]
+    public async Task<IActionResult> Unarchive(Guid orderId)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+
+        order.IsArchived = false;
+        await db.SaveChangesAsync();
+        return NoContent();
     }
 }

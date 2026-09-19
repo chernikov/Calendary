@@ -1,7 +1,8 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, interval, startWith, switchMap } from 'rxjs';
-import { OrderService } from '../../core/order.service';
+import { Subscription } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { OrderActions, selectOrder, selectOrderBusy, selectOrderError } from '../../core/state/order';
 import { OrderDto, SheetDto } from '../../core/models';
 
 const MONTH_NAMES = [
@@ -61,18 +62,17 @@ const MONTH_NAMES = [
   `,
 })
 export class MonthComponent implements OnInit, OnDestroy {
-  readonly order = signal<OrderDto | null>(null);
-  readonly busy = signal(false);
-  readonly error = signal<string | null>(null);
+  private readonly store = inject(Store);
+  readonly order = this.store.selectSignal(selectOrder);
+  readonly busy = this.store.selectSignal(selectOrderBusy);
+  readonly error = this.store.selectSignal(selectOrderError);
   readonly orderId: string;
   monthNumber = 1;
-  private sub?: Subscription;
   private paramSub?: Subscription;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly orders: OrderService,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
     this.monthNumber = Number(this.route.snapshot.paramMap.get('month'));
@@ -89,16 +89,11 @@ export class MonthComponent implements OnInit, OnDestroy {
       this.monthNumber = Number(pm.get('month'));
     });
 
-    this.sub = interval(1500)
-      .pipe(
-        startWith(0),
-        switchMap(() => this.orders.getOrder(this.orderId)),
-      )
-      .subscribe((o) => this.order.set(o));
+    this.store.dispatch(OrderActions.startOrderPolling({ orderId: this.orderId, intervalMs: 1500 }));
   }
 
   ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+    this.store.dispatch(OrderActions.stopOrderPolling());
     this.paramSub?.unsubscribe();
   }
 
@@ -113,17 +108,7 @@ export class MonthComponent implements OnInit, OnDestroy {
   }
 
   regenerate(s: SheetDto): void {
-    this.busy.set(true);
-    this.orders.regenerateSheet(this.orderId, s.id).subscribe({
-      next: (o) => {
-        this.order.set(o);
-        this.busy.set(false);
-      },
-      error: () => {
-        this.error.set('Перегенерації вичерпано.');
-        this.busy.set(false);
-      },
-    });
+    this.store.dispatch(OrderActions.regenerateSheet({ orderId: this.orderId, sheetId: s.id }));
   }
 
   next(): void {
