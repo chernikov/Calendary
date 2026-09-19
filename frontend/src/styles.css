@@ -380,6 +380,7 @@ textarea.input { min-height: 90px; resize: vertical; }
 }
 .tile-calendar-day.empty { visibility: hidden; }
 .tile-calendar-day.has-date { background: var(--color-accent); color: var(--color-bg); font-weight: 700; }
+.tile-calendar-day.has-holiday { background: var(--color-accent-2-200); color: var(--color-accent-2-800); font-weight: 700; }
 
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .calendar-weekday { font-size: 11px; text-align: center; color: color-mix(in srgb, var(--color-text) 55%, transparent); padding-bottom: 4px; }
@@ -391,7 +392,17 @@ textarea.input { min-height: 90px; resize: vertical; }
 .calendar-day:hover:not(.empty) { border-color: var(--color-accent); }
 .calendar-day.empty { visibility: hidden; cursor: default; }
 .calendar-day.has-date { background: var(--color-accent-100); color: var(--color-accent-800); font-weight: 600; }
+.calendar-day.has-holiday { background: var(--color-accent-2-100); color: var(--color-accent-2-800); font-weight: 600; }
 .calendar-day.selected { background: var(--color-accent); color: var(--color-bg); }
+
+.select-dropdown { border: 1px solid var(--color-divider); border-radius: var(--radius-md); background: var(--color-surface); }
+.select-dropdown summary {
+  cursor: pointer; padding: 8px 10px; font-size: 14px; list-style: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.select-dropdown summary::-webkit-details-marker { display: none; }
+.select-dropdown summary::after { content: '▾'; font-size: 11px; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.select-dropdown[open] summary::after { content: '▴'; }
 
 .banner-top {
   display: flex; align-items: center; justify-content: center; gap: var(--space-3);
