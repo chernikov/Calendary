@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import {
   AdminOrderSummaryDto,
   AdminUserDto,
+  BackupStatusDto,
   ConfigStatusDto,
   ImageGenerationProvider,
   ImageStyleDto,
@@ -60,6 +61,10 @@ export class AdminService {
 
   getConfigStatus(): Observable<ConfigStatusDto> {
     return this.http.get<ConfigStatusDto>(`${BASE}/settings/config-status`);
+  }
+
+  getBackupStatus(): Observable<BackupStatusDto> {
+    return this.http.get<BackupStatusDto>(`${BASE}/settings/backup-status`);
   }
 
   listPromptThemes(): Observable<PromptThemeDto[]> {

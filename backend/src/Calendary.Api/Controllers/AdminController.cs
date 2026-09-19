@@ -24,7 +24,8 @@ public class AdminController(
     IOptions<AiOptions> aiOptions,
     IOptions<GoogleOptions> googleOptions,
     IOptions<ResendOptions> resendOptions,
-    IOptions<MonobankOptions> monobankOptions) : ControllerBase
+    IOptions<MonobankOptions> monobankOptions,
+    IBackupStatusService backupStatus) : ControllerBase
 {
     private async Task<Order?> LoadOrderAsync(Guid orderId) =>
         await db.Orders
@@ -155,6 +156,15 @@ public class AdminController(
                 && !string.IsNullOrWhiteSpace(googleOptions.Value.ClientSecret),
             ResendConfigured: !string.IsNullOrWhiteSpace(resendOptions.Value.ApiKey),
             MonobankConfigured: !string.IsNullOrWhiteSpace(monobankOptions.Value.MerchantToken)));
+    }
+
+    [HttpGet("settings/backup-status")]
+    public async Task<ActionResult<BackupStatusDto>> GetBackupStatus(CancellationToken ct)
+    {
+        var status = await backupStatus.GetStatusAsync(ct);
+        return Ok(new BackupStatusDto(
+            status.Configured,
+            status.Snapshots.Select(s => new BackupSnapshotDto(s.TimeUtc, s.Tags)).ToList()));
     }
 
     // — Prompt library —

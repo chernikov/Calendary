@@ -173,6 +173,16 @@ export interface ConfigStatusDto {
   monobankConfigured: boolean;
 }
 
+export interface BackupSnapshotDto {
+  timeUtc: string;
+  tags: string[];
+}
+
+export interface BackupStatusDto {
+  configured: boolean;
+  snapshots: BackupSnapshotDto[];
+}
+
 export interface SavePromptThemePayload {
   id?: string;
   name: string;
