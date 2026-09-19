@@ -34,6 +34,7 @@ services:
       Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
       Google__ClientSecret: "${GOOGLE_CLIENT_SECRET:-}"
       Resend__ApiKey: "${RESEND_API_KEY:-}"
+      Monobank__MerchantToken: "${MONOBANK_MERCHANT_TOKEN:-}"
     volumes:
       - media-data:/app/App_Data/media
     depends_on:

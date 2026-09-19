@@ -151,6 +151,9 @@ one-time droplet setup script (installs Docker, creates the `web` network, seeds
 `main` is production (deploys to prod automatically on push/merge). Both `.github/workflows/*.yml`
 pipelines build images and push to GHCR (`ghcr.io/<owner>/calendary-backend` /
 `calendary-frontend`) before SSHing into the droplet to `docker compose pull && up -d`. The two
-pipelines are also where `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` GH secrets get threaded into the
-droplet's `.env`/`.env.staging` on every deploy (see README's "Auth" section) — unlike the AI
-provider keys, which are a manual one-off `.env` edit.
+pipelines are also where `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, and
+`MONOBANK_MERCHANT_TOKEN`/`MONOBANK_MERCHANT_TOKEN_STAGING` (separate prod/sandbox tokens, same
+`.env`/`.env.staging` variable name) GH secrets get threaded into the droplet's `.env`/`.env.staging`
+on every deploy (see README's "Auth" section). The AI provider keys are the one exception: staging
+threads them too, but prod's are a manual one-off `.env` edit (see issue #330) — worth checking
+before assuming any given secret is deploy-automated.

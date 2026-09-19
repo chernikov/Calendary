@@ -96,6 +96,11 @@ jobs:
             grep -v '^AI_GEMINI_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
             printf 'AI_OPENAI_API_KEY=%s\n' "${{ secrets.AI_OPENAI_API_KEY }}" >> .env.staging
             printf 'AI_GEMINI_API_KEY=%s\n' "${{ secrets.AI_GEMINI_API_KEY }}" >> .env.staging
+            # Sourced from MONOBANK_MERCHANT_TOKEN_STAGING (a separate sandbox/test token from
+            # prod's) — the .env.staging *variable name* stays MONOBANK_MERCHANT_TOKEN so
+            # docker-compose.staging.yml reads it the same way docker-compose.prod.yml does.
+            grep -v '^MONOBANK_MERCHANT_TOKEN=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'MONOBANK_MERCHANT_TOKEN=%s\n' "${{ secrets.MONOBANK_MERCHANT_TOKEN_STAGING }}" >> .env.staging
 
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging pull
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging up -d --remove-orphans
