@@ -20,8 +20,11 @@ export class OrderService {
     return this.http.get<PromptLibraryDto>(`${BASE}/prompt-library`);
   }
 
-  createOrder(): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders`, {});
+  // The order isn't created until a photo is actually attached — see #348.
+  createOrder(photo: File): Observable<OrderDto> {
+    const form = new FormData();
+    form.append('photo', photo, photo.name);
+    return this.http.post<OrderDto>(`${BASE}/orders`, form);
   }
 
   getOrder(orderId: string): Observable<OrderDto> {
@@ -30,12 +33,6 @@ export class OrderService {
 
   listOrders(): Observable<OrderSummaryDto[]> {
     return this.http.get<OrderSummaryDto[]>(`${BASE}/orders`);
-  }
-
-  uploadPhoto(orderId: string, photo: File): Observable<OrderDto> {
-    const form = new FormData();
-    form.append('photo', photo, photo.name);
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photo`, form);
   }
 
   saveSheetPlan(orderId: string, items: SheetPlanItem[]): Observable<OrderDto> {

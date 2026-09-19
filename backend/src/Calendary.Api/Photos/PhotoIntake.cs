@@ -16,7 +16,7 @@ public static class PhotoIntakeError
 }
 
 /// Shared validation for the two endpoints that accept a customer photo as a multipart file
-/// upload (OrdersController.UploadPhoto and AdminController.ReplacePhoto).
+/// upload (OrdersController.Create and AdminController.ReplacePhoto).
 public static class PhotoIntake
 {
     public const int MaxBytes = 20 * 1024 * 1024;

@@ -16,7 +16,7 @@ export const orderReducer = createReducer(
   on(OrderActions.loadPromptLibraryFailure, (state, { error }) => ({ ...state, error })),
 
   on(
-    OrderActions.uploadPhoto,
+    OrderActions.createOrderWithPhoto,
     OrderActions.startGeneration,
     OrderActions.savePlanAndGenerate,
     OrderActions.regenerateSheet,
@@ -27,7 +27,7 @@ export const orderReducer = createReducer(
   ),
 
   on(
-    OrderActions.uploadPhotoSuccess,
+    OrderActions.createOrderWithPhotoSuccess,
     OrderActions.addPersonalDateSuccess,
     OrderActions.removePersonalDateSuccess,
     OrderActions.startGenerationSuccess,
@@ -40,7 +40,7 @@ export const orderReducer = createReducer(
   ),
 
   on(
-    OrderActions.uploadPhotoFailure,
+    OrderActions.createOrderWithPhotoFailure,
     OrderActions.addPersonalDateFailure,
     OrderActions.removePersonalDateFailure,
     OrderActions.startGenerationFailure,
