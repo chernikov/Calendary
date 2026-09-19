@@ -228,7 +228,10 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
                             }
                             else if (holidayForDay is not null)
                             {
-                                dayColumn.Item().AlignCenter().Text(Abbreviate(holidayForDay.Name))
+                                // Curated short label (admin-managed, see #376) — left-aligned so it
+                                // reads as continuing after the date, and can wrap onto a second
+                                // line within the cell instead of being mechanically truncated.
+                                dayColumn.Item().AlignLeft().Text(holidayForDay.ShortName)
                                     .FontSize(5.5f)
                                     .FontColor(HolidayColor);
                             }
@@ -236,13 +239,5 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
                 });
             }
         });
-    }
-
-    // Holiday names are stored in full (admin-managed, see #364) — too long for a day cell, so
-    // truncate for display here only; the full name still shows in the admin panel.
-    private static string Abbreviate(string name)
-    {
-        const int maxLength = 12;
-        return name.Length <= maxLength ? name : name[..maxLength].TrimEnd() + "…";
     }
 }

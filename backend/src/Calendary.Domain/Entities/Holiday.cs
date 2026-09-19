@@ -13,4 +13,8 @@ public class Holiday
     public int Day { get; set; }
     public int Month { get; set; }
     public string Name { get; set; } = default!;
+
+    /// Short label printed inside the calendar-grid day cell in the PDF (see #376) — a real
+    /// abbreviation curated per holiday, not a mechanical character truncation of Name.
+    public string ShortName { get; set; } = default!;
 }

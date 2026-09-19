@@ -64,13 +64,14 @@ const COUNTRIES = [
             }
           </nz-select>
           <input nz-input placeholder="Назва свята" [(ngModel)]="f.name" />
+          <input nz-input placeholder="Коротка назва (для клітинки в PDF)" [(ngModel)]="f.shortName" />
           <div style="display: flex; gap: 8px;">
             <nz-input-number [(ngModel)]="f.year" [nzMin]="2024" [nzMax]="2100" nzPlaceHolder="Рік" style="width: 100px;"></nz-input-number>
             <nz-input-number [(ngModel)]="f.month" [nzMin]="1" [nzMax]="12" nzPlaceHolder="Місяць" style="width: 100px;"></nz-input-number>
             <nz-input-number [(ngModel)]="f.day" [nzMin]="1" [nzMax]="31" nzPlaceHolder="День" style="width: 100px;"></nz-input-number>
           </div>
           <div>
-            <button nz-button nzType="primary" [disabled]="!f.country || !f.name.trim() || busy()" (click)="save()">
+            <button nz-button nzType="primary" [disabled]="!f.country || !f.name.trim() || !f.shortName.trim() || busy()" (click)="save()">
               Зберегти
             </button>
             <button nz-button style="margin-left: 8px;" (click)="form = null">Скасувати</button>
@@ -86,6 +87,7 @@ const COUNTRIES = [
           <th style="width: 80px;">Рік</th>
           <th style="width: 90px;">Дата</th>
           <th>Назва</th>
+          <th>Коротка назва</th>
           <th style="width: 110px;"></th>
         </tr>
       </thead>
@@ -96,6 +98,7 @@ const COUNTRIES = [
             <td>{{ holiday.year }}</td>
             <td>{{ pad(holiday.day) }}.{{ pad(holiday.month) }}</td>
             <td>{{ holiday.name }}</td>
+            <td>{{ holiday.shortName }}</td>
             <td>
               <button nz-button nzSize="small" (click)="edit(holiday.id)"><span nz-icon nzType="edit"></span></button>
               <button
@@ -139,7 +142,7 @@ export class AdminHolidaysComponent implements OnInit {
   }
 
   startNew(): void {
-    this.form = { country: 'Ukraine', year: 2027, month: 1, day: 1, name: '' };
+    this.form = { country: 'Ukraine', year: 2027, month: 1, day: 1, name: '', shortName: '' };
   }
 
   edit(holidayId: string): void {
@@ -152,6 +155,7 @@ export class AdminHolidaysComponent implements OnInit {
       month: holiday.month,
       day: holiday.day,
       name: holiday.name,
+      shortName: holiday.shortName,
     };
   }
 
