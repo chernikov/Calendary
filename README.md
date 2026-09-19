@@ -157,6 +157,9 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `RESEND_API_KEY` | Resend API key for transactional email |
 | `MONOBANK_MERCHANT_TOKEN` / `MONOBANK_MERCHANT_TOKEN_STAGING` | Monobank merchant token — separate prod/sandbox tokens, threaded into the same `.env` variable name in each stack |
 | `NOVA_POSHTA_API_KEY` | Nova Poshta Address-API key — one shared value for both stacks (read-only lookup, no sandbox/live split) |
+| `DO_SPACES_KEY` / `DO_SPACES_SECRET` | DigitalOcean Spaces access key/secret for off-droplet backups (see "Backups" below) — one shared value for both stacks |
+| `DO_SPACES_BUCKET` / `DO_SPACES_REGION` | Spaces bucket name and region, e.g. `calendary-backups` / `fra1` |
+| `RESTIC_PASSWORD` | Encrypts every backup — generate with `openssl rand -base64 32` and also save it somewhere other than GH/the droplet; losing it makes existing backups permanently undecryptable |
 
 `GITHUB_TOKEN` (built-in) handles both pushing images to GHCR and the droplet's `docker login`
 during deploy — no extra registry secret needed. Unlike the AI provider keys (a manual one-off
@@ -171,10 +174,11 @@ in GH, the next deploy picks it up automatically.
 `bootstrap.sh`), backs up both stacks' MSSQL databases and media volumes into a
 [restic](https://restic.net) repository on DigitalOcean Spaces (encrypted, deduplicated, pruned to
 7 daily + 4 weekly snapshots automatically). The same script also runs in `--quick` mode as a
-pre-migration safety net right before every deploy's `docker compose up -d`. None of this is
-threaded through GitHub Actions secrets — the credentials
-(`DO_SPACES_KEY`/`DO_SPACES_SECRET`/`DO_SPACES_BUCKET`/`DO_SPACES_REGION`/`RESTIC_PASSWORD`) live
-only in the droplet's `.env`/`.env.staging`, since the backup timer runs independently of CI.
+pre-migration safety net right before every deploy's `docker compose up -d`. The credentials
+(`DO_SPACES_KEY`/`DO_SPACES_SECRET`/`DO_SPACES_BUCKET`/`DO_SPACES_REGION`/`RESTIC_PASSWORD`) are
+threaded into `.env`/`.env.staging` from the GH secrets above on every deploy, same as the other
+integration keys — but the daily timer itself still runs independently of CI, straight off
+whatever is currently in the droplet's `.env` files.
 
 See **`deploy/RESTORE.md`** for the restore procedure — rehearsable end-to-end against staging via
 the manual-only `test-restore-staging.yml` workflow.

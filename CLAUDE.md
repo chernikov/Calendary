@@ -158,8 +158,10 @@ pipelines build images and push to GHCR (`ghcr.io/<owner>/calendary-backend` /
 `calendary-frontend`) before SSHing into the droplet to `docker compose pull && up -d`. The two
 pipelines are also where `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`,
 `NOVA_POSHTA_API_KEY` (same value both stacks — no sandbox/live split for a read-only lookup),
-and `MONOBANK_MERCHANT_TOKEN`/`MONOBANK_MERCHANT_TOKEN_STAGING` (separate prod/sandbox tokens,
-same `.env`/`.env.staging` variable name) GH secrets get threaded into the droplet's `.env`/`.env.staging`
+`DO_SPACES_KEY`/`DO_SPACES_SECRET`/`DO_SPACES_BUCKET`/`DO_SPACES_REGION`/`RESTIC_PASSWORD` (same
+values both stacks — `deploy/backup.sh` already scopes each stack to its own restic repo path, see
+#305), and `MONOBANK_MERCHANT_TOKEN`/`MONOBANK_MERCHANT_TOKEN_STAGING` (separate prod/sandbox
+tokens, same `.env`/`.env.staging` variable name) GH secrets get threaded into the droplet's `.env`/`.env.staging`
 on every deploy (see README's "Auth" section). The AI provider keys are the one exception: staging
 threads them too, but prod's are a manual one-off `.env` edit (see issue #330) — worth checking
 before assuming any given secret is deploy-automated.
