@@ -34,6 +34,8 @@ public class OrdersController(
             .Include(o => o.PersonalDates)
             .Include(o => o.Sheets).ThenInclude(s => s.Prompt)
             .Include(o => o.Sheets).ThenInclude(s => s.ImageStyle)
+            .Include(o => o.Sheets).ThenInclude(s => s.PinnedPhoto)
+            .Include(o => o.Sheets).ThenInclude(s => s.Variants)
             .Include(o => o.Payment)
             .Include(o => o.Delivery)
             // Photos, Sheets and PersonalDates are sibling collections on the same query — a
@@ -41,6 +43,9 @@ public class OrdersController(
             .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
     }
+
+    private static bool IsValidPhotoId(Order order, Guid? photoId) =>
+        photoId is null || order.Photos.Any(p => p.Id == photoId);
 
     // Expiry only matters while the order is still moving through the funnel — once payment is
     // captured it's fulfillment's problem, not a reason to block anything. Keep in sync with
@@ -189,6 +194,7 @@ public class OrdersController(
         var knownStyles = await db.ImageStyles.Where(s => styleIds.Contains(s.Id)).Select(s => s.Id).ToListAsync();
         if (knownPrompts.Count != promptIds.Count) return BadRequest("Unknown prompt.");
         if (knownStyles.Count != styleIds.Count) return BadRequest("Unknown image style.");
+        if (items.Any(i => !IsValidPhotoId(order, i.PhotoId))) return BadRequest("Unknown photo.");
 
         foreach (var item in items.OrderBy(i => i.Index))
         {
@@ -205,6 +211,7 @@ public class OrdersController(
             }
             sheet.PromptId = item.PromptId;
             sheet.ImageStyleId = item.ImageStyleId;
+            sheet.PinnedPhotoId = item.PhotoId;
         }
 
         order.SetStatus(OrderStatus.DetailsSubmitted);
@@ -258,9 +265,11 @@ public class OrdersController(
         return Ok(order!.ToDto());
     }
 
-    /// Generates one sheet during the planning step (step 3): saves the picked prompt/style on
-    /// the sheet (creating it if needed) and kicks off generation of a single image. Can be
-    /// called repeatedly to re-generate with new picks; does not use the regeneration budget.
+    /// The single customer-facing generation trigger (see #351) — used by the sheet picker modal
+    /// on every page (planning-step tiles, cover, month). A sheet's first-ever variant is free,
+    /// matching the old planning-step behavior; any variant after that costs a regeneration, same
+    /// budget the old dedicated "Перегенерувати" buttons used to spend. Creating a fresh variant
+    /// never touches an already-generated one — see ActivateVariant to switch back to an older one.
     [HttpPost("{orderId:guid}/sheets/{index:int}/generate")]
     public async Task<ActionResult<OrderDto>> GenerateSheet(Guid orderId, int index, GenerateSheetRequest request)
     {
@@ -268,16 +277,19 @@ public class OrdersController(
         if (order is null) return NotFound();
         if (IsExpired(order)) return Conflict("Order has expired.");
         if (index is < 0 or > 12) return BadRequest("Index must be 0 (cover) through 12.");
-        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
+        if (order.Status is OrderStatus.Paid or OrderStatus.Printing or OrderStatus.Shipped
+            or OrderStatus.Delivered or OrderStatus.Cancelled)
         {
-            return Conflict("Sheets can only be generated one-by-one before full generation starts.");
+            return Conflict("Order is no longer editable.");
         }
         if (order.Photos.Count == 0) return Conflict("Upload a photo first.");
+        if (!IsValidPhotoId(order, request.PhotoId)) return BadRequest("Unknown photo.");
 
         if (await db.Prompts.FindAsync(request.PromptId) is null) return BadRequest("Unknown prompt.");
         if (await db.ImageStyles.FindAsync(request.ImageStyleId) is null) return BadRequest("Unknown image style.");
 
         var sheet = order.Sheets.FirstOrDefault(s => s.Index == index);
+        var isAnotherVariant = sheet is { Status: SheetStatus.Ready };
         if (sheet is null)
         {
             sheet = new Sheet
@@ -292,11 +304,50 @@ public class OrdersController(
         {
             return Conflict("This sheet is already generating.");
         }
+
+        if (isAnotherVariant && order.RegenerationsRemaining <= 0)
+        {
+            return Conflict("No regenerations remaining.");
+        }
+
         sheet.PromptId = request.PromptId;
         sheet.ImageStyleId = request.ImageStyleId;
+        sheet.PinnedPhotoId = request.PhotoId;
+        if (isAnotherVariant)
+        {
+            order.RegenerationsRemaining -= 1;
+        }
         await db.SaveChangesAsync();
 
         await generationService.GenerateSheetPreviewAsync(orderId, sheet.Id);
+
+        order = await LoadOwnedOrderAsync(orderId);
+        return Ok(order!.ToDto());
+    }
+
+    /// Restores a previously generated variant as the sheet's active image — no generation, no
+    /// regeneration budget cost, since nothing new is produced (see #351's gallery navigation).
+    [HttpPost("{orderId:guid}/sheets/{sheetId:guid}/variants/{variantId:guid}/activate")]
+    public async Task<ActionResult<OrderDto>> ActivateVariant(Guid orderId, Guid sheetId, Guid variantId)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+        if (order.Status is OrderStatus.Paid or OrderStatus.Printing or OrderStatus.Shipped
+            or OrderStatus.Delivered or OrderStatus.Cancelled)
+        {
+            return Conflict("Order is no longer editable.");
+        }
+
+        var sheet = order.Sheets.FirstOrDefault(s => s.Id == sheetId);
+        if (sheet is null) return NotFound();
+
+        var variant = sheet.Variants.FirstOrDefault(v => v.Id == variantId);
+        if (variant is null) return NotFound();
+
+        sheet.ActiveVariantId = variant.Id;
+        sheet.ImageUrl = variant.ImageUrl;
+        sheet.Status = SheetStatus.Ready;
+        await db.SaveChangesAsync();
 
         order = await LoadOwnedOrderAsync(orderId);
         return Ok(order!.ToDto());
@@ -314,34 +365,6 @@ public class OrdersController(
         }
 
         await generationService.StartOrderGenerationAsync(orderId);
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
-    }
-
-    [HttpPost("{orderId:guid}/sheets/{sheetId:guid}/regenerate")]
-    public async Task<ActionResult<OrderDto>> RegenerateSheet(Guid orderId, Guid sheetId, RegenerateSheetRequest? request)
-    {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        // The user may swap the sheet's prompt/style before regenerating.
-        var sheet = order.Sheets.FirstOrDefault(s => s.Id == sheetId);
-        if (sheet is null) return NotFound();
-        if (request?.PromptId is Guid promptId)
-        {
-            if (await db.Prompts.FindAsync(promptId) is null) return BadRequest("Unknown prompt.");
-            sheet.PromptId = promptId;
-        }
-        if (request?.ImageStyleId is Guid imageStyleId)
-        {
-            if (await db.ImageStyles.FindAsync(imageStyleId) is null) return BadRequest("Unknown image style.");
-            sheet.ImageStyleId = imageStyleId;
-        }
-        await db.SaveChangesAsync();
-
-        var ok = await generationService.RegenerateSheetAsync(orderId, sheetId);
-        if (!ok) return Conflict("No regenerations remaining.");
 
         order = await LoadOwnedOrderAsync(orderId);
         return Ok(order!.ToDto());

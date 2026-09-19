@@ -44,6 +44,7 @@ export interface SheetPlanItem {
   index: number;
   promptId: string;
   imageStyleId: string;
+  photoId?: string;
 }
 
 export interface PersonalDateDto {
@@ -56,6 +57,12 @@ export interface PersonalDateDto {
 export type SheetKind = 'Cover' | 'Month';
 export type SheetStatus = 'Pending' | 'Generating' | 'Ready' | 'Failed';
 
+export interface SheetVariantDto {
+  id: string;
+  imageUrl: string;
+  createdAtUtc: string;
+}
+
 export interface SheetDto {
   id: string;
   kind: SheetKind;
@@ -63,11 +70,13 @@ export interface SheetDto {
   status: SheetStatus;
   isSelected: boolean;
   imageUrl: string | null;
-  variantCount: number;
   promptId: string | null;
   promptName: string | null;
   imageStyleId: string | null;
   imageStyleName: string | null;
+  photoId: string | null;
+  activeVariantId: string | null;
+  variants: SheetVariantDto[];
 }
 
 export interface PaymentDto {

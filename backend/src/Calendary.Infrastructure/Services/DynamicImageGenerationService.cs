@@ -55,7 +55,6 @@ public class DynamicImageGenerationService(
             var sheet = await db.Sheets.FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
             sheet.Status = SheetStatus.Generating;
             sheet.GeneratingStartedAtUtc = DateTime.UtcNow;
-            sheet.VariantCount += 1;
             await db.SaveChangesAsync(ct);
             return;
         }
@@ -95,10 +94,6 @@ public class DynamicImageGenerationService(
             throw new InvalidOperationException("Order does not have a complete sheet plan.");
         }
 
-        foreach (var sheet in sheets)
-        {
-            sheet.VariantCount = 4;
-        }
         order.SetStatus(OrderStatus.Generating);
 
         await db.SaveChangesAsync(ct);
@@ -117,7 +112,6 @@ public class DynamicImageGenerationService(
         order.RegenerationsRemaining -= 1;
         sheet.Status = SheetStatus.Pending;
         sheet.GeneratingStartedAtUtc = null;
-        sheet.VariantCount += 1;
 
         await db.SaveChangesAsync(ct);
         return true;

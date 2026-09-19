@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users => Set<User>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<Sheet> Sheets => Set<Sheet>();
+    public DbSet<SheetVariant> SheetVariants => Set<SheetVariant>();
     public DbSet<OrderPhoto> OrderPhotos => Set<OrderPhoto>();
     public DbSet<PromptTheme> PromptThemes => Set<PromptTheme>();
     public DbSet<Prompt> Prompts => Set<Prompt>();
@@ -90,6 +91,31 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasOne(s => s.ImageStyle)
             .WithMany()
             .HasForeignKey(s => s.ImageStyleId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Sheet>()
+            .HasMany(s => s.Variants)
+            .WithOne(v => v.Sheet)
+            .HasForeignKey(v => v.SheetId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // OrderPhoto is customer-deletable before generation starts — a dangling pin must fall
+        // back to the default photo, not block the delete (unlike Prompt/ImageStyle above).
+        // ClientSetNull (not SetNull) because Orders already cascades to both OrderPhotos and
+        // Sheets directly — a DB-level ON DELETE SET NULL here would be a second cascade path to
+        // Sheets, which SQL Server rejects. EF nulls the FK in-memory instead (LoadOwnedOrderAsync
+        // always loads both Photos and Sheets.PinnedPhoto together, so this fires correctly).
+        modelBuilder.Entity<Sheet>()
+            .HasOne(s => s.PinnedPhoto)
+            .WithMany()
+            .HasForeignKey(s => s.PinnedPhotoId)
+            .OnDelete(DeleteBehavior.ClientSetNull);
+
+        // Variants are never individually deleted, so this is just a plain pointer once set.
+        modelBuilder.Entity<Sheet>()
+            .HasOne(s => s.ActiveVariant)
+            .WithMany()
+            .HasForeignKey(s => s.ActiveVariantId)
             .OnDelete(DeleteBehavior.Restrict);
 
         SeedPromptLibrary(modelBuilder);

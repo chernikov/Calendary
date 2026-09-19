@@ -12,16 +12,18 @@ public record PromptDto(Guid Id, Guid PromptThemeId, string Name, string Text, s
 public record ImageStyleDto(Guid Id, string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
 public record PromptLibraryDto(IReadOnlyList<PromptThemeDto> Themes, IReadOnlyList<ImageStyleDto> Styles);
 
-public record SheetPlanItem(int Index, Guid PromptId, Guid ImageStyleId);
+public record SheetPlanItem(int Index, Guid PromptId, Guid ImageStyleId, Guid? PhotoId);
 public record SaveSheetPlanRequest(IReadOnlyList<SheetPlanItem> Items);
-public record RegenerateSheetRequest(Guid? PromptId, Guid? ImageStyleId);
 
 public record AddPersonalDateRequest(int Day, int Month, string Label);
 public record PersonalDateDto(Guid Id, int Day, int Month, string Label);
 
+public record SheetVariantDto(Guid Id, string ImageUrl, DateTime CreatedAtUtc);
+
 public record SheetDto(
-    Guid Id, string Kind, int Index, string Status, bool IsSelected, string? ImageUrl, int VariantCount,
-    Guid? PromptId, string? PromptName, Guid? ImageStyleId, string? ImageStyleName);
+    Guid Id, string Kind, int Index, string Status, bool IsSelected, string? ImageUrl,
+    Guid? PromptId, string? PromptName, Guid? ImageStyleId, string? ImageStyleName,
+    Guid? PhotoId, Guid? ActiveVariantId, IReadOnlyList<SheetVariantDto> Variants);
 public record ConfirmCoverRequest(Guid SheetId);
 
 public record CheckoutRequest(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);
@@ -88,4 +90,4 @@ public record SavePromptThemeRequest(string Name, string Description, int SortOr
 public record SavePromptRequest(Guid PromptThemeId, string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
 public record SaveImageStyleRequest(string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
 
-public record GenerateSheetRequest(Guid PromptId, Guid ImageStyleId);
+public record GenerateSheetRequest(Guid PromptId, Guid ImageStyleId, Guid? PhotoId);
