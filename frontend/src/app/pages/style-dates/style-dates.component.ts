@@ -251,9 +251,18 @@ interface PlanRow {
         </details>
       </div>
 
+      @if (!planComplete()) {
+        <p class="text-muted" style="font-size: 12.5px; margin-top: var(--space-4);">
+          Оберіть образ і стиль для обкладинки та кожного місяця, щоб почати генерацію.
+        </p>
+      }
+      @if (error() && !selectedMonth()) {
+        <p style="color: var(--color-accent-2-700); font-size: 13px; margin-top: var(--space-2);">{{ error() }}</p>
+      }
+
       <button
         class="btn btn-primary btn-block"
-        style="max-width: 320px; margin-top: var(--space-4);"
+        style="max-width: 320px; margin-top: var(--space-2);"
         [disabled]="!planComplete() || loading()"
         (click)="startGeneration()"
       >
