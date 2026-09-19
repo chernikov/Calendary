@@ -1,0 +1,23 @@
+name: Backup now (staging)
+
+# Manual only — never runs automatically (the daily calendary-backup.timer systemd unit on the
+# droplet already handles the schedule, see bootstrap.sh). One-click out-of-band backup of the
+# staging stack (DB + media) between the timer's ticks, without needing droplet SSH access.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run deploy/backup.sh --target staging on the droplet
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd /opt/calendary
+            chmod +x backup.sh
+            ./backup.sh --target staging

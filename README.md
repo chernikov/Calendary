@@ -181,12 +181,18 @@ threaded into `.env`/`.env.staging` from the GH secrets above on every deploy, s
 integration keys — but the daily timer itself still runs independently of CI, straight off
 whatever is currently in the droplet's `.env` files.
 
-See **`deploy/RESTORE.md`** for the restore procedure — rehearsable end-to-end against staging via
-the manual-only `restore-staging.yml` workflow. To run a backup on demand between the daily
-timer's ticks, trigger `backup.yml` (`target: all|prod|staging`, `quick: bool`) — no droplet SSH
-access needed:
+See **`deploy/RESTORE.md`** for the restore procedure. Four manual-only, parameter-free workflows
+cover on-demand backup/restore without needing droplet SSH access:
+
+| Workflow | What it does |
+| --- | --- |
+| `backup-prod.yml` / `backup-staging.yml` | Full backup (DB + media) of one stack, right now |
+| `restore-staging.yml` | Rehearses the restore procedure against staging — safe anytime |
+| `restore-prod.yml` | Restores the latest backup over **live prod** — requires typing `restore-prod` into the `confirm` input |
+
 ```bash
-gh workflow run backup.yml -f target=staging -f quick=false
+gh workflow run backup-staging.yml
+gh workflow run restore-prod.yml -f confirm=restore-prod
 ```
 
 ## Known gaps vs. the full design doc
