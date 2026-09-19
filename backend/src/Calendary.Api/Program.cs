@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,7 @@ builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection(Resen
 builder.Services.Configure<MonobankOptions>(builder.Configuration.GetSection(MonobankOptions.SectionName));
 builder.Services.Configure<NovaPoshtaOptions>(builder.Configuration.GetSection(NovaPoshtaOptions.SectionName));
 builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection(BackupOptions.SectionName));
+builder.Services.Configure<AdminSeedOptions>(builder.Configuration.GetSection(AdminSeedOptions.SectionName));
 builder.Services.AddScoped<IBackupStatusService, ResticBackupStatusService>();
 
 builder.Services.AddHostedService<FulfillmentBackgroundService>();
@@ -62,6 +64,11 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+
+    await AdminSeeder.EnsureAdminUserAsync(
+        db,
+        scope.ServiceProvider.GetRequiredService<IOptions<AdminSeedOptions>>().Value,
+        scope.ServiceProvider.GetRequiredService<ILogger<Program>>());
 
     await MediaMigrator.ConvertInlineImagesAsync(
         db,

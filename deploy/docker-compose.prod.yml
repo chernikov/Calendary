@@ -36,6 +36,9 @@ services:
       Resend__ApiKey: "${RESEND_API_KEY:-}"
       Monobank__MerchantToken: "${MONOBANK_MERCHANT_TOKEN:-}"
       NovaPoshta__ApiKey: "${NOVA_POSHTA_API_KEY:-}"
+      # Guarantees an admin account always exists (AdminSeeder, runs at startup) — no environment
+      # should ever need a manual DB UPDATE to get admin access.
+      AdminSeed__Password: "${ADMIN_PASSWORD:-}"
       # Read-only admin backup-status view (ResticBackupStatusService) — same values backup.sh
       # itself reads from this file; the backend never writes to this repository.
       Backup__DoSpacesKey: "${DO_SPACES_KEY:-}"
