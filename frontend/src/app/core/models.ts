@@ -165,6 +165,14 @@ export interface AdminUserDto {
 
 export type ImageGenerationProvider = 'Mock' | 'OpenAI' | 'Gemini';
 
+export interface ConfigStatusDto {
+  openAiConfigured: boolean;
+  geminiConfigured: boolean;
+  googleConfigured: boolean;
+  resendConfigured: boolean;
+  monobankConfigured: boolean;
+}
+
 export interface SavePromptThemePayload {
   id?: string;
   name: string;

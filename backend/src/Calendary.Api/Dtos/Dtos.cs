@@ -71,6 +71,14 @@ public record AdminUserDto(
 public record SetImageGenerationProviderRequest(string Provider);
 public record ImageGenerationProviderDto(string Provider);
 
+// Presence-only — never expose the actual key/secret values to the admin UI.
+public record ConfigStatusDto(
+    bool OpenAiConfigured,
+    bool GeminiConfigured,
+    bool GoogleConfigured,
+    bool ResendConfigured,
+    bool MonobankConfigured);
+
 public record SavePromptThemeRequest(string Name, string Description, int SortOrder);
 public record SavePromptRequest(Guid PromptThemeId, string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
 public record SaveImageStyleRequest(string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);

@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import {
   AdminOrderSummaryDto,
   AdminUserDto,
+  ConfigStatusDto,
   ImageGenerationProvider,
   ImageStyleDto,
   OrderDto,
@@ -55,6 +56,10 @@ export class AdminService {
 
   setAiProvider(provider: ImageGenerationProvider): Observable<{ provider: ImageGenerationProvider }> {
     return this.http.put<{ provider: ImageGenerationProvider }>(`${BASE}/settings/ai-provider`, { provider });
+  }
+
+  getConfigStatus(): Observable<ConfigStatusDto> {
+    return this.http.get<ConfigStatusDto>(`${BASE}/settings/config-status`);
   }
 
   listPromptThemes(): Observable<PromptThemeDto[]> {

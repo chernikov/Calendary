@@ -30,6 +30,7 @@ builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(GoogleOptions.SectionName));
 builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
 builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection(ResendOptions.SectionName));
+builder.Services.Configure<MonobankOptions>(builder.Configuration.GetSection(MonobankOptions.SectionName));
 
 builder.Services.AddHostedService<FulfillmentBackgroundService>();
 builder.Services.AddHostedService<GenerationBackgroundService>();

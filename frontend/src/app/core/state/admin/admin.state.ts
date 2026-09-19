@@ -1,6 +1,7 @@
 import {
   AdminOrderSummaryDto,
   AdminUserDto,
+  ConfigStatusDto,
   ImageGenerationProvider,
   ImageStyleDto,
   OrderDto,
@@ -13,6 +14,7 @@ export interface AdminState {
   users: PagedResult<AdminUserDto> | null;
   selectedOrder: OrderDto | null;
   aiProvider: ImageGenerationProvider | null;
+  configStatus: ConfigStatusDto | null;
   promptThemes: PromptThemeDto[];
   imageStyles: ImageStyleDto[];
   busy: boolean;
@@ -24,6 +26,7 @@ export const initialAdminState: AdminState = {
   users: null,
   selectedOrder: null,
   aiProvider: null,
+  configStatus: null,
   promptThemes: [],
   imageStyles: [],
   busy: false,
