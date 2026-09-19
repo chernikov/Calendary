@@ -79,6 +79,9 @@ public record ConfigStatusDto(
     bool ResendConfigured,
     bool MonobankConfigured);
 
+public record BackupSnapshotDto(DateTime TimeUtc, IReadOnlyList<string> Tags);
+public record BackupStatusDto(bool Configured, IReadOnlyList<BackupSnapshotDto> Snapshots);
+
 public record SavePromptThemeRequest(string Name, string Description, int SortOrder);
 public record SavePromptRequest(Guid PromptThemeId, string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
 public record SaveImageStyleRequest(string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);

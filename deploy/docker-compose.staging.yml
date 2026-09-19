@@ -35,6 +35,13 @@ services:
       Resend__ApiKey: "${RESEND_API_KEY:-}"
       Monobank__MerchantToken: "${MONOBANK_MERCHANT_TOKEN:-}"
       NovaPoshta__ApiKey: "${NOVA_POSHTA_API_KEY:-}"
+      # Read-only admin backup-status view (ResticBackupStatusService) — same values backup.sh
+      # itself reads from this file; the backend never writes to this repository.
+      Backup__DoSpacesKey: "${DO_SPACES_KEY:-}"
+      Backup__DoSpacesSecret: "${DO_SPACES_SECRET:-}"
+      Backup__DoSpacesBucket: "${DO_SPACES_BUCKET:-}"
+      Backup__DoSpacesRegion: "${DO_SPACES_REGION:-}"
+      Backup__ResticPassword: "${RESTIC_PASSWORD:-}"
     volumes:
       - media-staging-data:/app/App_Data/media
     depends_on:

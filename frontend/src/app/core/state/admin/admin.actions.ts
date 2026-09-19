@@ -2,6 +2,7 @@ import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import {
   AdminOrderSummaryDto,
   AdminUserDto,
+  BackupStatusDto,
   ConfigStatusDto,
   ImageGenerationProvider,
   ImageStyleDto,
@@ -47,6 +48,10 @@ export const AdminActions = createActionGroup({
     'Load Config Status': emptyProps(),
     'Load Config Status Success': props<{ status: ConfigStatusDto }>(),
     'Load Config Status Failure': props<{ error: string }>(),
+
+    'Load Backup Status': emptyProps(),
+    'Load Backup Status Success': props<{ status: BackupStatusDto }>(),
+    'Load Backup Status Failure': props<{ error: string }>(),
 
     'Load Prompt Themes': emptyProps(),
     'Load Prompt Themes Success': props<{ themes: PromptThemeDto[] }>(),

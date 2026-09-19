@@ -32,6 +32,8 @@ builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
 builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection(ResendOptions.SectionName));
 builder.Services.Configure<MonobankOptions>(builder.Configuration.GetSection(MonobankOptions.SectionName));
 builder.Services.Configure<NovaPoshtaOptions>(builder.Configuration.GetSection(NovaPoshtaOptions.SectionName));
+builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection(BackupOptions.SectionName));
+builder.Services.AddScoped<IBackupStatusService, ResticBackupStatusService>();
 
 builder.Services.AddHostedService<FulfillmentBackgroundService>();
 builder.Services.AddHostedService<GenerationBackgroundService>();

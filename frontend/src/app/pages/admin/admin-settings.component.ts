@@ -1,16 +1,22 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { AdminActions, selectAdminAiProvider, selectAdminConfigStatus } from '../../core/state/admin';
+import {
+  AdminActions,
+  selectAdminAiProvider,
+  selectAdminBackupStatus,
+  selectAdminConfigStatus,
+} from '../../core/state/admin';
 import { ImageGenerationProvider } from '../../core/models';
 
 @Component({
   selector: 'app-admin-settings',
   standalone: true,
-  imports: [FormsModule, NzRadioModule, NzAlertModule, NzTagModule],
+  imports: [FormsModule, NzRadioModule, NzAlertModule, NzTagModule, DatePipe],
   template: `
     <h2>Налаштування генерації</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
@@ -65,17 +71,44 @@ import { ImageGenerationProvider } from '../../core/models';
         </tbody>
       </table>
     }
+
+    <h2 style="margin-top: 32px;">Бекапи</h2>
+    <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
+      Read-only перегляд снепшотів restic (deploy/backup.sh). Запуск бекапу звідси не передбачений
+      — лише через systemd-таймер на дроплеті.
+    </p>
+
+    @if (backupStatus(); as status) {
+      @if (!status.configured) {
+        <p class="text-muted">Не налаштовано (немає DO_SPACES_KEY/RESTIC_PASSWORD у .env).</p>
+      } @else if (status.snapshots.length === 0) {
+        <p class="text-muted">Налаштовано, але жодного снепшота ще не знайдено.</p>
+      } @else {
+        <table style="border-collapse: collapse; max-width: 480px;">
+          <tbody>
+            @for (s of status.snapshots; track s.timeUtc) {
+              <tr>
+                <td style="padding: 6px 16px 6px 0;">{{ s.timeUtc | date: 'dd.MM.yyyy HH:mm' }}</td>
+                <td style="padding: 6px 0; color: rgba(0, 0, 0, 0.45);">{{ s.tags.join(', ') }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    }
   `,
 })
 export class AdminSettingsComponent implements OnInit {
   private readonly store = inject(Store);
   readonly provider = this.store.selectSignal(selectAdminAiProvider);
   readonly configStatus = this.store.selectSignal(selectAdminConfigStatus);
+  readonly backupStatus = this.store.selectSignal(selectAdminBackupStatus);
   justChanged = false;
 
   ngOnInit(): void {
     this.store.dispatch(AdminActions.loadAiProvider());
     this.store.dispatch(AdminActions.loadConfigStatus());
+    this.store.dispatch(AdminActions.loadBackupStatus());
   }
 
   onChange(provider: ImageGenerationProvider): void {

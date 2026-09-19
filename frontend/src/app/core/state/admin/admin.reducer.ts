@@ -43,6 +43,7 @@ export const adminReducer = createReducer(
   })),
 
   on(AdminActions.loadConfigStatusSuccess, (state, { status }) => ({ ...state, configStatus: status, error: null })),
+  on(AdminActions.loadBackupStatusSuccess, (state, { status }) => ({ ...state, backupStatus: status, error: null })),
 
   on(AdminActions.loadPromptThemesSuccess, (state, { themes }) => ({
     ...state,
@@ -67,6 +68,7 @@ export const adminReducer = createReducer(
     AdminActions.loadAiProviderFailure,
     AdminActions.setAiProviderFailure,
     AdminActions.loadConfigStatusFailure,
+    AdminActions.loadBackupStatusFailure,
     AdminActions.loadPromptThemesFailure,
     AdminActions.loadImageStylesFailure,
     AdminActions.promptLibraryMutationFailure,

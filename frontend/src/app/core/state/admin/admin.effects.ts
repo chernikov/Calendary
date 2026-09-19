@@ -106,6 +106,18 @@ export class AdminEffects {
     ),
   );
 
+  loadBackupStatus$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadBackupStatus),
+      switchMap(() =>
+        this.admin.getBackupStatus().pipe(
+          map((status) => AdminActions.loadBackupStatusSuccess({ status })),
+          catchError(() => of(AdminActions.loadBackupStatusFailure({ error: 'Не вдалося перевірити бекапи.' }))),
+        ),
+      ),
+    ),
+  );
+
   loadPromptThemes$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.loadPromptThemes),
