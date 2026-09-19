@@ -162,7 +162,9 @@ pipelines are also where `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `RESEND_API_
 `DO_SPACES_BUCKET`/`DO_SPACES_BUCKET_STAGING` (separate buckets per stack — `deploy/backup.sh`
 also scopes each stack to its own restic repo path within its bucket regardless, see #305), and
 `MONOBANK_MERCHANT_TOKEN`/`MONOBANK_MERCHANT_TOKEN_STAGING` (separate prod/sandbox
-tokens, same `.env`/`.env.staging` variable name) GH secrets get threaded into the droplet's `.env`/`.env.staging`
+tokens, same `.env`/`.env.staging` variable name), and `ADMIN_PASSWORD`/`ADMIN_PASSWORD_STAGING`
+(separate passwords, same `.env`/`.env.staging` variable name — see `AdminSeeder` below) GH
+secrets get threaded into the droplet's `.env`/`.env.staging`
 on every deploy (see README's "Auth" section). The AI provider keys are the one exception: staging
 threads them too, but prod's are a manual one-off `.env` edit (see issue #330) — worth checking
 before assuming any given secret is deploy-automated.
@@ -188,3 +190,12 @@ triggering the right one from the GitHub UI needs no memorized flags:
   phrase `restore-prod` into the `confirm` input or the job aborts before touching the droplet —
   this overwrites real customer data and briefly interrupts the site (`SINGLE_USER` during
   `RESTORE DATABASE`, backend stopped while media is untarred).
+
+**Admin login**: `AdminSeeder` (`backend/src/Calendary.Infrastructure/Services/AdminSeeder.cs`)
+runs at startup, right after `db.Database.Migrate()`, and unconditionally re-hashes/writes
+`admin@calendary.com.ua` with `Role = Admin` from `AdminSeed:Password` (the `ADMIN_PASSWORD`/
+`ADMIN_PASSWORD_STAGING` env vars) — config is the source of truth every single startup, so
+rotating the GH secret and redeploying changes the live password with no DB access needed. If the
+password env var is unset, seeding is skipped (logged warning) rather than creating an account
+with an empty/guessable password — meaning a fresh environment with no `ADMIN_PASSWORD` set has
+*no* admin account at all until the secret is provided.
