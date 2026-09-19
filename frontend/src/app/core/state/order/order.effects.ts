@@ -64,6 +64,18 @@ export class OrderEffects {
     ),
   );
 
+  loadHolidays$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.loadHolidays),
+      switchMap(({ year }) =>
+        this.orders.listHolidays(year).pipe(
+          map((holidays) => OrderActions.loadHolidaysSuccess({ holidays })),
+          catchError(() => of(OrderActions.loadHolidaysFailure({ error: 'Не вдалося завантажити свята.' }))),
+        ),
+      ),
+    ),
+  );
+
   createOrderWithPhoto$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.createOrderWithPhoto),

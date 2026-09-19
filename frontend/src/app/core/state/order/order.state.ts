@@ -1,9 +1,10 @@
-import { NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, PromptLibraryDto } from '../../models';
+import { HolidayDto, NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, PromptLibraryDto } from '../../models';
 
 export interface OrderState {
   order: OrderDto | null;
   myOrders: OrderSummaryDto[];
   promptLibrary: PromptLibraryDto | null;
+  holidays: HolidayDto[];
   cities: string[];
   warehouses: NovaPoshtaWarehouseDto[];
   busy: boolean;
@@ -15,6 +16,7 @@ export const initialOrderState: OrderState = {
   order: null,
   myOrders: [],
   promptLibrary: null,
+  holidays: [],
   cities: [],
   warehouses: [],
   busy: false,

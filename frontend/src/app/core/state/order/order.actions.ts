@@ -1,5 +1,5 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, PromptLibraryDto, SheetPlanItem } from '../../models';
+import { HolidayDto, NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, PromptLibraryDto, SheetPlanItem } from '../../models';
 
 export const OrderActions = createActionGroup({
   source: 'Order',
@@ -18,6 +18,10 @@ export const OrderActions = createActionGroup({
     'Load Prompt Library': emptyProps(),
     'Load Prompt Library Success': props<{ library: PromptLibraryDto }>(),
     'Load Prompt Library Failure': props<{ error: string }>(),
+
+    'Load Holidays': props<{ year: number }>(),
+    'Load Holidays Success': props<{ holidays: HolidayDto[] }>(),
+    'Load Holidays Failure': props<{ error: string }>(),
 
     // The order isn't created until a photo is actually attached — see #348.
     'Create Order With Photo': props<{ photo: File }>(),

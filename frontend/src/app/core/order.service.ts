@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  HolidayDto,
   NovaPoshtaWarehouseDto,
   OrderDto,
   OrderSummaryDto,
@@ -18,6 +19,13 @@ export class OrderService {
 
   promptLibrary(): Observable<PromptLibraryDto> {
     return this.http.get<PromptLibraryDto>(`${BASE}/prompt-library`);
+  }
+
+  // Fetches every country's holidays for the year in one call — the style-dates step filters
+  // client-side by the customer's current country selection, so toggling a checkbox updates the
+  // calendar preview instantly (see #366).
+  listHolidays(year: number): Observable<HolidayDto[]> {
+    return this.http.get<HolidayDto[]>(`${BASE}/holidays`, { params: { year } });
   }
 
   // The order isn't created until a photo is actually attached — see #348.

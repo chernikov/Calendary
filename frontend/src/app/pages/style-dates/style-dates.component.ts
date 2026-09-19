@@ -6,12 +6,13 @@ import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
 import {
   OrderActions,
+  selectHolidays,
   selectOrder,
   selectOrderBusy,
   selectOrderError,
   selectPromptLibrary,
 } from '../../core/state/order';
-import { SheetDto, SheetPlanItem } from '../../core/models';
+import { HolidayDto, SheetDto, SheetPlanItem } from '../../core/models';
 import { ImageLightboxComponent } from '../../shared/image-lightbox.component';
 import { SheetPickerModalComponent } from './sheet-picker-modal.component';
 
@@ -112,7 +113,7 @@ interface PlanRow {
           <button
             type="button"
             class="month-tile"
-            [class.has-dates]="datesForMonth(m.number).length > 0"
+            [class.has-dates]="datesForMonth(m.number).length > 0 || holidaysForMonth(m.number).length > 0"
             (click)="openMonth(m.number)"
           >
             <div class="month-tile-name">{{ m.name }}</div>
@@ -124,7 +125,8 @@ interface PlanRow {
                   <span
                     class="tile-calendar-day"
                     [class.has-date]="hasDate(m.number, day)"
-                    [title]="labelForDay(m.number, day)"
+                    [class.has-holiday]="hasHoliday(m.number, day)"
+                    [title]="cellTitle(m.number, day)"
                   >
                     {{ day }}
                   </span>
@@ -154,6 +156,19 @@ interface PlanRow {
               </div>
             }
 
+            @if (holidaysForMonth(month).length) {
+              <div>
+                @for (holiday of holidaysForMonth(month); track holiday.id) {
+                  <div style="display: flex; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--color-divider);">
+                    <span class="money" style="font-size: 13px; color: var(--color-accent-2-700); width: 30px; flex: none;">
+                      {{ pad(holiday.day) }}
+                    </span>
+                    <span style="font-size: 13px; flex: 1; color: var(--color-accent-2-700);">{{ holiday.name }}</span>
+                  </div>
+                }
+              </div>
+            }
+
             <div class="calendar-grid">
               @for (w of weekdays; track w) {
                 <div class="calendar-weekday">{{ w }}</div>
@@ -166,7 +181,9 @@ interface PlanRow {
                     type="button"
                     class="calendar-day"
                     [class.has-date]="hasDate(month, day)"
+                    [class.has-holiday]="hasHoliday(month, day)"
                     [class.selected]="newDay === day"
+                    [title]="cellTitle(month, day)"
                     (click)="selectDay(day)"
                   >
                     {{ day }}
@@ -192,22 +209,27 @@ interface PlanRow {
         </div>
       }
 
-      <div class="field" style="margin-top: var(--space-4); max-width: 480px;">
-        <label>Свята в календарі</label>
-        <div class="checkbox-row">
-          @for (c of holidayCountryOptions; track c.value) {
-            <label class="checkbox-chip">
-              <input
-                type="checkbox"
-                [checked]="isCountrySelected(c.value)"
-                (change)="toggleCountry(c.value, $event)"
-              />
-              {{ c.label }}
-            </label>
-          }
-        </div>
+      <div style="margin-top: var(--space-4); max-width: 480px;">
+        <span style="display: block; font-size: 12px; margin-bottom: 5px; color: color-mix(in srgb, var(--color-text) 70%, transparent);">
+          Свята в календарі
+        </span>
+        <details class="select-dropdown">
+          <summary>{{ selectedCountriesLabel() }}</summary>
+          <div class="checkbox-row" style="padding: 10px; border-top: 1px solid var(--color-divider);">
+            @for (c of holidayCountryOptions; track c.value) {
+              <label class="checkbox-chip">
+                <input
+                  type="checkbox"
+                  [checked]="isCountrySelected(c.value)"
+                  (change)="toggleCountry(c.value, $event)"
+                />
+                {{ c.label }}
+              </label>
+            }
+          </div>
+        </details>
 
-        <details class="disclosure">
+        <details class="disclosure" style="margin-top: var(--space-3);">
           <summary>Додаткові налаштування</summary>
           <div style="margin-top: var(--space-2);">
             <span style="display: block; font-size: 12px; margin-bottom: 5px; color: color-mix(in srgb, var(--color-text) 70%, transparent);">
@@ -248,6 +270,7 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   readonly library = this.store.selectSignal(selectPromptLibrary);
   readonly order = this.store.selectSignal(selectOrder);
+  readonly holidays = this.store.selectSignal(selectHolidays);
   readonly loading = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
   readonly selectedMonth = signal<number | null>(null);
@@ -325,6 +348,9 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.store.dispatch(OrderActions.loadPromptLibrary());
+    // Fetched once for every country and filtered client-side (see holidaysForMonth) so toggling
+    // a country checkbox updates the calendar preview instantly, no extra round trip (see #366).
+    this.store.dispatch(OrderActions.loadHolidays({ year: this.calendarYear }));
     // Poll while on this page — per-card generation completes in the background.
     this.store.dispatch(OrderActions.startOrderPolling({ orderId: this.orderId, intervalMs: 2000 }));
   }
@@ -441,6 +467,35 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
       .filter((d) => d.day === day)
       .map((d) => d.label)
       .join(', ');
+  }
+
+  // Only the currently-checked countries' holidays — recomputes live as toggleCountry flips the
+  // order's holidayCountries, so the preview updates the instant a checkbox changes (see #366).
+  holidaysForMonth(month: number): HolidayDto[] {
+    const countries = this.order()?.holidayCountries ?? [];
+    return this.holidays().filter((h) => h.month === month && countries.includes(h.country));
+  }
+
+  // A personal date takes visual priority over a holiday landing on the same day.
+  hasHoliday(month: number, day: number): boolean {
+    return !this.hasDate(month, day) && this.holidaysForMonth(month).some((h) => h.day === day);
+  }
+
+  holidayLabelForDay(month: number, day: number): string {
+    return this.holidaysForMonth(month)
+      .filter((h) => h.day === day)
+      .map((h) => h.name)
+      .join(', ');
+  }
+
+  // Combined tooltip for a day cell — personal date label, holiday name, or both.
+  cellTitle(month: number, day: number): string {
+    return [this.labelForDay(month, day), this.holidayLabelForDay(month, day)].filter(Boolean).join(' • ');
+  }
+
+  selectedCountriesLabel(): string {
+    const selected = this.holidayCountryOptions.filter((c) => this.isCountrySelected(c.value));
+    return selected.length ? selected.map((c) => c.label).join(', ') : 'Не обрано';
   }
 
   selectDay(day: number): void {

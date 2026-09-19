@@ -15,6 +15,9 @@ export const orderReducer = createReducer(
   on(OrderActions.loadPromptLibrarySuccess, (state, { library }) => ({ ...state, promptLibrary: library })),
   on(OrderActions.loadPromptLibraryFailure, (state, { error }) => ({ ...state, error })),
 
+  on(OrderActions.loadHolidaysSuccess, (state, { holidays }) => ({ ...state, holidays })),
+  on(OrderActions.loadHolidaysFailure, (state, { error }) => ({ ...state, error })),
+
   on(
     OrderActions.createOrderWithPhoto,
     OrderActions.addOrderPhoto,
