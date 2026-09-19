@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
 import {
@@ -18,10 +18,19 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   template: `
     <div class="page page-narrow">
       @if (order(); as o) {
+        <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-2); font-size: 13.5px;">
+          <a [routerLink]="['/order', o.id, 'review']" style="display: inline-flex; align-items: center; gap: 4px;">
+            ← До перегляду
+          </a>
+          <a [routerLink]="['/order', o.id, 'style']" style="display: inline-flex; align-items: center; gap: 4px;">
+            Змінити образи
+          </a>
+        </div>
+
         <h2 style="font-size: 28px;">Куди доставити</h2>
         <p class="text-muted">Доставка Новою поштою входить у ціну.</p>
 
