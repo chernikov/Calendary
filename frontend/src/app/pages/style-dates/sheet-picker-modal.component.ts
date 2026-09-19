@@ -1,5 +1,6 @@
 import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges, signal } from '@angular/core';
 import { ImageStyleDto, OrderPhotoDto, PromptDto, PromptLibraryDto, SheetStatus, SheetVariantDto } from '../../core/models';
+import { ImageLightboxComponent } from '../../shared/image-lightbox.component';
 
 type PickerTab = 'photo' | 'style' | 'prompt';
 
@@ -17,30 +18,30 @@ type PickerTab = 'photo' | 'style' | 'prompt';
           <div class="dialog-title">{{ sheetName }}</div>
 
           <div class="sheet-summary">
-            <div class="sheet-summary-chip">
+            <button type="button" class="sheet-summary-chip" (click)="activeTab.set('photo')">
               @if (selectedPhoto(); as p) {
                 <img [src]="p.thumbUrl" alt="Фото" />
               } @else {
                 <div class="swatch"></div>
               }
               <span>Фото</span>
-            </div>
-            <div class="sheet-summary-chip">
+            </button>
+            <button type="button" class="sheet-summary-chip" (click)="activeTab.set('style')">
               @if (selectedStyleImage(); as src) {
                 <img [src]="src" alt="Стиль" />
               } @else {
                 <div class="swatch"></div>
               }
               <span>{{ styleName() || 'Стиль' }}</span>
-            </div>
-            <div class="sheet-summary-chip">
+            </button>
+            <button type="button" class="sheet-summary-chip" (click)="activeTab.set('prompt')">
               @if (selectedPromptImage(); as src) {
                 <img [src]="src" alt="Персонаж" />
               } @else {
                 <div class="swatch"></div>
               }
               <span>{{ promptName() || 'Персонаж' }}</span>
-            </div>
+            </button>
           </div>
 
           <div class="sheet-tabs">
@@ -57,7 +58,11 @@ type PickerTab = 'photo' | 'style' | 'prompt';
                 [class.selected]="!photoId()"
                 (click)="photoId.set('')"
               >
-                <div class="swatch" style="aspect-ratio: 4/5;"></div>
+                @if (photos[0]; as first) {
+                  <img [src]="first.thumbUrl" alt="Перше завантажене фото" />
+                } @else {
+                  <div class="swatch" style="aspect-ratio: 4/5;"></div>
+                }
                 <span class="picker-item-name">За замовчуванням</span>
                 <span class="picker-item-desc">Перше завантажене фото</span>
               </button>
@@ -117,7 +122,8 @@ type PickerTab = 'photo' | 'style' | 'prompt';
               <span class="text-muted">Генерується…</span>
             } @else {
               @if (viewedVariant(); as v) {
-                <img [src]="v.imageUrl" alt="Згенероване зображення" />
+                <img [src]="v.imageUrl" alt="Згенероване зображення" (click)="zoomUrl.set(v.imageUrl)" />
+                <button type="button" class="zoom-trigger" (click)="zoomUrl.set(v.imageUrl)">⤢</button>
                 @if (variants.length > 1) {
                   <button type="button" class="sheet-preview-arrow prev" [disabled]="viewedIndex() === 0" (click)="showPrevVariant()">‹</button>
                   <button type="button" class="sheet-preview-arrow next" [disabled]="viewedIndex() === variants.length - 1" (click)="showNextVariant()">›</button>
@@ -169,8 +175,13 @@ type PickerTab = 'photo' | 'style' | 'prompt';
           </div>
         </div>
       </div>
+
+      @if (zoomUrl(); as z) {
+        <app-image-lightbox [url]="z" (closed)="zoomUrl.set(null)" />
+      }
     </div>
   `,
+  imports: [ImageLightboxComponent],
 })
 export class SheetPickerModalComponent implements OnInit, OnChanges {
   @Input({ required: true }) sheetName!: string;
@@ -193,6 +204,7 @@ export class SheetPickerModalComponent implements OnInit, OnChanges {
   readonly styleId = signal('');
   readonly photoId = signal('');
   readonly viewedIndex = signal(0);
+  readonly zoomUrl = signal<string | null>(null);
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
@@ -216,8 +228,10 @@ export class SheetPickerModalComponent implements OnInit, OnChanges {
     }
   }
 
+  // Empty photoId means "use the default" — the first uploaded photo, not "no photo" — so the
+  // summary/preview should actually show it, not a blank swatch.
   selectedPhoto(): OrderPhotoDto | undefined {
-    return this.photos.find((p) => p.id === this.photoId());
+    return this.photoId() ? this.photos.find((p) => p.id === this.photoId()) : this.photos[0];
   }
 
   styleName(): string {
