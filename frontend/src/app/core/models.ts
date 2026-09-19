@@ -236,6 +236,7 @@ export interface HolidayDto {
   day: number;
   month: number;
   name: string;
+  shortName: string;
 }
 
 export interface SaveHolidayPayload {
@@ -245,4 +246,5 @@ export interface SaveHolidayPayload {
   day: number;
   month: number;
   name: string;
+  shortName: string;
 }

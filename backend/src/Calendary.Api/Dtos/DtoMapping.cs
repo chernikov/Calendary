@@ -34,7 +34,7 @@ public static class DtoMapping
     public static DeliveryDto ToDto(this Delivery d) => new(
         d.RecipientName, d.Phone, d.City, d.WarehouseNumber, d.WarehouseAddress, d.TrackingNumber);
 
-    public static HolidayDto ToDto(this Holiday h) => new(h.Id, h.Country.ToString(), h.Year, h.Day, h.Month, h.Name);
+    public static HolidayDto ToDto(this Holiday h) => new(h.Id, h.Country.ToString(), h.Year, h.Day, h.Month, h.Name, h.ShortName);
 
     public static OrderDto ToDto(this Order o) => new(
         o.Id,

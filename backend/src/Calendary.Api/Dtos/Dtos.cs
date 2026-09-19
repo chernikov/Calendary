@@ -95,7 +95,7 @@ public record SaveImageStyleRequest(string Name, string Text, string Description
 
 public record GenerateSheetRequest(Guid PromptId, Guid ImageStyleId, Guid? PhotoId);
 
-public record HolidayDto(Guid Id, string Country, int Year, int Day, int Month, string Name);
-public record SaveHolidayRequest(string Country, int Year, int Day, int Month, string Name);
+public record HolidayDto(Guid Id, string Country, int Year, int Day, int Month, string Name, string ShortName);
+public record SaveHolidayRequest(string Country, int Year, int Day, int Month, string Name, string ShortName);
 
 public record SaveHolidaySettingsRequest(IReadOnlyList<string> Countries, string WeekStart);

@@ -376,7 +376,8 @@ public class AdminController(
             Year = request.Year,
             Month = request.Month,
             Day = request.Day,
-            Name = request.Name.Trim()
+            Name = request.Name.Trim(),
+            ShortName = request.ShortName.Trim()
         };
         db.Holidays.Add(holiday);
         await db.SaveChangesAsync();
@@ -395,6 +396,7 @@ public class AdminController(
         holiday.Month = request.Month;
         holiday.Day = request.Day;
         holiday.Name = request.Name.Trim();
+        holiday.ShortName = request.ShortName.Trim();
         await db.SaveChangesAsync();
         return Ok(holiday.ToDto());
     }
@@ -419,6 +421,11 @@ public class AdminController(
         if (string.IsNullOrWhiteSpace(request.Name))
         {
             error = "Name is required.";
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(request.ShortName))
+        {
+            error = "ShortName is required.";
             return false;
         }
         if (!Enum.TryParse(request.Country, ignoreCase: true, out country))
