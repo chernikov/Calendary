@@ -155,13 +155,29 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `GOOGLE_CLIENT_ID` | OAuth Web client ID from the `calendary-ua` GCP project |
 | `GOOGLE_CLIENT_SECRET` | matching OAuth client secret |
 | `RESEND_API_KEY` | Resend API key for transactional email |
+| `MONOBANK_MERCHANT_TOKEN` / `MONOBANK_MERCHANT_TOKEN_STAGING` | Monobank merchant token — separate prod/sandbox tokens, threaded into the same `.env` variable name in each stack |
+| `NOVA_POSHTA_API_KEY` | Nova Poshta Address-API key — one shared value for both stacks (read-only lookup, no sandbox/live split) |
 
 `GITHUB_TOKEN` (built-in) handles both pushing images to GHCR and the droplet's `docker login`
 during deploy — no extra registry secret needed. Unlike the AI provider keys (a manual one-off
-`.env` edit), `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`RESEND_API_KEY` are genuinely threaded
-through on every deploy: both `deploy.yml` and `deploy-staging.yml` upsert them into the droplet's
-`.env`/`.env.staging` from the GH secret before `docker compose up` — rotate the secret in GH, the
-next deploy picks it up automatically.
+`.env` edit on prod; staging does thread them — see issue #330), the secrets above are genuinely
+threaded through on every deploy: both `deploy.yml` and `deploy-staging.yml` upsert them into the
+droplet's `.env`/`.env.staging` from the GH secret before `docker compose up` — rotate the secret
+in GH, the next deploy picks it up automatically.
+
+## Backups
+
+`deploy/backup.sh`, run daily by the `calendary-backup.timer` systemd timer (installed by
+`bootstrap.sh`), backs up both stacks' MSSQL databases and media volumes into a
+[restic](https://restic.net) repository on DigitalOcean Spaces (encrypted, deduplicated, pruned to
+7 daily + 4 weekly snapshots automatically). The same script also runs in `--quick` mode as a
+pre-migration safety net right before every deploy's `docker compose up -d`. None of this is
+threaded through GitHub Actions secrets — the credentials
+(`DO_SPACES_KEY`/`DO_SPACES_SECRET`/`DO_SPACES_BUCKET`/`DO_SPACES_REGION`/`RESTIC_PASSWORD`) live
+only in the droplet's `.env`/`.env.staging`, since the backup timer runs independently of CI.
+
+See **`deploy/RESTORE.md`** for the restore procedure — rehearsable end-to-end against staging via
+the manual-only `test-restore-staging.yml` workflow.
 
 ## Known gaps vs. the full design doc
 

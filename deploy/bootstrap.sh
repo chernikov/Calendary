@@ -9,6 +9,11 @@ if ! command -v docker >/dev/null; then
 fi
 systemctl enable --now docker
 
+echo "== Installing restic (off-droplet backups, see #305) =="
+if ! command -v restic >/dev/null; then
+  apt-get update -qq && apt-get install -y -qq restic
+fi
+
 echo "== Creating shared 'web' network (fronted by edge Caddy) =="
 docker network inspect web >/dev/null 2>&1 || docker network create web
 
@@ -39,6 +44,48 @@ EOF
 else
   echo "== /opt/calendary/.env.staging already exists, leaving it as-is =="
 fi
+
+echo "== Adding backup config placeholders to .env/.env.staging (if missing) =="
+# Idempotent, unlike the two blocks above — .env/.env.staging already exist on a droplet that's
+# been through bootstrap before, so a fresh-file-only check would silently skip these forever.
+for env_file in .env .env.staging; do
+  grep -q '^DO_SPACES_KEY=' "$env_file" 2>/dev/null || cat >> "$env_file" <<'EOF'
+
+# Off-droplet backups (see deploy/backup.sh, deploy/RESTORE.md, issue #305).
+# DO_SPACES_KEY=
+# DO_SPACES_SECRET=
+# DO_SPACES_BUCKET=
+# DO_SPACES_REGION=
+# RESTIC_PASSWORD=
+EOF
+done
+echo ">>> Fill in DO_SPACES_*/RESTIC_PASSWORD in .env and .env.staging before backups can run."
+echo ">>> Save RESTIC_PASSWORD somewhere OTHER than this droplet — losing it makes every backup"
+echo ">>> permanently undecryptable."
+
+echo "== Installing the daily backup systemd timer =="
+cat > /etc/systemd/system/calendary-backup.service <<'EOF'
+[Unit]
+Description=Calendary off-droplet backup (DB + media)
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/calendary
+ExecStart=/opt/calendary/backup.sh
+EOF
+cat > /etc/systemd/system/calendary-backup.timer <<'EOF'
+[Unit]
+Description=Run Calendary backups daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+systemctl daemon-reload
+systemctl enable --now calendary-backup.timer
 
 echo "== Opening firewall for SSH/HTTP/HTTPS (if ufw is active) =="
 if command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then
