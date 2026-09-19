@@ -38,10 +38,14 @@ public class OrdersController(
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
     }
 
-    // Expiry only matters while the order is still moving through the funnel — once paid it's
-    // fulfillment's problem, not a reason to block anything.
+    // Expiry only matters while the order is still moving through the funnel — once payment is
+    // captured it's fulfillment's problem, not a reason to block anything. Keep in sync with
+    // OrderExpiryBackgroundService's exemption list (auto-archives expired orders on the same rule).
+    private static readonly OrderStatus[] ExemptFromExpiry =
+        [OrderStatus.Paid, OrderStatus.Printing, OrderStatus.Shipped, OrderStatus.Delivered];
+
     private static bool IsExpired(Order order) =>
-        order.Status != OrderStatus.Paid && DateTime.UtcNow > order.ExpiresAtUtc;
+        !ExemptFromExpiry.Contains(order.Status) && DateTime.UtcNow > order.ExpiresAtUtc;
 
     [HttpPost]
     public async Task<ActionResult<OrderDto>> Create()

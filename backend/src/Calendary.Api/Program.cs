@@ -33,6 +33,7 @@ builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection(Resen
 
 builder.Services.AddHostedService<FulfillmentBackgroundService>();
 builder.Services.AddHostedService<GenerationBackgroundService>();
+builder.Services.AddHostedService<OrderExpiryBackgroundService>();
 
 builder.Services.AddAuthentication(BearerTokenAuth.Scheme)
     .AddScheme<AuthenticationSchemeOptions, BearerTokenAuthenticationHandler>(BearerTokenAuth.Scheme, _ => { });
