@@ -67,9 +67,11 @@ import { SheetPickerModalComponent } from '../style-dates/sheet-picker-modal.com
             [activeVariantId]="c.activeVariantId"
             [status]="c.status"
             [regenerationsRemaining]="order()?.regenerationsRemaining ?? 0"
+            [photoUploadError]="error()"
             (closed)="closeModal()"
             (generate)="onGenerate($event)"
             (activateVariant)="onActivateVariant($event)"
+            (addPhoto)="onAddPhoto($event)"
           />
         }
       }
@@ -133,6 +135,10 @@ export class CoverComponent implements OnInit, OnDestroy {
     const c = this.cover();
     if (!c) return;
     this.store.dispatch(OrderActions.activateVariant({ orderId: this.orderId, sheetId: c.id, variantId }));
+  }
+
+  onAddPhoto(photo: File): void {
+    this.store.dispatch(OrderActions.addOrderPhoto({ orderId: this.orderId, photo }));
   }
 
   confirm(): void {

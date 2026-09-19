@@ -92,9 +92,11 @@ interface PlanRow {
           [activeVariantId]="sheetFor(index)?.activeVariantId ?? null"
           [status]="sheetFor(index)?.status ?? 'Pending'"
           [regenerationsRemaining]="order()?.regenerationsRemaining ?? 0"
+          [photoUploadError]="error()"
           (closed)="closeSheetModal()"
           (generate)="onGenerateFromModal(index, $event)"
           (activateVariant)="onActivateVariant(index, $event)"
+          (addPhoto)="onAddPhoto($event)"
         />
       }
 
@@ -329,6 +331,10 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
         photoId: picks.photoId || undefined,
       }),
     );
+  }
+
+  onAddPhoto(photo: File): void {
+    this.store.dispatch(OrderActions.addOrderPhoto({ orderId: this.orderId, photo }));
   }
 
   onActivateVariant(index: number, variantId: string): void {

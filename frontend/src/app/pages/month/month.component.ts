@@ -69,9 +69,11 @@ const MONTH_NAMES = [
               [activeVariantId]="s.activeVariantId"
               [status]="s.status"
               [regenerationsRemaining]="o.regenerationsRemaining"
+              [photoUploadError]="error()"
               (closed)="closeModal()"
               (generate)="onGenerate(s, $event)"
               (activateVariant)="onActivateVariant(s, $event)"
+              (addPhoto)="onAddPhoto($event)"
             />
           }
         }
@@ -152,6 +154,10 @@ export class MonthComponent implements OnInit, OnDestroy {
 
   onActivateVariant(s: SheetDto, variantId: string): void {
     this.store.dispatch(OrderActions.activateVariant({ orderId: this.orderId, sheetId: s.id, variantId }));
+  }
+
+  onAddPhoto(photo: File): void {
+    this.store.dispatch(OrderActions.addOrderPhoto({ orderId: this.orderId, photo }));
   }
 
   next(): void {
