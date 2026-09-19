@@ -35,6 +35,7 @@ services:
       Google__ClientSecret: "${GOOGLE_CLIENT_SECRET:-}"
       Resend__ApiKey: "${RESEND_API_KEY:-}"
       Monobank__MerchantToken: "${MONOBANK_MERCHANT_TOKEN:-}"
+      NovaPoshta__ApiKey: "${NOVA_POSHTA_API_KEY:-}"
     volumes:
       - media-data:/app/App_Data/media
     depends_on:

@@ -6,6 +6,7 @@ import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
 import {
   OrderActions,
+  selectCities,
   selectOrder,
   selectOrderBusy,
   selectOrderError,
@@ -33,9 +34,21 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
             <label>Телефон</label>
             <input class="input" [(ngModel)]="phone" placeholder="+380 67 000 00 00" />
           </div>
-          <div class="field">
+          <div class="field" style="position: relative;">
             <label>Місто</label>
-            <input class="input" [(ngModel)]="city" (ngModelChange)="onCityChange($event)" />
+            <input class="input" [(ngModel)]="city" (ngModelChange)="onCityChange($event)" autocomplete="off" />
+            @if (showCitySuggestions() && cities().length > 0) {
+              <div style="position: absolute; top: 100%; left: 0; right: 0; z-index: 10; margin-top: 2px; max-height: 220px; overflow-y: auto; background: var(--color-surface); border: 1px solid var(--color-divider); border-radius: var(--radius-sm); box-shadow: var(--shadow-md);">
+                @for (c of cities(); track c) {
+                  <div
+                    style="padding: 8px 11px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--color-divider);"
+                    (click)="pickCity(c)"
+                  >
+                    {{ c }}
+                  </div>
+                }
+              </div>
+            }
           </div>
 
           @if (warehouses().length > 0) {
@@ -103,7 +116,9 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
 export class CheckoutComponent implements OnInit {
   private readonly store = inject(Store);
   readonly order = this.store.selectSignal(selectOrder);
+  readonly cities = this.store.selectSignal(selectCities);
   readonly warehouses = this.store.selectSignal(selectWarehouses);
+  readonly showCitySuggestions = signal(false);
   readonly selectedWarehouse = signal<NovaPoshtaWarehouseDto | null>(null);
   readonly method = signal<string>('ApplePay');
   readonly busy = this.store.selectSignal(selectOrderBusy);
@@ -142,11 +157,22 @@ export class CheckoutComponent implements OnInit {
   onCityChange(city: string): void {
     this.selectedWarehouse.set(null);
     this.store.dispatch(OrderActions.clearWarehouses());
+    this.showCitySuggestions.set(true);
     clearTimeout(this.cityDebounce);
-    if (!city.trim()) return;
+    if (!city.trim()) {
+      this.store.dispatch(OrderActions.clearCities());
+      return;
+    }
     this.cityDebounce = setTimeout(() => {
-      this.store.dispatch(OrderActions.loadWarehouses({ city: city.trim() }));
+      this.store.dispatch(OrderActions.loadCities({ query: city.trim() }));
     }, 300);
+  }
+
+  pickCity(city: string): void {
+    this.city = city;
+    this.showCitySuggestions.set(false);
+    this.store.dispatch(OrderActions.clearCities());
+    this.store.dispatch(OrderActions.loadWarehouses({ city }));
   }
 
   canSubmit(): boolean {

@@ -169,6 +169,18 @@ export class OrderEffects {
     ),
   );
 
+  loadCities$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.loadCities),
+      switchMap(({ query }) =>
+        this.orders.novaPoshtaCities(query).pipe(
+          map((cities) => OrderActions.loadCitiesSuccess({ cities })),
+          catchError(() => of(OrderActions.loadCitiesFailure({ error: 'Не вдалося знайти міста.' }))),
+        ),
+      ),
+    ),
+  );
+
   loadWarehouses$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.loadWarehouses),

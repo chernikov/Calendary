@@ -9,6 +9,7 @@ export const selectMyOrders = createSelector(selectOrderState, (state) => state.
 export const selectActiveOrders = createSelector(selectMyOrders, (orders) => orders.filter((o) => !o.isArchived));
 export const selectArchivedOrders = createSelector(selectMyOrders, (orders) => orders.filter((o) => o.isArchived));
 export const selectPromptLibrary = createSelector(selectOrderState, (state) => state.promptLibrary);
+export const selectCities = createSelector(selectOrderState, (state) => state.cities);
 export const selectWarehouses = createSelector(selectOrderState, (state) => state.warehouses);
 export const selectOrderBusy = createSelector(selectOrderState, (state) => state.busy);
 export const selectDownloadingPdf = createSelector(selectOrderState, (state) => state.downloadingPdf);

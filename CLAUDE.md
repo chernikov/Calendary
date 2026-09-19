@@ -16,15 +16,20 @@ Delivered).
 
 Auth is real (email+password via `PasswordHasher<User>`, and Google Sign-In via ID-token
 verification — see "Backend architecture" below), not mocked. Transactional email (currently just
-a welcome email on registration) is also real, via `IEmailService`/`ResendEmailService`. **Two
-integrations are still deliberately mocked** behind `Calendary.Domain.Abstractions` interfaces —
+a welcome email on registration) is also real, via `IEmailService`/`ResendEmailService`. **One
+integration is still deliberately mocked** behind a `Calendary.Domain.Abstractions` interface —
 swap the DI registration in `Program.cs` to go live with a real provider:
-- `IImageGenerationService` — AI image generation (currently returns picsum.photos placeholders).
-  A real implementation already exists (`AiImageGenerationService`, backed by the `Calendary.AI`
-  project) but isn't wired in by default — see the README's "Calendary.AI" section for the
-  three-step switch-over.
 - `IPaymentService` — payment charging (currently always succeeds)
-- `INovaPoshtaService` — delivery branch lookup (currently a small static city/warehouse list)
+
+Two more have a real implementation already wired in, each falling back to a small static
+dataset when unconfigured (so local dev needs no API key):
+- `IImageGenerationService` — AI image generation. A real implementation exists
+  (`AiImageGenerationService`, backed by the `Calendary.AI` project); which one runs is a runtime
+  DB setting via the admin panel (`/admin/settings`), not a DI swap — see the README's
+  "Calendary.AI" section for the three-step switch-over, and picsum.photos placeholders otherwise.
+- `INovaPoshtaService` — delivery branch lookup. `NovaPoshtaService` calls Nova Poshta's real
+  public Address API when `NovaPoshta__ApiKey` is configured, otherwise falls back to the same
+  small static city/warehouse list it always used.
 
 ## Commands
 
@@ -151,9 +156,10 @@ one-time droplet setup script (installs Docker, creates the `web` network, seeds
 `main` is production (deploys to prod automatically on push/merge). Both `.github/workflows/*.yml`
 pipelines build images and push to GHCR (`ghcr.io/<owner>/calendary-backend` /
 `calendary-frontend`) before SSHing into the droplet to `docker compose pull && up -d`. The two
-pipelines are also where `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, and
-`MONOBANK_MERCHANT_TOKEN`/`MONOBANK_MERCHANT_TOKEN_STAGING` (separate prod/sandbox tokens, same
-`.env`/`.env.staging` variable name) GH secrets get threaded into the droplet's `.env`/`.env.staging`
+pipelines are also where `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`,
+`NOVA_POSHTA_API_KEY` (same value both stacks — no sandbox/live split for a read-only lookup),
+and `MONOBANK_MERCHANT_TOKEN`/`MONOBANK_MERCHANT_TOKEN_STAGING` (separate prod/sandbox tokens,
+same `.env`/`.env.staging` variable name) GH secrets get threaded into the droplet's `.env`/`.env.staging`
 on every deploy (see README's "Auth" section). The AI provider keys are the one exception: staging
 threads them too, but prod's are a manual one-off `.env` edit (see issue #330) — worth checking
 before assuming any given secret is deploy-automated.

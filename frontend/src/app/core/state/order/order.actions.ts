@@ -50,6 +50,11 @@ export const OrderActions = createActionGroup({
     'Confirm Cover Success': props<{ order: OrderDto }>(),
     'Confirm Cover Failure': props<{ error: string }>(),
 
+    'Load Cities': props<{ query: string }>(),
+    'Load Cities Success': props<{ cities: string[] }>(),
+    'Load Cities Failure': props<{ error: string }>(),
+    'Clear Cities': emptyProps(),
+
     'Load Warehouses': props<{ city: string }>(),
     'Load Warehouses Success': props<{ warehouses: NovaPoshtaWarehouseDto[] }>(),
     'Load Warehouses Failure': props<{ error: string }>(),

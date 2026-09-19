@@ -4,6 +4,7 @@ export interface OrderState {
   order: OrderDto | null;
   myOrders: OrderSummaryDto[];
   promptLibrary: PromptLibraryDto | null;
+  cities: string[];
   warehouses: NovaPoshtaWarehouseDto[];
   busy: boolean;
   downloadingPdf: boolean;
@@ -14,6 +15,7 @@ export const initialOrderState: OrderState = {
   order: null,
   myOrders: [],
   promptLibrary: null,
+  cities: [],
   warehouses: [],
   busy: false,
   downloadingPdf: false,
