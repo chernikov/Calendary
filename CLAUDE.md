@@ -177,6 +177,6 @@ the static mock dataset (see `NovaPoshtaService`).
 -r <repo> snapshots` to see what's there, `restic restore latest --tag db|media --target <dir>` to
 pull a snapshot out, then `docker cp` the `.bak` into the `mssql` container and `RESTORE DATABASE
 ... WITH REPLACE` for the DB, or untar into the media volume with the `backend` service stopped.
-`.github/workflows/test-restore-staging.yml` (manual `workflow_dispatch` only) runs this exact
+`.github/workflows/restore-staging.yml` (manual `workflow_dispatch` only) runs this exact
 procedure end-to-end against staging — safe to trigger anytime to rehearse it, since it only
 restores staging's own latest backup over itself.

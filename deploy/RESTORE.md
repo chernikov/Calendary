@@ -84,6 +84,6 @@ Log into the app and confirm orders/users are present and a known order's cover/
 
 ## Rehearsing this procedure
 
-`.github/workflows/test-restore-staging.yml` (manual `workflow_dispatch` only, never runs
+`.github/workflows/restore-staging.yml` (manual `workflow_dispatch` only, never runs
 automatically) runs through this exact procedure against the **staging** stack, so it can be
 exercised without any risk to production data.

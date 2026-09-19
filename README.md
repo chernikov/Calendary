@@ -182,7 +182,7 @@ integration keys — but the daily timer itself still runs independently of CI, 
 whatever is currently in the droplet's `.env` files.
 
 See **`deploy/RESTORE.md`** for the restore procedure — rehearsable end-to-end against staging via
-the manual-only `test-restore-staging.yml` workflow.
+the manual-only `restore-staging.yml` workflow.
 
 ## Known gaps vs. the full design doc
 
