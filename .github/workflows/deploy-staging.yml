@@ -69,7 +69,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "deploy/docker-compose.staging.yml"
+          source: "deploy/docker-compose.staging.yml,deploy/backup.sh"
           target: "/opt/calendary"
           strip_components: 1
 
@@ -105,6 +105,9 @@ jobs:
             # read-only address/branch lookup has no sandbox/live distinction or financial risk.
             grep -v '^NOVA_POSHTA_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
             printf 'NOVA_POSHTA_API_KEY=%s\n' "${{ secrets.NOVA_POSHTA_API_KEY }}" >> .env.staging
+
+            chmod +x backup.sh
+            ./backup.sh --quick --target staging || echo "::warning::pre-migration backup failed, continuing deploy"
 
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging pull
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging up -d --remove-orphans

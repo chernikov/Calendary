@@ -69,7 +69,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "deploy/docker-compose.prod.yml,deploy/docker-compose.edge.yml,deploy/Caddyfile"
+          source: "deploy/docker-compose.prod.yml,deploy/docker-compose.edge.yml,deploy/Caddyfile,deploy/backup.sh"
           target: "/opt/calendary"
           strip_components: 1
 
@@ -96,6 +96,12 @@ jobs:
             printf 'MONOBANK_MERCHANT_TOKEN=%s\n' "${{ secrets.MONOBANK_MERCHANT_TOKEN }}" >> .env
             grep -v '^NOVA_POSHTA_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
             printf 'NOVA_POSHTA_API_KEY=%s\n' "${{ secrets.NOVA_POSHTA_API_KEY }}" >> .env
+
+            chmod +x backup.sh
+            # Non-blocking safety net right before the next `docker compose up -d` runs
+            # Program.cs's db.Database.Migrate() — a backup-infra hiccup (e.g. Spaces not
+            # configured yet) must not be able to block every future deploy. See #305.
+            ./backup.sh --quick --target prod || echo "::warning::pre-migration backup failed, continuing deploy"
 
             # App stack first — this frees ports 80/443 by removing the old in-stack
             # Caddy (if present) as an orphan, before the edge stack claims them.

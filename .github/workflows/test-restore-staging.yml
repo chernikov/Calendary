@@ -1,0 +1,67 @@
+name: Rehearse restore (staging)
+
+# Manual only — never runs automatically. Exercises deploy/RESTORE.md's actual procedure against
+# the staging stack, so "restore has been tested" (issue #305) is something that's actually been
+# run, not just documented. Safe to run anytime: it only touches the staging database/media
+# volume, restoring the latest backup over itself.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore latest staging backup over the staging stack
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd /opt/calendary
+            set -a; source .env.staging; set +a
+
+            if [ -z "${DO_SPACES_KEY:-}" ] || [ -z "${RESTIC_PASSWORD:-}" ]; then
+              echo "::error::DO_SPACES_KEY/RESTIC_PASSWORD not configured in .env.staging — nothing to restore from."
+              exit 1
+            fi
+
+            export AWS_ACCESS_KEY_ID="$DO_SPACES_KEY"
+            export AWS_SECRET_ACCESS_KEY="$DO_SPACES_SECRET"
+            export RESTIC_PASSWORD
+            REPO="s3:https://${DO_SPACES_REGION}.digitaloceanspaces.com/${DO_SPACES_BUCKET}/calendary/staging"
+            PROJECT=calendary-staging
+            COMPOSE_FILE=docker-compose.staging.yml
+
+            echo "== snapshots available =="
+            restic -r "$REPO" snapshots
+
+            echo "== restoring database =="
+            rm -rf /tmp/restore && mkdir -p /tmp/restore
+            restic -r "$REPO" restore latest --tag db --target /tmp/restore
+            BAK_FILE=$(find /tmp/restore -name '*.bak' | sort | tail -1)
+            MSSQL_CONTAINER=$(docker compose -p "$PROJECT" -f "$COMPOSE_FILE" ps -q mssql)
+            docker cp "$BAK_FILE" "$MSSQL_CONTAINER:/var/opt/mssql/data/restore-test.bak"
+            docker compose -p "$PROJECT" -f "$COMPOSE_FILE" exec -T mssql \
+              /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" \
+              -Q "ALTER DATABASE [Calendary] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                  RESTORE DATABASE [Calendary] FROM DISK = N'/var/opt/mssql/data/restore-test.bak' WITH REPLACE;
+                  ALTER DATABASE [Calendary] SET MULTI_USER;"
+            docker compose -p "$PROJECT" -f "$COMPOSE_FILE" exec -T mssql rm /var/opt/mssql/data/restore-test.bak
+
+            echo "== restoring media volume =="
+            docker compose -p "$PROJECT" -f "$COMPOSE_FILE" stop backend
+            rm -rf /tmp/restore-media && mkdir -p /tmp/restore-media
+            restic -r "$REPO" restore latest --tag media --target /tmp/restore-media
+            MEDIA_TAR=$(find /tmp/restore-media -name '*media*.tar.gz' | sort | tail -1)
+            MEDIA_VOLUME=$(docker volume ls \
+              --filter "label=com.docker.compose.project=${PROJECT}" \
+              --filter "label=com.docker.compose.volume=media-staging-data" \
+              --format '{{.Name}}')
+            docker run --rm -v "${MEDIA_VOLUME}:/media" -v /tmp/restore-media:/in alpine \
+              sh -c "rm -rf /media/* && tar xzf /in/$(basename "$MEDIA_TAR") -C /media"
+            docker compose -p "$PROJECT" -f "$COMPOSE_FILE" start backend
+
+            rm -rf /tmp/restore /tmp/restore-media
+            echo "== restore rehearsal complete — verify staging.calendary.com.ua manually =="
