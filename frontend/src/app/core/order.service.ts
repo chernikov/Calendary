@@ -59,6 +59,10 @@ export class OrderService {
     return this.http.delete<OrderDto>(`${BASE}/orders/${orderId}/dates/${dateId}`);
   }
 
+  saveHolidaySettings(orderId: string, countries: string[], weekStart: string): Observable<OrderDto> {
+    return this.http.put<OrderDto>(`${BASE}/orders/${orderId}/holiday-settings`, { countries, weekStart });
+  }
+
   startGeneration(orderId: string): Observable<OrderDto> {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/generate`, {});
   }

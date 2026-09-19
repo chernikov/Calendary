@@ -4,11 +4,13 @@ import {
   AdminUserDto,
   BackupStatusDto,
   ConfigStatusDto,
+  HolidayDto,
   ImageGenerationProvider,
   ImageStyleDto,
   OrderDto,
   PagedResult,
   PromptThemeDto,
+  SaveHolidayPayload,
   SaveImageStylePayload,
   SavePromptPayload,
   SavePromptThemePayload,
@@ -69,6 +71,14 @@ export const AdminActions = createActionGroup({
 
     'Save Image Style': props<{ style: SaveImageStylePayload }>(),
     'Delete Image Style': props<{ styleId: string }>(),
+
+    'Load Holidays': emptyProps(),
+    'Load Holidays Success': props<{ holidays: HolidayDto[] }>(),
+    'Load Holidays Failure': props<{ error: string }>(),
+
+    'Save Holiday': props<{ holiday: SaveHolidayPayload }>(),
+    'Delete Holiday': props<{ holidayId: string }>(),
+    'Holiday Mutation Failure': props<{ error: string }>(),
 
     'Clear Admin Error': emptyProps(),
   },

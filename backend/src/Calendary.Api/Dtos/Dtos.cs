@@ -49,7 +49,9 @@ public record OrderDto(
     IReadOnlyList<PersonalDateDto> PersonalDates,
     IReadOnlyList<SheetDto> Sheets,
     PaymentDto? Payment,
-    DeliveryDto? Delivery
+    DeliveryDto? Delivery,
+    IReadOnlyList<string> HolidayCountries,
+    string WeekStart
 );
 
 public record OrderSummaryDto(
@@ -92,3 +94,8 @@ public record SavePromptRequest(Guid PromptThemeId, string Name, string Text, st
 public record SaveImageStyleRequest(string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
 
 public record GenerateSheetRequest(Guid PromptId, Guid ImageStyleId, Guid? PhotoId);
+
+public record HolidayDto(Guid Id, string Country, int Year, int Day, int Month, string Name);
+public record SaveHolidayRequest(string Country, int Year, int Day, int Month, string Name);
+
+public record SaveHolidaySettingsRequest(IReadOnlyList<string> Countries, string WeekStart);

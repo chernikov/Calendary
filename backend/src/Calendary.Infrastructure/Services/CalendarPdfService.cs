@@ -11,13 +11,13 @@ namespace Calendary.Infrastructure.Services;
 
 /// Renders the finished calendar (cover + 12 month sheets) as a print-style PDF: one full-bleed
 /// page for the cover, then one page per month with the AI-generated image plus a rendered
-/// day-grid highlighting that month's personal dates. Caller (OrdersController) is responsible
-/// for checking all 13 sheets are SheetStatus.Ready before calling — see GenerateAsync's guard
-/// for why that check is repeated here too.
+/// day-grid highlighting that month's personal dates and public holidays (see #364). Caller
+/// (OrdersController) is responsible for checking all 13 sheets are SheetStatus.Ready before
+/// calling — see GenerateAsync's guard for why that check is repeated here too.
 public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileStorage fileStorage) : ICalendarPdfService
 {
-    // Keep in sync with frontend/src/app/pages/style-dates/style-dates.component.ts's `weekdays`.
-    private static readonly string[] Weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
+    private static readonly string[] WeekdaysMonFirst = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
+    private static readonly string[] WeekdaysSunFirst = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 
     // Keep in sync with frontend/src/app/pages/month/month.component.ts's `MONTH_NAMES`.
     private static readonly string[] MonthNames =
@@ -26,10 +26,24 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
         "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень",
     ];
 
-    // Same teal-blue accent as frontend/src/styles.css's --color-accent / --color-accent-100,
-    // used there for .calendar-day.has-date — kept visually consistent with the web UI.
-    private static readonly Color AccentColor = Color.FromHex("#0088b0");
-    private static readonly Color AccentBackground = Color.FromHex("#e3f3f7");
+    // Same country-name labels as the style-dates.component.ts checkbox row — used only for the
+    // holiday legend's "(Country)" suffix when more than one country is selected.
+    private static readonly Dictionary<Country, string> CountryNames = new()
+    {
+        [Country.Ukraine] = "Україна",
+        [Country.Usa] = "США",
+        [Country.Poland] = "Польща",
+        [Country.Germany] = "Німеччина",
+        [Country.Czechia] = "Чехія",
+    };
+
+    // Personal dates and holidays are text-color-only now (no background fill, see #364) — blue
+    // for the customer's own dates, red for state holidays/weekends, same as
+    // frontend/src/styles.css would use if it ever needed to render this (it doesn't; this grid
+    // only exists in the PDF).
+    private static readonly Color PersonalDateColor = Color.FromHex("#0088b0");
+    private static readonly Color HolidayColor = Color.FromHex("#c0392b");
+    private static readonly Color CellBorderColor = Colors.Grey.Lighten2;
 
     static CalendarPdfService()
     {
@@ -63,6 +77,14 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
 
         var calendarYear = DateTime.UtcNow.Year + 1;
 
+        // Holiday data currently only covers 2027 (see #364) — an order for a future calendarYear
+        // simply gets an empty list here, degrading gracefully to "just weekends marked".
+        var countries = order.HolidayCountries;
+        var holidays = await db.Holidays
+            .Where(h => h.Year == calendarYear && countries.Contains(h.Country))
+            .ToListAsync(ct);
+        var showCountryInLegend = countries.Count > 1;
+
         var document = Document.Create(container =>
         {
             container.Page(page => ComposeCoverPage(page, coverBytes, watermark));
@@ -72,7 +94,10 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
                 var month = monthSheets[i].Index;
                 var imageBytes = monthBytes[i];
                 var datesForMonth = order.PersonalDates.Where(d => d.Month == month).ToList();
-                container.Page(page => ComposeMonthPage(page, imageBytes, month, calendarYear, datesForMonth, watermark));
+                var holidaysForMonth = holidays.Where(h => h.Month == month).ToList();
+                container.Page(page => ComposeMonthPage(
+                    page, imageBytes, month, calendarYear, datesForMonth, holidaysForMonth,
+                    order.WeekStart, showCountryInLegend, watermark));
             }
         });
 
@@ -107,16 +132,25 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
     }
 
     private static void ComposeMonthPage(
-        PageDescriptor page, byte[] imageBytes, int month, int calendarYear, IReadOnlyList<PersonalDate> dates, bool watermark)
+        PageDescriptor page, byte[] imageBytes, int month, int calendarYear,
+        IReadOnlyList<PersonalDate> dates, IReadOnlyList<Holiday> holidaysForMonth,
+        WeekStartDay weekStart, bool showCountryInLegend, bool watermark)
     {
         page.Size(PageSizes.A4);
-        page.Margin(24);
+        page.Margin(18);
         page.Content().Column(column =>
         {
-            column.Spacing(12);
+            column.Spacing(8);
             column.Item().Text(MonthNames[month - 1]).FontSize(20).Bold();
-            column.Item().Height(380).Image(imageBytes).FitArea();
-            column.Item().Element(e => ComposeCalendarGrid(e, month, calendarYear, dates));
+            // +20% over the previous 380pt height — the low end of the requested +20-25%, to leave
+            // headroom for the taller grid/legend below on the same A4 page. Centered instead of
+            // stretching/left-aligning within the column (see #364).
+            column.Item().AlignCenter().Height(456).Image(imageBytes).FitArea();
+            column.Item().Element(e => ComposeCalendarGrid(e, month, calendarYear, dates, holidaysForMonth, weekStart));
+            if (holidaysForMonth.Count > 0)
+            {
+                column.Item().Element(e => ComposeHolidayLegend(e, holidaysForMonth, showCountryInLegend));
+            }
         });
         if (watermark)
         {
@@ -138,18 +172,25 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
             .FontColor(Color.FromHex("#80201e1d"));
     }
 
-    // Direct port of calendarCells()/hasDate() from
-    // frontend/src/app/pages/style-dates/style-dates.component.ts — keep both in sync.
+    // Personal-dates picker in style-dates.component.ts is a separate input tool (always
+    // Monday-first, its own styling) and intentionally no longer kept in lockstep with this method
+    // — this is the printed artifact; that's just how the customer enters dates (see #364).
     private static void ComposeCalendarGrid(
-        IContainer container, int month, int calendarYear, IReadOnlyList<PersonalDate> dates)
+        IContainer container, int month, int calendarYear, IReadOnlyList<PersonalDate> dates,
+        IReadOnlyList<Holiday> holidaysForMonth, WeekStartDay weekStart)
     {
-        var firstWeekday = ((int)new DateTime(calendarYear, month, 1).DayOfWeek + 6) % 7;
+        var weekdays = weekStart == WeekStartDay.Sunday ? WeekdaysSunFirst : WeekdaysMonFirst;
+        var dow = (int)new DateTime(calendarYear, month, 1).DayOfWeek; // Sunday=0..Saturday=6
+        var firstWeekday = weekStart == WeekStartDay.Sunday ? dow : (dow + 6) % 7;
         var daysInMonth = DateTime.DaysInMonth(calendarYear, month);
 
         var cells = new List<int?>();
         cells.AddRange(Enumerable.Repeat((int?)null, firstWeekday));
         cells.AddRange(Enumerable.Range(1, daysInMonth).Select(d => (int?)d));
-        while (cells.Count < 42)
+        // Pad to a whole number of weeks (5 or 6 rows depending on the month/week-start), not
+        // always a fixed 6 — every extra row costs real vertical space now that cells are taller
+        // and the page also carries a bigger image plus a holiday legend (see #364).
+        while (cells.Count % 7 != 0)
         {
             cells.Add(null);
         }
@@ -164,7 +205,7 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
                 }
             });
 
-            foreach (var weekday in Weekdays)
+            foreach (var weekday in weekdays)
             {
                 table.Cell().Padding(2).AlignCenter().Text(weekday).FontSize(9).FontColor(Colors.Grey.Darken1);
             }
@@ -173,34 +214,49 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
             {
                 if (cell is null)
                 {
-                    table.Cell().Padding(2).MinHeight(28);
+                    table.Cell().Padding(2).MinHeight(32);
                     continue;
                 }
 
                 var day = cell.Value;
                 var dayDates = dates.Where(d => d.Day == day).ToList();
-                var isHighlighted = dayDates.Count > 0;
+                var isPersonal = dayDates.Count > 0;
+                var actualDayOfWeek = new DateTime(calendarYear, month, day).DayOfWeek;
+                var isWeekend = actualDayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+                var isHoliday = holidaysForMonth.Any(h => h.Day == day);
+                var textColor = isPersonal ? PersonalDateColor : isWeekend || isHoliday ? HolidayColor : Colors.Black;
 
                 table.Cell().Padding(1).Element(cellContainer =>
                 {
-                    var styled = cellContainer.MinHeight(28).Padding(2);
-                    styled = isHighlighted
-                        ? styled.Background(AccentBackground).Border(1).BorderColor(AccentColor)
-                        : styled;
-
-                    styled.Column(dayColumn =>
-                    {
-                        dayColumn.Item().AlignCenter().Text(day.ToString())
-                            .FontSize(9)
-                            .FontColor(isHighlighted ? AccentColor : Colors.Black);
-                        if (isHighlighted)
+                    cellContainer
+                        .MinHeight(32)
+                        .Padding(2)
+                        .Border(1)
+                        .BorderColor(CellBorderColor)
+                        .Column(dayColumn =>
                         {
-                            dayColumn.Item().AlignCenter().Text(string.Join(", ", dayDates.Select(d => d.Label)))
-                                .FontSize(5.5f)
-                                .FontColor(AccentColor);
-                        }
-                    });
+                            dayColumn.Item().AlignCenter().Text(day.ToString()).FontSize(9).FontColor(textColor);
+                            if (isPersonal)
+                            {
+                                dayColumn.Item().AlignCenter().Text(string.Join(", ", dayDates.Select(d => d.Label)))
+                                    .FontSize(5.5f)
+                                    .FontColor(PersonalDateColor);
+                            }
+                        });
                 });
+            }
+        });
+    }
+
+    private static void ComposeHolidayLegend(IContainer container, IReadOnlyList<Holiday> holidaysForMonth, bool showCountry)
+    {
+        container.Column(column =>
+        {
+            column.Spacing(1);
+            foreach (var holiday in holidaysForMonth.OrderBy(h => h.Day))
+            {
+                var suffix = showCountry && CountryNames.TryGetValue(holiday.Country, out var name) ? $" ({name})" : "";
+                column.Item().Text($"{holiday.Day} — {holiday.Name}{suffix}").FontSize(7.5f).FontColor(HolidayColor);
             }
         });
     }

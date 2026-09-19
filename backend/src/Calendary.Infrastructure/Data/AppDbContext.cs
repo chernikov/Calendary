@@ -1,6 +1,7 @@
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Calendary.Infrastructure.Data;
 
@@ -15,6 +16,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Prompt> Prompts => Set<Prompt>();
     public DbSet<ImageStyle> ImageStyles => Set<ImageStyle>();
     public DbSet<PersonalDate> PersonalDates => Set<PersonalDate>();
+    public DbSet<Holiday> Holidays => Set<Holiday>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Delivery> Deliveries => Set<Delivery>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
@@ -68,6 +70,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Order>()
             .Property(o => o.Price)
             .HasPrecision(10, 2);
+
+        // Stored as a comma-joined list of enum names — simpler than a join table for a handful of
+        // countries, and avoids a bitmask's opacity in the raw DB column (see #364).
+        modelBuilder.Entity<Order>()
+            .Property(o => o.HolidayCountries)
+            .HasConversion(
+                v => string.Join(',', v.Select(c => c.ToString())),
+                v => v.Length == 0
+                    ? new List<Country>()
+                    : v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => Enum.Parse<Country>(s)).ToList())
+            .HasDefaultValueSql("N'Ukraine'")
+            .Metadata.SetValueComparer(new ValueComparer<List<Country>>(
+                (a, b) => (a ?? new()).SequenceEqual(b ?? new()),
+                v => v.Aggregate(0, (hash, c) => HashCode.Combine(hash, c.GetHashCode())),
+                v => v.ToList()));
 
         modelBuilder.Entity<Payment>()
             .Property(p => p.Amount)
@@ -176,6 +193,72 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555503"), Name = "Чорно-біле", Text = "black and white photography, dramatic monochrome contrast, timeless mood", Description = "Драматичний монохром із позачасовим настроєм", SortOrder = 3 },
             new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555504"), Name = "3D-мультфільм", Text = "3D animated feature film style, expressive stylized character, vibrant colors, soft lighting", Description = "Яскравий персонаж у стилі анімаційного фільму", SortOrder = 4 },
             new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555505"), Name = "Аніме", Text = "anime art style, clean linework, vivid cel shading, expressive eyes", Description = "Виразна японська анімація з чистими лініями", SortOrder = 5 }
+        );
+
+        // Starting set of nationwide public holidays for 2027 (see #364) — the year
+        // CalendarPdfService/style-dates.component.ts already compute as "next year". Admin can
+        // add further years/countries later via the admin panel; floating dates (Easter and its
+        // derivatives) are entered as concrete 2027 dates, not computed algorithmically.
+        modelBuilder.Entity<Holiday>().HasData(
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770001"), Country = Country.Ukraine, Year = 2027, Month = 1, Day = 1, Name = "Новий рік" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770002"), Country = Country.Ukraine, Year = 2027, Month = 1, Day = 7, Name = "Різдво Христове (юліанський календар)" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770003"), Country = Country.Ukraine, Year = 2027, Month = 3, Day = 8, Name = "Міжнародний жіночий день" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770004"), Country = Country.Ukraine, Year = 2027, Month = 5, Day = 1, Name = "День праці" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770005"), Country = Country.Ukraine, Year = 2027, Month = 5, Day = 9, Name = "День перемоги над нацизмом у Другій світовій війні" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770006"), Country = Country.Ukraine, Year = 2027, Month = 6, Day = 28, Name = "День Конституції України" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770007"), Country = Country.Ukraine, Year = 2027, Month = 8, Day = 24, Name = "День незалежності України" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770008"), Country = Country.Ukraine, Year = 2027, Month = 10, Day = 1, Name = "День захисників і захисниць України" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770009"), Country = Country.Ukraine, Year = 2027, Month = 12, Day = 25, Name = "Різдво Христове (григоріанський календар)" },
+
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770101"), Country = Country.Usa, Year = 2027, Month = 1, Day = 1, Name = "New Year's Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770102"), Country = Country.Usa, Year = 2027, Month = 1, Day = 18, Name = "Martin Luther King Jr. Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770103"), Country = Country.Usa, Year = 2027, Month = 2, Day = 15, Name = "Washington's Birthday" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770104"), Country = Country.Usa, Year = 2027, Month = 5, Day = 31, Name = "Memorial Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770105"), Country = Country.Usa, Year = 2027, Month = 6, Day = 19, Name = "Juneteenth" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770106"), Country = Country.Usa, Year = 2027, Month = 7, Day = 4, Name = "Independence Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770107"), Country = Country.Usa, Year = 2027, Month = 9, Day = 6, Name = "Labor Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770108"), Country = Country.Usa, Year = 2027, Month = 10, Day = 11, Name = "Columbus Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770109"), Country = Country.Usa, Year = 2027, Month = 11, Day = 11, Name = "Veterans Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770110"), Country = Country.Usa, Year = 2027, Month = 11, Day = 25, Name = "Thanksgiving Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770111"), Country = Country.Usa, Year = 2027, Month = 12, Day = 25, Name = "Christmas Day" },
+
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770201"), Country = Country.Poland, Year = 2027, Month = 1, Day = 1, Name = "Nowy Rok" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770202"), Country = Country.Poland, Year = 2027, Month = 1, Day = 6, Name = "Święto Trzech Króli" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770203"), Country = Country.Poland, Year = 2027, Month = 3, Day = 28, Name = "Wielkanoc" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770204"), Country = Country.Poland, Year = 2027, Month = 3, Day = 29, Name = "Poniedziałek Wielkanocny" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770205"), Country = Country.Poland, Year = 2027, Month = 5, Day = 1, Name = "Święto Pracy" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770206"), Country = Country.Poland, Year = 2027, Month = 5, Day = 3, Name = "Święto Konstytucji 3 Maja" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770207"), Country = Country.Poland, Year = 2027, Month = 5, Day = 16, Name = "Zielone Świątki" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770208"), Country = Country.Poland, Year = 2027, Month = 5, Day = 27, Name = "Boże Ciało" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770209"), Country = Country.Poland, Year = 2027, Month = 8, Day = 15, Name = "Wniebowzięcie Najświętszej Maryi Panny" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770210"), Country = Country.Poland, Year = 2027, Month = 11, Day = 1, Name = "Wszystkich Świętych" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770211"), Country = Country.Poland, Year = 2027, Month = 11, Day = 11, Name = "Święto Niepodległości" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770212"), Country = Country.Poland, Year = 2027, Month = 12, Day = 25, Name = "Boże Narodzenie (pierwszy dzień)" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770213"), Country = Country.Poland, Year = 2027, Month = 12, Day = 26, Name = "Boże Narodzenie (drugi dzień)" },
+
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770301"), Country = Country.Germany, Year = 2027, Month = 1, Day = 1, Name = "Neujahr" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770302"), Country = Country.Germany, Year = 2027, Month = 3, Day = 26, Name = "Karfreitag" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770303"), Country = Country.Germany, Year = 2027, Month = 3, Day = 29, Name = "Ostermontag" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770304"), Country = Country.Germany, Year = 2027, Month = 5, Day = 1, Name = "Tag der Arbeit" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770305"), Country = Country.Germany, Year = 2027, Month = 5, Day = 6, Name = "Christi Himmelfahrt" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770306"), Country = Country.Germany, Year = 2027, Month = 5, Day = 17, Name = "Pfingstmontag" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770307"), Country = Country.Germany, Year = 2027, Month = 10, Day = 3, Name = "Tag der Deutschen Einheit" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770308"), Country = Country.Germany, Year = 2027, Month = 12, Day = 25, Name = "1. Weihnachtsfeiertag" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770309"), Country = Country.Germany, Year = 2027, Month = 12, Day = 26, Name = "2. Weihnachtsfeiertag" },
+
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770401"), Country = Country.Czechia, Year = 2027, Month = 1, Day = 1, Name = "Den obnovy samostatného českého státu" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770402"), Country = Country.Czechia, Year = 2027, Month = 3, Day = 26, Name = "Velký pátek" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770403"), Country = Country.Czechia, Year = 2027, Month = 3, Day = 29, Name = "Velikonoční pondělí" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770404"), Country = Country.Czechia, Year = 2027, Month = 5, Day = 1, Name = "Svátek práce" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770405"), Country = Country.Czechia, Year = 2027, Month = 5, Day = 8, Name = "Den vítězství" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770406"), Country = Country.Czechia, Year = 2027, Month = 7, Day = 5, Name = "Den slovanských věrozvěstů Cyrila a Metoděje" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770407"), Country = Country.Czechia, Year = 2027, Month = 7, Day = 6, Name = "Den upálení mistra Jana Husa" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770408"), Country = Country.Czechia, Year = 2027, Month = 9, Day = 28, Name = "Den české státnosti" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770409"), Country = Country.Czechia, Year = 2027, Month = 10, Day = 28, Name = "Den vzniku samostatného československého státu" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770410"), Country = Country.Czechia, Year = 2027, Month = 11, Day = 17, Name = "Den boje za svobodu a demokracii" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770411"), Country = Country.Czechia, Year = 2027, Month = 12, Day = 24, Name = "Štědrý den" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770412"), Country = Country.Czechia, Year = 2027, Month = 12, Day = 25, Name = "1. svátek vánoční" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770413"), Country = Country.Czechia, Year = 2027, Month = 12, Day = 26, Name = "2. svátek vánoční" }
         );
     }
 }

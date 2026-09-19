@@ -355,4 +355,82 @@ public class AdminController(
         await db.SaveChangesAsync();
         return NoContent();
     }
+
+    [HttpGet("holidays")]
+    public async Task<ActionResult<IReadOnlyList<HolidayDto>>> ListHolidays()
+    {
+        var holidays = await db.Holidays
+            .OrderBy(h => h.Country).ThenBy(h => h.Year).ThenBy(h => h.Month).ThenBy(h => h.Day)
+            .ToListAsync();
+        return Ok(holidays.Select(h => h.ToDto()).ToList());
+    }
+
+    [HttpPost("holidays")]
+    public async Task<ActionResult<HolidayDto>> CreateHoliday(SaveHolidayRequest request)
+    {
+        if (!TryValidateHoliday(request, out var country, out var error)) return BadRequest(error);
+
+        var holiday = new Holiday
+        {
+            Country = country,
+            Year = request.Year,
+            Month = request.Month,
+            Day = request.Day,
+            Name = request.Name.Trim()
+        };
+        db.Holidays.Add(holiday);
+        await db.SaveChangesAsync();
+        return Ok(holiday.ToDto());
+    }
+
+    [HttpPut("holidays/{holidayId:guid}")]
+    public async Task<ActionResult<HolidayDto>> UpdateHoliday(Guid holidayId, SaveHolidayRequest request)
+    {
+        var holiday = await db.Holidays.FindAsync(holidayId);
+        if (holiday is null) return NotFound();
+        if (!TryValidateHoliday(request, out var country, out var error)) return BadRequest(error);
+
+        holiday.Country = country;
+        holiday.Year = request.Year;
+        holiday.Month = request.Month;
+        holiday.Day = request.Day;
+        holiday.Name = request.Name.Trim();
+        await db.SaveChangesAsync();
+        return Ok(holiday.ToDto());
+    }
+
+    [HttpDelete("holidays/{holidayId:guid}")]
+    public async Task<IActionResult> DeleteHoliday(Guid holidayId)
+    {
+        var holiday = await db.Holidays.FindAsync(holidayId);
+        if (holiday is null) return NotFound();
+
+        // Unlike ImageStyle/Prompt, no FK ever points at a Holiday — orders reference countries by
+        // enum value, not by row — so there's nothing to guard against here.
+        db.Holidays.Remove(holiday);
+        await db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    private static bool TryValidateHoliday(SaveHolidayRequest request, out Country country, out string error)
+    {
+        country = default;
+        error = "";
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            error = "Name is required.";
+            return false;
+        }
+        if (!Enum.TryParse(request.Country, ignoreCase: true, out country))
+        {
+            error = $"Unknown country: {request.Country}";
+            return false;
+        }
+        if (request.Month is < 1 or > 12 || request.Day < 1 || request.Day > DateTime.DaysInMonth(request.Year, request.Month))
+        {
+            error = "Invalid day/month for the given year.";
+            return false;
+        }
+        return true;
+    }
 }

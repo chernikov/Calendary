@@ -157,6 +157,18 @@ export class OrderEffects {
     ),
   );
 
+  saveHolidaySettings$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.saveHolidaySettings),
+      switchMap(({ orderId, countries, weekStart }) =>
+        this.orders.saveHolidaySettings(orderId, countries, weekStart).pipe(
+          map((order) => OrderActions.saveHolidaySettingsSuccess({ order })),
+          catchError(() => of(OrderActions.saveHolidaySettingsFailure({ error: 'Не вдалося зберегти налаштування свят.' }))),
+        ),
+      ),
+    ),
+  );
+
   startGeneration$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.startGeneration),

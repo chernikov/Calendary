@@ -192,9 +192,46 @@ interface PlanRow {
         </div>
       }
 
+      <div class="field" style="margin-top: var(--space-4); max-width: 480px;">
+        <label>Свята в календарі</label>
+        <div class="checkbox-row">
+          @for (c of holidayCountryOptions; track c.value) {
+            <label class="checkbox-chip">
+              <input
+                type="checkbox"
+                [checked]="isCountrySelected(c.value)"
+                (change)="toggleCountry(c.value, $event)"
+              />
+              {{ c.label }}
+            </label>
+          }
+        </div>
+
+        <details class="disclosure">
+          <summary>Додаткові налаштування</summary>
+          <div style="margin-top: var(--space-2);">
+            <span style="display: block; font-size: 12px; margin-bottom: 5px; color: color-mix(in srgb, var(--color-text) 70%, transparent);">
+              Початок тижня
+            </span>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label class="radio">
+                <input type="radio" name="weekStart" [checked]="weekStart() === 'Monday'" (change)="setWeekStart('Monday')" />
+                <span class="dot"></span>
+                Понеділок
+              </label>
+              <label class="radio">
+                <input type="radio" name="weekStart" [checked]="weekStart() === 'Sunday'" (change)="setWeekStart('Sunday')" />
+                <span class="dot"></span>
+                Неділя
+              </label>
+            </div>
+          </div>
+        </details>
+      </div>
+
       <button
         class="btn btn-primary btn-block"
-        style="max-width: 320px;"
+        style="max-width: 320px; margin-top: var(--space-4);"
         [disabled]="!planComplete() || loading()"
         (click)="startGeneration()"
       >
@@ -233,6 +270,14 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
   ];
 
   readonly weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+
+  readonly holidayCountryOptions = [
+    { value: 'Ukraine', label: 'Україна' },
+    { value: 'Usa', label: 'США' },
+    { value: 'Poland', label: 'Польща' },
+    { value: 'Germany', label: 'Німеччина' },
+    { value: 'Czechia', label: 'Чехія' },
+  ];
   private readonly calendarYear = new Date().getFullYear() + 1;
 
   // Index 0 = cover, 1..12 = months.
@@ -424,6 +469,29 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
 
   removeDate(dateId: string): void {
     this.store.dispatch(OrderActions.removePersonalDate({ orderId: this.orderId, dateId }));
+  }
+
+  isCountrySelected(value: string): boolean {
+    return (this.order()?.holidayCountries ?? []).includes(value);
+  }
+
+  toggleCountry(value: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const current = this.order()?.holidayCountries ?? [];
+    const updated = checked ? [...current, value] : current.filter((c) => c !== value);
+    this.saveHolidaySettings(updated, this.weekStart());
+  }
+
+  weekStart(): string {
+    return this.order()?.weekStart ?? 'Monday';
+  }
+
+  setWeekStart(value: string): void {
+    this.saveHolidaySettings(this.order()?.holidayCountries ?? [], value);
+  }
+
+  private saveHolidaySettings(countries: string[], weekStart: string): void {
+    this.store.dispatch(OrderActions.saveHolidaySettings({ orderId: this.orderId, countries, weekStart }));
   }
 
   startGeneration(): void {

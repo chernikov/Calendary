@@ -7,12 +7,14 @@ import {
   AdminUserDto,
   BackupStatusDto,
   ConfigStatusDto,
+  HolidayDto,
   ImageGenerationProvider,
   ImageStyleDto,
   OrderDto,
   PagedResult,
   PromptDto,
   PromptThemeDto,
+  SaveHolidayPayload,
   SaveImageStylePayload,
   SavePromptPayload,
   SavePromptThemePayload,
@@ -103,5 +105,19 @@ export class AdminService {
 
   deleteImageStyle(styleId: string): Observable<void> {
     return this.http.delete<void>(`${BASE}/image-styles/${styleId}`);
+  }
+
+  listHolidays(): Observable<HolidayDto[]> {
+    return this.http.get<HolidayDto[]>(`${BASE}/holidays`);
+  }
+
+  saveHoliday(holiday: SaveHolidayPayload): Observable<HolidayDto> {
+    return holiday.id
+      ? this.http.put<HolidayDto>(`${BASE}/holidays/${holiday.id}`, holiday)
+      : this.http.post<HolidayDto>(`${BASE}/holidays`, holiday);
+  }
+
+  deleteHoliday(holidayId: string): Observable<void> {
+    return this.http.delete<void>(`${BASE}/holidays/${holidayId}`);
   }
 }
