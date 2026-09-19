@@ -1,12 +1,15 @@
+using Calendary.AI.Options;
 using Calendary.Api.Dtos;
 using Calendary.Api.Photos;
 using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
 using Calendary.Infrastructure.Data;
+using Calendary.Infrastructure.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Calendary.Api.Controllers;
 
@@ -17,7 +20,11 @@ public class AdminController(
     AppDbContext db,
     IImageGenerationService generationService,
     IAppSettingsService appSettings,
-    IFileStorage fileStorage) : ControllerBase
+    IFileStorage fileStorage,
+    IOptions<AiOptions> aiOptions,
+    IOptions<GoogleOptions> googleOptions,
+    IOptions<ResendOptions> resendOptions,
+    IOptions<MonobankOptions> monobankOptions) : ControllerBase
 {
     private async Task<Order?> LoadOrderAsync(Guid orderId) =>
         await db.Orders
@@ -134,6 +141,20 @@ public class AdminController(
         }
         await appSettings.SetImageGenerationProviderAsync(provider);
         return Ok(new ImageGenerationProviderDto(provider.ToString()));
+    }
+
+    // Presence check only — confirms each integration's key/secret is non-empty in the running
+    // process's config. Never returns the actual values, even to an admin.
+    [HttpGet("settings/config-status")]
+    public ActionResult<ConfigStatusDto> GetConfigStatus()
+    {
+        return Ok(new ConfigStatusDto(
+            OpenAiConfigured: !string.IsNullOrWhiteSpace(aiOptions.Value.OpenAI.ApiKey),
+            GeminiConfigured: !string.IsNullOrWhiteSpace(aiOptions.Value.Gemini.ApiKey),
+            GoogleConfigured: !string.IsNullOrWhiteSpace(googleOptions.Value.ClientId)
+                && !string.IsNullOrWhiteSpace(googleOptions.Value.ClientSecret),
+            ResendConfigured: !string.IsNullOrWhiteSpace(resendOptions.Value.ApiKey),
+            MonobankConfigured: !string.IsNullOrWhiteSpace(monobankOptions.Value.MerchantToken)));
     }
 
     // — Prompt library —

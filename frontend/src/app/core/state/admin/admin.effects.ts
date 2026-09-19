@@ -94,6 +94,18 @@ export class AdminEffects {
     ),
   );
 
+  loadConfigStatus$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadConfigStatus),
+      switchMap(() =>
+        this.admin.getConfigStatus().pipe(
+          map((status) => AdminActions.loadConfigStatusSuccess({ status })),
+          catchError(() => of(AdminActions.loadConfigStatusFailure({ error: 'Не вдалося перевірити ключі.' }))),
+        ),
+      ),
+    ),
+  );
+
   loadPromptThemes$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.loadPromptThemes),
