@@ -21,14 +21,36 @@ Paid → Printing → Shipped → Delivered, with cancellation while unpaid).
 ## Running it
 
 ```bash
+cp .env.example .env   # first time only — sets a local MSSQL sa password, never commit .env
 docker compose up --build
 ```
 
 - Frontend: http://localhost:4200
 - Backend/Swagger: http://localhost:5080/swagger
-- SQL Server: localhost:1433 (sa / Your_password123 — dev only, change before any real deployment)
+- SQL Server: localhost:1433 (sa / whatever you set `MSSQL_SA_PASSWORD` to in `.env`)
 
 EF Core migrations apply automatically on backend startup.
+
+### Environment variables
+
+Nothing sensitive lives in a committed `appsettings.json`/`docker-compose.yml` — everything needed
+locally comes from your own `.env` (gitignored, see `.env.example` for the full list) or, for the
+non-Docker backend flow below, `dotnet user-secrets`. Production/staging get the equivalent values
+from GitHub Actions secrets threaded into the droplet's `.env`/`.env.staging` (see "Deployment"
+below) — never from a file in this repo.
+
+Running `dotnet run --project src/Calendary.Api` directly (not via `docker compose`) needs its own
+connection string, since `appsettings.json`'s `ConnectionStrings:Default` is intentionally blank:
+```bash
+cd backend
+dotnet user-secrets set "ConnectionStrings:Default" \
+  "Server=localhost,1433;Database=Calendary;User Id=sa;Password=<your MSSQL_SA_PASSWORD>;TrustServerCertificate=True" \
+  --project src/Calendary.Api
+```
+(User secrets are stored outside the repo, under your user profile — see
+[Safe storage of app secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets).) The
+AI/Google/Resend API keys mentioned below follow the same pattern — set them the same way, or via
+`AI__OpenAI__ApiKey`-style environment variables, for this flow specifically.
 
 ## What's mocked (by design — see conversation scope: "thin vertical slice" + "mocked services")
 
