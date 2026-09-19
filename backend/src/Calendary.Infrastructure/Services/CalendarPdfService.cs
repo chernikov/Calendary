@@ -26,24 +26,12 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
         "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень",
     ];
 
-    // Same country-name labels as the style-dates.component.ts checkbox row — used only for the
-    // holiday legend's "(Country)" suffix when more than one country is selected.
-    private static readonly Dictionary<Country, string> CountryNames = new()
-    {
-        [Country.Ukraine] = "Україна",
-        [Country.Usa] = "США",
-        [Country.Poland] = "Польща",
-        [Country.Germany] = "Німеччина",
-        [Country.Czechia] = "Чехія",
-    };
-
     // Personal dates and holidays are text-color-only now (no background fill, see #364) — blue
     // for the customer's own dates, red for state holidays/weekends, same as
     // frontend/src/styles.css would use if it ever needed to render this (it doesn't; this grid
     // only exists in the PDF).
     private static readonly Color PersonalDateColor = Color.FromHex("#0088b0");
     private static readonly Color HolidayColor = Color.FromHex("#c0392b");
-    private static readonly Color CellBorderColor = Colors.Grey.Lighten2;
 
     static CalendarPdfService()
     {
@@ -83,7 +71,6 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
         var holidays = await db.Holidays
             .Where(h => h.Year == calendarYear && countries.Contains(h.Country))
             .ToListAsync(ct);
-        var showCountryInLegend = countries.Count > 1;
 
         var document = Document.Create(container =>
         {
@@ -96,8 +83,7 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
                 var datesForMonth = order.PersonalDates.Where(d => d.Month == month).ToList();
                 var holidaysForMonth = holidays.Where(h => h.Month == month).ToList();
                 container.Page(page => ComposeMonthPage(
-                    page, imageBytes, month, calendarYear, datesForMonth, holidaysForMonth,
-                    order.WeekStart, showCountryInLegend, watermark));
+                    page, imageBytes, month, calendarYear, datesForMonth, holidaysForMonth, order.WeekStart, watermark));
             }
         });
 
@@ -123,8 +109,8 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
     private static void ComposeCoverPage(PageDescriptor page, byte[] coverBytes, bool watermark)
     {
         page.Size(PageSizes.A4);
-        page.Margin(0);
-        page.Content().Image(coverBytes).FitArea();
+        page.Margin(24);
+        page.Content().AlignCenter().AlignMiddle().Image(coverBytes).FitArea();
         if (watermark)
         {
             page.Foreground().Element(ComposeWatermark);
@@ -134,23 +120,19 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
     private static void ComposeMonthPage(
         PageDescriptor page, byte[] imageBytes, int month, int calendarYear,
         IReadOnlyList<PersonalDate> dates, IReadOnlyList<Holiday> holidaysForMonth,
-        WeekStartDay weekStart, bool showCountryInLegend, bool watermark)
+        WeekStartDay weekStart, bool watermark)
     {
         page.Size(PageSizes.A4);
         page.Margin(18);
         page.Content().Column(column =>
         {
             column.Spacing(8);
-            column.Item().Text(MonthNames[month - 1]).FontSize(20).Bold();
-            // +20% over the previous 380pt height — the low end of the requested +20-25%, to leave
-            // headroom for the taller grid/legend below on the same A4 page. Centered instead of
-            // stretching/left-aligning within the column (see #364).
+            column.Item().AlignCenter().Text(MonthNames[month - 1]).FontSize(20).Bold();
+            // +20% over the previous 380pt height — the low end of the requested +20-25% (see
+            // #364). Centered instead of stretching/left-aligning within the column.
             column.Item().AlignCenter().Height(456).Image(imageBytes).FitArea();
-            column.Item().Element(e => ComposeCalendarGrid(e, month, calendarYear, dates, holidaysForMonth, weekStart));
-            if (holidaysForMonth.Count > 0)
-            {
-                column.Item().Element(e => ComposeHolidayLegend(e, holidaysForMonth, showCountryInLegend));
-            }
+            // A bit more breathing room here specifically, on top of the column's own spacing.
+            column.Item().PaddingTop(6).Element(e => ComposeCalendarGrid(e, month, calendarYear, dates, holidaysForMonth, weekStart));
         });
         if (watermark)
         {
@@ -214,7 +196,7 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
             {
                 if (cell is null)
                 {
-                    table.Cell().Padding(2).MinHeight(32);
+                    table.Cell().Border(1).BorderColor(Colors.Black).MinHeight(32);
                     continue;
                 }
 
@@ -223,24 +205,32 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
                 var isPersonal = dayDates.Count > 0;
                 var actualDayOfWeek = new DateTime(calendarYear, month, day).DayOfWeek;
                 var isWeekend = actualDayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
-                var isHoliday = holidaysForMonth.Any(h => h.Day == day);
-                var textColor = isPersonal ? PersonalDateColor : isWeekend || isHoliday ? HolidayColor : Colors.Black;
+                var holidayForDay = isPersonal ? null : holidaysForMonth.FirstOrDefault(h => h.Day == day);
+                var textColor = isPersonal ? PersonalDateColor : isWeekend || holidayForDay is not null ? HolidayColor : Colors.Black;
 
-                table.Cell().Padding(1).Element(cellContainer =>
+                // No padding/margin between cells — borders sit flush against each other, forming
+                // one continuous grid instead of a table of separated boxes (see #374).
+                table.Cell().Element(cellContainer =>
                 {
                     cellContainer
                         .MinHeight(32)
-                        .Padding(2)
                         .Border(1)
-                        .BorderColor(CellBorderColor)
+                        .BorderColor(Colors.Black)
+                        .Padding(2)
                         .Column(dayColumn =>
                         {
-                            dayColumn.Item().AlignCenter().Text(day.ToString()).FontSize(9).FontColor(textColor);
+                            dayColumn.Item().AlignLeft().Text(day.ToString()).FontSize(9).FontColor(textColor);
                             if (isPersonal)
                             {
                                 dayColumn.Item().AlignCenter().Text(string.Join(", ", dayDates.Select(d => d.Label)))
                                     .FontSize(5.5f)
                                     .FontColor(PersonalDateColor);
+                            }
+                            else if (holidayForDay is not null)
+                            {
+                                dayColumn.Item().AlignCenter().Text(Abbreviate(holidayForDay.Name))
+                                    .FontSize(5.5f)
+                                    .FontColor(HolidayColor);
                             }
                         });
                 });
@@ -248,16 +238,11 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
         });
     }
 
-    private static void ComposeHolidayLegend(IContainer container, IReadOnlyList<Holiday> holidaysForMonth, bool showCountry)
+    // Holiday names are stored in full (admin-managed, see #364) — too long for a day cell, so
+    // truncate for display here only; the full name still shows in the admin panel.
+    private static string Abbreviate(string name)
     {
-        container.Column(column =>
-        {
-            column.Spacing(1);
-            foreach (var holiday in holidaysForMonth.OrderBy(h => h.Day))
-            {
-                var suffix = showCountry && CountryNames.TryGetValue(holiday.Country, out var name) ? $" ({name})" : "";
-                column.Item().Text($"{holiday.Day} — {holiday.Name}{suffix}").FontSize(7.5f).FontColor(HolidayColor);
-            }
-        });
+        const int maxLength = 12;
+        return name.Length <= maxLength ? name : name[..maxLength].TrimEnd() + "…";
     }
 }
