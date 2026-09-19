@@ -108,6 +108,10 @@ jobs:
             printf 'DO_SPACES_BUCKET=%s\n' "${{ secrets.DO_SPACES_BUCKET }}" >> .env
             printf 'DO_SPACES_REGION=%s\n' "${{ secrets.DO_SPACES_REGION }}" >> .env
             printf 'RESTIC_PASSWORD=%s\n' "${{ secrets.RESTIC_PASSWORD }}" >> .env
+            # Separate password from staging's — this is direct admin login, not a read-only
+            # lookup key, so a leaked staging password must not grant prod admin access.
+            grep -v '^ADMIN_PASSWORD=' .env > .env.tmp || true; mv .env.tmp .env
+            printf 'ADMIN_PASSWORD=%s\n' "${{ secrets.ADMIN_PASSWORD }}" >> .env
 
             chmod +x backup.sh
             # Non-blocking safety net right before the next `docker compose up -d` runs

@@ -162,7 +162,9 @@ pipelines are also where `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `RESEND_API_
 `DO_SPACES_BUCKET`/`DO_SPACES_BUCKET_STAGING` (separate buckets per stack — `deploy/backup.sh`
 also scopes each stack to its own restic repo path within its bucket regardless, see #305), and
 `MONOBANK_MERCHANT_TOKEN`/`MONOBANK_MERCHANT_TOKEN_STAGING` (separate prod/sandbox
-tokens, same `.env`/`.env.staging` variable name) GH secrets get threaded into the droplet's `.env`/`.env.staging`
+tokens, same `.env`/`.env.staging` variable name), and `ADMIN_PASSWORD`/`ADMIN_PASSWORD_STAGING`
+(separate passwords, same `.env`/`.env.staging` variable name — see `AdminSeeder` below) GH
+secrets get threaded into the droplet's `.env`/`.env.staging`
 on every deploy (see README's "Auth" section). The AI provider keys are the one exception: staging
 threads them too, but prod's are a manual one-off `.env` edit (see issue #330) — worth checking
 before assuming any given secret is deploy-automated.
@@ -177,6 +179,23 @@ the static mock dataset (see `NovaPoshtaService`).
 -r <repo> snapshots` to see what's there, `restic restore latest --tag db|media --target <dir>` to
 pull a snapshot out, then `docker cp` the `.bak` into the `mssql` container and `RESTORE DATABASE
 ... WITH REPLACE` for the DB, or untar into the media volume with the `backend` service stopped.
-`.github/workflows/restore-staging.yml` (manual `workflow_dispatch` only) runs this exact
-procedure end-to-end against staging — safe to trigger anytime to rehearse it, since it only
-restores staging's own latest backup over itself.
+Four one-click, parameter-free `workflow_dispatch`-only workflows cover manual backup/restore, so
+triggering the right one from the GitHub UI needs no memorized flags:
+- `backup-prod.yml` / `backup-staging.yml` — out-of-band full backup (DB + media) of one stack,
+  between the daily `calendary-backup.timer` ticks, no droplet SSH needed.
+- `restore-staging.yml` — runs the restore procedure above end-to-end against staging. Safe to
+  trigger anytime to rehearse it, since it only restores staging's own latest backup over itself —
+  no confirmation gate.
+- `restore-prod.yml` — same procedure against the **live** prod stack. Requires typing the exact
+  phrase `restore-prod` into the `confirm` input or the job aborts before touching the droplet —
+  this overwrites real customer data and briefly interrupts the site (`SINGLE_USER` during
+  `RESTORE DATABASE`, backend stopped while media is untarred).
+
+**Admin login**: `AdminSeeder` (`backend/src/Calendary.Infrastructure/Services/AdminSeeder.cs`)
+runs at startup, right after `db.Database.Migrate()`, and unconditionally re-hashes/writes
+`admin@calendary.com.ua` with `Role = Admin` from `AdminSeed:Password` (the `ADMIN_PASSWORD`/
+`ADMIN_PASSWORD_STAGING` env vars) — config is the source of truth every single startup, so
+rotating the GH secret and redeploying changes the live password with no DB access needed. If the
+password env var is unset, seeding is skipped (logged warning) rather than creating an account
+with an empty/guessable password — meaning a fresh environment with no `ADMIN_PASSWORD` set has
+*no* admin account at all until the secret is provided.

@@ -116,6 +116,11 @@ jobs:
             printf 'DO_SPACES_BUCKET=%s\n' "${{ secrets.DO_SPACES_BUCKET_STAGING }}" >> .env.staging
             printf 'DO_SPACES_REGION=%s\n' "${{ secrets.DO_SPACES_REGION }}" >> .env.staging
             printf 'RESTIC_PASSWORD=%s\n' "${{ secrets.RESTIC_PASSWORD }}" >> .env.staging
+            # Sourced from ADMIN_PASSWORD_STAGING (separate from prod's) — the .env.staging
+            # *variable name* stays ADMIN_PASSWORD so docker-compose.staging.yml reads it the same
+            # way prod's .env does.
+            grep -v '^ADMIN_PASSWORD=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'ADMIN_PASSWORD=%s\n' "${{ secrets.ADMIN_PASSWORD_STAGING }}" >> .env.staging
 
             chmod +x backup.sh
             ./backup.sh --quick --target staging || echo "::warning::pre-migration backup failed, continuing deploy"

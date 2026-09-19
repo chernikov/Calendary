@@ -161,6 +161,7 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `DO_SPACES_BUCKET` / `DO_SPACES_BUCKET_STAGING` | Separate bucket names per stack, e.g. `calendary-backups` / `calendary-backups-staging` — cleaner data isolation, same account/region otherwise |
 | `DO_SPACES_REGION` | Spaces region, e.g. `fra1` — shared by both stacks' buckets |
 | `RESTIC_PASSWORD` | Encrypts every backup — generate with `openssl rand -base64 32` and also save it somewhere other than GH/the droplet; losing it makes existing backups permanently undecryptable |
+| `ADMIN_PASSWORD` / `ADMIN_PASSWORD_STAGING` | Password for the always-seeded `admin@calendary.com.ua` account (see "Admin login" below) — separate per stack, since this is direct admin access, not a read-only key |
 
 `GITHUB_TOKEN` (built-in) handles both pushing images to GHCR and the droplet's `docker login`
 during deploy — no extra registry secret needed. Unlike the AI provider keys (a manual one-off
@@ -181,8 +182,28 @@ threaded into `.env`/`.env.staging` from the GH secrets above on every deploy, s
 integration keys — but the daily timer itself still runs independently of CI, straight off
 whatever is currently in the droplet's `.env` files.
 
-See **`deploy/RESTORE.md`** for the restore procedure — rehearsable end-to-end against staging via
-the manual-only `restore-staging.yml` workflow.
+See **`deploy/RESTORE.md`** for the restore procedure. Four manual-only, parameter-free workflows
+cover on-demand backup/restore without needing droplet SSH access:
+
+| Workflow | What it does |
+| --- | --- |
+| `backup-prod.yml` / `backup-staging.yml` | Full backup (DB + media) of one stack, right now |
+| `restore-staging.yml` | Rehearses the restore procedure against staging — safe anytime |
+| `restore-prod.yml` | Restores the latest backup over **live prod** — requires typing `restore-prod` into the `confirm` input |
+
+```bash
+gh workflow run backup-staging.yml
+gh workflow run restore-prod.yml -f confirm=restore-prod
+```
+
+## Admin login
+
+`AdminSeeder` runs at every backend startup (right after `db.Database.Migrate()`) and ensures
+`admin@calendary.com.ua` exists with `Role = Admin`, hashing and writing whatever `ADMIN_PASSWORD`
+(or `ADMIN_PASSWORD_STAGING`) currently is — config is the source of truth on every restart, so
+rotating the GH secret and redeploying changes the live password without ever touching the
+database by hand. If the password secret is unset, seeding is skipped (logged, not a startup
+failure) — a fresh environment has no admin account until it's provided.
 
 ## Known gaps vs. the full design doc
 
