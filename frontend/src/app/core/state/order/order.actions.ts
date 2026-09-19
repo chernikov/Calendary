@@ -48,13 +48,16 @@ export const OrderActions = createActionGroup({
     'Start Generation Success': props<{ order: OrderDto }>(),
     'Start Generation Failure': props<{ error: string }>(),
 
-    'Generate Sheet': props<{ orderId: string; index: number; promptId: string; imageStyleId: string }>(),
+    // The single generation trigger everywhere (see #351) — a sheet's first variant is free, any
+    // variant after that spends a regeneration; the server decides which.
+    'Generate Sheet': props<{ orderId: string; index: number; promptId: string; imageStyleId: string; photoId?: string }>(),
     'Generate Sheet Success': props<{ order: OrderDto }>(),
     'Generate Sheet Failure': props<{ error: string }>(),
 
-    'Regenerate Sheet': props<{ orderId: string; sheetId: string }>(),
-    'Regenerate Sheet Success': props<{ order: OrderDto }>(),
-    'Regenerate Sheet Failure': props<{ error: string }>(),
+    // Restores a previously generated variant as active — free, no generation involved.
+    'Activate Variant': props<{ orderId: string; sheetId: string; variantId: string }>(),
+    'Activate Variant Success': props<{ order: OrderDto }>(),
+    'Activate Variant Failure': props<{ error: string }>(),
 
     'Confirm Cover': props<{ orderId: string; sheetId: string }>(),
     'Confirm Cover Success': props<{ order: OrderDto }>(),

@@ -136,10 +136,10 @@ export class OrderEffects {
     this.actions$.pipe(
       ofType(OrderActions.generateSheet),
       // mergeMap: the user may fire several cards in quick succession.
-      mergeMap(({ orderId, index, promptId, imageStyleId }) =>
-        this.orders.generateSheet(orderId, index, promptId, imageStyleId).pipe(
+      mergeMap(({ orderId, index, promptId, imageStyleId, photoId }) =>
+        this.orders.generateSheet(orderId, index, promptId, imageStyleId, photoId).pipe(
           map((order) => OrderActions.generateSheetSuccess({ order })),
-          catchError(() => of(OrderActions.generateSheetFailure({ error: 'Не вдалося згенерувати зображення.' }))),
+          catchError(() => of(OrderActions.generateSheetFailure({ error: 'Не вдалося згенерувати зображення. Можливо, перегенерації вичерпано.' }))),
         ),
       ),
     ),
@@ -169,13 +169,13 @@ export class OrderEffects {
     ),
   );
 
-  regenerateSheet$ = createEffect(() =>
+  activateVariant$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(OrderActions.regenerateSheet),
-      switchMap(({ orderId, sheetId }) =>
-        this.orders.regenerateSheet(orderId, sheetId).pipe(
-          map((order) => OrderActions.regenerateSheetSuccess({ order })),
-          catchError(() => of(OrderActions.regenerateSheetFailure({ error: 'Перегенерації вичерпано.' }))),
+      ofType(OrderActions.activateVariant),
+      switchMap(({ orderId, sheetId, variantId }) =>
+        this.orders.activateVariant(orderId, sheetId, variantId).pipe(
+          map((order) => OrderActions.activateVariantSuccess({ order })),
+          catchError(() => of(OrderActions.activateVariantFailure({ error: 'Не вдалося відновити варіант.' }))),
         ),
       ),
     ),

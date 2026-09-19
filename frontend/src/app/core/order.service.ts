@@ -63,16 +63,25 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/generate`, {});
   }
 
-  generateSheet(orderId: string, index: number, promptId: string, imageStyleId: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${index}/generate`, { promptId, imageStyleId });
+  // The single generation trigger (see #351) — used for a sheet's first variant and every one
+  // after it; the server decides whether this one is free or costs a regeneration.
+  generateSheet(
+    orderId: string,
+    index: number,
+    promptId: string,
+    imageStyleId: string,
+    photoId?: string,
+  ): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${index}/generate`, {
+      promptId,
+      imageStyleId,
+      photoId: photoId || null,
+    });
   }
 
-  regenerateSheet(
-    orderId: string,
-    sheetId: string,
-    change?: { promptId?: string; imageStyleId?: string },
-  ): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/regenerate`, change ?? {});
+  // Restores a previously generated variant as active — free, no generation involved.
+  activateVariant(orderId: string, sheetId: string, variantId: string): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/variants/${variantId}/activate`, {});
   }
 
   simulateFailure(orderId: string, sheetId: string): Observable<OrderDto> {

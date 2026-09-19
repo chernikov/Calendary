@@ -48,15 +48,11 @@ public class AiImageGenerationService(
             throw new InvalidOperationException("Order does not have a complete sheet plan.");
         }
 
-        foreach (var sheet in sheets)
-        {
-            sheet.VariantCount = 1;
-        }
         order.SetStatus(OrderStatus.Generating);
 
         await db.SaveChangesAsync(ct);
 
-        var photoUrls = order.Photos.Select(p => p.Url).ToList();
+        var photoUrls = order.Photos.OrderBy(p => p.CreatedAtUtc).Select(p => p.Url).ToList();
         if (photoUrls.Count == 0) throw new InvalidOperationException("Order has no uploaded photo.");
         _ = Task.Run(() => GenerateOrderWithFailureHandlingAsync(orderId, photoUrls), CancellationToken.None);
 
@@ -74,15 +70,15 @@ public class AiImageGenerationService(
         var sheet = await db.Sheets
             .Include(s => s.Prompt)
             .Include(s => s.ImageStyle)
+            .Include(s => s.PinnedPhoto)
             .FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
         order.RegenerationsRemaining -= 1;
         sheet.Status = SheetStatus.Pending;
         sheet.GeneratingStartedAtUtc = null;
-        sheet.VariantCount += 1;
 
         await db.SaveChangesAsync(ct);
 
-        var photoUrl = PickRandomPhotoUrl(order.Photos.Select(p => p.Url).ToList());
+        var photoUrl = sheet.PinnedPhoto?.Url ?? DefaultPhotoUrl(order.Photos.OrderBy(p => p.CreatedAtUtc).Select(p => p.Url).ToList());
         var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl, ct);
         var prompt = BuildPrompt(sheet);
         _ = Task.Run(() => GenerateOneSheetWithFailureHandlingAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
@@ -96,13 +92,13 @@ public class AiImageGenerationService(
         var sheet = await db.Sheets
             .Include(s => s.Prompt)
             .Include(s => s.ImageStyle)
+            .Include(s => s.PinnedPhoto)
             .FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
         sheet.Status = SheetStatus.Pending;
         sheet.GeneratingStartedAtUtc = null;
-        sheet.VariantCount += 1;
         await db.SaveChangesAsync(ct);
 
-        var photoUrl = PickRandomPhotoUrl(order.Photos.Select(p => p.Url).ToList());
+        var photoUrl = sheet.PinnedPhoto?.Url ?? DefaultPhotoUrl(order.Photos.OrderBy(p => p.CreatedAtUtc).Select(p => p.Url).ToList());
         var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl, ct);
         var prompt = BuildPrompt(sheet);
         _ = Task.Run(() => GenerateOneSheetWithFailureHandlingAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
@@ -156,14 +152,9 @@ public class AiImageGenerationService(
 
     private async Task GenerateOrderAsync(Guid orderId, IReadOnlyList<string> photoUrls)
     {
-        // Each sheet independently draws its own random reference photo below (not once here) —
-        // intentional variety, not a bug: different months may end up based on different source
-        // photos. A future manual per-sheet picker will let customers override this.
-
         // Cover first, so the customer sees it (and can confirm it) while the months are still
         // being produced.
-        var coverReferenceDataUrl = await ResolveReferenceDataUrlAsync(PickRandomPhotoUrl(photoUrls));
-        await GenerateOneSheetAsync(orderId, kind: SheetKind.Cover, index: 0, coverReferenceDataUrl);
+        await GenerateOneSheetAsync(orderId, kind: SheetKind.Cover, index: 0, photoUrls);
 
         using var throttle = new SemaphoreSlim(MaxConcurrentGenerations);
         var monthTasks = Enumerable.Range(1, 12).Select(async month =>
@@ -171,8 +162,7 @@ public class AiImageGenerationService(
             await throttle.WaitAsync();
             try
             {
-                var referenceDataUrl = await ResolveReferenceDataUrlAsync(PickRandomPhotoUrl(photoUrls));
-                await GenerateOneSheetAsync(orderId, kind: SheetKind.Month, index: month, referenceDataUrl);
+                await GenerateOneSheetAsync(orderId, kind: SheetKind.Month, index: month, photoUrls);
             }
             finally
             {
@@ -182,13 +172,14 @@ public class AiImageGenerationService(
         await Task.WhenAll(monthTasks);
     }
 
-    private async Task GenerateOneSheetAsync(Guid orderId, SheetKind kind, int index, string referenceDataUrl)
+    private async Task GenerateOneSheetAsync(Guid orderId, SheetKind kind, int index, IReadOnlyList<string> photoUrls)
     {
         using var scope = scopeFactory.CreateScope();
         var scopedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var sheet = await scopedDb.Sheets
             .Include(s => s.Prompt)
             .Include(s => s.ImageStyle)
+            .Include(s => s.PinnedPhoto)
             .FirstAsync(s => s.OrderId == orderId && s.Kind == kind && s.Index == index);
 
         // Sheets already generated one-by-one during the planning step keep their image.
@@ -198,6 +189,8 @@ public class AiImageGenerationService(
             return;
         }
 
+        var photoUrl = sheet.PinnedPhoto?.Url ?? DefaultPhotoUrl(photoUrls);
+        var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl);
         await RunGenerationAsync(scopedDb, sheet, BuildPrompt(sheet), referenceDataUrl);
         await OrderProgressionHelper.AdvanceOrderStatusAsync(scopedDb, orderId);
     }
@@ -224,8 +217,13 @@ public class AiImageGenerationService(
 
             if (result.Success && DataUrl.TryParse(result.ImageDataUrl, out var contentType, out var bytes))
             {
+                var url = await fileStorage.SaveAsync(bytes, contentType, "sheets");
+                var variant = new SheetVariant { SheetId = sheet.Id, ImageUrl = url };
+                scopedDb.SheetVariants.Add(variant);
+
                 sheet.Status = SheetStatus.Ready;
-                sheet.ImageUrl = await fileStorage.SaveAsync(bytes, contentType, "sheets");
+                sheet.ImageUrl = url;
+                sheet.ActiveVariantId = variant.Id;
                 sheet.ReadyAtUtc = DateTime.UtcNow;
             }
             else
@@ -249,12 +247,10 @@ public class AiImageGenerationService(
         await scopedDb.SaveChangesAsync();
     }
 
-    // Each sheet independently draws one random reference photo — intentional variety, not a bug.
-    // A future manual per-sheet picker (deferred to a follow-up issue) will let customers override
-    // this. Only OrderPhoto.Url (the reference-resolution image) is ever picked here, never
-    // ThumbUrl, which exists purely for UI display.
-    private static string PickRandomPhotoUrl(IReadOnlyList<string> photoUrls) =>
-        photoUrls[Random.Shared.Next(photoUrls.Count)];
+    // Default reference photo when a sheet has no manual pin (see Sheet.PinnedPhotoId, #351) — the
+    // first one the customer uploaded. Only OrderPhoto.Url is ever used here, never ThumbUrl, which
+    // exists purely for UI display.
+    private static string DefaultPhotoUrl(IReadOnlyList<string> photoUrls) => photoUrls[0];
 
     /// Providers take the reference photo inline and re-send it for every sheet, so it is pulled
     /// out of storage and shrunk once per generation run.

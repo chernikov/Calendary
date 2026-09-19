@@ -20,9 +20,13 @@ public static class DtoMapping
 
     public static OrderPhotoDto ToDto(this OrderPhoto p) => new(p.Id, p.Url, p.ThumbUrl);
 
+    public static SheetVariantDto ToDto(this SheetVariant v) => new(v.Id, v.ImageUrl, v.CreatedAtUtc);
+
     public static SheetDto ToDto(this Sheet s) => new(
-        s.Id, s.Kind.ToString(), s.Index, s.Status.ToString(), s.IsSelected, s.ImageUrl, s.VariantCount,
-        s.PromptId, s.Prompt?.Name, s.ImageStyleId, s.ImageStyle?.Name);
+        s.Id, s.Kind.ToString(), s.Index, s.Status.ToString(), s.IsSelected, s.ImageUrl,
+        s.PromptId, s.Prompt?.Name, s.ImageStyleId, s.ImageStyle?.Name,
+        s.PinnedPhotoId, s.ActiveVariantId,
+        s.Variants.OrderBy(v => v.CreatedAtUtc).Select(v => v.ToDto()).ToList());
 
     public static PaymentDto ToDto(this Payment p) => new(
         p.Method.ToString(), p.Status.ToString(), p.Amount, p.PaidAtUtc);

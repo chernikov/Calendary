@@ -3,9 +3,15 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
-import { OrderActions, selectCoverSheet, selectOrder, selectOrderBusy, selectOrderError } from '../../core/state/order';
-import { SheetDto } from '../../core/models';
-import { ImageLightboxComponent } from '../../shared/image-lightbox.component';
+import {
+  OrderActions,
+  selectCoverSheet,
+  selectOrder,
+  selectOrderBusy,
+  selectOrderError,
+  selectPromptLibrary,
+} from '../../core/state/order';
+import { SheetPickerModalComponent } from '../style-dates/sheet-picker-modal.component';
 
 @Component({
   selector: 'app-cover',
@@ -21,51 +27,64 @@ import { ImageLightboxComponent } from '../../shared/image-lightbox.component';
           <div class="card" style="border: 1px solid var(--color-accent-2-300); background: var(--color-accent-2-100);">
             <div class="card-title">Не вдалося згенерувати обкладинку</div>
             <p class="card-body">Спробуйте ще раз.</p>
-            <button class="btn btn-primary" style="align-self: flex-start;" [disabled]="busy()" (click)="regenerate(c)">
+            <button class="btn btn-primary" style="align-self: flex-start;" [disabled]="busy()" (click)="openModal()">
               Спробувати ще раз
             </button>
           </div>
         } @else if (c.imageUrl) {
-          <div style="aspect-ratio: 3/4; background-size: cover; background-position: center; border-radius: var(--radius-md); border: 1.5px solid var(--color-accent); cursor: zoom-in;"
-               [style.background-image]="'url(' + c.imageUrl + ')'"
-               (click)="zoomUrl.set(c.imageUrl!)"></div>
+          <div
+            class="gen-card has-image"
+            style="aspect-ratio: 3/4; width: 100%; border-radius: var(--radius-md); border: 1.5px solid var(--color-accent);"
+            [style.background-image]="'url(' + c.imageUrl + ')'"
+            (click)="openModal()"
+          >
+            <div class="gen-card-hover-hint">Змінити…</div>
+          </div>
         } @else {
           <div class="sheet-thumb generating" style="aspect-ratio: 3/4; width: 100%;"></div>
           <p class="text-muted" style="font-size: 13px; margin-top: var(--space-2);">Обкладинка ще генерується…</p>
         }
-
-        <p class="text-muted" style="font-size: 11.5px; margin-top: var(--space-2);">
-          Залишилось {{ order()?.regenerationsRemaining }} перегенерацій
-        </p>
 
         @if (error()) {
           <p style="color: var(--color-accent-2-700); font-size: 13px;">{{ error() }}</p>
         }
 
         <div style="display: flex; gap: 10px; margin-top: var(--space-3);">
-          <button class="btn btn-secondary" style="flex: 1; min-height: 48px;" [disabled]="!c.imageUrl || busy()" (click)="regenerate(c)">
-            Перегенерувати
-          </button>
-          <button class="btn btn-primary" style="flex: 1; min-height: 48px;" [disabled]="!c.imageUrl || busy()" (click)="confirm(c)">
+          <button class="btn btn-primary btn-block" [disabled]="!c.imageUrl || busy()" (click)="confirm()">
             Обрати цю
           </button>
         </div>
-      }
 
-      @if (zoomUrl(); as z) {
-        <app-image-lightbox [url]="z" (closed)="zoomUrl.set(null)" />
+        @if (modalOpen()) {
+          <app-sheet-picker-modal
+            sheetName="Обкладинка"
+            [photos]="order()?.photos ?? []"
+            [library]="library()"
+            [initialPromptId]="c.promptId ?? ''"
+            [initialStyleId]="c.imageStyleId ?? ''"
+            [initialPhotoId]="c.photoId ?? ''"
+            [variants]="c.variants"
+            [activeVariantId]="c.activeVariantId"
+            [status]="c.status"
+            [regenerationsRemaining]="order()?.regenerationsRemaining ?? 0"
+            (closed)="closeModal()"
+            (generate)="onGenerate($event)"
+            (activateVariant)="onActivateVariant($event)"
+          />
+        }
       }
     </div>
   `,
-  imports: [ImageLightboxComponent],
+  imports: [SheetPickerModalComponent],
 })
 export class CoverComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   readonly order = this.store.selectSignal(selectOrder);
   readonly cover = this.store.selectSignal(selectCoverSheet);
+  readonly library = this.store.selectSignal(selectPromptLibrary);
   readonly busy = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
-  readonly zoomUrl = signal<string | null>(null);
+  readonly modalOpen = signal(false);
   private readonly orderId: string;
 
   constructor(
@@ -80,6 +99,7 @@ export class CoverComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.store.dispatch(OrderActions.loadPromptLibrary());
     this.store.dispatch(OrderActions.startOrderPolling({ orderId: this.orderId, intervalMs: 1500 }));
   }
 
@@ -87,11 +107,37 @@ export class CoverComponent implements OnInit, OnDestroy {
     this.store.dispatch(OrderActions.stopOrderPolling());
   }
 
-  regenerate(c: SheetDto): void {
-    this.store.dispatch(OrderActions.regenerateSheet({ orderId: this.orderId, sheetId: c.id }));
+  openModal(): void {
+    this.modalOpen.set(true);
   }
 
-  confirm(c: SheetDto): void {
+  closeModal(): void {
+    this.modalOpen.set(false);
+  }
+
+  onGenerate(picks: { promptId: string; styleId: string; photoId: string }): void {
+    const c = this.cover();
+    if (!c) return;
+    this.store.dispatch(
+      OrderActions.generateSheet({
+        orderId: this.orderId,
+        index: c.index,
+        promptId: picks.promptId,
+        imageStyleId: picks.styleId,
+        photoId: picks.photoId || undefined,
+      }),
+    );
+  }
+
+  onActivateVariant(variantId: string): void {
+    const c = this.cover();
+    if (!c) return;
+    this.store.dispatch(OrderActions.activateVariant({ orderId: this.orderId, sheetId: c.id, variantId }));
+  }
+
+  confirm(): void {
+    const c = this.cover();
+    if (!c) return;
     this.store.dispatch(OrderActions.confirmCover({ orderId: this.orderId, sheetId: c.id }));
   }
 }

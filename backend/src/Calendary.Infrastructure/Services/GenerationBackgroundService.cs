@@ -59,9 +59,17 @@ public class GenerationBackgroundService(IServiceScopeFactory scopeFactory, ILog
         {
             if (now - sheet.GeneratingStartedAtUtc!.Value >= GenerationDuration)
             {
+                var variant = new SheetVariant
+                {
+                    SheetId = sheet.Id,
+                    ImageUrl = $"https://picsum.photos/seed/{sheet.OrderId}-{sheet.Index}-{Guid.NewGuid():N}/640/800",
+                };
+                db.SheetVariants.Add(variant);
+
                 sheet.Status = SheetStatus.Ready;
                 sheet.ReadyAtUtc = now;
-                sheet.ImageUrl = $"https://picsum.photos/seed/{sheet.OrderId}-{sheet.Index}-{sheet.VariantCount}/640/800";
+                sheet.ImageUrl = variant.ImageUrl;
+                sheet.ActiveVariantId = variant.Id;
             }
         }
 
