@@ -177,11 +177,14 @@ the static mock dataset (see `NovaPoshtaService`).
 -r <repo> snapshots` to see what's there, `restic restore latest --tag db|media --target <dir>` to
 pull a snapshot out, then `docker cp` the `.bak` into the `mssql` container and `RESTORE DATABASE
 ... WITH REPLACE` for the DB, or untar into the media volume with the `backend` service stopped.
-`.github/workflows/restore-staging.yml` (manual `workflow_dispatch` only) runs this exact
-procedure end-to-end against staging — safe to trigger anytime to rehearse it, since it only
-restores staging's own latest backup over itself.
-
-**Triggering a backup on demand**: `.github/workflows/backup.yml` (manual `workflow_dispatch`,
-inputs `target: all|prod|staging` and `quick: bool`) SSHes in and runs `deploy/backup.sh` directly
-— an out-of-band run between the daily `calendary-backup.timer` ticks, without needing droplet SSH
-access yourself. `gh workflow run backup.yml -f target=staging -f quick=false`.
+Four one-click, parameter-free `workflow_dispatch`-only workflows cover manual backup/restore, so
+triggering the right one from the GitHub UI needs no memorized flags:
+- `backup-prod.yml` / `backup-staging.yml` — out-of-band full backup (DB + media) of one stack,
+  between the daily `calendary-backup.timer` ticks, no droplet SSH needed.
+- `restore-staging.yml` — runs the restore procedure above end-to-end against staging. Safe to
+  trigger anytime to rehearse it, since it only restores staging's own latest backup over itself —
+  no confirmation gate.
+- `restore-prod.yml` — same procedure against the **live** prod stack. Requires typing the exact
+  phrase `restore-prod` into the `confirm` input or the job aborts before touching the droplet —
+  this overwrites real customer data and briefly interrupts the site (`SINGLE_USER` during
+  `RESTORE DATABASE`, backend stopped while media is untarred).
