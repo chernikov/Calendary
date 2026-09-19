@@ -176,9 +176,13 @@ public class OrdersController(
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
         if (IsExpired(order)) return Conflict("Order has expired.");
-        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
+        // ReviewReady (every sheet already generated) is allowed too — customer coming back from
+        // /review to pick different prompts/styles and restart generation (see #372). Anything
+        // still generating (Generating/CoverReady/CoverConfirmed) or already confirmed/paid stays
+        // blocked, to avoid racing in-flight background generation or editing a paid order.
+        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted or OrderStatus.ReviewReady))
         {
-            return Conflict("The sheet plan can only be changed before generation starts.");
+            return Conflict("The sheet plan can only be changed before generation starts, or once every sheet is ready.");
         }
 
         var items = request.Items ?? [];
@@ -208,6 +212,16 @@ public class OrdersController(
                     Index = item.Index
                 };
                 db.Sheets.Add(sheet);
+            }
+            else if (sheet.Status == SheetStatus.Ready &&
+                (sheet.PromptId != item.PromptId || sheet.ImageStyleId != item.ImageStyleId || sheet.PinnedPhotoId != item.PhotoId))
+            {
+                // Re-submitting a changed pick for an already-generated sheet is a new variant
+                // request (same idea as the single-sheet picker modal, #351/#359) — reset it so
+                // the upcoming bulk generation pass actually regenerates it instead of skipping it
+                // as "already Ready", and count it against the (soft, uncapped) regen budget.
+                sheet.Status = SheetStatus.Pending;
+                order.RegenerationsRemaining -= 1;
             }
             sheet.PromptId = item.PromptId;
             sheet.ImageStyleId = item.ImageStyleId;
