@@ -22,7 +22,7 @@ builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 builder.Services.AddCalendaryAi(builder.Configuration);
 builder.Services.AddScoped<IPaymentService, MockPaymentService>();
-builder.Services.AddSingleton<INovaPoshtaService, MockNovaPoshtaService>();
+builder.Services.AddHttpClient<INovaPoshtaService, NovaPoshtaService>();
 builder.Services.AddHttpClient<ICalendarPdfService, CalendarPdfService>();
 builder.Services.AddScoped<ISessionTokenService, SessionTokenService>();
 builder.Services.AddScoped<IPasswordAuthService, PasswordAuthService>();
@@ -31,6 +31,7 @@ builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(Googl
 builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
 builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection(ResendOptions.SectionName));
 builder.Services.Configure<MonobankOptions>(builder.Configuration.GetSection(MonobankOptions.SectionName));
+builder.Services.Configure<NovaPoshtaOptions>(builder.Configuration.GetSection(NovaPoshtaOptions.SectionName));
 
 builder.Services.AddHostedService<FulfillmentBackgroundService>();
 builder.Services.AddHostedService<GenerationBackgroundService>();

@@ -63,6 +63,10 @@ export const orderReducer = createReducer(
   })),
   on(OrderActions.archiveOrderFailure, OrderActions.unarchiveOrderFailure, (state, { error }) => ({ ...state, error })),
 
+  on(OrderActions.loadCitiesSuccess, (state, { cities }) => ({ ...state, cities })),
+  on(OrderActions.loadCitiesFailure, (state) => ({ ...state, cities: [] })),
+  on(OrderActions.clearCities, (state) => ({ ...state, cities: [] })),
+
   on(OrderActions.loadWarehousesSuccess, (state, { warehouses }) => ({ ...state, warehouses })),
   on(OrderActions.loadWarehousesFailure, (state) => ({ ...state, warehouses: [] })),
   on(OrderActions.clearWarehouses, (state) => ({ ...state, warehouses: [] })),

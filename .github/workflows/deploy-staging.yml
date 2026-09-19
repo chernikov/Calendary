@@ -101,6 +101,10 @@ jobs:
             # docker-compose.staging.yml reads it the same way docker-compose.prod.yml does.
             grep -v '^MONOBANK_MERCHANT_TOKEN=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
             printf 'MONOBANK_MERCHANT_TOKEN=%s\n' "${{ secrets.MONOBANK_MERCHANT_TOKEN_STAGING }}" >> .env.staging
+            # Unlike Monobank, this is the same NOVA_POSHTA_API_KEY secret as prod's — a
+            # read-only address/branch lookup has no sandbox/live distinction or financial risk.
+            grep -v '^NOVA_POSHTA_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'NOVA_POSHTA_API_KEY=%s\n' "${{ secrets.NOVA_POSHTA_API_KEY }}" >> .env.staging
 
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging pull
             docker compose -p calendary-staging -f docker-compose.staging.yml --env-file .env.staging up -d --remove-orphans
