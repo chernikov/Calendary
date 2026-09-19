@@ -34,6 +34,8 @@ public static class DtoMapping
     public static DeliveryDto ToDto(this Delivery d) => new(
         d.RecipientName, d.Phone, d.City, d.WarehouseNumber, d.WarehouseAddress, d.TrackingNumber);
 
+    public static HolidayDto ToDto(this Holiday h) => new(h.Id, h.Country.ToString(), h.Year, h.Day, h.Month, h.Name);
+
     public static OrderDto ToDto(this Order o) => new(
         o.Id,
         o.Status.ToString(),
@@ -47,7 +49,9 @@ public static class DtoMapping
         o.PersonalDates.Select(d => d.ToDto()).OrderBy(d => d.Month).ThenBy(d => d.Day).ToList(),
         o.Sheets.Select(s => s.ToDto()).OrderBy(s => s.Index).ToList(),
         o.Payment?.ToDto(),
-        o.Delivery?.ToDto()
+        o.Delivery?.ToDto(),
+        o.HolidayCountries.Select(c => c.ToString()).ToList(),
+        o.WeekStart.ToString()
     );
 
     public static AdminOrderSummaryDto ToAdminSummaryDto(this Order o) => new(

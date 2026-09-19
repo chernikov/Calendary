@@ -132,6 +132,8 @@ export interface OrderDto {
   sheets: SheetDto[];
   payment: PaymentDto | null;
   delivery: DeliveryDto | null;
+  holidayCountries: string[];
+  weekStart: string;
 }
 
 export interface OrderSummaryDto {
@@ -225,4 +227,22 @@ export interface SaveImageStylePayload {
   description: string;
   previewImageUrl: string | null;
   sortOrder: number;
+}
+
+export interface HolidayDto {
+  id: string;
+  country: string;
+  year: number;
+  day: number;
+  month: number;
+  name: string;
+}
+
+export interface SaveHolidayPayload {
+  id?: string;
+  country: string;
+  year: number;
+  day: number;
+  month: number;
+  name: string;
 }

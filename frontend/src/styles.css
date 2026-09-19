@@ -150,6 +150,22 @@ textarea.input { min-height: 90px; resize: vertical; }
 .radio:hover .dot { border-color: var(--color-accent); }
 .radio input:checked + .dot { border-color: var(--color-accent); background: var(--color-accent); box-shadow: inset 0 0 0 4px var(--color-bg); }
 
+.checkbox-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.checkbox-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+  border: 1px solid var(--color-divider); border-radius: 999px; font-size: 13px; cursor: pointer;
+  background: var(--color-surface);
+}
+.checkbox-chip:hover { border-color: var(--color-accent); }
+.checkbox-chip:has(input:checked) { border-color: var(--color-accent); background: var(--color-accent-100); color: var(--color-accent-800); }
+
+.disclosure { margin-top: var(--space-3); }
+.disclosure summary {
+  cursor: pointer; font-size: 13.5px; font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight); color: var(--color-accent-700);
+}
+.disclosure[open] summary { margin-bottom: var(--space-2); }
+
 /* — cards — */
 .card {
   display: flex; flex-direction: column; gap: var(--space-2);

@@ -265,6 +265,38 @@ public class OrdersController(
         return Ok(order!.ToDto());
     }
 
+    /// Which countries' public holidays to mark in the printed calendar, and which weekday the
+    /// grid starts on (see #364) — set on the same personal-dates step, saved immediately on
+    /// every change, same as AddDate/RemoveDate above.
+    [HttpPut("{orderId:guid}/holiday-settings")]
+    public async Task<ActionResult<OrderDto>> SaveHolidaySettings(Guid orderId, SaveHolidaySettingsRequest request)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+
+        if (!Enum.TryParse<WeekStartDay>(request.WeekStart, ignoreCase: true, out var weekStart))
+        {
+            return BadRequest($"Unknown week start: {request.WeekStart}");
+        }
+
+        var countries = new List<Country>();
+        foreach (var c in request.Countries)
+        {
+            if (!Enum.TryParse<Country>(c, ignoreCase: true, out var country))
+            {
+                return BadRequest($"Unknown country: {c}");
+            }
+            countries.Add(country);
+        }
+
+        order.HolidayCountries = countries;
+        order.WeekStart = weekStart;
+        await db.SaveChangesAsync();
+
+        order = await LoadOwnedOrderAsync(orderId);
+        return Ok(order!.ToDto());
+    }
+
     /// The single customer-facing generation trigger (see #351) — used by the sheet picker modal
     /// on every page (planning-step tiles, cover, month). A sheet's first-ever variant is free,
     /// matching the old planning-step behavior; any variant after that costs a regeneration, same

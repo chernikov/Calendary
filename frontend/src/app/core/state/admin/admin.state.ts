@@ -3,6 +3,7 @@ import {
   AdminUserDto,
   BackupStatusDto,
   ConfigStatusDto,
+  HolidayDto,
   ImageGenerationProvider,
   ImageStyleDto,
   OrderDto,
@@ -19,6 +20,7 @@ export interface AdminState {
   backupStatus: BackupStatusDto | null;
   promptThemes: PromptThemeDto[];
   imageStyles: ImageStyleDto[];
+  holidays: HolidayDto[];
   busy: boolean;
   error: string | null;
 }
@@ -32,6 +34,7 @@ export const initialAdminState: AdminState = {
   backupStatus: null,
   promptThemes: [],
   imageStyles: [],
+  holidays: [],
   busy: false,
   error: null,
 };

@@ -242,4 +242,40 @@ export class AdminEffects {
       ),
     ),
   );
+
+  loadHolidays$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadHolidays),
+      switchMap(() =>
+        this.admin.listHolidays().pipe(
+          map((holidays) => AdminActions.loadHolidaysSuccess({ holidays })),
+          catchError(() => of(AdminActions.loadHolidaysFailure({ error: 'Не вдалося завантажити свята.' }))),
+        ),
+      ),
+    ),
+  );
+
+  saveHoliday$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.saveHoliday),
+      switchMap(({ holiday }) =>
+        this.admin.saveHoliday(holiday).pipe(
+          map(() => AdminActions.loadHolidays()),
+          catchError(() => of(AdminActions.holidayMutationFailure({ error: 'Не вдалося зберегти свято.' }))),
+        ),
+      ),
+    ),
+  );
+
+  deleteHoliday$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.deleteHoliday),
+      switchMap(({ holidayId }) =>
+        this.admin.deleteHoliday(holidayId).pipe(
+          map(() => AdminActions.loadHolidays()),
+          catchError(() => of(AdminActions.holidayMutationFailure({ error: 'Не вдалося видалити свято.' }))),
+        ),
+      ),
+    ),
+  );
 }

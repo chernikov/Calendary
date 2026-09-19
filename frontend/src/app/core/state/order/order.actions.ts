@@ -44,6 +44,10 @@ export const OrderActions = createActionGroup({
     'Remove Personal Date Success': props<{ order: OrderDto }>(),
     'Remove Personal Date Failure': props<{ error: string }>(),
 
+    'Save Holiday Settings': props<{ orderId: string; countries: string[]; weekStart: string }>(),
+    'Save Holiday Settings Success': props<{ order: OrderDto }>(),
+    'Save Holiday Settings Failure': props<{ error: string }>(),
+
     'Start Generation': props<{ orderId: string }>(),
     'Start Generation Success': props<{ order: OrderDto }>(),
     'Start Generation Failure': props<{ error: string }>(),

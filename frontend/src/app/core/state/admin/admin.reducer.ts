@@ -17,6 +17,8 @@ export const adminReducer = createReducer(
     AdminActions.deletePrompt,
     AdminActions.saveImageStyle,
     AdminActions.deleteImageStyle,
+    AdminActions.saveHoliday,
+    AdminActions.deleteHoliday,
     (state) => ({ ...state, busy: true, error: null }),
   ),
 
@@ -59,6 +61,13 @@ export const adminReducer = createReducer(
     error: null,
   })),
 
+  on(AdminActions.loadHolidaysSuccess, (state, { holidays }) => ({
+    ...state,
+    holidays,
+    busy: false,
+    error: null,
+  })),
+
   on(
     AdminActions.loadOrdersFailure,
     AdminActions.loadUsersFailure,
@@ -72,6 +81,8 @@ export const adminReducer = createReducer(
     AdminActions.loadPromptThemesFailure,
     AdminActions.loadImageStylesFailure,
     AdminActions.promptLibraryMutationFailure,
+    AdminActions.loadHolidaysFailure,
+    AdminActions.holidayMutationFailure,
     (state, { error }) => ({ ...state, busy: false, error }),
   ),
 
