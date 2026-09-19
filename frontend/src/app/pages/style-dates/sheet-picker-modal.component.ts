@@ -53,31 +53,25 @@ type PickerTab = 'photo' | 'style' | 'prompt';
           <div class="sheet-picker-body">
             @if (activeTab() === 'photo') {
               <div class="picker-grid picker-grid-compact">
-                <button
-                  type="button"
-                  class="picker-item picker-item-compact"
-                  [class.selected]="!photoId()"
-                  (click)="photoId.set('')"
-                  title="За замовчуванням — перше завантажене фото"
-                >
-                  @if (photos[0]; as first) {
-                    <img [src]="first.thumbUrl" alt="Перше завантажене фото" />
-                  } @else {
-                    <div class="swatch"></div>
-                  }
-                  <span class="picker-item-name">За замовч.</span>
-                </button>
                 @for (photo of photos; track photo.id) {
                   <button
                     type="button"
                     class="picker-item picker-item-compact"
-                    [class.selected]="photoId() === photo.id"
+                    [class.selected]="isPhotoSelected(photo.id)"
                     (click)="photoId.set(photo.id)"
                   >
                     <img [src]="photo.thumbUrl" alt="Фото" loading="lazy" />
                   </button>
                 }
+                <button type="button" class="picker-item picker-item-compact picker-item-add" (click)="fileInput.click()">
+                  <span class="picker-item-add-icon">+</span>
+                  <span class="picker-item-name">Додати</span>
+                </button>
+                <input #fileInput type="file" accept="image/*" hidden (change)="onPhotoFileSelected($event)" />
               </div>
+              @if (photoUploadError) {
+                <p style="color: var(--color-accent-2-700); font-size: 12px; margin-top: var(--space-2);">{{ photoUploadError }}</p>
+              }
             } @else if (activeTab() === 'style') {
               <div class="picker-grid picker-grid-compact">
                 @for (style of library?.styles ?? []; track style.id) {
@@ -195,10 +189,12 @@ export class SheetPickerModalComponent implements OnInit, OnChanges {
   @Input() activeVariantId: string | null = null;
   @Input() status: SheetStatus = 'Pending';
   @Input() regenerationsRemaining = 0;
+  @Input() photoUploadError: string | null = null;
 
   @Output() closed = new EventEmitter<void>();
   @Output() generate = new EventEmitter<{ promptId: string; styleId: string; photoId: string }>();
   @Output() activateVariant = new EventEmitter<string>();
+  @Output() addPhoto = new EventEmitter<File>();
 
   readonly activeTab = signal<PickerTab>('photo');
   readonly promptId = signal('');
@@ -233,6 +229,20 @@ export class SheetPickerModalComponent implements OnInit, OnChanges {
   // summary/preview should actually show it, not a blank swatch.
   selectedPhoto(): OrderPhotoDto | undefined {
     return this.photoId() ? this.photos.find((p) => p.id === this.photoId()) : this.photos[0];
+  }
+
+  // With no explicit pin, the first uploaded photo IS the default — highlight its own tile
+  // instead of a separate duplicate "default" tile that looks identical when there's one photo.
+  isPhotoSelected(photoId: string): boolean {
+    return this.photoId() ? this.photoId() === photoId : this.photos[0]?.id === photoId;
+  }
+
+  onPhotoFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    this.addPhoto.emit(file);
   }
 
   styleName(): string {
