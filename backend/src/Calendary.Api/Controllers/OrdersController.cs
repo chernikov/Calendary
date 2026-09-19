@@ -19,7 +19,8 @@ public class OrdersController(
     IImageGenerationService generationService,
     IPaymentService paymentService,
     ICalendarPdfService pdfService,
-    IFileStorage fileStorage) : ControllerBase
+    IFileStorage fileStorage,
+    ILogger<OrdersController> logger) : ControllerBase
 {
     private const int MaxLabelLength = 22;
 
@@ -359,6 +360,16 @@ public class OrdersController(
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
         if (IsExpired(order)) return Conflict("Order has expired.");
+
+        // Idempotency: a retried/duplicate POST (double-click, frontend retry, provider webhook
+        // racing the synchronous response) must not charge a second time. Retrying after a
+        // *failed* payment is still allowed — only a prior success short-circuits.
+        if (order.Status == OrderStatus.Paid || order.Payment?.Status == PaymentStatus.Succeeded)
+        {
+            logger.LogInformation("Pay: order {OrderId} is already paid, skipping charge", orderId);
+            return Ok(order.ToDto());
+        }
+
         if (!Enum.TryParse<PaymentMethod>(request.Method, true, out var method))
         {
             return BadRequest("Unknown payment method.");
@@ -379,10 +390,14 @@ public class OrdersController(
             order.Payment.Status = PaymentStatus.Succeeded;
             order.Payment.PaidAtUtc = DateTime.UtcNow;
             order.SetStatus(OrderStatus.Paid);
+            logger.LogInformation(
+                "Pay: order {OrderId} charged successfully via {Method}, amount {Amount}", orderId, method, order.Price);
         }
         else
         {
             order.Payment.Status = PaymentStatus.Failed;
+            logger.LogWarning(
+                "Pay: order {OrderId} charge failed via {Method}: {Reason}", orderId, method, result.FailureReason ?? "unknown");
         }
 
         await db.SaveChangesAsync();
