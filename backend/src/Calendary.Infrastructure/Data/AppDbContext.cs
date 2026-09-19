@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users => Set<User>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<Sheet> Sheets => Set<Sheet>();
+    public DbSet<OrderPhoto> OrderPhotos => Set<OrderPhoto>();
     public DbSet<PromptTheme> PromptThemes => Set<PromptTheme>();
     public DbSet<Prompt> Prompts => Set<Prompt>();
     public DbSet<ImageStyle> ImageStyles => Set<ImageStyle>();
@@ -55,6 +56,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasMany(o => o.PersonalDates)
             .WithOne(d => d.Order)
             .HasForeignKey(d => d.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Order>()
+            .HasMany(o => o.Photos)
+            .WithOne(p => p.Order)
+            .HasForeignKey(p => p.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Order>()

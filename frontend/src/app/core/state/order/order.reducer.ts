@@ -17,6 +17,8 @@ export const orderReducer = createReducer(
 
   on(
     OrderActions.createOrderWithPhoto,
+    OrderActions.addOrderPhoto,
+    OrderActions.removeOrderPhoto,
     OrderActions.startGeneration,
     OrderActions.savePlanAndGenerate,
     OrderActions.regenerateSheet,
@@ -28,6 +30,8 @@ export const orderReducer = createReducer(
 
   on(
     OrderActions.createOrderWithPhotoSuccess,
+    OrderActions.addOrderPhotoSuccess,
+    OrderActions.removeOrderPhotoSuccess,
     OrderActions.addPersonalDateSuccess,
     OrderActions.removePersonalDateSuccess,
     OrderActions.startGenerationSuccess,
@@ -41,6 +45,8 @@ export const orderReducer = createReducer(
 
   on(
     OrderActions.createOrderWithPhotoFailure,
+    OrderActions.addOrderPhotoFailure,
+    OrderActions.removeOrderPhotoFailure,
     OrderActions.addPersonalDateFailure,
     OrderActions.removePersonalDateFailure,
     OrderActions.startGenerationFailure,

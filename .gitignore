@@ -1,6 +1,7 @@
 # .NET
 backend/**/bin/
 backend/**/obj/
+backend/src/Calendary.Api/App_Data/
 
 # Node / Angular
 frontend/node_modules/
