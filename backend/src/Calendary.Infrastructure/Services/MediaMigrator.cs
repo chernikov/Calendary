@@ -17,15 +17,7 @@ public static class MediaMigrator
     public static async Task ConvertInlineImagesAsync(
         AppDbContext db, IFileStorage fileStorage, ILogger logger, CancellationToken ct = default)
     {
-        var photos = await ConvertAsync(
-            db,
-            () => db.Orders.Where(o => o.PhotoUrl != null && o.PhotoUrl.StartsWith("data:")),
-            o => o.PhotoUrl,
-            (o, url) => o.PhotoUrl = url,
-            "photos",
-            fileStorage,
-            logger,
-            ct);
+        var photos = await ConvertOrderPhotosAsync(db, fileStorage, logger, ct);
 
         var sheets = await ConvertAsync(
             db,
@@ -42,6 +34,45 @@ public static class MediaMigrator
             logger.LogInformation(
                 "Converted {Photos} inline photo(s) and {Sheets} inline sheet image(s) to file storage.",
                 photos, sheets);
+        }
+    }
+
+    // OrderPhoto.Url/ThumbUrl are non-nullable (unlike the old nullable Order.PhotoUrl), so an
+    // unparseable legacy value removes the row rather than nulling a field — a row's only reason
+    // to exist is holding a URL. This also generates a real ThumbUrl from the decoded bytes,
+    // replacing the same-as-Url placeholder the AddOrderPhotos migration backfilled it with.
+    private static async Task<int> ConvertOrderPhotosAsync(
+        AppDbContext db, IFileStorage fileStorage, ILogger logger, CancellationToken ct)
+    {
+        var converted = 0;
+
+        while (true)
+        {
+            var batch = await db.OrderPhotos.Where(p => p.Url.StartsWith("data:")).Take(BatchSize).ToListAsync(ct);
+            if (batch.Count == 0)
+            {
+                return converted;
+            }
+
+            foreach (var photo in batch)
+            {
+                if (DataUrl.TryParse(photo.Url, out var contentType, out var bytes))
+                {
+                    var original = new StoredFile(bytes, contentType);
+                    photo.Url = await fileStorage.SaveAsync(original.Content, original.ContentType, "photos", ct);
+                    var thumb = PhotoThumbnailGenerator.Generate(original);
+                    photo.ThumbUrl = await fileStorage.SaveAsync(thumb.Content, thumb.ContentType, "photo-thumbs", ct);
+                    converted++;
+                }
+                else
+                {
+                    logger.LogWarning("Discarding inline photo image (not a base64 data URL).");
+                    db.OrderPhotos.Remove(photo);
+                }
+            }
+
+            await db.SaveChangesAsync(ct);
+            db.ChangeTracker.Clear();
         }
     }
 

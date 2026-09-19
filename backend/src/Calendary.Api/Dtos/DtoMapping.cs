@@ -18,6 +18,8 @@ public static class DtoMapping
 
     public static PersonalDateDto ToDto(this PersonalDate d) => new(d.Id, d.Day, d.Month, d.Label);
 
+    public static OrderPhotoDto ToDto(this OrderPhoto p) => new(p.Id, p.Url, p.ThumbUrl);
+
     public static SheetDto ToDto(this Sheet s) => new(
         s.Id, s.Kind.ToString(), s.Index, s.Status.ToString(), s.IsSelected, s.ImageUrl, s.VariantCount,
         s.PromptId, s.Prompt?.Name, s.ImageStyleId, s.ImageStyle?.Name);
@@ -31,7 +33,7 @@ public static class DtoMapping
     public static OrderDto ToDto(this Order o) => new(
         o.Id,
         o.Status.ToString(),
-        o.PhotoUrl,
+        o.Photos.OrderBy(p => p.CreatedAtUtc).Select(p => p.ToDto()).ToList(),
         o.Price,
         o.RegenerationsRemaining,
         o.CreatedAtUtc,

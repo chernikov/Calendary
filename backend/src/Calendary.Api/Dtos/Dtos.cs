@@ -32,10 +32,12 @@ public record PaymentDto(string Method, string Status, decimal Amount, DateTime?
 
 public record NovaPoshtaWarehouseDto(string Number, string Address, string ClosesAt);
 
+public record OrderPhotoDto(Guid Id, string Url, string ThumbUrl);
+
 public record OrderDto(
     Guid Id,
     string Status,
-    string? PhotoUrl,
+    IReadOnlyList<OrderPhotoDto> Photos,
     decimal Price,
     int RegenerationsRemaining,
     DateTime CreatedAtUtc,

@@ -64,13 +64,37 @@ export class OrderEffects {
     ),
   );
 
-  uploadPhoto$ = createEffect(() =>
+  createOrderWithPhoto$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(OrderActions.uploadPhoto),
+      ofType(OrderActions.createOrderWithPhoto),
+      switchMap(({ photo }) =>
+        this.orders.createOrder(photo).pipe(
+          map((order) => OrderActions.createOrderWithPhotoSuccess({ order })),
+          catchError((err) => of(OrderActions.createOrderWithPhotoFailure({ error: photoUploadErrorMessage(err) }))),
+        ),
+      ),
+    ),
+  );
+
+  addOrderPhoto$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.addOrderPhoto),
       switchMap(({ orderId, photo }) =>
-        this.orders.uploadPhoto(orderId, photo).pipe(
-          map((order) => OrderActions.uploadPhotoSuccess({ order })),
-          catchError((err) => of(OrderActions.uploadPhotoFailure({ error: photoUploadErrorMessage(err) }))),
+        this.orders.addPhoto(orderId, photo).pipe(
+          map((order) => OrderActions.addOrderPhotoSuccess({ order })),
+          catchError((err) => of(OrderActions.addOrderPhotoFailure({ error: photoUploadErrorMessage(err) }))),
+        ),
+      ),
+    ),
+  );
+
+  removeOrderPhoto$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.removeOrderPhoto),
+      switchMap(({ orderId, photoId }) =>
+        this.orders.removePhoto(orderId, photoId).pipe(
+          map((order) => OrderActions.removeOrderPhotoSuccess({ order })),
+          catchError(() => of(OrderActions.removeOrderPhotoFailure({ error: 'Не вдалося видалити фото.' }))),
         ),
       ),
     ),

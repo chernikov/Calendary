@@ -66,8 +66,14 @@ const STATUS_COLORS: Record<SheetStatus, string> = {
 
       <h3>Фото</h3>
       <div style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px;">
-        @if (o.photoUrl) {
-          <img [src]="o.photoUrl" style="max-height: 220px; border-radius: 6px;" alt="Фото замовлення" />
+        @if (o.photos.length) {
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            @for (p of o.photos; track p.id) {
+              <a [href]="p.url" target="_blank">
+                <img [src]="p.thumbUrl" style="max-height: 140px; border-radius: 6px;" alt="Фото замовлення" />
+              </a>
+            }
+          </div>
         } @else {
           <div style="color: rgba(0,0,0,0.45);">Фото не завантажено</div>
         }

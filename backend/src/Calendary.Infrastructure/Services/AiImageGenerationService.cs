@@ -31,7 +31,7 @@ public class AiImageGenerationService(
 
     public async Task<IReadOnlyList<Sheet>> StartOrderGenerationAsync(Guid orderId, CancellationToken ct = default)
     {
-        var order = await db.Orders.FirstAsync(o => o.Id == orderId, ct);
+        var order = await db.Orders.Include(o => o.Photos).FirstAsync(o => o.Id == orderId, ct);
         var sheets = await db.Sheets
             .Where(s => s.OrderId == orderId)
             .OrderBy(s => s.Index)
@@ -56,15 +56,16 @@ public class AiImageGenerationService(
 
         await db.SaveChangesAsync(ct);
 
-        var photoUrl = order.PhotoUrl ?? throw new InvalidOperationException("Order has no uploaded photo.");
-        _ = Task.Run(() => GenerateOrderWithFailureHandlingAsync(orderId, photoUrl), CancellationToken.None);
+        var photoUrls = order.Photos.Select(p => p.Url).ToList();
+        if (photoUrls.Count == 0) throw new InvalidOperationException("Order has no uploaded photo.");
+        _ = Task.Run(() => GenerateOrderWithFailureHandlingAsync(orderId, photoUrls), CancellationToken.None);
 
         return sheets;
     }
 
     public async Task<bool> RegenerateSheetAsync(Guid orderId, Guid sheetId, CancellationToken ct = default)
     {
-        var order = await db.Orders.FirstAsync(o => o.Id == orderId, ct);
+        var order = await db.Orders.Include(o => o.Photos).FirstAsync(o => o.Id == orderId, ct);
         if (order.RegenerationsRemaining <= 0)
         {
             return false;
@@ -81,7 +82,8 @@ public class AiImageGenerationService(
 
         await db.SaveChangesAsync(ct);
 
-        var referenceDataUrl = await ResolveReferenceDataUrlAsync(order.PhotoUrl!, ct);
+        var photoUrl = PickRandomPhotoUrl(order.Photos.Select(p => p.Url).ToList());
+        var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl, ct);
         var prompt = BuildPrompt(sheet);
         _ = Task.Run(() => GenerateOneSheetWithFailureHandlingAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
 
@@ -90,7 +92,7 @@ public class AiImageGenerationService(
 
     public async Task GenerateSheetPreviewAsync(Guid orderId, Guid sheetId, CancellationToken ct = default)
     {
-        var order = await db.Orders.FirstAsync(o => o.Id == orderId, ct);
+        var order = await db.Orders.Include(o => o.Photos).FirstAsync(o => o.Id == orderId, ct);
         var sheet = await db.Sheets
             .Include(s => s.Prompt)
             .Include(s => s.ImageStyle)
@@ -100,7 +102,8 @@ public class AiImageGenerationService(
         sheet.VariantCount += 1;
         await db.SaveChangesAsync(ct);
 
-        var referenceDataUrl = await ResolveReferenceDataUrlAsync(order.PhotoUrl!, ct);
+        var photoUrl = PickRandomPhotoUrl(order.Photos.Select(p => p.Url).ToList());
+        var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl, ct);
         var prompt = BuildPrompt(sheet);
         _ = Task.Run(() => GenerateOneSheetWithFailureHandlingAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
     }
@@ -109,11 +112,11 @@ public class AiImageGenerationService(
     // sheet reaches RunGenerationAsync (e.g. reading the reference photo fails) becomes an
     // unobserved task exception and every sheet is left stuck in Generating/Pending forever, with
     // no way for the user to retry. Any sheet not already Ready/Failed is force-failed instead.
-    private async Task GenerateOrderWithFailureHandlingAsync(Guid orderId, string photoUrl)
+    private async Task GenerateOrderWithFailureHandlingAsync(Guid orderId, IReadOnlyList<string> photoUrls)
     {
         try
         {
-            await GenerateOrderAsync(orderId, photoUrl);
+            await GenerateOrderAsync(orderId, photoUrls);
         }
         catch (Exception ex)
         {
@@ -151,13 +154,16 @@ public class AiImageGenerationService(
         }
     }
 
-    private async Task GenerateOrderAsync(Guid orderId, string photoUrl)
+    private async Task GenerateOrderAsync(Guid orderId, IReadOnlyList<string> photoUrls)
     {
-        var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl);
+        // Each sheet independently draws its own random reference photo below (not once here) —
+        // intentional variety, not a bug: different months may end up based on different source
+        // photos. A future manual per-sheet picker will let customers override this.
 
         // Cover first, so the customer sees it (and can confirm it) while the months are still
         // being produced.
-        await GenerateOneSheetAsync(orderId, kind: SheetKind.Cover, index: 0, referenceDataUrl);
+        var coverReferenceDataUrl = await ResolveReferenceDataUrlAsync(PickRandomPhotoUrl(photoUrls));
+        await GenerateOneSheetAsync(orderId, kind: SheetKind.Cover, index: 0, coverReferenceDataUrl);
 
         using var throttle = new SemaphoreSlim(MaxConcurrentGenerations);
         var monthTasks = Enumerable.Range(1, 12).Select(async month =>
@@ -165,6 +171,7 @@ public class AiImageGenerationService(
             await throttle.WaitAsync();
             try
             {
+                var referenceDataUrl = await ResolveReferenceDataUrlAsync(PickRandomPhotoUrl(photoUrls));
                 await GenerateOneSheetAsync(orderId, kind: SheetKind.Month, index: month, referenceDataUrl);
             }
             finally
@@ -241,6 +248,13 @@ public class AiImageGenerationService(
 
         await scopedDb.SaveChangesAsync();
     }
+
+    // Each sheet independently draws one random reference photo — intentional variety, not a bug.
+    // A future manual per-sheet picker (deferred to a follow-up issue) will let customers override
+    // this. Only OrderPhoto.Url (the reference-resolution image) is ever picked here, never
+    // ThumbUrl, which exists purely for UI display.
+    private static string PickRandomPhotoUrl(IReadOnlyList<string> photoUrls) =>
+        photoUrls[Random.Shared.Next(photoUrls.Count)];
 
     /// Providers take the reference photo inline and re-send it for every sheet, so it is pulled
     /// out of storage and shrunk once per generation run.

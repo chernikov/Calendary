@@ -2,7 +2,6 @@ import { AfterViewInit, Component, ElementRef, ViewChild, signal } from '@angula
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
-import { OrderService } from '../../core/order.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -76,7 +75,6 @@ export class StartComponent implements AfterViewInit {
 
   constructor(
     private readonly auth: AuthService,
-    private readonly orders: OrderService,
     private readonly router: Router,
     route: ActivatedRoute,
   ) {
@@ -158,12 +156,7 @@ export class StartComponent implements AfterViewInit {
   }
 
   private afterAuthenticated(): void {
-    this.orders.createOrder().subscribe({
-      next: (order) => this.router.navigate(['/order', order.id, 'upload']),
-      error: () => {
-        this.error.set('Не вдалося створити замовлення.');
-        this.loading.set(false);
-      },
-    });
+    // The order itself isn't created until a photo is actually uploaded — see #348.
+    this.router.navigate(['/order', 'new', 'upload']);
   }
 }

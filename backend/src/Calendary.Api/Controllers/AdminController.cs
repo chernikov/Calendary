@@ -6,6 +6,7 @@ using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
 using Calendary.Infrastructure.Data;
 using Calendary.Infrastructure.Options;
+using Calendary.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,7 @@ public class AdminController(
     private async Task<Order?> LoadOrderAsync(Guid orderId) =>
         await db.Orders
             .Include(o => o.User)
+            .Include(o => o.Photos)
             .Include(o => o.PersonalDates)
             .Include(o => o.Sheets).ThenInclude(s => s.Prompt)
             .Include(o => o.Sheets).ThenInclude(s => s.ImageStyle)
@@ -86,7 +88,15 @@ public class AdminController(
             return BadRequest(new { error = intake.Error });
         }
 
-        order.PhotoUrl = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
+        var url = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
+        var thumb = PhotoThumbnailGenerator.Generate(new StoredFile(intake.Bytes, intake.ContentType));
+        var thumbUrl = await fileStorage.SaveAsync(thumb.Content, thumb.ContentType, "photo-thumbs", ct);
+
+        // "Replace" means the whole set, not "add another" — keeps the admin UI a simple
+        // single-file control instead of needing its own multi-photo management.
+        db.OrderPhotos.RemoveRange(order.Photos);
+        order.Photos.Clear();
+        order.Photos.Add(new OrderPhoto { OrderId = order.Id, Url = url, ThumbUrl = thumbUrl });
         await db.SaveChangesAsync(ct);
 
         order = await LoadOrderAsync(orderId);

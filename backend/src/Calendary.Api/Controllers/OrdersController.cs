@@ -5,6 +5,7 @@ using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
 using Calendary.Infrastructure.Data;
+using Calendary.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,18 +24,20 @@ public class OrdersController(
     ILogger<OrdersController> logger) : ControllerBase
 {
     private const int MaxLabelLength = 22;
+    private const int MaxPhotosPerOrder = 20; // abuse safeguard only — not a product-facing cap
 
     private async Task<Order?> LoadOwnedOrderAsync(Guid orderId)
     {
         var userId = User.GetUserId();
         return await db.Orders
+            .Include(o => o.Photos)
             .Include(o => o.PersonalDates)
             .Include(o => o.Sheets).ThenInclude(s => s.Prompt)
             .Include(o => o.Sheets).ThenInclude(s => s.ImageStyle)
             .Include(o => o.Payment)
             .Include(o => o.Delivery)
-            // Sheets and PersonalDates are sibling collections on the same query — a single join
-            // multiplies rows (sheets × dates). AsSplitQuery issues one query per collection.
+            // Photos, Sheets and PersonalDates are sibling collections on the same query — a
+            // single join multiplies rows. AsSplitQuery issues one query per collection.
             .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
     }
@@ -48,14 +51,87 @@ public class OrdersController(
     private static bool IsExpired(Order order) =>
         !ExemptFromExpiry.Contains(order.Status) && DateTime.UtcNow > order.ExpiresAtUtc;
 
+    // The order isn't created until the customer actually commits a photo — no more empty
+    // "Created"-status rows left behind by someone who clicked "Створити календар" and then
+    // closed the tab. Combines the old bare Create + UploadPhoto into one call (see #348).
     [HttpPost]
-    public async Task<ActionResult<OrderDto>> Create()
+    [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
+    public async Task<ActionResult<OrderDto>> Create([FromForm] IFormFile? photo, CancellationToken ct)
     {
+        var intake = await PhotoIntake.ReadAsync(photo, ct);
+        if (!intake.Ok)
+        {
+            return BadRequest(new { error = intake.Error });
+        }
+
+        var url = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
+        var thumb = PhotoThumbnailGenerator.Generate(new StoredFile(intake.Bytes, intake.ContentType));
+        var thumbUrl = await fileStorage.SaveAsync(thumb.Content, thumb.ContentType, "photo-thumbs", ct);
+
         var order = new Order { UserId = User.GetUserId() };
+        order.Photos.Add(new OrderPhoto { OrderId = order.Id, Url = url, ThumbUrl = thumbUrl });
+        order.SetStatus(OrderStatus.PhotoUploaded);
         db.Orders.Add(order);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
 
         order = await LoadOwnedOrderAsync(order.Id);
+        return Ok(order!.ToDto());
+    }
+
+    // Uploads are sequential, one file per request — the first (Create, above) creates the order;
+    // this adds any further photo to it. Kept as a separate small endpoint (rather than accepting
+    // a file list on Create) so the request body size never grows with photo count.
+    [HttpPost("{orderId:guid}/photos")]
+    [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
+    public async Task<ActionResult<OrderDto>> AddPhoto(Guid orderId, [FromForm] IFormFile? photo, CancellationToken ct)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
+        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
+        {
+            return Conflict("Photos can only be added before generation starts.");
+        }
+        if (order.Photos.Count >= MaxPhotosPerOrder)
+        {
+            return Conflict("Too many photos.");
+        }
+
+        var intake = await PhotoIntake.ReadAsync(photo, ct);
+        if (!intake.Ok)
+        {
+            return BadRequest(new { error = intake.Error });
+        }
+
+        var url = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
+        var thumb = PhotoThumbnailGenerator.Generate(new StoredFile(intake.Bytes, intake.ContentType));
+        var thumbUrl = await fileStorage.SaveAsync(thumb.Content, thumb.ContentType, "photo-thumbs", ct);
+
+        db.OrderPhotos.Add(new OrderPhoto { OrderId = order.Id, Url = url, ThumbUrl = thumbUrl });
+        await db.SaveChangesAsync(ct);
+
+        order = await LoadOwnedOrderAsync(orderId);
+        return Ok(order!.ToDto());
+    }
+
+    [HttpDelete("{orderId:guid}/photos/{photoId:guid}")]
+    public async Task<ActionResult<OrderDto>> RemovePhoto(Guid orderId, Guid photoId)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
+        {
+            return Conflict("Photos can only be changed before generation starts.");
+        }
+
+        var photo = order.Photos.FirstOrDefault(p => p.Id == photoId);
+        if (photo is null) return NotFound();
+        if (order.Photos.Count == 1) return Conflict("At least one photo is required.");
+
+        db.OrderPhotos.Remove(photo);
+        await db.SaveChangesAsync();
+
+        order = await LoadOwnedOrderAsync(orderId);
         return Ok(order!.ToDto());
     }
 
@@ -85,25 +161,6 @@ public class OrdersController(
             .ToListAsync();
 
         return Ok(orders);
-    }
-
-    [HttpPost("{orderId:guid}/photo")]
-    [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
-    public async Task<ActionResult<OrderDto>> UploadPhoto(Guid orderId, [FromForm] IFormFile? photo, CancellationToken ct)
-    {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        var intake = await PhotoIntake.ReadAsync(photo, ct);
-        if (!intake.Ok)
-        {
-            return BadRequest(new { error = intake.Error });
-        }
-
-        order.PhotoUrl = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
-        order.SetStatus(OrderStatus.PhotoUploaded);
-        await db.SaveChangesAsync(ct);
-        return Ok(order.ToDto());
     }
 
     /// Saves the user's per-sheet picks (prompt + image style for the cover and each month),
@@ -215,7 +272,7 @@ public class OrdersController(
         {
             return Conflict("Sheets can only be generated one-by-one before full generation starts.");
         }
-        if (order.PhotoUrl is null) return Conflict("Upload a photo first.");
+        if (order.Photos.Count == 0) return Conflict("Upload a photo first.");
 
         if (await db.Prompts.FindAsync(request.PromptId) is null) return BadRequest("Unknown prompt.");
         if (await db.ImageStyles.FindAsync(request.ImageStyleId) is null) return BadRequest("Unknown image style.");

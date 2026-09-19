@@ -4,7 +4,6 @@ import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { OrderSummaryDto } from '../../core/models';
 import { isOrderInProgress, orderStatusLabel, orderStatusTagClass, orderStepLink } from '../../core/order-status';
-import { OrderService } from '../../core/order.service';
 import {
   OrderActions,
   selectActiveOrders,
@@ -21,7 +20,7 @@ import {
     <div class="page">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3);">
         <h2 style="font-size: 28px;">Мої замовлення</h2>
-        <button class="btn btn-primary" [disabled]="creating" (click)="createOrder()">Створити календар</button>
+        <button class="btn btn-primary" (click)="createOrder()">Створити календар</button>
       </div>
 
       @if (error()) {
@@ -115,7 +114,6 @@ import {
 })
 export class OrdersComponent implements OnInit {
   private readonly store = inject(Store);
-  private readonly orderService = inject(OrderService);
   private readonly router = inject(Router);
 
   readonly activeOrders = this.store.selectSignal(selectActiveOrders);
@@ -123,8 +121,6 @@ export class OrdersComponent implements OnInit {
   readonly busy = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
   readonly showArchived = signal(false);
-
-  creating = false;
 
   ngOnInit(): void {
     this.store.dispatch(OrderActions.loadMyOrders());
@@ -136,11 +132,8 @@ export class OrdersComponent implements OnInit {
   inProgress = (o: OrderSummaryDto) => isOrderInProgress(o.status);
 
   createOrder(): void {
-    this.creating = true;
-    this.orderService.createOrder().subscribe({
-      next: (order) => this.router.navigate(['/order', order.id, 'upload']),
-      error: () => (this.creating = false),
-    });
+    // The order itself isn't created until a photo is actually uploaded — see #348.
+    this.router.navigate(['/order', 'new', 'upload']);
   }
 
   archive(o: OrderSummaryDto): void {

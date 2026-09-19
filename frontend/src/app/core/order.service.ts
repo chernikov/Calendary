@@ -20,8 +20,23 @@ export class OrderService {
     return this.http.get<PromptLibraryDto>(`${BASE}/prompt-library`);
   }
 
-  createOrder(): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders`, {});
+  // The order isn't created until a photo is actually attached — see #348.
+  createOrder(photo: File): Observable<OrderDto> {
+    const form = new FormData();
+    form.append('photo', photo, photo.name);
+    return this.http.post<OrderDto>(`${BASE}/orders`, form);
+  }
+
+  // Photos are uploaded one at a time (see #347) — the first creates the order (above), any
+  // further photo is added to it here.
+  addPhoto(orderId: string, photo: File): Observable<OrderDto> {
+    const form = new FormData();
+    form.append('photo', photo, photo.name);
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photos`, form);
+  }
+
+  removePhoto(orderId: string, photoId: string): Observable<OrderDto> {
+    return this.http.delete<OrderDto>(`${BASE}/orders/${orderId}/photos/${photoId}`);
   }
 
   getOrder(orderId: string): Observable<OrderDto> {
@@ -30,12 +45,6 @@ export class OrderService {
 
   listOrders(): Observable<OrderSummaryDto[]> {
     return this.http.get<OrderSummaryDto[]>(`${BASE}/orders`);
-  }
-
-  uploadPhoto(orderId: string, photo: File): Observable<OrderDto> {
-    const form = new FormData();
-    form.append('photo', photo, photo.name);
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photo`, form);
   }
 
   saveSheetPlan(orderId: string, items: SheetPlanItem[]): Observable<OrderDto> {
