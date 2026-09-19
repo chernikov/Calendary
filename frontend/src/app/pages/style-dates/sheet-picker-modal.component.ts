@@ -50,70 +50,71 @@ type PickerTab = 'photo' | 'style' | 'prompt';
             <button type="button" class="sheet-tab" [class.active]="activeTab() === 'prompt'" (click)="activeTab.set('prompt')">Персонаж</button>
           </div>
 
-          @if (activeTab() === 'photo') {
-            <div class="picker-grid">
-              <button
-                type="button"
-                class="picker-item"
-                [class.selected]="!photoId()"
-                (click)="photoId.set('')"
-              >
-                @if (photos[0]; as first) {
-                  <img [src]="first.thumbUrl" alt="Перше завантажене фото" />
-                } @else {
-                  <div class="swatch" style="aspect-ratio: 4/5;"></div>
-                }
-                <span class="picker-item-name">За замовчуванням</span>
-                <span class="picker-item-desc">Перше завантажене фото</span>
-              </button>
-              @for (photo of photos; track photo.id) {
+          <div class="sheet-picker-body">
+            @if (activeTab() === 'photo') {
+              <div class="picker-grid picker-grid-compact">
                 <button
                   type="button"
-                  class="picker-item"
-                  [class.selected]="photoId() === photo.id"
-                  (click)="photoId.set(photo.id)"
+                  class="picker-item picker-item-compact"
+                  [class.selected]="!photoId()"
+                  (click)="photoId.set('')"
+                  title="За замовчуванням — перше завантажене фото"
                 >
-                  <img [src]="photo.thumbUrl" alt="Фото" loading="lazy" />
-                </button>
-              }
-            </div>
-          } @else if (activeTab() === 'style') {
-            <div class="picker-grid">
-              @for (style of library?.styles ?? []; track style.id) {
-                <button
-                  type="button"
-                  class="picker-item"
-                  [class.selected]="styleId() === style.id"
-                  (click)="styleId.set(style.id)"
-                >
-                  <img [src]="styleImage(style)" [alt]="style.name" loading="lazy" />
-                  <span class="picker-item-name">{{ style.name }}</span>
-                  <span class="picker-item-desc">{{ style.description }}</span>
-                </button>
-              }
-            </div>
-          } @else {
-            @for (theme of library?.themes ?? []; track theme.id) {
-              <div>
-                <div class="card-title" style="margin-bottom: 4px;">{{ theme.name }}</div>
-                <p class="picker-theme-desc">{{ theme.description }}</p>
-                <div class="picker-grid">
-                  @for (prompt of theme.prompts; track prompt.id) {
-                    <button
-                      type="button"
-                      class="picker-item"
-                      [class.selected]="promptId() === prompt.id"
-                      (click)="promptId.set(prompt.id)"
-                    >
-                      <img [src]="promptImage(prompt)" [alt]="prompt.name" loading="lazy" />
-                      <span class="picker-item-name">{{ prompt.name }}</span>
-                      <span class="picker-item-desc">{{ prompt.description }}</span>
-                    </button>
+                  @if (photos[0]; as first) {
+                    <img [src]="first.thumbUrl" alt="Перше завантажене фото" />
+                  } @else {
+                    <div class="swatch"></div>
                   }
-                </div>
+                  <span class="picker-item-name">За замовч.</span>
+                </button>
+                @for (photo of photos; track photo.id) {
+                  <button
+                    type="button"
+                    class="picker-item picker-item-compact"
+                    [class.selected]="photoId() === photo.id"
+                    (click)="photoId.set(photo.id)"
+                  >
+                    <img [src]="photo.thumbUrl" alt="Фото" loading="lazy" />
+                  </button>
+                }
               </div>
+            } @else if (activeTab() === 'style') {
+              <div class="picker-grid picker-grid-compact">
+                @for (style of library?.styles ?? []; track style.id) {
+                  <button
+                    type="button"
+                    class="picker-item picker-item-compact"
+                    [class.selected]="styleId() === style.id"
+                    (click)="styleId.set(style.id)"
+                    [title]="style.description"
+                  >
+                    <img [src]="styleImage(style)" [alt]="style.name" loading="lazy" />
+                    <span class="picker-item-name">{{ style.name }}</span>
+                  </button>
+                }
+              </div>
+            } @else {
+              @for (theme of library?.themes ?? []; track theme.id) {
+                <div>
+                  <div class="card-title" style="margin-bottom: 4px;">{{ theme.name }}</div>
+                  <div class="picker-grid picker-grid-compact">
+                    @for (prompt of theme.prompts; track prompt.id) {
+                      <button
+                        type="button"
+                        class="picker-item picker-item-compact"
+                        [class.selected]="promptId() === prompt.id"
+                        (click)="promptId.set(prompt.id)"
+                        [title]="prompt.description"
+                      >
+                        <img [src]="promptImage(prompt)" [alt]="prompt.name" loading="lazy" />
+                        <span class="picker-item-name">{{ prompt.name }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
             }
-          }
+          </div>
         </div>
 
         <div class="sheet-modal-right">
