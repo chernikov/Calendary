@@ -163,3 +163,9 @@ same `.env`/`.env.staging` variable name) GH secrets get threaded into the dropl
 on every deploy (see README's "Auth" section). The AI provider keys are the one exception: staging
 threads them too, but prod's are a manual one-off `.env` edit (see issue #330) — worth checking
 before assuming any given secret is deploy-automated.
+
+The current `NOVA_POSHTA_API_KEY` secret (set 2026-09-19) expires **2027-09-19** — Nova Poshta
+deactivates keys yearly. Regenerate it in the business account
+(`new.novaposhta.ua/dashboard/settings/developers` → Security → Create key) and
+`gh secret set NOVA_POSHTA_API_KEY` before then, or delivery branch lookup silently falls back to
+the static mock dataset (see `NovaPoshtaService`).
