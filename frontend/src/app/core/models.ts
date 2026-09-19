@@ -61,6 +61,7 @@ export interface SheetVariantDto {
   id: string;
   imageUrl: string;
   createdAtUtc: string;
+  costUsd: number | null;
 }
 
 export interface SheetDto {
@@ -123,6 +124,7 @@ export interface OrderDto {
   photos: OrderPhotoDto[];
   price: number;
   regenerationsRemaining: number;
+  totalGenerationCostUsd: number;
   createdAtUtc: string;
   expiresAtUtc: string;
   isExpired: boolean;
@@ -163,6 +165,7 @@ export interface AdminOrderSummaryDto {
   userEmail: string | null;
   userDisplayName: string | null;
   price: number;
+  totalGenerationCostUsd: number;
   createdAtUtc: string;
   statusUpdatedAtUtc: string;
 }

@@ -73,6 +73,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .Property(p => p.Amount)
             .HasPrecision(10, 2);
 
+        modelBuilder.Entity<SheetVariant>()
+            .Property(v => v.CostUsd)
+            .HasPrecision(10, 4);
+
         modelBuilder.Entity<PromptTheme>()
             .HasMany(t => t.Prompts)
             .WithOne(p => p.PromptTheme)

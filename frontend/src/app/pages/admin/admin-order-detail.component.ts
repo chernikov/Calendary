@@ -44,6 +44,7 @@ const STATUS_COLORS: Record<SheetStatus, string> = {
         <nz-descriptions-item nzTitle="Статус"><nz-tag>{{ o.status }}</nz-tag></nz-descriptions-item>
         <nz-descriptions-item nzTitle="Ціна">{{ o.price }} ₴</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Перегенерацій залишилось">{{ o.regenerationsRemaining }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Собівартість генерацій">{{ '$' + o.totalGenerationCostUsd.toFixed(2) }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Створено">{{ o.createdAtUtc | date: 'short' }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Діє до">{{ o.expiresAtUtc | date: 'short' }}</nz-descriptions-item>
         @if (o.payment) {
@@ -106,6 +107,11 @@ const STATUS_COLORS: Record<SheetStatus, string> = {
               </div>
             }
             <nz-tag [nzColor]="statusColor(sheet.status)">{{ sheet.status }}</nz-tag>
+            @if (sheet.variants.length) {
+              <div style="font-size: 11px; color: rgba(0, 0, 0, 0.45); margin-top: 4px;">
+                {{ '$' + sheetCost(sheet).toFixed(2) }} ({{ sheet.variants.length }})
+              </div>
+            }
             <div style="margin-top: 6px;">
               <button
                 nz-button
@@ -143,6 +149,10 @@ export class AdminOrderDetailComponent implements OnInit {
 
   statusColor(status: SheetStatus): string {
     return STATUS_COLORS[status];
+  }
+
+  sheetCost(sheet: SheetDto): number {
+    return sheet.variants.reduce((sum, v) => sum + (v.costUsd ?? 0), 0);
   }
 
   regenerate(orderId: string, sheet: SheetDto): void {

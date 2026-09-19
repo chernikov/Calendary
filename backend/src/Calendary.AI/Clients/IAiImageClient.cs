@@ -9,7 +9,13 @@ namespace Calendary.AI.Clients;
 public record AiImageRequest(string Prompt, string? ReferencePhotoDataUrl);
 
 /// <param name="ImageDataUrl">The generated image, base64-encoded as a data: URL, on success.</param>
-public record AiImageResult(bool Success, string? ImageDataUrl, string? Error);
+/// <param name="EstimatedCostUsd">
+/// A static per-provider/model/quality estimate (see AiOptions), not parsed from the provider's
+/// response — neither OpenAI's nor Gemini's image APIs return per-call billing data. Recorded on
+/// the resulting SheetVariant purely for cost monitoring (see #359); update the config value when
+/// the configured model/quality/pricing changes.
+/// </param>
+public record AiImageResult(bool Success, string? ImageDataUrl, string? Error, decimal? EstimatedCostUsd = null);
 
 /// One implementation per provider (OpenAI, Gemini) — the active one is chosen by
 /// AiOptions.Provider and registered as the sole IAiImageClient in DI (see

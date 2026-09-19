@@ -305,11 +305,8 @@ public class OrdersController(
             return Conflict("This sheet is already generating.");
         }
 
-        if (isAnotherVariant && order.RegenerationsRemaining <= 0)
-        {
-            return Conflict("No regenerations remaining.");
-        }
-
+        // No hard cap for now (see #359) — RegenerationsRemaining still decrements below purely as
+        // a usage signal while we move to cost-based monitoring instead of a fixed budget.
         sheet.PromptId = request.PromptId;
         sheet.ImageStyleId = request.ImageStyleId;
         sheet.PinnedPhotoId = request.PhotoId;

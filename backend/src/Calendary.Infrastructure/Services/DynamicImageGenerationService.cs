@@ -103,12 +103,9 @@ public class DynamicImageGenerationService(
     private async Task<bool> RegenerateMockSheetAsync(Guid orderId, Guid sheetId, CancellationToken ct)
     {
         var order = await db.Orders.FirstAsync(o => o.Id == orderId, ct);
-        if (order.RegenerationsRemaining <= 0)
-        {
-            return false;
-        }
 
         var sheet = await db.Sheets.FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
+        // No hard cap for now (see #359) — still decremented purely as a usage signal.
         order.RegenerationsRemaining -= 1;
         sheet.Status = SheetStatus.Pending;
         sheet.GeneratingStartedAtUtc = null;

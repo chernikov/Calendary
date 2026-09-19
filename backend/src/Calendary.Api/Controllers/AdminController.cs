@@ -35,6 +35,7 @@ public class AdminController(
             .Include(o => o.PersonalDates)
             .Include(o => o.Sheets).ThenInclude(s => s.Prompt)
             .Include(o => o.Sheets).ThenInclude(s => s.ImageStyle)
+            .Include(o => o.Sheets).ThenInclude(s => s.Variants)
             .Include(o => o.Payment)
             .Include(o => o.Delivery)
             // See OrdersController.LoadOwnedOrderAsync — Sheets/PersonalDates are sibling
@@ -62,7 +63,8 @@ public class AdminController(
             .Take(pageSize)
             .Select(o => new AdminOrderSummaryDto(
                 o.Id, o.Status.ToString(), o.UserId, o.User.Email, o.User.DisplayName,
-                o.Price, o.CreatedAtUtc, o.StatusUpdatedAtUtc))
+                o.Price, o.Sheets.SelectMany(s => s.Variants).Sum(v => (decimal?)v.CostUsd) ?? 0m,
+                o.CreatedAtUtc, o.StatusUpdatedAtUtc))
             .ToListAsync();
 
         return Ok(new PagedResult<AdminOrderSummaryDto>(items, total, page, pageSize));

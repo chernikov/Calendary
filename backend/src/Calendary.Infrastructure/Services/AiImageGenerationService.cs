@@ -62,16 +62,13 @@ public class AiImageGenerationService(
     public async Task<bool> RegenerateSheetAsync(Guid orderId, Guid sheetId, CancellationToken ct = default)
     {
         var order = await db.Orders.Include(o => o.Photos).FirstAsync(o => o.Id == orderId, ct);
-        if (order.RegenerationsRemaining <= 0)
-        {
-            return false;
-        }
 
         var sheet = await db.Sheets
             .Include(s => s.Prompt)
             .Include(s => s.ImageStyle)
             .Include(s => s.PinnedPhoto)
             .FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
+        // No hard cap for now (see #359) — still decremented purely as a usage signal.
         order.RegenerationsRemaining -= 1;
         sheet.Status = SheetStatus.Pending;
         sheet.GeneratingStartedAtUtc = null;
@@ -218,7 +215,7 @@ public class AiImageGenerationService(
             if (result.Success && DataUrl.TryParse(result.ImageDataUrl, out var contentType, out var bytes))
             {
                 var url = await fileStorage.SaveAsync(bytes, contentType, "sheets");
-                var variant = new SheetVariant { SheetId = sheet.Id, ImageUrl = url };
+                var variant = new SheetVariant { SheetId = sheet.Id, ImageUrl = url, CostUsd = result.EstimatedCostUsd };
                 scopedDb.SheetVariants.Add(variant);
 
                 sheet.Status = SheetStatus.Ready;

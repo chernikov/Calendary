@@ -51,6 +51,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
           <th>Клієнт</th>
           <th>Статус</th>
           <th>Ціна</th>
+          <th>Собівартість генерацій</th>
           <th>Створено</th>
         </tr>
       </thead>
@@ -61,6 +62,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
             <td>{{ o.userDisplayName || o.userEmail }}</td>
             <td><nz-tag [nzColor]="statusColor(o.status)">{{ o.status }}</nz-tag></td>
             <td>{{ o.price }} ₴</td>
+            <td>{{ '$' + o.totalGenerationCostUsd.toFixed(2) }}</td>
             <td>{{ o.createdAtUtc | date: 'short' }}</td>
           </tr>
         }
