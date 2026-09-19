@@ -102,10 +102,16 @@ export type OrderStatus =
   | 'Cancelled'
   | 'GenerationFailed';
 
+export interface OrderPhotoDto {
+  id: string;
+  url: string;
+  thumbUrl: string;
+}
+
 export interface OrderDto {
   id: string;
   status: OrderStatus;
-  photoUrl: string | null;
+  photos: OrderPhotoDto[];
   price: number;
   regenerationsRemaining: number;
   createdAtUtc: string;

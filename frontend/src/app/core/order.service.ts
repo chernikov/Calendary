@@ -27,6 +27,18 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders`, form);
   }
 
+  // Photos are uploaded one at a time (see #347) — the first creates the order (above), any
+  // further photo is added to it here.
+  addPhoto(orderId: string, photo: File): Observable<OrderDto> {
+    const form = new FormData();
+    form.append('photo', photo, photo.name);
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/photos`, form);
+  }
+
+  removePhoto(orderId: string, photoId: string): Observable<OrderDto> {
+    return this.http.delete<OrderDto>(`${BASE}/orders/${orderId}/photos/${photoId}`);
+  }
+
   getOrder(orderId: string): Observable<OrderDto> {
     return this.http.get<OrderDto>(`${BASE}/orders/${orderId}`);
   }

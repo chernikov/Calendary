@@ -76,6 +76,30 @@ export class OrderEffects {
     ),
   );
 
+  addOrderPhoto$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.addOrderPhoto),
+      switchMap(({ orderId, photo }) =>
+        this.orders.addPhoto(orderId, photo).pipe(
+          map((order) => OrderActions.addOrderPhotoSuccess({ order })),
+          catchError((err) => of(OrderActions.addOrderPhotoFailure({ error: photoUploadErrorMessage(err) }))),
+        ),
+      ),
+    ),
+  );
+
+  removeOrderPhoto$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.removeOrderPhoto),
+      switchMap(({ orderId, photoId }) =>
+        this.orders.removePhoto(orderId, photoId).pipe(
+          map((order) => OrderActions.removeOrderPhotoSuccess({ order })),
+          catchError(() => of(OrderActions.removeOrderPhotoFailure({ error: 'Не вдалося видалити фото.' }))),
+        ),
+      ),
+    ),
+  );
+
   // Saving the sheet plan and starting generation are one user gesture — chain the two calls
   // and reuse startGenerationSuccess so navigation logic stays in one place.
   savePlanAndGenerate$ = createEffect(() =>

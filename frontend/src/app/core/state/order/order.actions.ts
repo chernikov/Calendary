@@ -24,6 +24,15 @@ export const OrderActions = createActionGroup({
     'Create Order With Photo Success': props<{ order: OrderDto }>(),
     'Create Order With Photo Failure': props<{ error: string }>(),
 
+    // Photos upload one at a time (see #347) — added to an already-created order.
+    'Add Order Photo': props<{ orderId: string; photo: File }>(),
+    'Add Order Photo Success': props<{ order: OrderDto }>(),
+    'Add Order Photo Failure': props<{ error: string }>(),
+
+    'Remove Order Photo': props<{ orderId: string; photoId: string }>(),
+    'Remove Order Photo Success': props<{ order: OrderDto }>(),
+    'Remove Order Photo Failure': props<{ error: string }>(),
+
     'Save Plan And Generate': props<{ orderId: string; items: SheetPlanItem[] }>(),
     'Save Plan And Generate Failure': props<{ error: string }>(),
 

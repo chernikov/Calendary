@@ -10,7 +10,6 @@ public class Order
 
     public OrderStatus Status { get; set; } = OrderStatus.Created;
     public DateTime StatusUpdatedAtUtc { get; set; } = DateTime.UtcNow;
-    public string? PhotoUrl { get; set; }
     public bool IsArchived { get; set; }
 
     public decimal Price { get; set; } = 1600m;
@@ -19,6 +18,7 @@ public class Order
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime ExpiresAtUtc { get; set; } = DateTime.UtcNow.AddHours(48);
 
+    public ICollection<OrderPhoto> Photos { get; set; } = new List<OrderPhoto>();
     public ICollection<PersonalDate> PersonalDates { get; set; } = new List<PersonalDate>();
     public ICollection<Sheet> Sheets { get; set; } = new List<Sheet>();
     public Payment? Payment { get; set; }
