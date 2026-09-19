@@ -1,4 +1,5 @@
 import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { ImageStyleDto, OrderPhotoDto, PromptDto, PromptLibraryDto, SheetStatus, SheetVariantDto } from '../../core/models';
 import { ImageLightboxComponent } from '../../shared/image-lightbox.component';
 
@@ -18,7 +19,7 @@ type PickerTab = 'photo' | 'style' | 'prompt';
           <div class="dialog-title">{{ sheetName }}</div>
 
           <div class="sheet-summary">
-            <button type="button" class="sheet-summary-chip" (click)="activeTab.set('photo')">
+            <button type="button" class="sheet-summary-chip" [class.active]="activeTab() === 'photo'" (click)="activeTab.set('photo')">
               @if (selectedPhoto(); as p) {
                 <img [src]="p.thumbUrl" alt="Фото" />
               } @else {
@@ -26,7 +27,7 @@ type PickerTab = 'photo' | 'style' | 'prompt';
               }
               <span>Фото</span>
             </button>
-            <button type="button" class="sheet-summary-chip" (click)="activeTab.set('style')">
+            <button type="button" class="sheet-summary-chip" [class.active]="activeTab() === 'style'" (click)="activeTab.set('style')">
               @if (selectedStyleImage(); as src) {
                 <img [src]="src" alt="Стиль" />
               } @else {
@@ -34,7 +35,7 @@ type PickerTab = 'photo' | 'style' | 'prompt';
               }
               <span>{{ styleName() || 'Стиль' }}</span>
             </button>
-            <button type="button" class="sheet-summary-chip" (click)="activeTab.set('prompt')">
+            <button type="button" class="sheet-summary-chip" [class.active]="activeTab() === 'prompt'" (click)="activeTab.set('prompt')">
               @if (selectedPromptImage(); as src) {
                 <img [src]="src" alt="Персонаж" />
               } @else {
@@ -42,12 +43,6 @@ type PickerTab = 'photo' | 'style' | 'prompt';
               }
               <span>{{ promptName() || 'Персонаж' }}</span>
             </button>
-          </div>
-
-          <div class="sheet-tabs">
-            <button type="button" class="sheet-tab" [class.active]="activeTab() === 'photo'" (click)="activeTab.set('photo')">Фото</button>
-            <button type="button" class="sheet-tab" [class.active]="activeTab() === 'style'" (click)="activeTab.set('style')">Стиль</button>
-            <button type="button" class="sheet-tab" [class.active]="activeTab() === 'prompt'" (click)="activeTab.set('prompt')">Персонаж</button>
           </div>
 
           <div class="sheet-picker-body">
@@ -112,46 +107,8 @@ type PickerTab = 'photo' | 'style' | 'prompt';
         </div>
 
         <div class="sheet-modal-right">
-          <div class="sheet-preview">
-            @if (status === 'Generating') {
-              <span class="text-muted">Генерується…</span>
-            } @else {
-              @if (viewedVariant(); as v) {
-                <img [src]="v.imageUrl" alt="Згенероване зображення" (click)="zoomUrl.set(v.imageUrl)" />
-                <button type="button" class="zoom-trigger" (click)="zoomUrl.set(v.imageUrl)">⤢</button>
-                @if (variants.length > 1) {
-                  <button type="button" class="sheet-preview-arrow prev" [disabled]="viewedIndex() === 0" (click)="showPrevVariant()">‹</button>
-                  <button type="button" class="sheet-preview-arrow next" [disabled]="viewedIndex() === variants.length - 1" (click)="showNextVariant()">›</button>
-                }
-              } @else {
-                <div class="sheet-preview-composite">
-                  <div class="sheet-preview-composite-item">
-                    @if (selectedPhoto(); as p) {
-                      <img [src]="p.thumbUrl" alt="Фото" />
-                    } @else {
-                      <div class="swatch"></div>
-                    }
-                    <span>Фото</span>
-                  </div>
-                  <div class="sheet-preview-composite-item">
-                    @if (selectedStyleImage(); as src) {
-                      <img [src]="src" alt="Стиль" />
-                    } @else {
-                      <div class="swatch"></div>
-                    }
-                    <span>{{ styleName() || 'Стиль не обрано' }}</span>
-                  </div>
-                  <div class="sheet-preview-composite-item">
-                    @if (selectedPromptImage(); as src) {
-                      <img [src]="src" alt="Персонаж" />
-                    } @else {
-                      <div class="swatch"></div>
-                    }
-                    <span>{{ promptName() || 'Персонаж не обрано' }}</span>
-                  </div>
-                </div>
-              }
-            }
+          <div class="sheet-preview-inline">
+            <ng-container *ngTemplateOutlet="previewTpl"></ng-container>
           </div>
 
           @if (variants.length > 0) {
@@ -171,12 +128,65 @@ type PickerTab = 'photo' | 'style' | 'prompt';
         </div>
       </div>
 
+      @if (previewModalOpen()) {
+        <div class="sheet-preview-modal-backdrop" (click)="previewModalOpen.set(false)">
+          <div class="sheet-preview-modal" (click)="$event.stopPropagation()">
+            <ng-container *ngTemplateOutlet="previewTpl"></ng-container>
+            <button class="btn btn-secondary" (click)="previewModalOpen.set(false)">Закрити</button>
+          </div>
+        </div>
+      }
+
       @if (zoomUrl(); as z) {
         <app-image-lightbox [url]="z" (closed)="zoomUrl.set(null)" />
       }
     </div>
+
+    <ng-template #previewTpl>
+      <div class="sheet-preview">
+        @if (status === 'Generating') {
+          <span class="text-muted">Генерується…</span>
+        } @else {
+          @if (viewedVariant(); as v) {
+            <img [src]="v.imageUrl" alt="Згенероване зображення" (click)="zoomUrl.set(v.imageUrl)" />
+            <button type="button" class="zoom-trigger" (click)="zoomUrl.set(v.imageUrl)">⤢</button>
+            @if (variants.length > 1) {
+              <button type="button" class="sheet-preview-arrow prev" [disabled]="viewedIndex() === 0" (click)="showPrevVariant()">‹</button>
+              <button type="button" class="sheet-preview-arrow next" [disabled]="viewedIndex() === variants.length - 1" (click)="showNextVariant()">›</button>
+            }
+          } @else {
+            <div class="sheet-preview-composite">
+              <div class="sheet-preview-composite-item">
+                @if (selectedPhoto(); as p) {
+                  <img [src]="p.thumbUrl" alt="Фото" />
+                } @else {
+                  <div class="swatch"></div>
+                }
+                <span>Фото</span>
+              </div>
+              <div class="sheet-preview-composite-item">
+                @if (selectedStyleImage(); as src) {
+                  <img [src]="src" alt="Стиль" />
+                } @else {
+                  <div class="swatch"></div>
+                }
+                <span>{{ styleName() || 'Стиль не обрано' }}</span>
+              </div>
+              <div class="sheet-preview-composite-item">
+                @if (selectedPromptImage(); as src) {
+                  <img [src]="src" alt="Персонаж" />
+                } @else {
+                  <div class="swatch"></div>
+                }
+                <span>{{ promptName() || 'Персонаж не обрано' }}</span>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </ng-template>
   `,
-  imports: [ImageLightboxComponent],
+  imports: [ImageLightboxComponent, NgTemplateOutlet],
 })
 export class SheetPickerModalComponent implements OnInit, OnChanges {
   @Input({ required: true }) sheetName!: string;
@@ -202,6 +212,9 @@ export class SheetPickerModalComponent implements OnInit, OnChanges {
   readonly photoId = signal('');
   readonly viewedIndex = signal(0);
   readonly zoomUrl = signal<string | null>(null);
+  // Mobile-only (see .sheet-preview-inline's media query): the preview panel isn't shown inline
+  // there, so pop it up automatically once generation starts, through to the result.
+  readonly previewModalOpen = signal(false);
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
@@ -223,6 +236,18 @@ export class SheetPickerModalComponent implements OnInit, OnChanges {
       const activeIndex = this.variants.findIndex((v) => v.id === this.activeVariantId);
       this.viewedIndex.set(activeIndex >= 0 ? activeIndex : this.variants.length - 1);
     }
+
+    // On mobile the preview is popup-only (no inline panel — see .sheet-preview-inline's media
+    // query), so surface it the moment a generation kicks off; it stays open through to the
+    // result since it's the same popup instance reflecting the same reactive state.
+    const statusChange = changes['status'];
+    if (statusChange && !statusChange.firstChange && this.status === 'Generating' && this.isMobileViewport()) {
+      this.previewModalOpen.set(true);
+    }
+  }
+
+  private isMobileViewport(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches;
   }
 
   // Empty photoId means "use the default" — the first uploaded photo, not "no photo" — so the
