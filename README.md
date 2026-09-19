@@ -158,7 +158,8 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `MONOBANK_MERCHANT_TOKEN` / `MONOBANK_MERCHANT_TOKEN_STAGING` | Monobank merchant token — separate prod/sandbox tokens, threaded into the same `.env` variable name in each stack |
 | `NOVA_POSHTA_API_KEY` | Nova Poshta Address-API key — one shared value for both stacks (read-only lookup, no sandbox/live split) |
 | `DO_SPACES_KEY` / `DO_SPACES_SECRET` | DigitalOcean Spaces access key/secret for off-droplet backups (see "Backups" below) — one shared value for both stacks |
-| `DO_SPACES_BUCKET` / `DO_SPACES_REGION` | Spaces bucket name and region, e.g. `calendary-backups` / `fra1` |
+| `DO_SPACES_BUCKET` / `DO_SPACES_BUCKET_STAGING` | Separate bucket names per stack, e.g. `calendary-backups` / `calendary-backups-staging` — cleaner data isolation, same account/region otherwise |
+| `DO_SPACES_REGION` | Spaces region, e.g. `fra1` — shared by both stacks' buckets |
 | `RESTIC_PASSWORD` | Encrypts every backup — generate with `openssl rand -base64 32` and also save it somewhere other than GH/the droplet; losing it makes existing backups permanently undecryptable |
 
 `GITHUB_TOKEN` (built-in) handles both pushing images to GHCR and the droplet's `docker login`

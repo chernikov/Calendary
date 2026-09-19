@@ -105,14 +105,15 @@ jobs:
             # read-only address/branch lookup has no sandbox/live distinction or financial risk.
             grep -v '^NOVA_POSHTA_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
             printf 'NOVA_POSHTA_API_KEY=%s\n' "${{ secrets.NOVA_POSHTA_API_KEY }}" >> .env.staging
-            # Same Spaces bucket/creds as prod's — backup.sh already scopes each stack to its own
-            # restic repo path (calendary/prod vs calendary/staging).
+            # Same Spaces account/creds/region as prod's, but a SEPARATE bucket — sourced from
+            # DO_SPACES_BUCKET_STAGING. The .env.staging *variable name* stays DO_SPACES_BUCKET so
+            # docker-compose.staging.yml/backup.sh read it the same way prod's .env does.
             for key in DO_SPACES_KEY DO_SPACES_SECRET DO_SPACES_BUCKET DO_SPACES_REGION RESTIC_PASSWORD; do
               grep -v "^${key}=" .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
             done
             printf 'DO_SPACES_KEY=%s\n' "${{ secrets.DO_SPACES_KEY }}" >> .env.staging
             printf 'DO_SPACES_SECRET=%s\n' "${{ secrets.DO_SPACES_SECRET }}" >> .env.staging
-            printf 'DO_SPACES_BUCKET=%s\n' "${{ secrets.DO_SPACES_BUCKET }}" >> .env.staging
+            printf 'DO_SPACES_BUCKET=%s\n' "${{ secrets.DO_SPACES_BUCKET_STAGING }}" >> .env.staging
             printf 'DO_SPACES_REGION=%s\n' "${{ secrets.DO_SPACES_REGION }}" >> .env.staging
             printf 'RESTIC_PASSWORD=%s\n' "${{ secrets.RESTIC_PASSWORD }}" >> .env.staging
 

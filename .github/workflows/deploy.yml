@@ -96,9 +96,10 @@ jobs:
             printf 'MONOBANK_MERCHANT_TOKEN=%s\n' "${{ secrets.MONOBANK_MERCHANT_TOKEN }}" >> .env
             grep -v '^NOVA_POSHTA_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
             printf 'NOVA_POSHTA_API_KEY=%s\n' "${{ secrets.NOVA_POSHTA_API_KEY }}" >> .env
-            # Same Spaces bucket/creds for both stacks — backup.sh already scopes each to its own
-            # restic repo path (calendary/prod vs calendary/staging), so there's no data-mixing
-            # risk like Monobank's live-charge concern.
+            # Same Spaces account/creds/region for both stacks — only the bucket is split
+            # (DO_SPACES_BUCKET here / DO_SPACES_BUCKET_STAGING in deploy-staging.yml) for cleaner
+            # data isolation; backup.sh also scopes each stack to its own restic repo path
+            # regardless (calendary/prod vs calendary/staging).
             for key in DO_SPACES_KEY DO_SPACES_SECRET DO_SPACES_BUCKET DO_SPACES_REGION RESTIC_PASSWORD; do
               grep -v "^${key}=" .env > .env.tmp || true; mv .env.tmp .env
             done
