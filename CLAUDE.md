@@ -180,3 +180,8 @@ pull a snapshot out, then `docker cp` the `.bak` into the `mssql` container and 
 `.github/workflows/restore-staging.yml` (manual `workflow_dispatch` only) runs this exact
 procedure end-to-end against staging — safe to trigger anytime to rehearse it, since it only
 restores staging's own latest backup over itself.
+
+**Triggering a backup on demand**: `.github/workflows/backup.yml` (manual `workflow_dispatch`,
+inputs `target: all|prod|staging` and `quick: bool`) SSHes in and runs `deploy/backup.sh` directly
+— an out-of-band run between the daily `calendary-backup.timer` ticks, without needing droplet SSH
+access yourself. `gh workflow run backup.yml -f target=staging -f quick=false`.
