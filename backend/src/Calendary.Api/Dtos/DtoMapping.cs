@@ -20,7 +20,7 @@ public static class DtoMapping
 
     public static OrderPhotoDto ToDto(this OrderPhoto p) => new(p.Id, p.Url, p.ThumbUrl);
 
-    public static SheetVariantDto ToDto(this SheetVariant v) => new(v.Id, v.ImageUrl, v.CreatedAtUtc);
+    public static SheetVariantDto ToDto(this SheetVariant v) => new(v.Id, v.ImageUrl, v.CreatedAtUtc, v.CostUsd);
 
     public static SheetDto ToDto(this Sheet s) => new(
         s.Id, s.Kind.ToString(), s.Index, s.Status.ToString(), s.IsSelected, s.ImageUrl,
@@ -40,6 +40,7 @@ public static class DtoMapping
         o.Photos.OrderBy(p => p.CreatedAtUtc).Select(p => p.ToDto()).ToList(),
         o.Price,
         o.RegenerationsRemaining,
+        o.Sheets.SelectMany(s => s.Variants).Sum(v => v.CostUsd ?? 0m),
         o.CreatedAtUtc,
         o.ExpiresAtUtc,
         DateTime.UtcNow > o.ExpiresAtUtc,
@@ -51,7 +52,8 @@ public static class DtoMapping
 
     public static AdminOrderSummaryDto ToAdminSummaryDto(this Order o) => new(
         o.Id, o.Status.ToString(), o.UserId, o.User.Email, o.User.DisplayName,
-        o.Price, o.CreatedAtUtc, o.StatusUpdatedAtUtc);
+        o.Price, o.Sheets.SelectMany(s => s.Variants).Sum(v => v.CostUsd ?? 0m),
+        o.CreatedAtUtc, o.StatusUpdatedAtUtc);
 
     public static AdminUserDto ToAdminDto(this User u) => new(
         u.Id, u.Email, u.DisplayName, u.Role.ToString(), u.AuthProvider.ToString(),

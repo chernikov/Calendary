@@ -155,7 +155,7 @@ type PickerTab = 'photo' | 'style' | 'prompt';
           </div>
 
           @if (variants.length > 0) {
-            <p class="text-muted" style="font-size: 11.5px;">Залишилось {{ regenerationsRemaining }} перегенерацій</p>
+            <p class="text-muted" style="font-size: 11.5px;">Залишилось {{ regenerationsLeft() }} перегенерацій</p>
           }
 
           <div class="dialog-actions">
@@ -235,6 +235,12 @@ export class SheetPickerModalComponent implements OnInit, OnChanges {
   // instead of a separate duplicate "default" tile that looks identical when there's one photo.
   isPhotoSelected(photoId: string): boolean {
     return this.photoId() ? this.photoId() === photoId : this.photos[0]?.id === photoId;
+  }
+
+  // Generation is no longer hard-capped (see #359) — the counter can go negative server-side as a
+  // pure usage signal, but showing that to customers would look broken, so clamp at 0.
+  regenerationsLeft(): number {
+    return Math.max(0, this.regenerationsRemaining);
   }
 
   onPhotoFileSelected(event: Event): void {

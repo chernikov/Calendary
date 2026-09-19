@@ -11,4 +11,8 @@ public class SheetVariant
 
     public string ImageUrl { get; set; } = default!;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+    /// Estimated cost of this generation in USD (see #359) — null for variants generated before
+    /// cost tracking existed, or by the Mock provider (no real API call, no cost).
+    public decimal? CostUsd { get; set; }
 }

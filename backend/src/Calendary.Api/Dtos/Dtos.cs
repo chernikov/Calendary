@@ -18,7 +18,7 @@ public record SaveSheetPlanRequest(IReadOnlyList<SheetPlanItem> Items);
 public record AddPersonalDateRequest(int Day, int Month, string Label);
 public record PersonalDateDto(Guid Id, int Day, int Month, string Label);
 
-public record SheetVariantDto(Guid Id, string ImageUrl, DateTime CreatedAtUtc);
+public record SheetVariantDto(Guid Id, string ImageUrl, DateTime CreatedAtUtc, decimal? CostUsd);
 
 public record SheetDto(
     Guid Id, string Kind, int Index, string Status, bool IsSelected, string? ImageUrl,
@@ -42,6 +42,7 @@ public record OrderDto(
     IReadOnlyList<OrderPhotoDto> Photos,
     decimal Price,
     int RegenerationsRemaining,
+    decimal TotalGenerationCostUsd,
     DateTime CreatedAtUtc,
     DateTime ExpiresAtUtc,
     bool IsExpired,
@@ -66,7 +67,7 @@ public record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Page, i
 
 public record AdminOrderSummaryDto(
     Guid Id, string Status, Guid UserId, string? UserEmail, string? UserDisplayName,
-    decimal Price, DateTime CreatedAtUtc, DateTime StatusUpdatedAtUtc);
+    decimal Price, decimal TotalGenerationCostUsd, DateTime CreatedAtUtc, DateTime StatusUpdatedAtUtc);
 
 public record AdminUserDto(
     Guid Id, string? Email, string? DisplayName, string Role, string AuthProvider,

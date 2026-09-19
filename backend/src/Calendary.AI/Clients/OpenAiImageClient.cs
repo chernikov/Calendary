@@ -45,7 +45,7 @@ public class OpenAiImageClient(HttpClient httpClient, IOptions<AiOptions> option
                 return new AiImageResult(false, null, "OpenAI response contained no image data.");
             }
 
-            return new AiImageResult(true, DataUrl.Build("image/png", b64), null);
+            return new AiImageResult(true, DataUrl.Build("image/png", b64), null, _options.EstimatedCostUsd);
         }
         catch (Exception ex)
         {
