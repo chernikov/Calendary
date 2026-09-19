@@ -18,6 +18,12 @@ WORKDIR /app
 # reads the same repository deploy/backup.sh writes to, but never triggers a backup itself.
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends restic && rm -rf /var/lib/apt/lists/*
+
+# Docker seeds a brand-new named volume from whatever's already at its mount path in the image, so
+# pre-creating this directory owned by the non-root user below means any *fresh* media-data volume
+# (new stack, restored-from-backup, recreated) starts writable — instead of silently inheriting
+# root ownership and 403-ing every upload until someone chowns it by hand (see #352).
+RUN mkdir -p /app/App_Data/media && chown -R $APP_UID /app/App_Data
 USER $APP_UID
 
 COPY --from=build /app .
