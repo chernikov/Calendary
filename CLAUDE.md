@@ -46,9 +46,10 @@ Frontend on :4200, backend/Swagger on :5080 (`/swagger`, Development only), MSSQ
 dotnet build                              # build the solution (Calendary.slnx)
 dotnet run --project src/Calendary.Api    # runs on http://localhost:5128 (see launchSettings.json)
 ```
-Needs `ConnectionStrings:Default` reachable (defaults to `localhost,1433` in
-`src/Calendary.Api/appsettings.json` — point it at a running MSSQL, e.g. the one from
-`docker compose up mssql`).
+Needs `ConnectionStrings:Default` set via `dotnet user-secrets` (the committed
+`src/Calendary.Api/appsettings.json` value is intentionally blank — see README's "Environment
+variables" section, #296) pointing at a running MSSQL, e.g. the one from `docker compose up mssql`
+(password from your own `.env`, see `.env.example`).
 
 **EF Core migrations** (from `backend/`):
 ```bash
