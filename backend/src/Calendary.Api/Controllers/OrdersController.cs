@@ -38,6 +38,11 @@ public class OrdersController(
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
     }
 
+    // Expiry only matters while the order is still moving through the funnel — once paid it's
+    // fulfillment's problem, not a reason to block anything.
+    private static bool IsExpired(Order order) =>
+        order.Status != OrderStatus.Paid && DateTime.UtcNow > order.ExpiresAtUtc;
+
     [HttpPost]
     public async Task<ActionResult<OrderDto>> Create()
     {
@@ -103,6 +108,7 @@ public class OrdersController(
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
         if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
         {
             return Conflict("The sheet plan can only be changed before generation starts.");
@@ -198,6 +204,7 @@ public class OrdersController(
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
         if (index is < 0 or > 12) return BadRequest("Index must be 0 (cover) through 12.");
         if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
         {
@@ -238,6 +245,7 @@ public class OrdersController(
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
         if (order.Sheets.Count != 13 || order.Sheets.Any(s => s.PromptId is null || s.ImageStyleId is null))
         {
             return BadRequest("Complete the sheet plan (prompt and style for every sheet) before generating.");
@@ -321,6 +329,7 @@ public class OrdersController(
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
 
         if (order.Delivery is null)
         {
@@ -345,6 +354,7 @@ public class OrdersController(
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
         if (!Enum.TryParse<PaymentMethod>(request.Method, true, out var method))
         {
             return BadRequest("Unknown payment method.");
