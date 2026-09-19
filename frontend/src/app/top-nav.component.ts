@@ -2,7 +2,6 @@ import { Component, computed, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from './core/auth.service';
-import { OrderService } from './core/order.service';
 
 @Component({
   selector: 'app-top-nav',
@@ -18,7 +17,7 @@ import { OrderService } from './core/order.service';
           @if (auth.user()?.role === 'Admin') {
             <a routerLink="/admin">Адмінка</a>
           }
-          <button class="btn btn-primary" [disabled]="creating()" (click)="createOrder()">Створити календар</button>
+          <button class="btn btn-primary" (click)="createOrder()">Створити календар</button>
           <span class="text-muted" style="font-size: 13px;">{{ auth.user()?.displayName || auth.user()?.email }}</span>
           <button class="btn btn-ghost" (click)="logout()">Вихід</button>
         } @else {
@@ -31,7 +30,6 @@ import { OrderService } from './core/order.service';
 })
 export class TopNavComponent {
   private readonly url = signal('');
-  readonly creating = signal(false);
 
   // The admin area renders its own ng-zorro shell, so the customer-facing bar would be duplicate chrome there.
   readonly visible = computed(() => !this.url().startsWith('/admin'));
@@ -39,7 +37,6 @@ export class TopNavComponent {
   constructor(
     readonly auth: AuthService,
     private readonly router: Router,
-    private readonly orders: OrderService,
   ) {
     this.url.set(this.router.url);
     this.router.events
@@ -48,14 +45,8 @@ export class TopNavComponent {
   }
 
   createOrder(): void {
-    this.creating.set(true);
-    this.orders.createOrder().subscribe({
-      next: (order) => {
-        this.creating.set(false);
-        this.router.navigate(['/order', order.id, 'upload']);
-      },
-      error: () => this.creating.set(false),
-    });
+    // The order itself isn't created until a photo is actually uploaded — see #348.
+    this.router.navigate(['/order', 'new', 'upload']);
   }
 
   logout(): void {

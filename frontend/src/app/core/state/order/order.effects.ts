@@ -64,13 +64,13 @@ export class OrderEffects {
     ),
   );
 
-  uploadPhoto$ = createEffect(() =>
+  createOrderWithPhoto$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(OrderActions.uploadPhoto),
-      switchMap(({ orderId, photo }) =>
-        this.orders.uploadPhoto(orderId, photo).pipe(
-          map((order) => OrderActions.uploadPhotoSuccess({ order })),
-          catchError((err) => of(OrderActions.uploadPhotoFailure({ error: photoUploadErrorMessage(err) }))),
+      ofType(OrderActions.createOrderWithPhoto),
+      switchMap(({ photo }) =>
+        this.orders.createOrder(photo).pipe(
+          map((order) => OrderActions.createOrderWithPhotoSuccess({ order })),
+          catchError((err) => of(OrderActions.createOrderWithPhotoFailure({ error: photoUploadErrorMessage(err) }))),
         ),
       ),
     ),

@@ -19,9 +19,10 @@ export const OrderActions = createActionGroup({
     'Load Prompt Library Success': props<{ library: PromptLibraryDto }>(),
     'Load Prompt Library Failure': props<{ error: string }>(),
 
-    'Upload Photo': props<{ orderId: string; photo: File }>(),
-    'Upload Photo Success': props<{ order: OrderDto }>(),
-    'Upload Photo Failure': props<{ error: string }>(),
+    // The order isn't created until a photo is actually attached — see #348.
+    'Create Order With Photo': props<{ photo: File }>(),
+    'Create Order With Photo Success': props<{ order: OrderDto }>(),
+    'Create Order With Photo Failure': props<{ error: string }>(),
 
     'Save Plan And Generate': props<{ orderId: string; items: SheetPlanItem[] }>(),
     'Save Plan And Generate Failure': props<{ error: string }>(),

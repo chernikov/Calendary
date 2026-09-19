@@ -48,12 +48,24 @@ public class OrdersController(
     private static bool IsExpired(Order order) =>
         !ExemptFromExpiry.Contains(order.Status) && DateTime.UtcNow > order.ExpiresAtUtc;
 
+    // The order isn't created until the customer actually commits a photo — no more empty
+    // "Created"-status rows left behind by someone who clicked "Створити календар" and then
+    // closed the tab. Combines the old bare Create + UploadPhoto into one call (see #348).
     [HttpPost]
-    public async Task<ActionResult<OrderDto>> Create()
+    [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
+    public async Task<ActionResult<OrderDto>> Create([FromForm] IFormFile? photo, CancellationToken ct)
     {
+        var intake = await PhotoIntake.ReadAsync(photo, ct);
+        if (!intake.Ok)
+        {
+            return BadRequest(new { error = intake.Error });
+        }
+
         var order = new Order { UserId = User.GetUserId() };
+        order.PhotoUrl = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
+        order.SetStatus(OrderStatus.PhotoUploaded);
         db.Orders.Add(order);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
 
         order = await LoadOwnedOrderAsync(order.Id);
         return Ok(order!.ToDto());
@@ -85,25 +97,6 @@ public class OrdersController(
             .ToListAsync();
 
         return Ok(orders);
-    }
-
-    [HttpPost("{orderId:guid}/photo")]
-    [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
-    public async Task<ActionResult<OrderDto>> UploadPhoto(Guid orderId, [FromForm] IFormFile? photo, CancellationToken ct)
-    {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        var intake = await PhotoIntake.ReadAsync(photo, ct);
-        if (!intake.Ok)
-        {
-            return BadRequest(new { error = intake.Error });
-        }
-
-        order.PhotoUrl = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
-        order.SetStatus(OrderStatus.PhotoUploaded);
-        await db.SaveChangesAsync(ct);
-        return Ok(order.ToDto());
     }
 
     /// Saves the user's per-sheet picks (prompt + image style for the cover and each month),

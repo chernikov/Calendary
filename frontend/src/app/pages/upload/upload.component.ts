@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
 import { OrderActions, selectOrderBusy, selectOrderError } from '../../core/state/order';
@@ -49,21 +49,20 @@ export class UploadComponent {
   readonly previewUrl = signal<string | null>(null);
   readonly fileError = signal<string | null>(null);
   private readonly file = signal<File | null>(null);
-  private readonly orderId: string;
   private readonly store = inject(Store);
 
   readonly loading = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
 
   constructor(
-    private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly actions$: Actions,
   ) {
-    this.orderId = this.route.snapshot.paramMap.get('orderId')!;
+    // The order doesn't exist yet at this point — it's created together with the photo (#348),
+    // so navigation uses the id the backend just minted, not anything from the route.
     this.actions$
-      .pipe(ofType(OrderActions.uploadPhotoSuccess), takeUntilDestroyed())
-      .subscribe(() => this.router.navigate(['/order', this.orderId, 'style']));
+      .pipe(ofType(OrderActions.createOrderWithPhotoSuccess), takeUntilDestroyed())
+      .subscribe(({ order }) => this.router.navigate(['/order', order.id, 'style']));
   }
 
   onFileSelected(event: Event): void {
@@ -85,7 +84,7 @@ export class UploadComponent {
   continue(): void {
     const photo = this.file();
     if (!photo) return;
-    this.store.dispatch(OrderActions.uploadPhoto({ orderId: this.orderId, photo }));
+    this.store.dispatch(OrderActions.createOrderWithPhoto({ photo }));
   }
 
   private setPreview(url: string | null): void {
