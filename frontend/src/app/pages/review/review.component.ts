@@ -22,6 +22,12 @@ const MONTH_NAMES = [
           <p class="text-muted">Ще не всі аркуші готові — поверніться, коли генерація завершиться.</p>
         }
 
+        @if (o.status === 'ReviewReady') {
+          <a [routerLink]="['/order', o.id, 'style']" style="display: inline-flex; align-items: center; gap: 4px; margin-bottom: var(--space-2); font-size: 13.5px;">
+            ← Назад до образів
+          </a>
+        }
+
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: var(--space-2); margin: var(--space-4) 0;">
           @for (sheet of o.sheets; track sheet.id) {
             <a

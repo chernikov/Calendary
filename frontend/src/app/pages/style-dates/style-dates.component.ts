@@ -354,13 +354,11 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Landing back on this step for an order whose plan is already locked server-side (generation
-    // started or finished — e.g. via browser back, a stale tab, or a bookmark) used to just sit
-    // here: "Почати генерацію" looked clickable but every click 409'd with a generic error, since
-    // SaveSheetPlan only allows PhotoUploaded/DetailsSubmitted. Redirect forward instead (see
-    // #370) — to /review once every sheet is ready, since that's where a sheet can actually be
-    // regenerated (opens the same picker modal cover/month pages use, spending the order's
-    // existing regenerationsRemaining budget — see #351/#359), not back to this locked plan step.
+    // Landing back on this step while sheets are still (or newly) generating has nothing to edit
+    // yet — send to /generating instead. ReviewReady stays fully usable here on purpose (see
+    // #372): the customer can come back from /review, change a prompt/style, and re-submit —
+    // SaveSheetPlan now allows that status too and only regenerates the sheets that actually
+    // changed. Confirmed/paid orders (AwaitingPayment+) remain locked, both here and server-side.
     effect(() => {
       const status = this.order()?.status;
       if (!status) return;
@@ -368,8 +366,6 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
         this.router.navigate(['/order', this.orderId, 'checkout']);
       } else if (status === 'Paid' || status === 'Printing' || status === 'Shipped' || status === 'Delivered') {
         this.router.navigate(['/order', this.orderId, 'status']);
-      } else if (status === 'ReviewReady') {
-        this.router.navigate(['/order', this.orderId, 'review']);
       } else if (status === 'Generating' || status === 'CoverReady' || status === 'CoverConfirmed') {
         this.router.navigate(['/order', this.orderId, 'generating']);
       }
