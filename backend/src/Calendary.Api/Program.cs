@@ -58,6 +58,7 @@ builder.Services.AddScoped<IBackupStatusService, ResticBackupStatusService>();
 builder.Services.AddHostedService<FulfillmentBackgroundService>();
 builder.Services.AddHostedService<GenerationBackgroundService>();
 builder.Services.AddHostedService<OrderExpiryBackgroundService>();
+builder.Services.AddHostedService<UserSessionCleanupBackgroundService>();
 
 builder.Services.AddAuthentication(BearerTokenAuth.Scheme)
     .AddScheme<AuthenticationSchemeOptions, BearerTokenAuthenticationHandler>(BearerTokenAuth.Scheme, _ => { });
