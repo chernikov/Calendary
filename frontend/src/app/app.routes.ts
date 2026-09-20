@@ -100,6 +100,10 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () => import('./pages/admin/admin-settings.component').then((m) => m.AdminSettingsComponent),
       },
+      {
+        path: 'product',
+        loadComponent: () => import('./pages/admin/admin-product.component').then((m) => m.AdminProductComponent),
+      },
       { path: '', redirectTo: 'orders', pathMatch: 'full' },
     ],
   },

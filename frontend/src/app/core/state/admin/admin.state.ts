@@ -15,6 +15,7 @@ export interface AdminState {
   orders: PagedResult<AdminOrderSummaryDto> | null;
   users: PagedResult<AdminUserDto> | null;
   selectedOrder: OrderDto | null;
+  basePrice: number | null;
   aiProvider: ImageGenerationProvider | null;
   configStatus: ConfigStatusDto | null;
   backupStatus: BackupStatusDto | null;
@@ -29,6 +30,7 @@ export const initialAdminState: AdminState = {
   orders: null,
   users: null,
   selectedOrder: null,
+  basePrice: null,
   aiProvider: null,
   configStatus: null,
   backupStatus: null,

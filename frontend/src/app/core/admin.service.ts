@@ -12,6 +12,7 @@ import {
   ImageStyleDto,
   OrderDto,
   PagedResult,
+  ProductSettingsDto,
   PromptDto,
   PromptThemeDto,
   SaveHolidayPayload,
@@ -51,6 +52,14 @@ export class AdminService {
   listUsers(page: number, pageSize: number): Observable<PagedResult<AdminUserDto>> {
     const params = new HttpParams().set('page', page).set('pageSize', pageSize);
     return this.http.get<PagedResult<AdminUserDto>>(`${BASE}/users`, { params });
+  }
+
+  getProduct(): Observable<ProductSettingsDto> {
+    return this.http.get<ProductSettingsDto>(`${BASE}/product`);
+  }
+
+  setProduct(basePrice: number): Observable<ProductSettingsDto> {
+    return this.http.put<ProductSettingsDto>(`${BASE}/product`, { basePrice });
   }
 
   getAiProvider(): Observable<{ provider: ImageGenerationProvider }> {

@@ -138,6 +138,24 @@ public class AdminController(
         return Ok(new PagedResult<AdminUserDto>(items, total, page, pageSize));
     }
 
+    [HttpGet("product")]
+    public async Task<ActionResult<ProductSettingsDto>> GetProduct()
+    {
+        var basePrice = await appSettings.GetBasePriceAsync();
+        return Ok(new ProductSettingsDto(basePrice));
+    }
+
+    [HttpPut("product")]
+    public async Task<ActionResult<ProductSettingsDto>> SetProduct(SetProductSettingsRequest request)
+    {
+        if (request.BasePrice <= 0)
+        {
+            return BadRequest("Base price must be greater than zero.");
+        }
+        await appSettings.SetBasePriceAsync(request.BasePrice);
+        return Ok(new ProductSettingsDto(request.BasePrice));
+    }
+
     [HttpGet("settings/ai-provider")]
     public async Task<ActionResult<ImageGenerationProviderDto>> GetAiProvider()
     {

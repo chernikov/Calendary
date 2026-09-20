@@ -71,6 +71,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .Property(o => o.Price)
             .HasPrecision(10, 2);
 
+        modelBuilder.Entity<AppSettings>()
+            .Property(a => a.BasePrice)
+            .HasPrecision(10, 2);
+
         // Stored as a comma-joined list of enum names — simpler than a join table for a handful of
         // countries, and avoids a bitmask's opacity in the raw DB column (see #364).
         modelBuilder.Entity<Order>()
@@ -145,7 +149,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             new AppSettings
             {
                 Id = Guid.Parse("22222222-2222-2222-2222-222222222201"),
-                ImageGenerationProvider = ImageGenerationProvider.OpenAI
+                ImageGenerationProvider = ImageGenerationProvider.OpenAI,
+                BasePrice = 1600m
             }
         );
     }

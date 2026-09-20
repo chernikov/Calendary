@@ -24,6 +24,7 @@ public class OrdersController(
     IPaymentService paymentService,
     ICalendarPdfService pdfService,
     IFileStorage fileStorage,
+    IAppSettingsService appSettings,
     IOptions<MonobankOptions> monobankOptions,
     ILogger<OrdersController> logger) : ControllerBase
 {
@@ -77,7 +78,7 @@ public class OrdersController(
         var thumb = PhotoThumbnailGenerator.Generate(new StoredFile(intake.Bytes, intake.ContentType));
         var thumbUrl = await fileStorage.SaveAsync(thumb.Content, thumb.ContentType, "photo-thumbs", ct);
 
-        var order = new Order { UserId = User.GetUserId() };
+        var order = new Order { UserId = User.GetUserId(), Price = await appSettings.GetBasePriceAsync(ct) };
         order.Photos.Add(new OrderPhoto { OrderId = order.Id, Url = url, ThumbUrl = thumbUrl });
         order.SetStatus(OrderStatus.PhotoUploaded);
         db.Orders.Add(order);
