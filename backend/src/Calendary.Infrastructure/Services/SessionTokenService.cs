@@ -33,6 +33,9 @@ public class SessionTokenService(AppDbContext db) : ISessionTokenService
         return session is null || session.ExpiresAtUtc < DateTime.UtcNow ? null : session.User;
     }
 
+    public Task InvalidateAllSessionsAsync(Guid userId, CancellationToken ct = default) =>
+        db.UserSessions.Where(s => s.UserId == userId).ExecuteDeleteAsync(ct);
+
     private static string GenerateRawToken() =>
         Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
             .Replace('+', '-').Replace('/', '_').TrimEnd('=');

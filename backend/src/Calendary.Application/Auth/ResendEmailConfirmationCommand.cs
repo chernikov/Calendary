@@ -21,6 +21,7 @@ public class ResendEmailConfirmationCommandHandler(
 
         user.EmailConfirmationCode = EmailConfirmationCodeGenerator.Generate();
         user.EmailConfirmationCodeExpiresAtUtc = DateTime.UtcNow.Add(EmailConfirmationCodeGenerator.Lifetime);
+        user.EmailConfirmationAttempts = 0;
         await db.SaveChangesAsync(ct);
 
         try

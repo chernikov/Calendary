@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using Calendary.AI;
 using Calendary.Api.Auth;
 using Calendary.Application.Common;
@@ -6,6 +7,8 @@ using Calendary.Infrastructure.Data;
 using Calendary.Infrastructure.Options;
 using Calendary.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -64,6 +67,23 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// #301: brute-force/enumeration protection for register/login/google/forgot-password/reset-
+// password (see AuthController's [EnableRateLimiting("auth")]). Partitioned per client IP — this
+// only works correctly once ForwardedHeaders (below) has resolved the real client IP instead of
+// the frontend nginx container's, since every request reaches this backend through that proxy.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth", httpContext => RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        }));
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -93,6 +113,20 @@ var fileStorageOptions = builder.Configuration.GetSection(FileStorageOptions.Sec
 var mediaRoot = fileStorageOptions.ResolveRootPath(app.Environment.ContentRootPath);
 Directory.CreateDirectory(mediaRoot);
 
+// Every request reaches this backend through the frontend nginx container's proxy_pass (see
+// nginx.conf), and in prod/staging through Caddy's reverse_proxy in front of that — so without
+// this, Connection.RemoteIpAddress is always that proxy's own docker-internal IP, the same for
+// every request, which would make the "auth" rate limiter above throttle the whole site as one
+// client instead of per real visitor. KnownNetworks/KnownProxies are cleared (not left at their
+// loopback-only default) because backend/mssql are never exposed directly to the internet (see
+// CLAUDE.md) — the only thing that can reach this backend at all is that trusted internal hop, so
+// trusting whatever it forwards is safe. ForwardLimit is unset (unlimited) since the hop count
+// differs by environment: nginx only locally, nginx+Caddy in prod/staging.
+var forwardedHeadersOptions = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor };
+forwardedHeadersOptions.KnownIPNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
+
 app.UseCors();
 
 // Filenames are unguessable GUIDs, so the URLs act as capability tokens and need no auth check —
@@ -113,6 +147,7 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 

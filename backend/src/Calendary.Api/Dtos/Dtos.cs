@@ -4,6 +4,8 @@ public record RegisterRequest(string Email, string Password, string? DisplayName
 public record LoginRequest(string Email, string Password);
 public record GoogleAuthRequest(string IdToken);
 public record ConfirmEmailRequest(string Code);
+public record ForgotPasswordRequest(string Email);
+public record ResetPasswordRequest(string Token, string NewPassword);
 public record UserDto(Guid Id, string? DisplayName, string? Email, bool EmailConfirmed, string Role);
 public record AuthResponse(string BearerToken, UserDto User);
 
