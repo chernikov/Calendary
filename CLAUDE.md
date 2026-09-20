@@ -8,6 +8,12 @@ Calendary — a Ukrainian custom AI-generated photo-calendar ordering app. The U
 Claude Design doc (`Calendary.dc.html`, "Broadsheet" design system); the implementation is a thin,
 end-to-end vertical slice: Docker + ASP.NET Core (.NET 10) + EF Core/MSSQL + Angular 18.
 
+**Deliberately UA-only, no i18n** (see #306): delivery (Nova Poshta), payment (Monobank), currency
+(₴), and every prompt/UX string are Ukraine-market-specific by design, not an accident of not
+having gotten to localization yet. Frontend strings stay hardcoded Ukrainian in component
+templates — don't introduce ngx-translate/Angular i18n or resource files speculatively. Revisit
+only if the product actually expands to another market.
+
 Flow: landing → register/login (email+password or Google) → photo upload → per-sheet prompt+style
 plan (prompt library: themes → prompts, image styles) + personal dates
 → generation (live progress) → cover confirm → month-by-month reveal (regenerate/failure/retry) →
