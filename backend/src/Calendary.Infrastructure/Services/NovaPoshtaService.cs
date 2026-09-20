@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Calendary.Domain.Abstractions;
@@ -18,6 +20,15 @@ public class NovaPoshtaService(HttpClient httpClient, IOptions<NovaPoshtaOptions
     private const string ApiUrl = "https://api.novaposhta.ua/v2.0/json/";
     private readonly NovaPoshtaOptions _options = options.Value;
 
+    // System.Text.Json's default encoder escapes non-ASCII characters as \uXXXX — Nova Poshta's
+    // backend silently fails to match FindByString against an escaped Cyrillic value (returns the
+    // *entire* unfiltered city/warehouse dictionary instead of an error), so city/warehouse
+    // filters must be sent as raw UTF-8 text. Confirmed directly against the real API.
+    private static readonly JsonSerializerOptions RequestJsonOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
+
     private static readonly string[] FallbackCities =
     [
         "Львів", "Київ", "Харків", "Одеса", "Дніпро", "Вінниця", "Івано-Франківськ", "Тернопіль"
@@ -27,23 +38,23 @@ public class NovaPoshtaService(HttpClient httpClient, IOptions<NovaPoshtaOptions
     {
         ["Львів"] =
         [
-            new("№12", "вул. Городоцька, 359", "до 20:00"),
-            new("№34", "вул. Липинського, 54", "до 21:00"),
-            new("№81", "пр. Червоної Калини, 62", "до 20:00")
+            new("№12", "вул. Городоцька, 359", "до 20:00", IsPostomat: false),
+            new("№34", "вул. Липинського, 54", "до 21:00", IsPostomat: false),
+            new("№81", "пр. Червоної Калини, 62", "до 20:00", IsPostomat: true)
         ],
         ["Київ"] =
         [
-            new("№1", "вул. Хрещатик, 22", "до 22:00"),
-            new("№47", "просп. Перемоги, 100", "до 21:00"),
-            new("№103", "вул. Драгоманова, 14", "до 20:00")
+            new("№1", "вул. Хрещатик, 22", "до 22:00", IsPostomat: false),
+            new("№47", "просп. Перемоги, 100", "до 21:00", IsPostomat: false),
+            new("№103", "вул. Драгоманова, 14", "до 20:00", IsPostomat: true)
         ]
     };
 
     private static readonly NovaPoshtaWarehouse[] DefaultFallbackWarehouses =
     [
-        new("№1", "центральне відділення", "до 20:00"),
-        new("№5", "вул. Соборна, 10", "до 20:00"),
-        new("№18", "вул. Незалежності, 3", "до 19:00")
+        new("№1", "центральне відділення", "до 20:00", IsPostomat: false),
+        new("№5", "вул. Соборна, 10", "до 20:00", IsPostomat: false),
+        new("№18", "вул. Незалежності, 3", "до 19:00", IsPostomat: true)
     ];
 
     public async Task<IReadOnlyList<string>> SearchCitiesAsync(string query, CancellationToken ct = default)
@@ -86,7 +97,9 @@ public class NovaPoshtaService(HttpClient httpClient, IOptions<NovaPoshtaOptions
                 var address = item.TryGetProperty("ShortAddress", out var a) && !string.IsNullOrWhiteSpace(a.GetString())
                     ? a.GetString()
                     : item.TryGetProperty("Description", out var d) ? d.GetString() : null;
-                return new NovaPoshtaWarehouse(number ?? "?", address ?? "", ParseClosesAt(item));
+                var isPostomat = item.TryGetProperty("CategoryOfWarehouse", out var cat)
+                    && string.Equals(cat.GetString(), "Postomat", StringComparison.OrdinalIgnoreCase);
+                return new NovaPoshtaWarehouse(number ?? "?", address ?? "", ParseClosesAt(item), isPostomat);
             })
             .ToList();
     }
@@ -95,10 +108,11 @@ public class NovaPoshtaService(HttpClient httpClient, IOptions<NovaPoshtaOptions
     {
         try
         {
-            using var response = await httpClient.PostAsJsonAsync(
-                ApiUrl,
+            var requestJson = JsonSerializer.Serialize(
                 new { apiKey = _options.ApiKey, modelName = "Address", calledMethod = method, methodProperties },
-                ct);
+                RequestJsonOptions);
+            using var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+            using var response = await httpClient.PostAsync(ApiUrl, content, ct);
 
             var envelope = await response.Content.ReadFromJsonAsync<NovaPoshtaResponse>(cancellationToken: ct);
             if (envelope is null || !envelope.Success)
@@ -118,16 +132,18 @@ public class NovaPoshtaService(HttpClient httpClient, IOptions<NovaPoshtaOptions
         }
     }
 
-    // Nova Poshta's exact `Schedule` shape wasn't confidently verifiable against a live response
-    // while this was written (no API key available yet — see #290 PR description). This tries
-    // the commonly-documented "weekday number -> hours string" shape and otherwise falls back to
-    // a generic pointer rather than guess at a field mapping that might be wrong.
+    // Confirmed directly against a live getWarehouses response: Schedule keys are English day
+    // names ("Monday".."Sunday"), not the previously-guessed weekday-number shape.
+    private static readonly string[] DayNames =
+    [
+        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    ];
+
     private static string ParseClosesAt(JsonElement item)
     {
         if (item.TryGetProperty("Schedule", out var schedule) && schedule.ValueKind == JsonValueKind.Object)
         {
-            var isoWeekday = (int)DateTime.Now.DayOfWeek;
-            var todayKey = (isoWeekday == 0 ? 7 : isoWeekday).ToString();
+            var todayKey = DayNames[(int)DateTime.Now.DayOfWeek];
             if (schedule.TryGetProperty(todayKey, out var hours) && hours.ValueKind == JsonValueKind.String)
             {
                 var text = hours.GetString();

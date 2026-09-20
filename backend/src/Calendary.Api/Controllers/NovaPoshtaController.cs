@@ -20,6 +20,6 @@ public class NovaPoshtaController(INovaPoshtaService novaPoshta) : ControllerBas
     public async Task<ActionResult<IReadOnlyList<NovaPoshtaWarehouseDto>>> Warehouses([FromQuery] string city)
     {
         var warehouses = await novaPoshta.GetWarehousesAsync(city);
-        return Ok(warehouses.Select(w => new NovaPoshtaWarehouseDto(w.Number, w.Address, w.ClosesAt)).ToList());
+        return Ok(warehouses.Select(w => new NovaPoshtaWarehouseDto(w.Number, w.Address, w.ClosesAt, w.IsPostomat)).ToList());
     }
 }

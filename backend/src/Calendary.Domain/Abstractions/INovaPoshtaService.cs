@@ -1,6 +1,6 @@
 namespace Calendary.Domain.Abstractions;
 
-public record NovaPoshtaWarehouse(string Number, string Address, string ClosesAt);
+public record NovaPoshtaWarehouse(string Number, string Address, string ClosesAt, bool IsPostomat);
 
 public interface INovaPoshtaService
 {
