@@ -244,19 +244,24 @@ export class OrderEffects {
   checkoutAndPay$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.checkoutAndPay),
-      switchMap(({ orderId, delivery, method }) =>
+      switchMap(({ orderId, delivery }) =>
         this.orders.checkout(orderId, delivery).pipe(
           catchError(() => {
             throw { step: 'checkout' as const };
           }),
           switchMap(() =>
-            this.orders.pay(orderId, method).pipe(
+            this.orders.pay(orderId).pipe(
               catchError(() => {
                 throw { step: 'pay' as const };
               }),
             ),
           ),
-          map((order) => OrderActions.checkoutAndPaySuccess({ order })),
+          // Hard navigation, not a router link — the destination is Monobank's hosted payment
+          // page (or, in the no-merchant-token local-dev fallback, straight back to /status).
+          tap(({ pageUrl }) => {
+            window.location.href = pageUrl;
+          }),
+          map(() => OrderActions.checkoutAndPaySuccess()),
           catchError((err: { step?: 'checkout' | 'pay' }) =>
             of(
               OrderActions.checkoutAndPayFailure({

@@ -42,10 +42,13 @@ export const orderReducer = createReducer(
     OrderActions.generateSheetSuccess,
     OrderActions.activateVariantSuccess,
     OrderActions.confirmCoverSuccess,
-    OrderActions.checkoutAndPaySuccess,
     OrderActions.cancelOrderSuccess,
     (state, { order }) => ({ ...state, order, busy: false, error: null }),
   ),
+
+  // No updated order comes back — the browser is about to hard-navigate to Monobank's hosted
+  // page (or straight to /status in the local-dev fallback), so there's nothing left to reflect.
+  on(OrderActions.checkoutAndPaySuccess, (state) => ({ ...state, busy: false, error: null })),
 
   on(
     OrderActions.createOrderWithPhotoFailure,

@@ -5,10 +5,12 @@ using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
 using Calendary.Infrastructure.Data;
+using Calendary.Infrastructure.Options;
 using Calendary.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Calendary.Api.Controllers;
 
@@ -21,6 +23,7 @@ public class OrdersController(
     IPaymentService paymentService,
     ICalendarPdfService pdfService,
     IFileStorage fileStorage,
+    IOptions<MonobankOptions> monobankOptions,
     ILogger<OrdersController> logger) : ControllerBase
 {
     private const int MaxLabelLength = 22;
@@ -478,55 +481,27 @@ public class OrdersController(
     }
 
     [HttpPost("{orderId:guid}/pay")]
-    public async Task<ActionResult<OrderDto>> Pay(Guid orderId, PayRequest request)
+    public async Task<ActionResult<PayResponseDto>> Pay(Guid orderId)
     {
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
         if (IsExpired(order)) return Conflict("Order has expired.");
 
-        // Idempotency: a retried/duplicate POST (double-click, frontend retry, provider webhook
-        // racing the synchronous response) must not charge a second time. Retrying after a
-        // *failed* payment is still allowed — only a prior success short-circuits.
+        var baseUrl = monobankOptions.Value.PublicBaseUrl.TrimEnd('/');
+        var redirectUrl = $"{baseUrl}/order/{orderId}/status";
+
+        // Idempotency: a retried/duplicate POST (double-click, frontend retry) must not create a
+        // second invoice. Retrying after a *failed* payment is still allowed — only a prior
+        // success short-circuits, straight back to the same redirect the success path would use.
         if (order.Status == OrderStatus.Paid || order.Payment?.Status == PaymentStatus.Succeeded)
         {
-            logger.LogInformation("Pay: order {OrderId} is already paid, skipping charge", orderId);
-            return Ok(order.ToDto());
+            logger.LogInformation("Pay: order {OrderId} is already paid, skipping invoice creation", orderId);
+            return Ok(new PayResponseDto(redirectUrl));
         }
 
-        if (!Enum.TryParse<PaymentMethod>(request.Method, true, out var method))
-        {
-            return BadRequest("Unknown payment method.");
-        }
-
-        var result = await paymentService.ChargeAsync(orderId, method, order.Price);
-
-        if (order.Payment is null)
-        {
-            order.Payment = new Payment { OrderId = order.Id };
-            db.Payments.Add(order.Payment);
-        }
-        order.Payment.Method = method;
-        order.Payment.Amount = order.Price;
-
-        if (result.Succeeded)
-        {
-            order.Payment.Status = PaymentStatus.Succeeded;
-            order.Payment.PaidAtUtc = DateTime.UtcNow;
-            order.SetStatus(OrderStatus.Paid);
-            logger.LogInformation(
-                "Pay: order {OrderId} charged successfully via {Method}, amount {Amount}", orderId, method, order.Price);
-        }
-        else
-        {
-            order.Payment.Status = PaymentStatus.Failed;
-            logger.LogWarning(
-                "Pay: order {OrderId} charge failed via {Method}: {Reason}", orderId, method, result.FailureReason ?? "unknown");
-        }
-
-        await db.SaveChangesAsync();
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return result.Succeeded ? Ok(order!.ToDto()) : StatusCode(402, order!.ToDto());
+        var webHookUrl = $"{baseUrl}/api/payments/monobank/webhook";
+        var invoice = await paymentService.CreateInvoiceAsync(orderId, redirectUrl, webHookUrl);
+        return Ok(new PayResponseDto(invoice.PageUrl));
     }
 
     [HttpGet("{orderId:guid}/pdf")]

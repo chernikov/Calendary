@@ -7,7 +7,7 @@ Custom AI-generated photo calendar ordering app. A thin, end-to-end vertical sli
 
 Landing → register/login (email+password or Google) → photo upload → style + personal dates → generation
 (live progress) → cover pick → month-by-month reveal (regenerate/failure/retry) → review →
-delivery + payment (Nova Poshta + Apple/Google Pay/monobank/card) → order status (auto-progressing
+delivery + payment (Nova Poshta + monobank) → order status (auto-progressing
 Paid → Printing → Shipped → Delivered, with cancellation while unpaid).
 
 ## Stack
@@ -57,10 +57,12 @@ AI/Google/Resend API keys mentioned below follow the same pattern — set them t
 - **AI image generation** — `MockImageGenerationService` + `GenerationBackgroundService` simulate
   generation server-side (up to 3 sheets in flight per order, ~4s each) and hand back placeholder
   photos from picsum.photos. Swap `IImageGenerationService` for a real provider.
-- **Payment** — `MockPaymentService` always succeeds after a short delay. No real card data is
-  collected. Swap `IPaymentService` for a real provider (Stripe, WayForPay, etc.).
-- **Nova Poshta** — `MockNovaPoshtaService` returns a small static city/warehouse list instead of
-  calling the real Nova Poshta API.
+- **Payment** — `MonobankPaymentService` calls the real Monobank Acquiring API when
+  `Monobank__MerchantToken` is configured; without it (local dev), it settles the order as Paid
+  immediately instead of creating a real invoice/redirect. No real card data is ever collected by
+  this app either way — Monobank's hosted page handles that.
+- **Nova Poshta** — `NovaPoshtaService` calls the real Nova Poshta Address API when
+  `NovaPoshta__ApiKey` is configured, otherwise falls back to a small static city/warehouse list.
 - **Order fulfillment timing** — `FulfillmentBackgroundService` advances Paid → Printing → Shipped
   → Delivered purely by elapsed wall-clock time (8s / 10s / 20s), not real print/courier events.
 
@@ -231,7 +233,8 @@ failure) — a fresh environment has no admin account until it's provided.
 
 - The design explored several layout **variants** per screen (mobile/desktop, alternate copy) —
   one variant was implemented per screen, not all of them.
-- Refunds/returns ("повернення") are out of scope: cancellation is only allowed before payment,
-  since payment is mocked and there's no real money to refund.
+- Refunds/returns ("повернення") are out of scope: cancellation is only allowed before payment.
+  Monobank's cancel-payment endpoint isn't wired up, so a paid order can't be refunded through the
+  app.
 - The cover step here is a single generated image + confirm/regenerate, rather than the
   four-candidate picker grid shown in some design variants.

@@ -1,9 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Actions, ofType } from '@ngrx/effects';
 import {
   OrderActions,
   selectCities,
@@ -61,43 +59,46 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
           </div>
 
           @if (warehouses().length > 0) {
-            <div>
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
-                <div class="text-muted" style="font-size: 11px;">Відділення</div>
-                <div style="display: flex; gap: 4px;">
-                  @for (f of warehouseFilters; track f.value) {
-                    <button
-                      type="button"
-                      class="btn"
-                      [class.btn-primary]="warehouseFilter() === f.value"
-                      [class.btn-secondary]="warehouseFilter() !== f.value"
-                      style="font-size: 11px; padding: 3px 9px; min-height: unset;"
-                      (click)="warehouseFilter.set(f.value)"
-                    >
-                      {{ f.label }}
-                    </button>
-                  }
-                </div>
-              </div>
-              <div style="border: 1px solid var(--color-divider); max-height: 320px; overflow-y: auto;">
-                @for (w of filteredWarehouses(); track w.number) {
-                  <div
-                    style="display: flex; gap: 10px; padding: 11px; border-bottom: 1px solid var(--color-divider); cursor: pointer;"
-                    [style.background]="selectedWarehouse()?.number === w.number ? 'var(--color-accent-100)' : 'transparent'"
-                    (click)="selectedWarehouse.set(w)"
-                  >
-                    <span class="money" style="font-size: 11.5px; color: var(--color-accent-700); width: 30px; flex: none;">{{ w.number }}</span>
-                    <span style="font-size: 12.5px; flex: 1;">
-                      {{ w.address }} · {{ w.closesAt }}
-                      @if (w.isPostomat) {
-                        <span class="tag tag-neutral" style="font-size: 10px; margin-left: 6px;">Поштомат</span>
-                      }
-                    </span>
+            <div class="field">
+              <label>Відділення</label>
+              <details class="select-dropdown" #warehouseDetails>
+                <summary>{{ selectedWarehouse() ? (selectedWarehouse()!.number + ' · ' + selectedWarehouse()!.address) : 'Оберіть відділення' }}</summary>
+                <div style="border-top: 1px solid var(--color-divider);">
+                  <div style="display: flex; gap: 4px; padding: 8px;">
+                    @for (f of warehouseFilters; track f.value) {
+                      <button
+                        type="button"
+                        class="btn"
+                        [class.btn-primary]="warehouseFilter() === f.value"
+                        [class.btn-secondary]="warehouseFilter() !== f.value"
+                        style="font-size: 11px; padding: 3px 9px; min-height: unset;"
+                        (click)="warehouseFilter.set(f.value)"
+                      >
+                        {{ f.label }}
+                      </button>
+                    }
                   </div>
-                } @empty {
-                  <div class="text-muted" style="padding: 11px; font-size: 12.5px;">Нічого не знайдено для цього фільтра.</div>
-                }
-              </div>
+                  <div style="max-height: 280px; overflow-y: auto;">
+                    @for (w of filteredWarehouses(); track w.number) {
+                      <div
+                        style="display: flex; gap: 10px; padding: 11px; border-top: 1px solid var(--color-divider); cursor: pointer;"
+                        [style.background]="selectedWarehouse()?.number === w.number ? 'var(--color-accent-100)' : 'transparent'"
+                        (click)="pickWarehouse(w, warehouseDetails)"
+                      >
+                        <span class="money" style="font-size: 11.5px; color: var(--color-accent-700); width: 30px; flex: none;">{{ w.number }}</span>
+                        <span style="font-size: 12.5px; flex: 1;">
+                          {{ w.address }} · {{ w.closesAt }}
+                          @if (w.isPostomat) {
+                            <span class="tag tag-neutral" style="font-size: 10px; margin-left: 6px;">Поштомат</span>
+                          }
+                        </span>
+                      </div>
+                    } @empty {
+                      <div class="text-muted" style="padding: 11px; font-size: 12.5px;">Нічого не знайдено для цього фільтра.</div>
+                    }
+                  </div>
+                </div>
+              </details>
             </div>
           }
         </div>
@@ -105,19 +106,7 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
         <div class="hr"></div>
 
         <h2 style="font-size: 28px;">Оплата</h2>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          @for (m of paymentMethods; track m.value) {
-            <button
-              class="btn"
-              [class.btn-primary]="method() === m.value"
-              [class.btn-secondary]="method() !== m.value"
-              style="min-height: 50px; font-size: 15px; justify-content: space-between; padding-inline: 16px;"
-              (click)="method.set(m.value)"
-            >
-              <span>{{ m.label }}</span>
-            </button>
-          }
-        </div>
+        <p class="text-muted" style="font-size: 13px;">Оплата карткою через monobank — після натискання ви перейдете на сторінку оплати monobank.</p>
 
         @if (error()) {
           <p style="color: var(--color-accent-2-700); font-size: 13px; margin-top: var(--space-2);">{{ error() }}</p>
@@ -136,7 +125,7 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
           [disabled]="!canSubmit() || busy()"
           (click)="submit()"
         >
-          Оплатити {{ o.price }} ₴
+          Оплатити {{ o.price }} ₴ через monobank
         </button>
         <p class="text-muted" style="font-size: 11px; text-align: center; margin-top: 8px;">
           Друк починається одразу після оплати.
@@ -165,16 +154,8 @@ export class CheckoutComponent implements OnInit {
     if (filter === 'postomat') return list.filter((w) => w.isPostomat);
     return list;
   });
-  readonly method = signal<string>('ApplePay');
   readonly busy = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
-
-  readonly paymentMethods = [
-    { value: 'ApplePay', label: 'Apple Pay' },
-    { value: 'GooglePay', label: 'Google Pay' },
-    { value: 'Monobank', label: 'Оплатити з monobank' },
-    { value: 'Card', label: 'Карткою' },
-  ];
 
   recipientName = '';
   phone = '';
@@ -185,14 +166,9 @@ export class CheckoutComponent implements OnInit {
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly actions$: Actions,
     readonly auth: AuthService,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
-    this.actions$
-      .pipe(ofType(OrderActions.checkoutAndPaySuccess), takeUntilDestroyed())
-      .subscribe(() => this.router.navigate(['/order', this.orderId, 'status']));
   }
 
   ngOnInit(): void {
@@ -221,8 +197,13 @@ export class CheckoutComponent implements OnInit {
     this.store.dispatch(OrderActions.loadWarehouses({ city }));
   }
 
+  pickWarehouse(w: NovaPoshtaWarehouseDto, details: HTMLDetailsElement): void {
+    this.selectedWarehouse.set(w);
+    details.open = false;
+  }
+
   canSubmit(): boolean {
-    return !!(this.recipientName && this.phone && this.city && this.selectedWarehouse() && this.method());
+    return !!(this.recipientName && this.phone && this.city && this.selectedWarehouse());
   }
 
   submit(): void {
@@ -238,7 +219,6 @@ export class CheckoutComponent implements OnInit {
           warehouseNumber: w.number,
           warehouseAddress: w.address,
         },
-        method: this.method(),
       }),
     );
   }

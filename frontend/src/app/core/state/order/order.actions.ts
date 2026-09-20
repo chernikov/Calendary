@@ -84,9 +84,8 @@ export const OrderActions = createActionGroup({
     'Checkout And Pay': props<{
       orderId: string;
       delivery: { recipientName: string; phone: string; city: string; warehouseNumber: string; warehouseAddress: string };
-      method: string;
     }>(),
-    'Checkout And Pay Success': props<{ order: OrderDto }>(),
+    'Checkout And Pay Success': emptyProps(),
     'Checkout And Pay Failure': props<{ error: string }>(),
 
     'Cancel Order': props<{ orderId: string }>(),

@@ -16,13 +16,13 @@ Delivered).
 
 Auth is real (email+password via `PasswordHasher<User>`, and Google Sign-In via ID-token
 verification — see "Backend architecture" below), not mocked. Transactional email (currently just
-a welcome email on registration) is also real, via `IEmailService`/`ResendEmailService`. **One
-integration is still deliberately mocked** behind a `Calendary.Domain.Abstractions` interface —
-swap the DI registration in `Program.cs` to go live with a real provider:
-- `IPaymentService` — payment charging (currently always succeeds)
-
-Two more have a real implementation already wired in, each falling back to a small static
-dataset when unconfigured (so local dev needs no API key):
+a welcome email on registration) is also real, via `IEmailService`/`ResendEmailService`. Three
+integrations have a real implementation wired in, each falling back to something local-dev-friendly
+when unconfigured (so local dev needs no API key/account):
+- `IPaymentService` — payment. `MonobankPaymentService` calls the real Monobank Acquiring API
+  (invoice creation + webhook-verified confirmation, see "Payments" below) when
+  `Monobank__MerchantToken` is configured; otherwise it settles the order as Paid immediately (no
+  real redirect), so local dev needs no merchant account.
 - `IImageGenerationService` — AI image generation. A real implementation exists
   (`AiImageGenerationService`, backed by the `Calendary.AI` project); which one runs is a runtime
   DB setting via the admin panel (`/admin/settings`), not a DI swap — see the README's
@@ -30,6 +30,31 @@ dataset when unconfigured (so local dev needs no API key):
 - `INovaPoshtaService` — delivery branch lookup. `NovaPoshtaService` calls Nova Poshta's real
   public Address API when `NovaPoshta__ApiKey` is configured, otherwise falls back to the same
   small static city/warehouse list it always used.
+
+### Payments
+
+Checkout only offers Monobank now (`checkout.component.ts`) — Apple Pay/Google Pay/Card were
+placeholder UI with no real provider behind them and were dropped rather than left half-wired.
+The flow is redirect-based, not a synchronous charge: `POST /api/orders/{id}/pay` calls
+`MonobankPaymentService.CreateInvoiceAsync`, which creates a Monobank invoice and returns a hosted
+`pageUrl`; the frontend hard-navigates the browser there (`window.location.href`, not a router
+link — the SPA is left entirely). Monobank later POSTs the outcome to
+`POST /api/payments/monobank/webhook` (`PaymentsController`, anonymous — Monobank has no bearer
+token for this app), which `HandleWebhookAsync` verifies via the `X-Sign` header (ECDSA-SHA256
+over the raw body, checked against the merchant's public key fetched once from
+`/api/merchant/pubkey` and cached for the process lifetime) before applying `Paid`/`Failed` to the
+matching `Payment` (looked up by `Payment.ProviderInvoiceId`, Monobank's `invoiceId`) and calling
+`Order.SetStatus`. The customer's browser is *also* redirected back to `/order/{id}/status` via
+Monobank's `redirectUrl`, but that redirect is UX only — the status page's existing 2s poll is what
+actually picks up the webhook-driven `Paid` transition, since the webhook can arrive slightly after
+the redirect.
+
+Building `redirectUrl`/`webHookUrl` needs the app's own public origin, which can't be reliably
+inferred from the request (no forwarded-headers middleware, and nginx→backend is plain HTTP
+internally regardless of the public scheme) — so it's the explicit `Monobank__PublicBaseUrl` env
+var (`https://${DOMAIN}` / `https://${STAGING_DOMAIN}` in the prod/staging compose files, empty
+locally, matching `Cors__AllowedOrigins__0`'s existing convention). No new GH secret was needed for
+this — `DOMAIN`/`STAGING_DOMAIN` already exist in the droplet's `.env` for Caddy.
 
 ## Commands
 
