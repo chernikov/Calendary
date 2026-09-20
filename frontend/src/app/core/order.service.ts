@@ -104,10 +104,6 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/variants/${variantId}/activate`, {});
   }
 
-  simulateFailure(orderId: string, sheetId: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/simulate-failure`, {});
-  }
-
   confirmCover(orderId: string, sheetId: string): Observable<OrderDto> {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/cover/confirm`, { sheetId });
   }

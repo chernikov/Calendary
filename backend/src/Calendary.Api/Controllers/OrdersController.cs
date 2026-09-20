@@ -26,6 +26,7 @@ public class OrdersController(
     IFileStorage fileStorage,
     IAppSettingsService appSettings,
     IOptions<MonobankOptions> monobankOptions,
+    IHostEnvironment environment,
     ILogger<OrdersController> logger) : ControllerBase
 {
     private const int MaxLabelLength = 22;
@@ -430,9 +431,14 @@ public class OrdersController(
 
     // Dev/demo-only: flips a sheet into the Failed state so the frontend's failure/retry
     // UI can be exercised without waiting for a (nonexistent) real generation failure.
+    // Dev/demo-only helper for manually exercising the UI's failure/retry path — never real in
+    // production, so it 404s there rather than shipping a way for any order owner to fail their
+    // own sheets (see #323).
     [HttpPost("{orderId:guid}/sheets/{sheetId:guid}/simulate-failure")]
     public async Task<ActionResult<OrderDto>> SimulateFailure(Guid orderId, Guid sheetId)
     {
+        if (!environment.IsDevelopment()) return NotFound();
+
         var order = await LoadOwnedOrderAsync(orderId);
         if (order is null) return NotFound();
 
