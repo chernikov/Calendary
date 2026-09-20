@@ -14,7 +14,7 @@ public class OrderExpiryBackgroundService(IServiceScopeFactory scopeFactory, ILo
     : TimedHostedService(scopeFactory, logger, TimeSpan.FromMinutes(5))
 {
     private static readonly OrderStatus[] ExemptStatuses =
-        [OrderStatus.Paid, OrderStatus.Printing, OrderStatus.Shipped, OrderStatus.Delivered];
+        [OrderStatus.Paid, OrderStatus.Printing, OrderStatus.PrintReady, OrderStatus.Shipped, OrderStatus.Delivered];
 
     protected override async Task TickAsync(AppDbContext db, IServiceProvider services, CancellationToken ct)
     {

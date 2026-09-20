@@ -56,7 +56,6 @@ builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection(Backu
 builder.Services.Configure<AdminSeedOptions>(builder.Configuration.GetSection(AdminSeedOptions.SectionName));
 builder.Services.AddScoped<IBackupStatusService, ResticBackupStatusService>();
 
-builder.Services.AddHostedService<FulfillmentBackgroundService>();
 builder.Services.AddHostedService<GenerationBackgroundService>();
 builder.Services.AddHostedService<OrderExpiryBackgroundService>();
 builder.Services.AddHostedService<UserSessionCleanupBackgroundService>();

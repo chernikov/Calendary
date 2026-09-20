@@ -6,6 +6,10 @@ export const selectAdminState = createFeatureSelector<AdminState>(ADMIN_FEATURE_
 export const selectAdminOrders = createSelector(selectAdminState, (state) => state.orders);
 export const selectAdminUsers = createSelector(selectAdminState, (state) => state.users);
 export const selectAdminSelectedOrder = createSelector(selectAdminState, (state) => state.selectedOrder);
+export const selectAdminSelectedOrderStatusHistory = createSelector(
+  selectAdminState,
+  (state) => state.selectedOrderStatusHistory,
+);
 export const selectAdminAiProvider = createSelector(selectAdminState, (state) => state.aiProvider);
 export const selectAdminBasePrice = createSelector(selectAdminState, (state) => state.basePrice);
 export const selectAdminConfigStatus = createSelector(selectAdminState, (state) => state.configStatus);

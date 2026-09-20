@@ -1,4 +1,5 @@
 using Calendary.Domain.Entities;
+using Calendary.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -32,6 +33,19 @@ public class DomainStatusLoggingInterceptor(ILogger<DomainStatusLoggingIntercept
 
         foreach (var entry in context.ChangeTracker.Entries<Order>())
         {
+            if (entry.State == EntityState.Added)
+            {
+                context.Set<OrderStatusHistory>().Add(new OrderStatusHistory
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = entry.Entity.Id,
+                    FromStatus = null,
+                    ToStatus = entry.Entity.Status,
+                    ChangedAtUtc = DateTime.UtcNow,
+                });
+                continue;
+            }
+
             if (entry.State != EntityState.Modified) continue;
             var statusProp = entry.Property(o => o.Status);
             if (!statusProp.IsModified) continue;
@@ -39,6 +53,15 @@ public class DomainStatusLoggingInterceptor(ILogger<DomainStatusLoggingIntercept
             logger.LogInformation(
                 "Order {OrderId} status: {OldStatus} -> {NewStatus}",
                 entry.Entity.Id, statusProp.OriginalValue, statusProp.CurrentValue);
+
+            context.Set<OrderStatusHistory>().Add(new OrderStatusHistory
+            {
+                Id = Guid.NewGuid(),
+                OrderId = entry.Entity.Id,
+                FromStatus = (OrderStatus)statusProp.OriginalValue!,
+                ToStatus = (OrderStatus)statusProp.CurrentValue!,
+                ChangedAtUtc = DateTime.UtcNow,
+            });
         }
 
         foreach (var entry in context.ChangeTracker.Entries<Sheet>())

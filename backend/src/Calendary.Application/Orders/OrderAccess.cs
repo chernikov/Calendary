@@ -20,7 +20,7 @@ public static class OrderAccess
     // captured it's fulfillment's problem, not a reason to block anything. Keep in sync with
     // OrderExpiryBackgroundService's exemption list (auto-archives expired orders on the same rule).
     public static readonly OrderStatus[] ExemptFromExpiry =
-        [OrderStatus.Paid, OrderStatus.Printing, OrderStatus.Shipped, OrderStatus.Delivered];
+        [OrderStatus.Paid, OrderStatus.Printing, OrderStatus.PrintReady, OrderStatus.Shipped, OrderStatus.Delivered];
 
     // Orders selectable for the "Мої замовлення" cart checkout (#377) — everything else (still
     // generating, failed, already paid, expired) is shown but disabled in that UI.

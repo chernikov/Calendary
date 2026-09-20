@@ -7,8 +7,15 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { AdminActions, selectAdminBusy, selectAdminSelectedOrder } from '../../core/state/admin';
-import { SheetDto, SheetStatus } from '../../core/models';
+import { NzTimelineModule } from 'ng-zorro-antd/timeline';
+import {
+  AdminActions,
+  selectAdminBusy,
+  selectAdminSelectedOrder,
+  selectAdminSelectedOrderStatusHistory,
+} from '../../core/state/admin';
+import { OrderStatus, SheetDto, SheetStatus } from '../../core/models';
+import { orderStatusLabel } from '../../core/order-status';
 
 const MONTH_NAMES = [
   'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
@@ -22,9 +29,21 @@ const STATUS_COLORS: Record<SheetStatus, string> = {
   Failed: 'red',
 };
 
+// Manual, admin-driven fulfillment (#434) — no real printer/courier integration, so an admin
+// clicks through Paid -> Printing -> PrintReady -> Shipped -> Delivered one step at a time.
+const NEXT_FULFILLMENT_STEP: Partial<Record<OrderStatus, string>> = {
+  Paid: 'Передати в друк',
+  Printing: 'Позначити готовим з друку',
+  PrintReady: 'Передати у відправку',
+  Shipped: 'Позначити отриманим',
+};
+
 @Component({
     selector: 'app-admin-order-detail',
-    imports: [DatePipe, RouterLink, NzDescriptionsModule, NzTagModule, NzButtonModule, NzIconModule, NzSpinModule],
+    imports: [
+      DatePipe, RouterLink, NzDescriptionsModule, NzTagModule, NzButtonModule, NzIconModule, NzSpinModule,
+      NzTimelineModule,
+    ],
     template: `
     <a routerLink="/admin/orders" style="display: inline-flex; align-items: center; gap: 4px; margin-bottom: 16px;">
       <span nz-icon nzType="left"></span> До списку замовлень
@@ -40,7 +59,14 @@ const STATUS_COLORS: Record<SheetStatus, string> = {
       <h2>Замовлення {{ o.id.slice(0, 8) }}</h2>
 
       <nz-descriptions [nzBordered]="true" [nzColumn]="2" style="margin-bottom: 24px;">
-        <nz-descriptions-item nzTitle="Статус"><nz-tag>{{ o.status }}</nz-tag></nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Статус">
+          <nz-tag>{{ o.status }}</nz-tag>
+          @if (nextStepLabel(o.status); as label) {
+            <button nz-button nzSize="small" nzType="primary" [disabled]="busy()" (click)="advanceFulfillment(o.id)">
+              {{ label }}
+            </button>
+          }
+        </nz-descriptions-item>
         <nz-descriptions-item nzTitle="Ціна">{{ o.price }} ₴</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Перегенерацій залишилось">{{ o.regenerationsRemaining }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Собівартість генерацій">{{ '$' + o.totalGenerationCostUsd.toFixed(2) }}</nz-descriptions-item>
@@ -124,6 +150,16 @@ const STATUS_COLORS: Record<SheetStatus, string> = {
           </div>
         }
       </div>
+
+      <h3>Історія статусів</h3>
+      <nz-timeline>
+        @for (entry of statusHistory(); track $index) {
+          <nz-timeline-item>
+            {{ entry.fromStatus ? (statusLabel(entry.fromStatus) + ' → ' + statusLabel(entry.toStatus)) : statusLabel(entry.toStatus) }}
+            <span style="color: rgba(0,0,0,0.45); margin-left: 8px;">{{ entry.changedAtUtc | date: 'short' }}</span>
+          </nz-timeline-item>
+        }
+      </nz-timeline>
     }
   `
 })
@@ -133,6 +169,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
   readonly order = this.store.selectSignal(selectAdminSelectedOrder);
   readonly busy = this.store.selectSignal(selectAdminBusy);
+  readonly statusHistory = this.store.selectSignal(selectAdminSelectedOrderStatusHistory);
 
   constructor(private readonly route: ActivatedRoute) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
@@ -162,5 +199,17 @@ export class AdminOrderDetailComponent implements OnInit {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     this.store.dispatch(AdminActions.replacePhoto({ orderId: this.orderId, photo: file }));
+  }
+
+  nextStepLabel(status: OrderStatus): string | null {
+    return NEXT_FULFILLMENT_STEP[status] ?? null;
+  }
+
+  statusLabel(status: string): string {
+    return orderStatusLabel(status as OrderStatus);
+  }
+
+  advanceFulfillment(orderId: string): void {
+    this.store.dispatch(AdminActions.advanceFulfillment({ orderId }));
   }
 }

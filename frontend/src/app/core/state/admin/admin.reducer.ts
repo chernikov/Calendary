@@ -10,6 +10,7 @@ export const adminReducer = createReducer(
     AdminActions.loadUsers,
     AdminActions.replacePhoto,
     AdminActions.regenerateSheet,
+    AdminActions.advanceFulfillment,
     AdminActions.setAiProvider,
     AdminActions.setProductSettings,
     AdminActions.savePromptTheme,
@@ -30,7 +31,13 @@ export const adminReducer = createReducer(
   // Real order payloads can be tens of MB (base64-encoded generated images) and take many
   // seconds to load — clear the previously viewed order so switching orders doesn't flash stale
   // data for the whole load, and the template's "order() is null" check can drive a spinner.
-  on(AdminActions.loadOrderDetail, (state) => ({ ...state, selectedOrder: null, busy: true, error: null })),
+  on(AdminActions.loadOrderDetail, (state) => ({
+    ...state,
+    selectedOrder: null,
+    selectedOrderStatusHistory: [],
+    busy: true,
+    error: null,
+  })),
 
   on(AdminActions.loadOrdersSuccess, (state, { result }) => ({ ...state, orders: result, busy: false, error: null })),
   on(AdminActions.loadUsersSuccess, (state, { result }) => ({ ...state, users: result, busy: false, error: null })),
@@ -39,8 +46,14 @@ export const adminReducer = createReducer(
     AdminActions.loadOrderDetailSuccess,
     AdminActions.replacePhotoSuccess,
     AdminActions.regenerateSheetSuccess,
+    AdminActions.advanceFulfillmentSuccess,
     (state, { order }) => ({ ...state, selectedOrder: order, busy: false, error: null }),
   ),
+
+  on(AdminActions.loadOrderStatusHistorySuccess, (state, { history }) => ({
+    ...state,
+    selectedOrderStatusHistory: history,
+  })),
 
   on(AdminActions.loadAiProviderSuccess, AdminActions.setAiProviderSuccess, (state, { provider }) => ({
     ...state,
@@ -93,6 +106,8 @@ export const adminReducer = createReducer(
     AdminActions.loadOrderDetailFailure,
     AdminActions.replacePhotoFailure,
     AdminActions.regenerateSheetFailure,
+    AdminActions.advanceFulfillmentFailure,
+    AdminActions.loadOrderStatusHistoryFailure,
     AdminActions.loadAiProviderFailure,
     AdminActions.setAiProviderFailure,
     AdminActions.loadProductSettingsFailure,

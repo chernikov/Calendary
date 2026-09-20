@@ -14,7 +14,7 @@ public class CancelOrderCommandHandler(IAppDbContext db) : IRequestHandler<Cance
     {
         var order = await OrderAccess.LoadOwnedOrderAsync(db, request.UserId, request.OrderId, ct);
         if (order is null) return null;
-        if (order.Status is OrderStatus.Paid or OrderStatus.Printing or OrderStatus.Shipped or OrderStatus.Delivered)
+        if (order.Status is OrderStatus.Paid or OrderStatus.Printing or OrderStatus.PrintReady or OrderStatus.Shipped or OrderStatus.Delivered)
         {
             throw new AppOperationException("Order has already been paid; cancellation would require a refund flow that is out of scope for this demo.", 409);
         }

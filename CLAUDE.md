@@ -129,7 +129,7 @@ Six-project split:
   to be two near-duplicate copies (one per controller).
 - **Calendary.Infrastructure** — `Data/AppDbContext.cs` (+ `Migrations/`), and `Services/`:
   the `Mock*` implementations of the Domain interfaces, `AiImageGenerationService` (the real,
-  not-wired-in-by-default `IImageGenerationService` — see README), and four periodic-sweep
+  not-wired-in-by-default `IImageGenerationService` — see README), and periodic-sweep
   `BackgroundService`s, all deriving from the shared `TimedHostedService` base (PeriodicTimer loop,
   per-tick DI scope, try/catch-and-log, final "save if changed" — see #328; a derived class only
   implements `TickAsync(AppDbContext db, IServiceProvider services, CancellationToken ct)`):
@@ -138,25 +138,41 @@ Six-project split:
     does anything when `AppSettings.ImageGenerationProvider` is `Mock` (a runtime DB setting, see
     the "Calendary.AI" bullet below) — see README before enabling `AiImageGenerationService`
     alongside it.
-  - `FulfillmentBackgroundService` — advances `Order.Status` `Paid` → `Printing` → `Shipped`
-    (assigns a fake ТТН) → `Delivered` at fixed intervals after payment.
   - `OrderExpiryBackgroundService` — archives abandoned orders past their 48h `ExpiresAtUtc`.
   - `UserSessionCleanupBackgroundService` — bulk-deletes `UserSession` rows past their 60-day TTL
     (#322).
 
-  `GenerationBackgroundService`/`FulfillmentBackgroundService` key off `Order.StatusUpdatedAtUtc`,
-  which `Order.SetStatus()` keeps in sync — always call `SetStatus()` rather than assigning
-  `.Status` directly, or their (and `AiImageGenerationService`'s own `OrderProgressionHelper`'s)
-  timing/transition logic breaks.
+  Post-payment fulfillment (`Paid` → `Printing` → `PrintReady` → `Shipped` → `Delivered`) is
+  **admin-driven, not automatic** (#434) — there's no real printer/courier integration to trigger
+  it, so a timer-based `FulfillmentBackgroundService` simulation (present through #328) was
+  replaced outright by `AdvanceOrderFulfillmentCommand` (`Calendary.Application/Admin/Orders/`),
+  which the admin order-detail page calls one step at a time via a "next step" button. It still
+  assigns the same fake ТТН on the `PrintReady` → `Shipped` step, pending real Nova Poshta shipment
+  creation (#432). `OrderStatus` is stored as a plain `int` by ordinal position (no
+  `HasConversion`) — `PrintReady` was appended at the very end of the enum rather than inserted
+  between `Printing` and `Shipped`, since inserting mid-enum would silently shift the stored int of
+  every later member (`Shipped`/`Delivered`/`Cancelled`/`GenerationFailed`) and corrupt existing
+  orders' statuses. Any future `OrderStatus` addition must do the same.
+
+  Every `Order.Status` transition (including the initial `Created` one) is also persisted to a new
+  `OrderStatusHistory` table (`OrderId`, `FromStatus?`, `ToStatus`, `ChangedAtUtc`) — written by
+  `DomainStatusLoggingInterceptor` (`Data/DomainStatusLoggingInterceptor.cs`) alongside its
+  existing log line, by adding to `context.Set<OrderStatusHistory>()` from inside the
+  `SavingChanges`/`SavingChangesAsync` hook so the new row rides along in the same `SaveChanges`
+  call rather than needing a second round-trip. `AdminGetOrderStatusHistoryQuery` exposes it as a
+  timeline on the admin order-detail page.
+
+  `GenerationBackgroundService` keys off `Order.StatusUpdatedAtUtc`, which `Order.SetStatus()`
+  keeps in sync — always call `SetStatus()` rather than assigning `.Status` directly, or its (and
+  `AiImageGenerationService`'s own `OrderProgressionHelper`'s) timing/transition logic breaks.
 
   **#328's other open questions** (full-table-scan-per-tick scalability, multi-instance/leader-
-  election safety, `FulfillmentBackgroundService` eventually becoming a thin wrapper over real
-  Nova Poshta tracking/print-shop status once #290 lands) were deliberately deferred, not solved —
-  this is a single-instance, ~1-vCPU-droplet deployment with a low order volume today, so
-  Hangfire/Quartz.NET-style job scheduling and distributed locking would be solving a problem this
-  app doesn't have yet. Revisit if either the droplet actually scales to multiple backend replicas,
-  or the Orders table's active (non-terminal-status) row count grows enough that a full scan every
-  1–5s becomes measurably expensive — neither has happened as of this writing.
+  election safety) were deliberately deferred, not solved — this is a single-instance,
+  ~1-vCPU-droplet deployment with a low order volume today, so Hangfire/Quartz.NET-style job
+  scheduling and distributed locking would be solving a problem this app doesn't have yet. Revisit
+  if either the droplet actually scales to multiple backend replicas, or the Orders table's active
+  (non-terminal-status) row count grows enough that a full scan every 1–5s becomes measurably
+  expensive — neither has happened as of this writing.
 - **Calendary.AI** — standalone (no reference to any other project in the solution): `Options/AiOptions.cs`
   (binds the `AI` appsettings section), `Clients/IAiImageClient.cs` + `OpenAiImageClient` +
   `GeminiImageClient` (real HTTP calls; `ServiceCollectionExtensions.AddCalendaryAi()` registers
@@ -175,9 +191,11 @@ Six-project split:
 
 **Order state machine** (`OrderStatus`): `Created` → `PhotoUploaded` → `DetailsSubmitted` →
 `Generating` → `CoverReady` → `CoverConfirmed` → `ReviewReady` → `AwaitingPayment` → `Paid` →
-`Printing` → `Shipped` → `Delivered` (or `Cancelled` / `GenerationFailed`). A `Sheet` is one image
-slot: `Kind.Cover` at `Index=0`, `Kind.Month` at `Index=1..12`. Regenerations are a single shared
-budget per order (`Order.RegenerationsRemaining`), decremented in `MockImageGenerationService`.
+`Printing` → `PrintReady` → `Shipped` → `Delivered` (or `Cancelled` / `GenerationFailed`) — the
+last four post-payment steps are admin-triggered one at a time, not automatic (see
+"Backend architecture" below, #434). A `Sheet` is one image slot: `Kind.Cover` at `Index=0`,
+`Kind.Month` at `Index=1..12`. Regenerations are a single shared budget per order
+(`Order.RegenerationsRemaining`), decremented in `MockImageGenerationService`.
 
 ## Frontend architecture (`frontend/src/app/`)
 

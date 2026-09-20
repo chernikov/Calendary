@@ -11,6 +11,7 @@ import {
   ImageGenerationProvider,
   ImageStyleDto,
   OrderDto,
+  OrderStatusHistoryEntryDto,
   PagedResult,
   ProductSettingsDto,
   PromoCodeDto,
@@ -52,6 +53,14 @@ export class AdminService {
 
   regenerateSheet(orderId: string, sheetId: string): Observable<OrderDto> {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/regenerate`, {});
+  }
+
+  advanceFulfillment(orderId: string): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/advance-fulfillment`, {});
+  }
+
+  getOrderStatusHistory(orderId: string): Observable<OrderStatusHistoryEntryDto[]> {
+    return this.http.get<OrderStatusHistoryEntryDto[]>(`${BASE}/orders/${orderId}/status-history`);
   }
 
   listUsers(page: number, pageSize: number): Observable<PagedResult<AdminUserDto>> {

@@ -10,3 +10,5 @@ public record AdminOrderSummary(
 public record AdminUserSummary(
     Guid Id, string? Email, string? DisplayName, string Role, string AuthProvider,
     bool EmailConfirmed, DateTime CreatedAtUtc, int OrderCount);
+
+public record AdminOrderStatusHistoryEntry(string? FromStatus, string ToStatus, DateTime ChangedAtUtc);

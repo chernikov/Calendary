@@ -7,6 +7,7 @@ import {
   ImageGenerationProvider,
   ImageStyleDto,
   OrderDto,
+  OrderStatusHistoryEntryDto,
   PagedResult,
   PromoCodeDto,
   PromptThemeDto,
@@ -16,6 +17,7 @@ export interface AdminState {
   orders: PagedResult<AdminOrderSummaryDto> | null;
   users: PagedResult<AdminUserDto> | null;
   selectedOrder: OrderDto | null;
+  selectedOrderStatusHistory: OrderStatusHistoryEntryDto[];
   basePrice: number | null;
   aiProvider: ImageGenerationProvider | null;
   configStatus: ConfigStatusDto | null;
@@ -32,6 +34,7 @@ export const initialAdminState: AdminState = {
   orders: null,
   users: null,
   selectedOrder: null,
+  selectedOrderStatusHistory: [],
   basePrice: null,
   aiProvider: null,
   configStatus: null,
