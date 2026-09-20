@@ -29,9 +29,19 @@ import { AuthService } from './core/auth.service';
             <span class="nav-label">Мої замовлення</span>
           </a>
           @if (auth.user()?.role === 'Admin') {
-            <a routerLink="/admin">Адмінка</a>
+            <a routerLink="/admin" class="nav-icon-link" title="Адмінка" style="display: inline-flex; align-items: center; gap: 5px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z" />
+              </svg>
+              <span class="nav-label">Адмінка</span>
+            </a>
           }
-          <button class="btn btn-primary" (click)="createOrder()">Створити календар</button>
+          <button class="btn btn-primary nav-icon-link" title="Створити календар" (click)="createOrder()" style="display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span class="nav-label">Створити календар</span>
+          </button>
           <span class="text-muted nav-label" style="font-size: 13px;">{{ auth.user()?.displayName || auth.user()?.email }}</span>
           <button class="btn btn-ghost nav-icon-link" title="Вихід" (click)="logout()" style="display: inline-flex; align-items: center; gap: 5px;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
