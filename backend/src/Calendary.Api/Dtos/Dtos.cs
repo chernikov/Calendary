@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Calendary.Api.Dtos;
 
 public record RegisterRequest(string Email, string Password, string? DisplayName);
@@ -6,7 +8,12 @@ public record GoogleAuthRequest(string IdToken);
 public record ConfirmEmailRequest(string Code);
 public record ForgotPasswordRequest(string Email);
 public record ResetPasswordRequest(string Token, string NewPassword);
-public record UserDto(Guid Id, string? DisplayName, string? Email, bool EmailConfirmed, string Role);
+// #304: prefills the checkout form for returning customers — null until the user has completed
+// checkout at least once.
+public record LastDeliveryDto(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);
+// VerifiedPhone (normalized "+380..." or null): lets the checkout form skip re-verification when
+// the prefilled/typed number already matches what was verified on a previous order (#304).
+public record UserDto(Guid Id, string? DisplayName, string? Email, bool EmailConfirmed, string Role, LastDeliveryDto? LastDelivery, string? VerifiedPhone);
 public record AuthResponse(string BearerToken, UserDto User);
 
 public record PromptThemeDto(Guid Id, string Name, string Description, int SortOrder, IReadOnlyList<PromptDto> Prompts);
@@ -17,7 +24,14 @@ public record PromptLibraryDto(IReadOnlyList<PromptThemeDto> Themes, IReadOnlyLi
 public record SheetPlanItem(int Index, Guid PromptId, Guid ImageStyleId, Guid? PhotoId);
 public record SaveSheetPlanRequest(IReadOnlyList<SheetPlanItem> Items);
 
-public record AddPersonalDateRequest(int Day, int Month, string Label);
+// #304: cheap structural checks via [ApiController]'s automatic 400 — the deeper business-rule
+// validation (label sanitization) still lives in AddPersonalDateCommandHandler.
+public record AddPersonalDateRequest(
+    [Range(1, 31)] int Day,
+    [Range(1, 12)] int Month,
+    // 22 mirrors OrderAccess.MaxLabelLength — kept as a literal here since Dtos.cs doesn't
+    // otherwise reference Calendary.Application, and DataAnnotations need a compile-time constant.
+    [Required, StringLength(22, MinimumLength = 1)] string Label);
 public record PersonalDateDto(Guid Id, int Day, int Month, string Label);
 
 public record SheetVariantDto(Guid Id, string ImageUrl, DateTime CreatedAtUtc, decimal? CostUsd);
@@ -33,13 +47,30 @@ public record OrderProgressDto(Guid Id, string Status, DateTime StatusUpdatedAtU
 
 public record ConfirmCoverRequest(Guid SheetId);
 
-public record CheckoutRequest(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);
+// #304: cheap structural checks (non-empty) via [ApiController]'s automatic 400. Phone-format
+// normalization and Nova-Poshta city/warehouse-existence checks need async lookups DataAnnotations
+// can't express — those stay in OrderAccess.ValidateAndNormalizeDeliveryAsync.
+public record CheckoutRequest(
+    [Required] string RecipientName,
+    [Required] string Phone,
+    [Required] string City,
+    [Required] string WarehouseNumber,
+    [Required] string WarehouseAddress);
 public record DeliveryDto(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress, string? TrackingNumber);
+
+// #304: phone verification at checkout, scoped to the user (see SendPhoneVerificationCommand).
+public record SendPhoneVerificationRequest([Required] string Phone);
+public record ConfirmPhoneVerificationRequest([Required] string Code);
 
 public record SetPrintQuantityRequest(int Quantity);
 
 public record BatchCheckoutRequest(
-    IReadOnlyList<Guid> OrderIds, string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);
+    [Required, MinLength(1)] IReadOnlyList<Guid> OrderIds,
+    [Required] string RecipientName,
+    [Required] string Phone,
+    [Required] string City,
+    [Required] string WarehouseNumber,
+    [Required] string WarehouseAddress);
 
 public record PayResponseDto(string PageUrl);
 public record PaymentDto(string Method, string Status, decimal Amount, DateTime? PaidAtUtc);

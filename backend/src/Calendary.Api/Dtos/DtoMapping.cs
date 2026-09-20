@@ -5,7 +5,12 @@ namespace Calendary.Api.Dtos;
 
 public static class DtoMapping
 {
-    public static UserDto ToDto(this User u) => new(u.Id, u.DisplayName, u.Email, u.EmailConfirmed, u.Role.ToString());
+    public static UserDto ToDto(this User u) => new(
+        u.Id, u.DisplayName, u.Email, u.EmailConfirmed, u.Role.ToString(),
+        u.LastDeliveryRecipientName is null ? null : new LastDeliveryDto(
+            u.LastDeliveryRecipientName, u.LastDeliveryPhone!, u.LastDeliveryCity!,
+            u.LastDeliveryWarehouseNumber!, u.LastDeliveryWarehouseAddress!),
+        u.PhoneVerifiedPhone);
 
     public static SheetProgressDto ToDto(this SheetProgress s) => new(s.Index, s.Kind, s.Status, s.FailureReason);
 

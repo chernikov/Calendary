@@ -4,6 +4,7 @@ using Calendary.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calendary.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260920181404_AddUserLastDeliveryInfo")]
+    partial class AddUserLastDeliveryInfo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1319,21 +1322,6 @@ namespace Calendary.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PasswordResetTokenHash")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PhoneVerificationAttempts")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PhoneVerificationCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("PhoneVerificationCodeExpiresAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PhoneVerificationPhone")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneVerifiedPhone")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Role")

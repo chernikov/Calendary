@@ -37,6 +37,10 @@ services:
       Monobank__MerchantToken: "${MONOBANK_MERCHANT_TOKEN:-}"
       Monobank__PublicBaseUrl: "https://${DOMAIN}"
       NovaPoshta__ApiKey: "${NOVA_POSHTA_API_KEY:-}"
+      # Deliberately prod-only (see #304's SmsClubService doc comment) — SMS.Club has no sandbox
+      # mode, so staging/local intentionally never get a real key and always use the fixed "0000"
+      # verification code instead of sending real, billed SMS.
+      SmsClub__ApiKey: "${SMSCLUB_API_KEY:-}"
       # Guarantees an admin account always exists (AdminSeeder, runs at startup) — no environment
       # should ever need a manual DB UPDATE to get admin access.
       AdminSeed__Password: "${ADMIN_PASSWORD:-}"

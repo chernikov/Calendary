@@ -9,6 +9,7 @@ using Calendary.Infrastructure.Options;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace Calendary.Api.Controllers;
@@ -178,6 +179,24 @@ public class OrdersController(ISender sender, IOptions<MonobankOptions> monobank
         var delivery = new DeliveryInfo(request.RecipientName, request.Phone, request.City, request.WarehouseNumber, request.WarehouseAddress);
         var order = await sender.Send(new CheckoutCommand(User.GetUserId(), orderId, delivery), ct);
         return order is null ? NotFound() : Ok(order.ToDto());
+    }
+
+    // Scoped to the user rather than an order (see SendPhoneVerificationCommand) — covers both
+    // single-order and batch checkout with one flow. Real SMS costs money with no sandbox mode
+    // (see SmsClubService), so this is rate-limited separately from the rest of the controller.
+    [HttpPost("phone-verification")]
+    [EnableRateLimiting("sms")]
+    public async Task<IActionResult> SendPhoneVerification(SendPhoneVerificationRequest request, CancellationToken ct)
+    {
+        await sender.Send(new SendPhoneVerificationCommand(User.GetUserId(), request.Phone), ct);
+        return Ok();
+    }
+
+    [HttpPost("phone-verification/confirm")]
+    public async Task<IActionResult> ConfirmPhoneVerification(ConfirmPhoneVerificationRequest request, CancellationToken ct)
+    {
+        await sender.Send(new ConfirmPhoneVerificationCommand(User.GetUserId(), request.Code), ct);
+        return Ok();
     }
 
     /// A customer-entered discount code applied at checkout (see #393) — one code per order.

@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -11,7 +12,19 @@ import {
   selectWarehouses,
 } from '../../core/state/order';
 import { AuthService } from '../../core/auth.service';
+import { OrderService } from '../../core/order.service';
 import { NovaPoshtaWarehouseDto } from '../../core/models';
+
+// Mirrors the backend's tolerant UkrainianPhoneNumber.Normalize (#304) — accepts the common ways
+// a customer might type the number and normalizes to "+380XXXXXXXXX", or null if it doesn't fit.
+function normalizeUaPhone(raw: string): string | null {
+  const digits = raw.replace(/\D/g, '');
+  let normalized: string | null = null;
+  if (digits.length === 12 && digits.startsWith('380')) normalized = '+' + digits;
+  else if (digits.length === 10 && digits.startsWith('0')) normalized = '+380' + digits.slice(1);
+  else if (digits.length === 9) normalized = '+380' + digits;
+  return normalized && /^\+380\d{9}$/.test(normalized) ? normalized : null;
+}
 
 @Component({
     selector: 'app-checkout-batch',
@@ -53,7 +66,45 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
           </div>
           <div class="field">
             <label>Телефон</label>
-            <input class="input" [(ngModel)]="phone" placeholder="+380 67 000 00 00" />
+            <div style="display: flex; gap: 8px;">
+              <input class="input" style="flex: 1;" [(ngModel)]="phone" (ngModelChange)="onPhoneChange()" placeholder="+380 67 000 00 00" />
+              @if (isPhoneValid() && !isPhoneVerified()) {
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  style="white-space: nowrap;"
+                  [disabled]="sendingCode()"
+                  (click)="sendPhoneCode()"
+                >
+                  {{ codeSent() ? 'Надіслати ще раз' : 'Підтвердити' }}
+                </button>
+              }
+            </div>
+            @if (phone && !isPhoneValid()) {
+              <p style="color: var(--color-accent-2-700); font-size: 12px; margin: 4px 0 0;">
+                Невірний формат. Приклад: +380671234567.
+              </p>
+            }
+            @if (isPhoneVerified()) {
+              <p style="color: var(--color-accent-700); font-size: 12px; margin: 4px 0 0;">✓ Телефон підтверджено</p>
+            }
+            @if (codeSent() && !isPhoneVerified()) {
+              <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <input
+                  class="input"
+                  style="flex: 1;"
+                  [(ngModel)]="phoneCode"
+                  placeholder="Код з SMS"
+                  (keyup.enter)="confirmPhoneCode()"
+                />
+                <button type="button" class="btn btn-primary" [disabled]="!phoneCode || confirmingCode()" (click)="confirmPhoneCode()">
+                  Підтвердити код
+                </button>
+              </div>
+            }
+            @if (phoneVerifyError()) {
+              <p style="color: var(--color-accent-2-700); font-size: 12px; margin: 4px 0 0;">{{ phoneVerifyError() }}</p>
+            }
           </div>
           <div class="field" style="position: relative;">
             <label>Місто</label>
@@ -184,12 +235,101 @@ export class CheckoutBatchComponent implements OnInit {
   phone = '';
   city = '';
 
+  // #304 phone verification — local component state, same as CheckoutComponent.
+  readonly codeSent = signal(false);
+  readonly sendingCode = signal(false);
+  readonly confirmingCode = signal(false);
+  readonly phoneVerifyError = signal<string | null>(null);
+  phoneCode = '';
+  private verifiedPhoneValue: string | null = null;
+
+  private readonly orders = inject(OrderService);
   private cityDebounce?: ReturnType<typeof setTimeout>;
+  private prefilled = false;
+
+  constructor() {
+    // Prefills from the user's last-used checkout delivery info (#304) — unlike the single-order
+    // checkout, there's no per-order Delivery to prefer here (a batch spans several orders).
+    effect(() => {
+      const source = this.auth.user()?.lastDelivery;
+      if (!source || this.prefilled) return;
+      this.prefilled = true;
+
+      this.recipientName = source.recipientName;
+      this.phone = source.phone;
+      this.city = source.city;
+      this.selectedWarehouse.set({
+        number: source.warehouseNumber,
+        address: source.warehouseAddress,
+        closesAt: '',
+        isPostomat: false,
+      });
+      this.store.dispatch(OrderActions.loadWarehouses({ city: source.city }));
+
+      const normalized = normalizeUaPhone(source.phone);
+      if (normalized && normalized === this.auth.user()?.verifiedPhone) {
+        this.verifiedPhoneValue = normalized;
+      }
+    });
+  }
 
   ngOnInit(): void {
     const raw = this.route.snapshot.queryParamMap.get('ids') ?? '';
     this.orderIds.set(raw.split(',').filter(Boolean));
     this.store.dispatch(OrderActions.loadMyOrders());
+  }
+
+  isPhoneValid(): boolean {
+    return normalizeUaPhone(this.phone) !== null;
+  }
+
+  isPhoneVerified(): boolean {
+    const normalized = normalizeUaPhone(this.phone);
+    return normalized !== null && normalized === this.verifiedPhoneValue;
+  }
+
+  onPhoneChange(): void {
+    this.codeSent.set(false);
+    this.phoneCode = '';
+    this.phoneVerifyError.set(null);
+  }
+
+  sendPhoneCode(): void {
+    const phone = normalizeUaPhone(this.phone);
+    if (!phone) return;
+    this.sendingCode.set(true);
+    this.phoneVerifyError.set(null);
+    this.orders.sendPhoneVerification(phone).subscribe({
+      next: () => {
+        this.sendingCode.set(false);
+        this.codeSent.set(true);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.sendingCode.set(false);
+        this.phoneVerifyError.set(
+          typeof err.error === 'string' ? err.error : 'Не вдалося надіслати код. Спробуйте ще раз.',
+        );
+      },
+    });
+  }
+
+  confirmPhoneCode(): void {
+    if (!this.phoneCode) return;
+    const phone = normalizeUaPhone(this.phone);
+    this.confirmingCode.set(true);
+    this.phoneVerifyError.set(null);
+    this.orders.confirmPhoneVerification(this.phoneCode).subscribe({
+      next: () => {
+        this.confirmingCode.set(false);
+        this.codeSent.set(false);
+        this.phoneCode = '';
+        this.verifiedPhoneValue = phone;
+      },
+      error: (err: HttpErrorResponse) => {
+        this.confirmingCode.set(false);
+        this.phoneVerifyError.set(typeof err.error === 'string' ? err.error : 'Невірний код.');
+      },
+    });
   }
 
   onCityChange(city: string): void {
@@ -220,7 +360,7 @@ export class CheckoutBatchComponent implements OnInit {
   }
 
   canSubmit(): boolean {
-    return !!(this.recipientName && this.phone && this.city && this.selectedWarehouse() && this.orderIds().length > 0);
+    return !!(this.recipientName && this.isPhoneVerified() && this.city && this.selectedWarehouse() && this.orderIds().length > 0);
   }
 
   submit(): void {

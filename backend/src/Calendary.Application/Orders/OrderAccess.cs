@@ -1,4 +1,6 @@
 using Calendary.Application.Common;
+using Calendary.Common;
+using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +14,7 @@ public static class OrderAccess
 {
     public const int MaxLabelLength = 22;
     public const int MaxPhotosPerOrder = 20; // abuse safeguard only — not a product-facing cap
+    public const int MaxRecipientNameLength = 100;
 
     // Expiry only matters while the order is still moving through the funnel — once payment is
     // captured it's fulfillment's problem, not a reason to block anything. Keep in sync with
@@ -81,4 +84,66 @@ public static class OrderAccess
 
     public static bool IsExpired(Order order) =>
         !ExemptFromExpiry.Contains(order.Status) && DateTime.UtcNow > order.ExpiresAtUtc;
+
+    // Shared by CheckoutCommand/CheckoutBatchCommand (#304) — validates and normalizes a
+    // customer-submitted DeliveryInfo:
+    //   - phone is normalized to +380XXXXXXXXX (accepts common ways of typing it)
+    //   - city+warehouseNumber must exist per a live INovaPoshtaService lookup, since a fake ТТН
+    //     would otherwise be printed once the real Nova Poshta integration (#290) is wired up
+    //   - WarehouseAddress is taken from that lookup rather than trusted from the client, so a
+    //     mismatched number/address pair can't sneak through
+    // Throws AppOperationException(400) with a Ukrainian, user-facing message on any failure.
+    public static async Task<DeliveryInfo> ValidateAndNormalizeDeliveryAsync(
+        INovaPoshtaService novaPoshta, DeliveryInfo delivery, CancellationToken ct)
+    {
+        var recipientName = delivery.RecipientName.Trim();
+        if (recipientName.Length == 0 || recipientName.Length > MaxRecipientNameLength)
+        {
+            throw new AppOperationException($"Вкажіть ім'я отримувача (до {MaxRecipientNameLength} символів).");
+        }
+
+        var phone = UkrainianPhoneNumber.Normalize(delivery.Phone);
+        if (phone is null)
+        {
+            throw new AppOperationException("Невірний формат телефону. Приклад: +380671234567.");
+        }
+
+        var city = delivery.City.Trim();
+        if (city.Length == 0)
+        {
+            throw new AppOperationException("Вкажіть місто.");
+        }
+
+        var warehouses = await novaPoshta.GetWarehousesAsync(city, ct);
+        var warehouse = warehouses.FirstOrDefault(w => w.Number == delivery.WarehouseNumber);
+        if (warehouse is null)
+        {
+            throw new AppOperationException("Обране відділення Нової Пошти не знайдено. Оберіть інше.");
+        }
+
+        return delivery with { RecipientName = recipientName, Phone = phone, City = city, WarehouseAddress = warehouse.Address };
+    }
+
+    // Checkout requires the delivery phone to have gone through SendPhoneVerificationCommand ->
+    // ConfirmPhoneVerificationCommand first (#304) — an exact match against the currently-verified
+    // number, so editing the phone after verifying (even back to a previously-verified one, since
+    // sending a new code always clears PhoneVerifiedPhone) always forces re-verification.
+    public static void RequirePhoneVerified(User user, string normalizedPhone)
+    {
+        if (user.PhoneVerifiedPhone != normalizedPhone)
+        {
+            throw new AppOperationException("Підтвердіть номер телефону перед оформленням.");
+        }
+    }
+
+    // Prefills the checkout form for returning customers (#304) — written on every successful
+    // checkout, right alongside Order.Delivery, using the same already-validated/normalized info.
+    public static void RememberLastDelivery(User user, DeliveryInfo delivery)
+    {
+        user.LastDeliveryRecipientName = delivery.RecipientName;
+        user.LastDeliveryPhone = delivery.Phone;
+        user.LastDeliveryCity = delivery.City;
+        user.LastDeliveryWarehouseNumber = delivery.WarehouseNumber;
+        user.LastDeliveryWarehouseAddress = delivery.WarehouseAddress;
+    }
 }
