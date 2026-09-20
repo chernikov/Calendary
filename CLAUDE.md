@@ -129,17 +129,34 @@ Six-project split:
   to be two near-duplicate copies (one per controller).
 - **Calendary.Infrastructure** — `Data/AppDbContext.cs` (+ `Migrations/`), and `Services/`:
   the `Mock*` implementations of the Domain interfaces, `AiImageGenerationService` (the real,
-  not-wired-in-by-default `IImageGenerationService` — see README), and two `BackgroundService`s
-  that drive the app's async state machines purely by elapsed time:
+  not-wired-in-by-default `IImageGenerationService` — see README), and four periodic-sweep
+  `BackgroundService`s, all deriving from the shared `TimedHostedService` base (PeriodicTimer loop,
+  per-tick DI scope, try/catch-and-log, final "save if changed" — see #328; a derived class only
+  implements `TickAsync(AppDbContext db, IServiceProvider services, CancellationToken ct)`):
   - `GenerationBackgroundService` — progresses up to 3 `Sheet`s per order concurrently
-    (`Pending` → `Generating` → `Ready`, ~4s each), cover (index 0) first, then months 1–12.
-    Only meant to run when `MockImageGenerationService` is active — see README before enabling
-    `AiImageGenerationService` alongside it.
+    (`Pending` → `Generating` → `Ready`, ~4s each), cover (index 0) first, then months 1–12. Only
+    does anything when `AppSettings.ImageGenerationProvider` is `Mock` (a runtime DB setting, see
+    the "Calendary.AI" bullet below) — see README before enabling `AiImageGenerationService`
+    alongside it.
   - `FulfillmentBackgroundService` — advances `Order.Status` `Paid` → `Printing` → `Shipped`
     (assigns a fake ТТН) → `Delivered` at fixed intervals after payment.
-  Both key off `Order.StatusUpdatedAtUtc`, which `Order.SetStatus()` keeps in sync — always call
-  `SetStatus()` rather than assigning `.Status` directly, or the background services' (and
-  `AiImageGenerationService`'s own `OrderProgressionHelper`) timing/transition logic breaks.
+  - `OrderExpiryBackgroundService` — archives abandoned orders past their 48h `ExpiresAtUtc`.
+  - `UserSessionCleanupBackgroundService` — bulk-deletes `UserSession` rows past their 60-day TTL
+    (#322).
+
+  `GenerationBackgroundService`/`FulfillmentBackgroundService` key off `Order.StatusUpdatedAtUtc`,
+  which `Order.SetStatus()` keeps in sync — always call `SetStatus()` rather than assigning
+  `.Status` directly, or their (and `AiImageGenerationService`'s own `OrderProgressionHelper`'s)
+  timing/transition logic breaks.
+
+  **#328's other open questions** (full-table-scan-per-tick scalability, multi-instance/leader-
+  election safety, `FulfillmentBackgroundService` eventually becoming a thin wrapper over real
+  Nova Poshta tracking/print-shop status once #290 lands) were deliberately deferred, not solved —
+  this is a single-instance, ~1-vCPU-droplet deployment with a low order volume today, so
+  Hangfire/Quartz.NET-style job scheduling and distributed locking would be solving a problem this
+  app doesn't have yet. Revisit if either the droplet actually scales to multiple backend replicas,
+  or the Orders table's active (non-terminal-status) row count grows enough that a full scan every
+  1–5s becomes measurably expensive — neither has happened as of this writing.
 - **Calendary.AI** — standalone (no reference to any other project in the solution): `Options/AiOptions.cs`
   (binds the `AI` appsettings section), `Clients/IAiImageClient.cs` + `OpenAiImageClient` +
   `GeminiImageClient` (real HTTP calls; `ServiceCollectionExtensions.AddCalendaryAi()` registers
