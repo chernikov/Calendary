@@ -19,7 +19,7 @@
     "@ngrx/effects": "^20.1.0",
     "@ngrx/store": "^20.1.0",
     "@ngrx/store-devtools": "^20.1.0",
-    "ng-zorro-antd": "^20.4.4",
+    "ng-zorro-antd": "^21.3.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.6.0",
     "zone.js": "~0.15.1"
