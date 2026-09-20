@@ -3,11 +3,11 @@ import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { OrderSummaryDto } from '../../core/models';
-import { isOrderInProgress, orderStatusLabel, orderStatusTagClass, orderStepLink } from '../../core/order-status';
+import { orderStatusLabel, orderStatusTagClass, orderStepLink } from '../../core/order-status';
 import {
   OrderActions,
-  selectActiveOrders,
   selectArchivedOrders,
+  selectCartOrders,
   selectOrderBusy,
   selectOrderError,
 } from '../../core/state/order';
@@ -21,25 +21,25 @@ const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
   template: `
     <div class="page">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3);">
-        <h2 style="font-size: 28px;">Мої замовлення</h2>
-        <button class="btn btn-primary" (click)="createOrder()">Створити календар</button>
+        <h2 style="font-size: 28px;">Кошик</h2>
+        <button class="btn btn-primary" (click)="createOrder()">Додати ще</button>
       </div>
 
       @if (error()) {
         <p style="color: var(--color-accent-2-700); font-size: 13px;">{{ error() }}</p>
       }
 
-      @if (activeOrders().length === 0 && archivedOrders().length === 0) {
+      @if (cartOrders().length === 0 && archivedOrders().length === 0) {
         <p class="text-muted" style="margin-top: var(--space-4);">
-          {{ busy() ? 'Завантажуємо…' : 'Тут поки порожньо. Створіть свій перший календар.' }}
+          {{ busy() ? 'Завантажуємо…' : 'Кошик порожній. Створіть свій перший календар.' }}
         </p>
       } @else {
-        @if (activeOrders().length === 0) {
-          <p class="text-muted" style="margin-top: var(--space-4);">Активних замовлень немає.</p>
+        @if (cartOrders().length === 0) {
+          <p class="text-muted" style="margin-top: var(--space-4);">Кошик порожній.</p>
         } @else {
           <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
-            @for (o of activeOrders(); track o.id) {
-              <div class="card" style="flex-direction: row; align-items: center; gap: var(--space-3);">
+            @for (o of cartOrders(); track o.id) {
+              <div class="card" style="flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--space-3);">
                 @if (isCartEligible(o)) {
                   <input
                     type="checkbox"
@@ -49,16 +49,20 @@ const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
                   />
                 } @else {
                   <span
-                    class="tag"
-                    style="flex: none; background: var(--color-accent-2-100); color: var(--color-accent-2-700); font-size: 10.5px; white-space: nowrap;"
+                    class="text-muted"
+                    title="Готується"
+                    style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px;"
                   >
-                    Не готово
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 3" />
+                    </svg>
                   </span>
                 }
 
                 <a
                   [routerLink]="stepLink(o)"
-                  style="flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: inherit;"
+                  style="flex: 1 1 200px; min-width: 0; display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: inherit;"
                 >
                   @if (o.coverImageUrl) {
                     <img
@@ -75,34 +79,27 @@ const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
                       <span>{{ o.price }} ₴</span>
                     </div>
                   </div>
-                  <span [class]="tagClass(o)">{{ statusLabel(o) }}</span>
-                  <span class="text-muted" style="font-size: 13px; white-space: nowrap;">
-                    {{ inProgress(o) ? 'Продовжити' : 'Статус' }}
-                  </span>
                 </a>
 
-                @if (isCartEligible(o)) {
-                  <div style="display: flex; align-items: center; gap: 4px; flex: none;">
-                    <span class="text-muted" style="font-size: 11px;">К-сть</span>
-                    <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      [value]="quantityFor(o)"
-                      (change)="onQuantityChange(o.id, $event)"
-                      style="width: 52px; padding: 4px 6px; border: 1px solid var(--color-divider); border-radius: var(--radius-sm); font-size: 13px;"
-                    />
-                  </div>
-                }
+                <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; flex: none;">
+                  <span [class]="tagClass(o)">{{ statusLabel(o) }}</span>
 
-                <button
-                  type="button"
-                  class="btn btn-ghost"
-                  style="flex: none;"
-                  (click)="archive(o)"
-                >
-                  Архівувати
-                </button>
+                  @if (isCartEligible(o)) {
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                      <span class="text-muted" style="font-size: 11px;">К-сть</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        [value]="quantityFor(o)"
+                        (change)="onQuantityChange(o.id, $event)"
+                        style="width: 52px; padding: 4px 6px; border: 1px solid var(--color-divider); border-radius: var(--radius-sm); font-size: 13px;"
+                      />
+                    </div>
+                  }
+
+                  <button type="button" class="btn btn-ghost" (click)="archive(o)">Архівувати</button>
+                </div>
               </div>
             }
           </div>
@@ -130,7 +127,7 @@ const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
           @if (showArchived()) {
             <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-3);">
               @for (o of archivedOrders(); track o.id) {
-                <div class="card" style="flex-direction: row; align-items: center; gap: var(--space-3); opacity: 0.7;">
+                <div class="card" style="flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--space-3); opacity: 0.7;">
                   @if (o.coverImageUrl) {
                     <img
                       [src]="o.coverImageUrl"
@@ -138,7 +135,7 @@ const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
                       style="width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); flex: none;"
                     />
                   }
-                  <div style="flex: 1; min-width: 0;">
+                  <div style="flex: 1 1 200px; min-width: 0;">
                     <div class="card-title">{{ o.styleName || 'Без стилю' }}</div>
                     <div class="card-meta">
                       <span>{{ o.createdAtUtc | date: 'dd.MM.yyyy' }}</span>
@@ -163,7 +160,7 @@ export class OrdersComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
 
-  readonly activeOrders = this.store.selectSignal(selectActiveOrders);
+  readonly cartOrders = this.store.selectSignal(selectCartOrders);
   readonly archivedOrders = this.store.selectSignal(selectArchivedOrders);
   readonly busy = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
@@ -176,7 +173,7 @@ export class OrdersComponent implements OnInit {
   readonly totalPrice = computed(() => {
     const selected = this.selected();
     const overrides = this.quantityOverrides();
-    return this.activeOrders()
+    return this.cartOrders()
       .filter((o) => selected.has(o.id))
       .reduce((sum, o) => sum + o.price * (overrides.get(o.id) ?? o.printQuantity), 0);
   });
@@ -188,7 +185,6 @@ export class OrdersComponent implements OnInit {
   statusLabel = (o: OrderSummaryDto) => orderStatusLabel(o.status);
   tagClass = (o: OrderSummaryDto) => orderStatusTagClass(o.status);
   stepLink = (o: OrderSummaryDto) => orderStepLink(o.id, o.status);
-  inProgress = (o: OrderSummaryDto) => isOrderInProgress(o.status);
   isCartEligible = (o: OrderSummaryDto) => CART_ELIGIBLE_STATUSES.includes(o.status);
   isSelected = (orderId: string) => this.selected().has(orderId);
   quantityFor = (o: OrderSummaryDto) => this.quantityOverrides().get(o.id) ?? o.printQuantity;

@@ -17,6 +17,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/orders/orders.component').then((m) => m.OrdersComponent),
   },
   {
+    path: 'my-orders',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/order-history/order-history.component').then((m) => m.OrderHistoryComponent),
+  },
+  {
     path: 'checkout-batch',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/checkout-batch/checkout-batch.component').then((m) => m.CheckoutBatchComponent),

@@ -20,7 +20,7 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
   template: `
     <div class="page page-narrow">
       <a routerLink="/orders" style="display: inline-flex; align-items: center; gap: 4px; margin-bottom: var(--space-2); font-size: 13.5px;">
-        ← Мої замовлення
+        ← Кошик
       </a>
 
       <h2 style="font-size: 28px;">Оформлення кількох календарів</h2>

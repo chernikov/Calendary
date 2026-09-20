@@ -57,3 +57,8 @@ export function orderStepLink(orderId: string, status: OrderStatus): unknown[] {
 export function isOrderInProgress(status: OrderStatus): boolean {
   return !DONE.includes(status) && !FAILED.includes(status);
 }
+
+// Paid+ — moved out of the cart and onto the "Мої замовлення" tracking list (see #395).
+export function isOrderDone(status: OrderStatus): boolean {
+  return DONE.includes(status);
+}
