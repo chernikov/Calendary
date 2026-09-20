@@ -1,8 +1,8 @@
 using Calendary.Api.Dtos;
-using Calendary.Infrastructure.Data;
+using Calendary.Application.PromptLibrary;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Api.Controllers;
 
@@ -11,19 +11,14 @@ namespace Calendary.Api.Controllers;
 [ApiController]
 [Route("api/prompt-library")]
 [AllowAnonymous]
-public class PromptLibraryController(AppDbContext db) : ControllerBase
+public class PromptLibraryController(ISender sender) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<PromptLibraryDto>> Get()
+    public async Task<ActionResult<PromptLibraryDto>> Get(CancellationToken ct)
     {
-        var themes = await db.PromptThemes
-            .Include(t => t.Prompts)
-            .OrderBy(t => t.SortOrder)
-            .ToListAsync();
-        var styles = await db.ImageStyles.OrderBy(s => s.SortOrder).ToListAsync();
-
+        var library = await sender.Send(new GetPromptLibraryQuery(), ct);
         return Ok(new PromptLibraryDto(
-            themes.Select(t => t.ToDto()).ToList(),
-            styles.Select(s => s.ToDto()).ToList()));
+            library.Themes.Select(t => t.ToDto()).ToList(),
+            library.Styles.Select(s => s.ToDto()).ToList()));
     }
 }
