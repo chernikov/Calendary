@@ -105,7 +105,7 @@ const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
           </div>
         }
 
-        @if (selectedCount() > 0) {
+        @if (cartOrders().length > 0) {
           <div
             class="card"
             style="flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); position: sticky; bottom: var(--space-3); box-shadow: var(--shadow-lg);"
@@ -114,7 +114,7 @@ const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
               <div style="font-size: 13px;" class="text-muted">Обрано: {{ selectedCount() }}</div>
               <div class="money" style="font-size: 22px; font-weight: 500;">{{ totalPrice() }} ₴</div>
             </div>
-            <button class="btn btn-primary" (click)="proceedToCheckout()">Оформити</button>
+            <button class="btn btn-primary" [disabled]="selectedCount() === 0" (click)="proceedToCheckout()">Оформити</button>
           </div>
         }
 
