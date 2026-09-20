@@ -4,7 +4,6 @@ using Calendary.Domain.Enums;
 using Calendary.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Calendary.Infrastructure.Services;
@@ -16,39 +15,18 @@ namespace Calendary.Infrastructure.Services;
 /// AppSettings.ImageGenerationProvider (via IAppSettingsService) and no-ops unless it's Mock, so
 /// it can safely run alongside real-provider generation without progressing sheets it doesn't own.
 public class GenerationBackgroundService(IServiceScopeFactory scopeFactory, ILogger<GenerationBackgroundService> logger)
-    : BackgroundService
+    : TimedHostedService(scopeFactory, logger, TimeSpan.FromSeconds(1))
 {
-    private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan GenerationDuration = TimeSpan.FromSeconds(4);
     private const int MaxConcurrentPerOrder = 3;
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task TickAsync(AppDbContext db, IServiceProvider services, CancellationToken ct)
     {
-        using var timer = new PeriodicTimer(TickInterval);
-        while (await timer.WaitForNextTickAsync(stoppingToken))
-        {
-            try
-            {
-                await TickAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Generation tick failed");
-            }
-        }
-    }
-
-    private async Task TickAsync(CancellationToken ct)
-    {
-        using var scope = scopeFactory.CreateScope();
-
-        var settings = scope.ServiceProvider.GetRequiredService<IAppSettingsService>();
+        var settings = services.GetRequiredService<IAppSettingsService>();
         if (await settings.GetImageGenerationProviderAsync(ct) != ImageGenerationProvider.Mock)
         {
             return;
         }
-
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var now = DateTime.UtcNow;
 
@@ -104,6 +82,9 @@ public class GenerationBackgroundService(IServiceScopeFactory scopeFactory, ILog
             }
         }
 
+        // Flushed here (rather than left to TimedHostedService's post-tick save) because
+        // AdvanceOrderStatusesAsync's own queries need these sheet-status changes already
+        // committed to the DB to see them.
         if (db.ChangeTracker.HasChanges())
         {
             await db.SaveChangesAsync(ct);
@@ -138,11 +119,6 @@ public class GenerationBackgroundService(IServiceScopeFactory scopeFactory, ILog
             {
                 order.SetStatus(OrderStatus.ReviewReady);
             }
-        }
-
-        if (db.ChangeTracker.HasChanges())
-        {
-            await db.SaveChangesAsync(ct);
         }
     }
 }

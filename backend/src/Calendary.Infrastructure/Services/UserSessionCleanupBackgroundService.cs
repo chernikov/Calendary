@@ -1,7 +1,6 @@
 using Calendary.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Calendary.Infrastructure.Services;
@@ -11,31 +10,10 @@ namespace Calendary.Infrastructure.Services;
 /// loading rows into memory first — this table is exactly the kind that can grow large, and a
 /// single DELETE ... WHERE is the cheap way to prune it regardless of size.
 public class UserSessionCleanupBackgroundService(IServiceScopeFactory scopeFactory, ILogger<UserSessionCleanupBackgroundService> logger)
-    : BackgroundService
+    : TimedHostedService(scopeFactory, logger, TimeSpan.FromHours(24))
 {
-    private static readonly TimeSpan TickInterval = TimeSpan.FromHours(24);
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task TickAsync(AppDbContext db, IServiceProvider services, CancellationToken ct)
     {
-        using var timer = new PeriodicTimer(TickInterval);
-        while (await timer.WaitForNextTickAsync(stoppingToken))
-        {
-            try
-            {
-                await TickAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "UserSession cleanup sweep failed");
-            }
-        }
-    }
-
-    private async Task TickAsync(CancellationToken ct)
-    {
-        using var scope = scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
         var deleted = await db.UserSessions
             .Where(s => s.ExpiresAtUtc < DateTime.UtcNow)
             .ExecuteDeleteAsync(ct);
