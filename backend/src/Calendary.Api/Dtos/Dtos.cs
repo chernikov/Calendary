@@ -23,7 +23,7 @@ public record SheetVariantDto(Guid Id, string ImageUrl, DateTime CreatedAtUtc, d
 public record SheetDto(
     Guid Id, string Kind, int Index, string Status, bool IsSelected, string? ImageUrl,
     Guid? PromptId, string? PromptName, Guid? ImageStyleId, string? ImageStyleName,
-    Guid? PhotoId, Guid? ActiveVariantId, IReadOnlyList<SheetVariantDto> Variants);
+    Guid? PhotoId, Guid? ActiveVariantId, IReadOnlyList<SheetVariantDto> Variants, string? FailureReason);
 public record ConfirmCoverRequest(Guid SheetId);
 
 public record CheckoutRequest(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);

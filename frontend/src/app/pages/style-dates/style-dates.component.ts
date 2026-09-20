@@ -52,7 +52,7 @@ interface PlanRow {
               <div class="gen-card-placeholder">Натисніть, щоб згенерувати</div>
             }
             @if (isFailed(0)) {
-              <div class="gen-card-error">Не вдалося — спробуйте ще раз</div>
+              <div class="gen-card-error">{{ failureReasonFor(0) }}</div>
             }
           </div>
         </div>
@@ -73,7 +73,7 @@ interface PlanRow {
                 <div class="gen-card-placeholder">Натисніть, щоб згенерувати</div>
               }
               @if (isFailed(row.index)) {
-                <div class="gen-card-error">Не вдалося — спробуйте ще раз</div>
+                <div class="gen-card-error">{{ failureReasonFor(row.index) }}</div>
               }
             </div>
           </div>
@@ -404,6 +404,10 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
 
   isFailed(index: number): boolean {
     return this.sheetFor(index)?.status === 'Failed';
+  }
+
+  failureReasonFor(index: number): string {
+    return this.sheetFor(index)?.failureReason || 'Не вдалося — спробуйте ще раз';
   }
 
   openSheetModal(index: number): void {

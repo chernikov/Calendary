@@ -27,6 +27,11 @@ public class Sheet
     public DateTime? GeneratingStartedAtUtc { get; set; }
     public DateTime? ReadyAtUtc { get; set; }
 
+    /// User-facing explanation for the most recent Failed status (see #401) — e.g. distinguishing
+    /// an AI provider content-safety rejection (needs a different photo/prompt) from a generic
+    /// transient failure (just retry). Null once the sheet is Ready or hasn't failed yet.
+    public string? FailureReason { get; set; }
+
     // ImageUrl/Status/ReadyAtUtc above always mirror ActiveVariant — kept denormalized so every
     // existing reader (PDF service, DtoMapping, admin panel) needs no changes. Variants is the
     // full generation history; ActiveVariantId is which one is "the" current result.
