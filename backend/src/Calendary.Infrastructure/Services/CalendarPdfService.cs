@@ -1,3 +1,4 @@
+using Calendary.Domain;
 using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
@@ -63,7 +64,7 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
         var coverBytes = await ResolveImageBytesAsync(cover.ImageUrl, ct);
         var monthBytes = await Task.WhenAll(monthSheets.Select(s => ResolveImageBytesAsync(s.ImageUrl, ct)));
 
-        var calendarYear = DateTime.UtcNow.Year + 1;
+        var calendarYear = CalendarYear.Current;
 
         // Holiday data currently only covers 2027 (see #364) — an order for a future calendarYear
         // simply gets an empty list here, degrading gracefully to "just weekends marked".
