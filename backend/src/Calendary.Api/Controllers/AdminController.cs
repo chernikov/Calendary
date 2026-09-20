@@ -29,6 +29,7 @@ namespace Calendary.Api.Controllers;
 [Route("api/admin")]
 [Authorize(Roles = "Admin")]
 [TypeFilter(typeof(AppOperationExceptionFilter))]
+[TypeFilter(typeof(AdminAuditLogFilter))]
 public class AdminController(
     ISender sender,
     IAppSettingsService appSettings,

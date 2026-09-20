@@ -19,7 +19,14 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("Missing ConnectionStrings:Default");
 
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+// Centralizes the "business operation" logging #300 asks for (order status, payment attempt/
+// success/failure, per-sheet generation start/finish/fail) by hooking SaveChanges instead of
+// touching every one of the ~20 call sites that mutate these entities — see the interceptor's own
+// doc comment.
+builder.Services.AddSingleton<DomainStatusLoggingInterceptor>();
+builder.Services.AddDbContext<AppDbContext>((sp, options) => options
+    .UseSqlServer(connectionString)
+    .AddInterceptors(sp.GetRequiredService<DomainStatusLoggingInterceptor>()));
 // Calendary.Application depends on this instead of the concrete AppDbContext, so it never has to
 // reference Calendary.Infrastructure (see #298).
 builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
@@ -66,6 +73,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// #300: lets Docker/Caddy tell a live container from a hung one, and docker-compose's
+// depends_on: condition: service_healthy wait for the backend to actually be ready (DB reachable)
+// before the frontend/edge starts routing to it.
+builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
 
 // #301: brute-force/enumeration protection for register/login/google/forgot-password/reset-
 // password (see AuthController's [EnableRateLimiting("auth")]). Partitioned per client IP — this
@@ -150,5 +162,6 @@ app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();

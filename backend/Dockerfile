@@ -18,8 +18,9 @@ WORKDIR /app
 
 # restic powers the admin panel's read-only backup-status view (ResticBackupStatusService) — it
 # reads the same repository deploy/backup.sh writes to, but never triggers a backup itself.
+# curl backs the HEALTHCHECK below (#300) — the base aspnet image has neither by default.
 USER root
-RUN apt-get update && apt-get install -y --no-install-recommends restic && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends restic curl && rm -rf /var/lib/apt/lists/*
 
 # Docker seeds a brand-new named volume from whatever's already at its mount path in the image, so
 # pre-creating this directory owned by the non-root user below means any *fresh* media-data volume
@@ -32,5 +33,10 @@ COPY --from=build /app .
 
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
+
+# Lets `docker compose ps`/`depends_on: condition: service_healthy` (see docker-compose*.yml)
+# distinguish a live backend from a hung one, instead of just "container process is running" (#300).
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+    CMD curl -f http://localhost:8080/health || exit 1
 
 ENTRYPOINT ["dotnet", "Calendary.Api.dll"]
