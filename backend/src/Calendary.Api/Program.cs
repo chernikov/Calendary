@@ -35,6 +35,7 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Calen
 builder.Services.AddScoped<IImageGenerationService, DynamicImageGenerationService>();
 builder.Services.AddSingleton<IPhotoThumbnailGenerator, PhotoThumbnailGeneratorService>();
 builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
+builder.Services.AddScoped<IPreviewImageService, PreviewImageService>();
 builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(FileStorageOptions.SectionName));
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 builder.Services.AddCalendaryAi(builder.Configuration);

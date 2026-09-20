@@ -55,20 +55,39 @@ import { SaveImageStylePayload } from '../../core/models';
     <nz-table [nzData]="styles()" [nzFrontPagination]="false" [nzShowPagination]="false" [nzLoading]="busy()">
       <thead>
         <tr>
+          <th style="width: 56px;">Приклад</th>
           <th style="width: 180px;">Назва</th>
           <th>Текст стилю (EN)</th>
           <th style="width: 90px;">Порядок</th>
-          <th style="width: 110px;"></th>
+          <th style="width: 150px;"></th>
         </tr>
       </thead>
       <tbody>
         @for (style of styles(); track style.id) {
           <tr>
+            <td>
+              @if (style.previewImageUrl) {
+                <img [src]="style.previewImageUrl" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" />
+              } @else {
+                <div style="width: 40px; height: 40px; border-radius: 4px; background: #f0f0f0;"></div>
+              }
+            </td>
             <td>{{ style.name }}</td>
             <td style="white-space: pre-wrap;">{{ style.text }}</td>
             <td>{{ style.sortOrder }}</td>
             <td>
-              <button nz-button nzSize="small" (click)="edit(style.id)"><span nz-icon nzType="edit"></span></button>
+              <button
+                nz-button
+                nzSize="small"
+                title="Згенерувати приклад"
+                [disabled]="busy()"
+                (click)="generatePreview(style.id)"
+              >
+                <span nz-icon nzType="picture"></span>
+              </button>
+              <button nz-button nzSize="small" style="margin-left: 4px;" (click)="edit(style.id)">
+                <span nz-icon nzType="edit"></span>
+              </button>
               <button
                 nz-button
                 nzSize="small"
@@ -124,5 +143,9 @@ export class AdminStylesComponent implements OnInit {
 
   remove(styleId: string): void {
     this.store.dispatch(AdminActions.deleteImageStyle({ styleId }));
+  }
+
+  generatePreview(styleId: string): void {
+    this.store.dispatch(AdminActions.generateImageStylePreview({ styleId }));
   }
 }

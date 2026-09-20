@@ -247,6 +247,38 @@ export class AdminEffects {
     ),
   );
 
+  generatePromptPreview$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.generatePromptPreview),
+      switchMap(({ promptId }) =>
+        this.admin.generatePromptPreview(promptId).pipe(
+          map(() => AdminActions.loadPromptThemes()),
+          catchError((err: HttpErrorResponse) =>
+            of(AdminActions.promptLibraryMutationFailure({
+              error: typeof err.error === 'string' ? err.error : 'Не вдалося згенерувати приклад.',
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  generateImageStylePreview$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.generateImageStylePreview),
+      switchMap(({ styleId }) =>
+        this.admin.generateImageStylePreview(styleId).pipe(
+          map(() => AdminActions.loadImageStyles()),
+          catchError((err: HttpErrorResponse) =>
+            of(AdminActions.promptLibraryMutationFailure({
+              error: typeof err.error === 'string' ? err.error : 'Не вдалося згенерувати приклад.',
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+
   deleteImageStyle$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.deleteImageStyle),
