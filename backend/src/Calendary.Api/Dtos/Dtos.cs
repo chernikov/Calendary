@@ -123,6 +123,8 @@ public record AdminUserDto(
     Guid Id, string? Email, string? DisplayName, string Role, string AuthProvider,
     bool EmailConfirmed, DateTime CreatedAtUtc, int OrderCount);
 
+public record OrderStatusHistoryEntryDto(string? FromStatus, string ToStatus, DateTime ChangedAtUtc);
+
 public record SetImageGenerationProviderRequest(string Provider);
 public record ImageGenerationProviderDto(string Provider);
 

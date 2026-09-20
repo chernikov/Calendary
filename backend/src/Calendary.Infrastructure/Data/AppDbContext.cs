@@ -23,6 +23,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Delivery> Deliveries => Set<Delivery>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
+    public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,6 +57,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithOne(s => s.Order)
             .HasForeignKey(s => s.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<OrderStatusHistory>()
+            .HasIndex(h => h.OrderId);
 
         modelBuilder.Entity<Order>()
             .HasMany(o => o.PersonalDates)

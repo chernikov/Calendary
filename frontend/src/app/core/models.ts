@@ -140,7 +140,8 @@ export type OrderStatus =
   | 'Shipped'
   | 'Delivered'
   | 'Cancelled'
-  | 'GenerationFailed';
+  | 'GenerationFailed'
+  | 'PrintReady';
 
 export interface OrderPhotoDto {
   id: string;
@@ -206,6 +207,12 @@ export interface AdminOrderSummaryDto {
   createdAtUtc: string;
   statusUpdatedAtUtc: string;
   trackingNumber: string | null;
+}
+
+export interface OrderStatusHistoryEntryDto {
+  fromStatus: OrderStatus | null;
+  toStatus: OrderStatus;
+  changedAtUtc: string;
 }
 
 export interface AdminUserDto {

@@ -47,6 +47,13 @@ export class AdminEffects {
     ),
   );
 
+  loadHistoryAlongsideOrderDetail$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadOrderDetail),
+      map(({ orderId }) => AdminActions.loadOrderStatusHistory({ orderId })),
+    ),
+  );
+
   replacePhoto$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.replacePhoto),
@@ -66,6 +73,43 @@ export class AdminEffects {
         this.admin.regenerateSheet(orderId, sheetId).pipe(
           map((order) => AdminActions.regenerateSheetSuccess({ order })),
           catchError(() => of(AdminActions.regenerateSheetFailure({ error: 'Перегенерації вичерпано.' }))),
+        ),
+      ),
+    ),
+  );
+
+  advanceFulfillment$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.advanceFulfillment),
+      switchMap(({ orderId }) =>
+        this.admin.advanceFulfillment(orderId).pipe(
+          map((order) => AdminActions.advanceFulfillmentSuccess({ order })),
+          catchError((err: HttpErrorResponse) =>
+            of(AdminActions.advanceFulfillmentFailure({
+              error: typeof err.error === 'string' ? err.error : 'Не вдалося перейти на наступний етап.',
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  // Status history changed too, alongside the order itself — refetch it so the timeline reflects
+  // the step that was just applied without a page reload.
+  refreshHistoryAfterAdvance$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.advanceFulfillmentSuccess),
+      map(({ order }) => AdminActions.loadOrderStatusHistory({ orderId: order.id })),
+    ),
+  );
+
+  loadOrderStatusHistory$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadOrderStatusHistory),
+      switchMap(({ orderId }) =>
+        this.admin.getOrderStatusHistory(orderId).pipe(
+          map((history) => AdminActions.loadOrderStatusHistorySuccess({ history })),
+          catchError(() => of(AdminActions.loadOrderStatusHistoryFailure({ error: 'Не вдалося завантажити історію статусів.' }))),
         ),
       ),
     ),

@@ -11,6 +11,7 @@ const LABELS: Record<OrderStatus, string> = {
   AwaitingPayment: 'Очікує оплати',
   Paid: 'Оплачено',
   Printing: 'Друкуємо',
+  PrintReady: 'Надруковано',
   Shipped: 'Відправлено',
   Delivered: 'Доставлено',
   Cancelled: 'Скасовано',
@@ -32,12 +33,13 @@ const STEP: Record<OrderStatus, string[]> = {
   AwaitingPayment: ['checkout'],
   Paid: ['status'],
   Printing: ['status'],
+  PrintReady: ['status'],
   Shipped: ['status'],
   Delivered: ['status'],
   Cancelled: ['status'],
 };
 
-const DONE: OrderStatus[] = ['Paid', 'Printing', 'Shipped', 'Delivered'];
+const DONE: OrderStatus[] = ['Paid', 'Printing', 'PrintReady', 'Shipped', 'Delivered'];
 const FAILED: OrderStatus[] = ['Cancelled', 'GenerationFailed'];
 
 export function orderStatusLabel(status: OrderStatus): string {

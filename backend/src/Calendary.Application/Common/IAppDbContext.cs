@@ -27,6 +27,7 @@ public interface IAppDbContext
     DbSet<Delivery> Deliveries { get; }
     DbSet<UserSession> UserSessions { get; }
     DbSet<AppSettings> AppSettings { get; }
+    DbSet<OrderStatusHistory> OrderStatusHistories { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

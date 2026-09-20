@@ -79,6 +79,20 @@ public class AdminController(
         return order is null ? NotFound() : Ok(order.ToDto());
     }
 
+    [HttpPost("orders/{orderId:guid}/advance-fulfillment")]
+    public async Task<ActionResult<OrderDto>> AdvanceFulfillment(Guid orderId, CancellationToken ct)
+    {
+        var order = await sender.Send(new AdvanceOrderFulfillmentCommand(orderId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
+    }
+
+    [HttpGet("orders/{orderId:guid}/status-history")]
+    public async Task<ActionResult<List<OrderStatusHistoryEntryDto>>> GetOrderStatusHistory(Guid orderId, CancellationToken ct)
+    {
+        var history = await sender.Send(new AdminGetOrderStatusHistoryQuery(orderId), ct);
+        return Ok(history.Select(h => new OrderStatusHistoryEntryDto(h.FromStatus, h.ToStatus, h.ChangedAtUtc)).ToList());
+    }
+
     [HttpGet("users")]
     public async Task<ActionResult<PagedResult<AdminUserDto>>> ListUsers(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)

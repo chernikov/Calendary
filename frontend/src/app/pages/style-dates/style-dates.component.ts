@@ -365,7 +365,7 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
       if (!status) return;
       if (status === 'AwaitingPayment') {
         this.router.navigate(['/order', this.orderId, 'checkout']);
-      } else if (status === 'Paid' || status === 'Printing' || status === 'Shipped' || status === 'Delivered') {
+      } else if (status === 'Paid' || status === 'Printing' || status === 'PrintReady' || status === 'Shipped' || status === 'Delivered') {
         this.router.navigate(['/order', this.orderId, 'status']);
       }
     });

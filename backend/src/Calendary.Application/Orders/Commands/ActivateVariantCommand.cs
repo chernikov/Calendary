@@ -16,7 +16,7 @@ public class ActivateVariantCommandHandler(IAppDbContext db) : IRequestHandler<A
     {
         var order = await OrderAccess.LoadOwnedOrderAsync(db, request.UserId, request.OrderId, ct);
         if (order is null) return null;
-        if (order.Status is OrderStatus.Paid or OrderStatus.Printing or OrderStatus.Shipped
+        if (order.Status is OrderStatus.Paid or OrderStatus.Printing or OrderStatus.PrintReady or OrderStatus.Shipped
             or OrderStatus.Delivered or OrderStatus.Cancelled)
         {
             throw new AppOperationException("Order is no longer editable.", 409);

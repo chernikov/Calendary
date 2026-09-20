@@ -8,6 +8,7 @@ import {
   ImageGenerationProvider,
   ImageStyleDto,
   OrderDto,
+  OrderStatusHistoryEntryDto,
   PagedResult,
   PromoCodeDto,
   PromptThemeDto,
@@ -40,6 +41,14 @@ export const AdminActions = createActionGroup({
     'Regenerate Sheet': props<{ orderId: string; sheetId: string }>(),
     'Regenerate Sheet Success': props<{ order: OrderDto }>(),
     'Regenerate Sheet Failure': props<{ error: string }>(),
+
+    'Advance Fulfillment': props<{ orderId: string }>(),
+    'Advance Fulfillment Success': props<{ order: OrderDto }>(),
+    'Advance Fulfillment Failure': props<{ error: string }>(),
+
+    'Load Order Status History': props<{ orderId: string }>(),
+    'Load Order Status History Success': props<{ history: OrderStatusHistoryEntryDto[] }>(),
+    'Load Order Status History Failure': props<{ error: string }>(),
 
     'Load Product Settings': emptyProps(),
     'Load Product Settings Success': props<{ basePrice: number }>(),

@@ -126,7 +126,7 @@ export class ReviewComponent implements OnInit {
   }
 
   isPastReview(o: OrderDto): boolean {
-    return ['AwaitingPayment', 'Paid', 'Printing', 'Shipped', 'Delivered'].includes(o.status);
+    return ['AwaitingPayment', 'Paid', 'Printing', 'PrintReady', 'Shipped', 'Delivered'].includes(o.status);
   }
 
   proceed(o: OrderDto): void {

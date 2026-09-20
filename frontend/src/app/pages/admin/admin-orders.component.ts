@@ -12,13 +12,13 @@ import { OrderStatus } from '../../core/models';
 
 const STATUS_OPTIONS: OrderStatus[] = [
   'Created', 'PhotoUploaded', 'DetailsSubmitted', 'Generating', 'CoverReady', 'CoverConfirmed',
-  'ReviewReady', 'AwaitingPayment', 'Paid', 'Printing', 'Shipped', 'Delivered', 'Cancelled', 'GenerationFailed',
+  'ReviewReady', 'AwaitingPayment', 'Paid', 'Printing', 'PrintReady', 'Shipped', 'Delivered', 'Cancelled', 'GenerationFailed',
 ];
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   Created: 'default', PhotoUploaded: 'default', DetailsSubmitted: 'default',
   Generating: 'processing', CoverReady: 'processing', CoverConfirmed: 'processing', ReviewReady: 'processing',
-  AwaitingPayment: 'gold', Paid: 'blue', Printing: 'blue', Shipped: 'blue',
+  AwaitingPayment: 'gold', Paid: 'blue', Printing: 'blue', PrintReady: 'blue', Shipped: 'blue',
   Delivered: 'green', Cancelled: 'red', GenerationFailed: 'red',
 };
 

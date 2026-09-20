@@ -22,7 +22,7 @@ public class GenerateSheetCommandHandler(IAppDbContext db, IImageGenerationServi
         if (order is null) return null;
         if (OrderAccess.IsExpired(order)) throw new AppOperationException("Order has expired.", 409);
         if (request.Index is < 0 or > 12) throw new AppOperationException("Index must be 0 (cover) through 12.");
-        if (order.Status is OrderStatus.Paid or OrderStatus.Printing or OrderStatus.Shipped
+        if (order.Status is OrderStatus.Paid or OrderStatus.Printing or OrderStatus.PrintReady or OrderStatus.Shipped
             or OrderStatus.Delivered or OrderStatus.Cancelled)
         {
             throw new AppOperationException("Order is no longer editable.", 409);
