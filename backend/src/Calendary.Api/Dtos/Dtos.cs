@@ -29,7 +29,7 @@ public record ConfirmCoverRequest(Guid SheetId);
 public record CheckoutRequest(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);
 public record DeliveryDto(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress, string? TrackingNumber);
 
-public record PayRequest(string Method);
+public record PayResponseDto(string PageUrl);
 public record PaymentDto(string Method, string Status, decimal Amount, DateTime? PaidAtUtc);
 
 public record NovaPoshtaWarehouseDto(string Number, string Address, string ClosesAt, bool IsPostomat);

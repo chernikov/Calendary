@@ -22,7 +22,7 @@ builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
 builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(FileStorageOptions.SectionName));
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 builder.Services.AddCalendaryAi(builder.Configuration);
-builder.Services.AddScoped<IPaymentService, MockPaymentService>();
+builder.Services.AddHttpClient<IPaymentService, MonobankPaymentService>();
 builder.Services.AddHttpClient<INovaPoshtaService, NovaPoshtaService>();
 builder.Services.AddHttpClient<ICalendarPdfService, CalendarPdfService>();
 builder.Services.AddScoped<ISessionTokenService, SessionTokenService>();

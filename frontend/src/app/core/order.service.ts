@@ -111,8 +111,8 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/checkout`, delivery);
   }
 
-  pay(orderId: string, method: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/pay`, { method });
+  pay(orderId: string): Observable<{ pageUrl: string }> {
+    return this.http.post<{ pageUrl: string }>(`${BASE}/orders/${orderId}/pay`, {});
   }
 
   cancel(orderId: string): Observable<OrderDto> {
