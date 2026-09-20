@@ -116,8 +116,9 @@ actual AI provider integration, built but **not wired in by default**:
 - `Clients/` — `IAiImageClient` plus one real HTTP implementation per provider
   (`OpenAiImageClient` calls `/images/edits` when a reference photo is supplied, else
   `/images/generations`; `GeminiImageClient` calls `generateContent` with the photo as inline
-  image data). `ServiceCollectionExtensions.AddCalendaryAi()` registers only the implementation
-  `AiOptions.Provider` selects.
+  image data). `ServiceCollectionExtensions.AddCalendaryAi()` registers both as keyed services;
+  which one actually runs per generation is the runtime `ImageGenerationProvider` DB setting below,
+  not `AiOptions.Provider` (kept only as a legacy config field, no longer read at startup).
 - `Prompts/CalendarPrompts.cs` — wraps the DB-stored prompt library texts (per-sheet scene from
   `Prompt.Text` + visual style from `ImageStyle.Text`) and a seasonal hint per month, composed
   into `BuildCoverPrompt` / `BuildMonthPrompt`. Prompts are in English (both
@@ -181,6 +182,8 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `RESEND_API_KEY` | Resend API key for transactional email |
 | `MONOBANK_MERCHANT_TOKEN` / `MONOBANK_MERCHANT_TOKEN_STAGING` | Monobank merchant token — separate prod/sandbox tokens, threaded into the same `.env` variable name in each stack |
 | `NOVA_POSHTA_API_KEY` | Nova Poshta Address-API key — one shared value for both stacks (read-only lookup, no sandbox/live split) |
+| `AI_OPENAI_API_KEY` / `AI_GEMINI_API_KEY` | AI image-generation provider keys — one shared value for both stacks (see "Calendary.AI" below); *which* provider is actually live is a separate runtime DB setting via `/admin/settings`, not these |
+| `SMSCLUB_API_KEY` | SMS.Club API token for checkout phone verification — **prod-only, deliberately** (no sandbox mode on their side, so staging/local always use the fixed "0000" code instead of sending real, billed SMS) |
 | `DO_SPACES_KEY` / `DO_SPACES_SECRET` | DigitalOcean Spaces access key/secret for off-droplet backups (see "Backups" below) — one shared value for both stacks |
 | `DO_SPACES_BUCKET` / `DO_SPACES_BUCKET_STAGING` | Separate bucket names per stack, e.g. `calendary-backups` / `calendary-backups-staging` — cleaner data isolation, same account/region otherwise |
 | `DO_SPACES_REGION` | Spaces region, e.g. `fra1` — shared by both stacks' buckets |
@@ -188,11 +191,12 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `ADMIN_PASSWORD` / `ADMIN_PASSWORD_STAGING` | Password for the always-seeded `admin@calendary.com.ua` account (see "Admin login" below) — separate per stack, since this is direct admin access, not a read-only key |
 
 `GITHUB_TOKEN` (built-in) handles both pushing images to GHCR and the droplet's `docker login`
-during deploy — no extra registry secret needed. Unlike the AI provider keys (a manual one-off
-`.env` edit on prod; staging does thread them — see issue #330), the secrets above are genuinely
+during deploy — no extra registry secret needed. The secrets above (including the AI provider keys
+as of #330 — previously a prod-only manual `.env` edit, now aligned with staging) are genuinely
 threaded through on every deploy: both `deploy.yml` and `deploy-staging.yml` upsert them into the
 droplet's `.env`/`.env.staging` from the GH secret before `docker compose up` — rotate the secret
-in GH, the next deploy picks it up automatically.
+in GH, the next deploy picks it up automatically. `SMSCLUB_API_KEY` is the one deliberate exception
+— `deploy.yml` threads it, `deploy-staging.yml` does not (see the table above).
 
 ## Backups
 
