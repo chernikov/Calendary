@@ -1,6 +1,7 @@
 using Calendary.Api.Auth;
 using Calendary.Api.Dtos;
 using Calendary.Api.Photos;
+using Calendary.Domain;
 using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
@@ -248,7 +249,7 @@ public class OrdersController(
         {
             return BadRequest($"Label must be 1-{MaxLabelLength} characters.");
         }
-        if (request.Month is < 1 or > 12 || request.Day < 1 || request.Day > DateTime.DaysInMonth(2024, request.Month))
+        if (request.Month is < 1 or > 12 || request.Day < 1 || request.Day > DateTime.DaysInMonth(CalendarYear.Current, request.Month))
         {
             return BadRequest("Invalid day/month.");
         }
