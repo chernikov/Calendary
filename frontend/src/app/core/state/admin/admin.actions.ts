@@ -39,6 +39,14 @@ export const AdminActions = createActionGroup({
     'Regenerate Sheet Success': props<{ order: OrderDto }>(),
     'Regenerate Sheet Failure': props<{ error: string }>(),
 
+    'Load Product Settings': emptyProps(),
+    'Load Product Settings Success': props<{ basePrice: number }>(),
+    'Load Product Settings Failure': props<{ error: string }>(),
+
+    'Set Product Settings': props<{ basePrice: number }>(),
+    'Set Product Settings Success': props<{ basePrice: number }>(),
+    'Set Product Settings Failure': props<{ error: string }>(),
+
     'Load Ai Provider': emptyProps(),
     'Load Ai Provider Success': props<{ provider: ImageGenerationProvider }>(),
     'Load Ai Provider Failure': props<{ error: string }>(),

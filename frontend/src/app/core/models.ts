@@ -189,6 +189,10 @@ export interface AdminUserDto {
 
 export type ImageGenerationProvider = 'Mock' | 'OpenAI' | 'Gemini';
 
+export interface ProductSettingsDto {
+  basePrice: number;
+}
+
 export interface ConfigStatusDto {
   openAiConfigured: boolean;
   geminiConfigured: boolean;

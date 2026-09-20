@@ -70,6 +70,30 @@ export class AdminEffects {
     ),
   );
 
+  loadProductSettings$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadProductSettings),
+      switchMap(() =>
+        this.admin.getProduct().pipe(
+          map(({ basePrice }) => AdminActions.loadProductSettingsSuccess({ basePrice })),
+          catchError(() => of(AdminActions.loadProductSettingsFailure({ error: 'Не вдалося завантажити ціну товару.' }))),
+        ),
+      ),
+    ),
+  );
+
+  setProductSettings$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.setProductSettings),
+      switchMap(({ basePrice }) =>
+        this.admin.setProduct(basePrice).pipe(
+          map(({ basePrice: updated }) => AdminActions.setProductSettingsSuccess({ basePrice: updated })),
+          catchError(() => of(AdminActions.setProductSettingsFailure({ error: 'Не вдалося змінити ціну товару.' }))),
+        ),
+      ),
+    ),
+  );
+
   loadAiProvider$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.loadAiProvider),

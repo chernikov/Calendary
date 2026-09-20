@@ -85,6 +85,9 @@ public record AdminUserDto(
 public record SetImageGenerationProviderRequest(string Provider);
 public record ImageGenerationProviderDto(string Provider);
 
+public record ProductSettingsDto(decimal BasePrice);
+public record SetProductSettingsRequest(decimal BasePrice);
+
 // Presence-only — never expose the actual key/secret values to the admin UI.
 public record ConfigStatusDto(
     bool OpenAiConfigured,

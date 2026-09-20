@@ -11,6 +11,7 @@ export const adminReducer = createReducer(
     AdminActions.replacePhoto,
     AdminActions.regenerateSheet,
     AdminActions.setAiProvider,
+    AdminActions.setProductSettings,
     AdminActions.savePromptTheme,
     AdminActions.deletePromptTheme,
     AdminActions.savePrompt,
@@ -40,6 +41,13 @@ export const adminReducer = createReducer(
   on(AdminActions.loadAiProviderSuccess, AdminActions.setAiProviderSuccess, (state, { provider }) => ({
     ...state,
     aiProvider: provider,
+    busy: false,
+    error: null,
+  })),
+
+  on(AdminActions.loadProductSettingsSuccess, AdminActions.setProductSettingsSuccess, (state, { basePrice }) => ({
+    ...state,
+    basePrice,
     busy: false,
     error: null,
   })),
@@ -76,6 +84,8 @@ export const adminReducer = createReducer(
     AdminActions.regenerateSheetFailure,
     AdminActions.loadAiProviderFailure,
     AdminActions.setAiProviderFailure,
+    AdminActions.loadProductSettingsFailure,
+    AdminActions.setProductSettingsFailure,
     AdminActions.loadConfigStatusFailure,
     AdminActions.loadBackupStatusFailure,
     AdminActions.loadPromptThemesFailure,
