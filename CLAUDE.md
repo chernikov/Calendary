@@ -93,11 +93,41 @@ dotnet ef migrations add <Name> \
 **Frontend only** (from `frontend/`):
 ```bash
 npm install
-npm start        # ng serve on :4200, proxies /api/* to http://localhost:5080 (proxy.conf.json)
-npm run build    # production build -> dist/calendary/browser
+npm start                      # ng serve on :4200, proxies /api/* to http://localhost:5080 (proxy.conf.json)
+npm run build                  # production build -> dist/calendary/browser
+npm test -- --watch=false      # Vitest (see #295) — omit --watch=false to keep re-running on save
 ```
 
-There are no automated tests in this repo yet.
+**Tests** (#295): `dotnet test` (from `backend/`) runs every backend test project via
+`Calendary.slnx`; `npm test -- --watch=false` (from `frontend/`) runs the frontend ones. Both also
+run in CI (`.github/workflows/ci.yml`) on every PR into `develop`/`main`, alongside a build — a
+failing build or test blocks the merge (branch protection required status checks). Backend tests
+are split one project per `src/` project under `backend/tests/` (mirroring the six-project split
+below), not one monolithic test project:
+- **Calendary.Common.Tests** / **Calendary.Domain.Tests** — plain unit tests, no DB
+  (`UkrainianPhoneNumber.Normalize`, `Order.SetStatus`).
+- **Calendary.Application.Tests** — Application command/query handlers against a `TestAppDbContext`
+  (a from-scratch `DbContext : IAppDbContext` backed by EF Core's InMemory provider, defined in the
+  test project itself) — Application never references Infrastructure (see below), so its tests
+  can't reuse the real `AppDbContext` either.
+- **Calendary.Infrastructure.Tests** — exercises the real `AppDbContext` (EF InMemory provider) and
+  `OrderProgressionHelper`, which is `internal` — `Calendary.Infrastructure`'s
+  `AssemblyInfo.cs` grants it access via `InternalsVisibleTo`.
+- **Calendary.Api.Tests** — full-pipeline integration tests (`AuthFlowTests`: register → login →
+  me) via `WebApplicationFactory<Program>` (needs `public partial class Program;` at the end of
+  `Program.cs`) against an in-memory SQLite database rather than the real SQL Server one, so CI
+  needs no DB/Docker. `Program.cs` picks Sqlite over SqlServer only when
+  `IHostEnvironment.IsEnvironment("Testing")` (set by `CustomWebApplicationFactory`, never a real
+  deployment environment) — a second `AddDbContext` call from the test project trying to swap the
+  provider after the fact doesn't work, since EF Core 8+ chains `AddDbContext` configuration
+  callbacks rather than replacing them, leaving both providers registered and throwing at startup.
+  For the same "Testing" reason, `Program.cs` calls `EnsureCreated()` instead of `Migrate()` on
+  startup (real EF migrations are SQL Server-specific SQL, `AppDbContext.OnModelCreating`'s one
+  `HasDefaultValueSql` call is skipped when `Database.IsSqlServer()` is false), and the factory
+  registers a single already-open `SqliteConnection` as a `DbConnection` singleton for
+  `Program.cs`'s `AppDbContext` registration to reuse — SQLite's in-memory databases are dropped
+  the instant their one connection closes, so a plain connection-string `DataSource` (a fresh,
+  empty connection per request) doesn't work here the way it does against a real file/server DB.
 
 ## Backend architecture (`backend/src/`)
 

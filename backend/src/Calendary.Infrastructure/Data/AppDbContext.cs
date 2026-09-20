@@ -99,18 +99,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         // Stored as a comma-joined list of enum names — simpler than a join table for a handful of
         // countries, and avoids a bitmask's opacity in the raw DB column (see #364).
-        modelBuilder.Entity<Order>()
+        var holidayCountriesProperty = modelBuilder.Entity<Order>()
             .Property(o => o.HolidayCountries)
             .HasConversion(
                 v => string.Join(',', v.Select(c => c.ToString())),
                 v => v.Length == 0
                     ? new List<Country>()
-                    : v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => Enum.Parse<Country>(s)).ToList())
-            .HasDefaultValueSql("N'Ukraine'")
-            .Metadata.SetValueComparer(new ValueComparer<List<Country>>(
-                (a, b) => (a ?? new()).SequenceEqual(b ?? new()),
-                v => v.Aggregate(0, (hash, c) => HashCode.Combine(hash, c.GetHashCode())),
-                v => v.ToList()));
+                    : v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => Enum.Parse<Country>(s)).ToList());
+
+        // T-SQL-specific literal syntax — only valid against the real SQL Server provider.
+        // Calendary.Api.Tests' WebApplicationFactory runs this same model against SQLite instead
+        // (see Program.cs), which would otherwise fail at EnsureCreated() with a syntax error.
+        if (Database.IsSqlServer())
+        {
+            holidayCountriesProperty.HasDefaultValueSql("N'Ukraine'");
+        }
+
+        holidayCountriesProperty.Metadata.SetValueComparer(new ValueComparer<List<Country>>(
+            (a, b) => (a ?? new()).SequenceEqual(b ?? new()),
+            v => v.Aggregate(0, (hash, c) => HashCode.Combine(hash, c.GetHashCode())),
+            v => v.ToList()));
 
         modelBuilder.Entity<Payment>()
             .Property(p => p.Amount)
