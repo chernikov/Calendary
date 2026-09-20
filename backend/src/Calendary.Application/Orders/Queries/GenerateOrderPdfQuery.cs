@@ -12,7 +12,7 @@ public class GenerateOrderPdfQueryHandler(IAppDbContext db, ICalendarPdfService 
 {
     public async Task<byte[]?> Handle(GenerateOrderPdfQuery request, CancellationToken ct)
     {
-        var order = await OrderAccess.LoadOwnedOrderAsync(db, request.UserId, request.OrderId, ct);
+        var order = await OrderAccess.LoadOwnedOrderAsync(db, request.UserId, request.OrderId, ct, trackChanges: false);
         if (order is null) return null;
 
         var sheetsReady = order.Sheets.Count == 13 && order.Sheets.All(s => s.Status == SheetStatus.Ready);

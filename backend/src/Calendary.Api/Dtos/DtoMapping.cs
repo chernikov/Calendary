@@ -1,3 +1,4 @@
+using Calendary.Application.Orders;
 using Calendary.Domain.Entities;
 
 namespace Calendary.Api.Dtos;
@@ -5,6 +6,11 @@ namespace Calendary.Api.Dtos;
 public static class DtoMapping
 {
     public static UserDto ToDto(this User u) => new(u.Id, u.DisplayName, u.Email, u.EmailConfirmed, u.Role.ToString());
+
+    public static SheetProgressDto ToDto(this SheetProgress s) => new(s.Index, s.Kind, s.Status, s.FailureReason);
+
+    public static OrderProgressDto ToDto(this OrderProgress p) => new(
+        p.Id, p.Status, p.StatusUpdatedAtUtc, p.Sheets.Select(s => s.ToDto()).ToList());
 
     public static PromptThemeDto ToDto(this PromptTheme t) => new(
         t.Id, t.Name, t.Description, t.SortOrder,

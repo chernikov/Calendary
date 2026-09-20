@@ -81,6 +81,22 @@ export interface SheetDto {
   failureReason: string | null;
 }
 
+// Lightweight polling shape (#303) — status per sheet only, no ImageUrl/prompt/style/variant
+// payload, so the generating/month pages' ~1.5s poll doesn't re-fetch the full order every tick.
+export interface SheetProgressDto {
+  index: number;
+  kind: SheetKind;
+  status: SheetStatus;
+  failureReason: string | null;
+}
+
+export interface OrderProgressDto {
+  id: string;
+  status: OrderStatus;
+  statusUpdatedAtUtc: string;
+  sheets: SheetProgressDto[];
+}
+
 export interface PaymentDto {
   method: string;
   status: string;

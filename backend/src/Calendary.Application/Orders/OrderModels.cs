@@ -11,5 +11,11 @@ public record OrderSummary(
 
 public record SheetPlanEntry(int Index, Guid PromptId, Guid ImageStyleId, Guid? PhotoId);
 
+// #303's lightweight polling shape — status per sheet only, no ImageUrl/prompt/style payload, so
+// the "generating"/"month" pages' ~1.5s poll doesn't re-fetch the full sheet graph every tick.
+public record SheetProgress(int Index, string Kind, string Status, string? FailureReason);
+
+public record OrderProgress(Guid Id, string Status, DateTime StatusUpdatedAtUtc, IReadOnlyList<SheetProgress> Sheets);
+
 public record DeliveryInfo(
     string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);

@@ -10,5 +10,5 @@ public record AdminGetOrderQuery(Guid OrderId) : IRequest<Order?>;
 public class AdminGetOrderQueryHandler(IAppDbContext db) : IRequestHandler<AdminGetOrderQuery, Order?>
 {
     public Task<Order?> Handle(AdminGetOrderQuery request, CancellationToken ct) =>
-        OrderAccess.LoadOrderForAdminAsync(db, request.OrderId, ct);
+        OrderAccess.LoadOrderForAdminAsync(db, request.OrderId, ct, trackChanges: false);
 }

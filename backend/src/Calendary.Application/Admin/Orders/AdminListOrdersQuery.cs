@@ -15,7 +15,7 @@ public class AdminListOrdersQueryHandler(IAppDbContext db) : IRequestHandler<Adm
         var page = Math.Max(request.Page, 1);
         var pageSize = Math.Clamp(request.PageSize, 1, 100);
 
-        var query = db.Orders.Include(o => o.User).AsQueryable();
+        var query = db.Orders.AsNoTracking().Include(o => o.User).AsQueryable();
         if (!string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<OrderStatus>(request.Status, true, out var parsed))
         {
             query = query.Where(o => o.Status == parsed);

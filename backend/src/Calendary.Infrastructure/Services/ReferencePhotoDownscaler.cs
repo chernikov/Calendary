@@ -31,30 +31,51 @@ public static class ReferencePhotoDownscaler
         image.Metadata.IptcProfile = null;
         image.Metadata.XmpProfile = null;
 
+        // Chain each dimension step's resize off the previous (already-shrunk) result rather than
+        // re-resizing the full-resolution original every time (#303) — for a large upload this keeps
+        // the working set to one "current size" image instead of repeatedly decoding/resizing from
+        // the full original at every candidate dimension.
+        var current = image;
         StoredFile? smallest = null;
-        foreach (var maxDimension in MaxDimensions)
+        try
         {
-            using var resized = image.Width <= maxDimension && image.Height <= maxDimension
-                ? image.Clone(_ => { })
-                : image.Clone(c => c.Resize(new ResizeOptions
-                {
-                    Mode = ResizeMode.Max,
-                    Size = new Size(maxDimension, maxDimension),
-                }));
-
-            foreach (var quality in Qualities)
+            foreach (var maxDimension in MaxDimensions)
             {
-                using var buffer = new MemoryStream();
-                resized.Save(buffer, new JpegEncoder { Quality = quality });
-                smallest = new StoredFile(buffer.ToArray(), "image/jpeg");
-
-                if (smallest.Content.Length <= TargetMaxBytes)
+                if (current.Width > maxDimension || current.Height > maxDimension)
                 {
-                    return smallest;
+                    var resized = current.Clone(c => c.Resize(new ResizeOptions
+                    {
+                        Mode = ResizeMode.Max,
+                        Size = new Size(maxDimension, maxDimension),
+                    }));
+                    if (!ReferenceEquals(current, image))
+                    {
+                        current.Dispose();
+                    }
+                    current = resized;
+                }
+
+                foreach (var quality in Qualities)
+                {
+                    using var buffer = new MemoryStream();
+                    current.Save(buffer, new JpegEncoder { Quality = quality });
+                    smallest = new StoredFile(buffer.ToArray(), "image/jpeg");
+
+                    if (smallest.Content.Length <= TargetMaxBytes)
+                    {
+                        return smallest;
+                    }
                 }
             }
-        }
 
-        return smallest!;
+            return smallest!;
+        }
+        finally
+        {
+            if (!ReferenceEquals(current, image))
+            {
+                current.Dispose();
+            }
+        }
     }
 }

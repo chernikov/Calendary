@@ -72,6 +72,16 @@ public class OrdersController(ISender sender, IOptions<MonobankOptions> monobank
         return order is null ? NotFound() : Ok(order.ToDto());
     }
 
+    // Lightweight sibling of Get (#303) — only status + per-sheet status/kind, no ImageUrl/prompt/
+    // style/variant payload, for the "generating"/"month" pages' ~1.5s poll to hit instead of the
+    // full order graph on every tick.
+    [HttpGet("{orderId:guid}/progress")]
+    public async Task<ActionResult<OrderProgressDto>> GetProgress(Guid orderId, CancellationToken ct)
+    {
+        var progress = await sender.Send(new GetOwnedOrderProgressQuery(User.GetUserId(), orderId), ct);
+        return progress is null ? NotFound() : Ok(progress.ToDto());
+    }
+
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<OrderSummaryDto>>> List(CancellationToken ct)
     {

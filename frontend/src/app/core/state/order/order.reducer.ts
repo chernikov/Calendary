@@ -8,6 +8,24 @@ export const orderReducer = createReducer(
   on(OrderActions.loadOrderSuccess, (state, { order }) => ({ ...state, order, error: null })),
   on(OrderActions.loadOrderFailure, (state, { error }) => ({ ...state, error })),
 
+  // #303's lightweight poll merge — patches per-sheet status/failureReason (and overall order
+  // status) into the already-loaded order in place, without touching ImageUrl/prompt/style/variant
+  // fields the progress payload doesn't carry.
+  on(OrderActions.orderProgressSuccess, (state, { progress }) => {
+    if (!state.order || state.order.id !== progress.id) return state;
+    return {
+      ...state,
+      order: {
+        ...state.order,
+        status: progress.status,
+        sheets: state.order.sheets.map((s) => {
+          const p = progress.sheets.find((x) => x.kind === s.kind && x.index === s.index);
+          return p ? { ...s, status: p.status, failureReason: p.failureReason } : s;
+        }),
+      },
+    };
+  }),
+
   on(OrderActions.loadMyOrders, (state) => ({ ...state, busy: true, error: null })),
   on(OrderActions.loadMyOrdersSuccess, (state, { orders }) => ({ ...state, myOrders: orders, busy: false })),
   on(OrderActions.loadMyOrdersFailure, (state, { error }) => ({ ...state, busy: false, error })),
