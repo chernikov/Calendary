@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ImageStyle> ImageStyles => Set<ImageStyle>();
     public DbSet<PersonalDate> PersonalDates => Set<PersonalDate>();
     public DbSet<Holiday> Holidays => Set<Holiday>();
+    public DbSet<PromoCode> PromoCodes => Set<PromoCode>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Delivery> Deliveries => Set<Delivery>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
@@ -74,6 +75,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<AppSettings>()
             .Property(a => a.BasePrice)
             .HasPrecision(10, 2);
+
+        modelBuilder.Entity<Order>()
+            .Property(o => o.DiscountAmount)
+            .HasPrecision(10, 2);
+
+        modelBuilder.Entity<PromoCode>()
+            .Property(p => p.Value)
+            .HasPrecision(10, 2);
+
+        modelBuilder.Entity<PromoCode>()
+            .Property(p => p.MinOrderAmount)
+            .HasPrecision(10, 2);
+
+        modelBuilder.Entity<PromoCode>()
+            .HasIndex(p => p.Code)
+            .IsUnique();
 
         // Stored as a comma-joined list of enum names — simpler than a join table for a handful of
         // countries, and avoids a bitmask's opacity in the raw DB column (see #364).

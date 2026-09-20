@@ -36,6 +36,10 @@ const STYLESHEET_ID = 'ng-zorro-antd-styles';
             <span nz-icon nzType="calendar"></span>
             <span>Свята</span>
           </li>
+          <li nz-menu-item routerLink="/admin/promo-codes" routerLinkActive="ant-menu-item-selected">
+            <span nz-icon nzType="percentage"></span>
+            <span>Знижки</span>
+          </li>
           <li nz-menu-item routerLink="/admin/product" routerLinkActive="ant-menu-item-selected">
             <span nz-icon nzType="tag"></span>
             <span>Товар</span>

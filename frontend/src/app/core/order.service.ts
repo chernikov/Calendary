@@ -71,6 +71,14 @@ export class OrderService {
     return this.http.put<OrderDto>(`${BASE}/orders/${orderId}/holiday-settings`, { countries, weekStart });
   }
 
+  applyPromoCode(orderId: string, code: string): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/promo-code`, { code });
+  }
+
+  removePromoCode(orderId: string): Observable<OrderDto> {
+    return this.http.delete<OrderDto>(`${BASE}/orders/${orderId}/promo-code`);
+  }
+
   startGeneration(orderId: string): Observable<OrderDto> {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/generate`, {});
   }

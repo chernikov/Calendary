@@ -458,4 +458,115 @@ public class AdminController(
         }
         return true;
     }
+
+    [HttpGet("promo-codes")]
+    public async Task<ActionResult<IReadOnlyList<PromoCodeDto>>> ListPromoCodes()
+    {
+        var codes = await db.PromoCodes.OrderByDescending(p => p.IsActive).ThenBy(p => p.Code).ToListAsync();
+        return Ok(codes.Select(p => p.ToDto()).ToList());
+    }
+
+    [HttpPost("promo-codes")]
+    public async Task<ActionResult<PromoCodeDto>> CreatePromoCode(SavePromoCodeRequest request)
+    {
+        if (!TryValidatePromoCode(request, out var type, out var code, out var error))
+        {
+            return BadRequest(error);
+        }
+        if (await db.PromoCodes.AnyAsync(p => p.Code == code))
+        {
+            return BadRequest("This code already exists.");
+        }
+
+        var promo = new PromoCode
+        {
+            Code = code,
+            Type = type,
+            Value = request.Value,
+            ValidFromUtc = request.ValidFromUtc,
+            ValidToUtc = request.ValidToUtc,
+            MaxRedemptions = request.MaxRedemptions,
+            MinOrderAmount = request.MinOrderAmount,
+            IsActive = request.IsActive
+        };
+        db.PromoCodes.Add(promo);
+        await db.SaveChangesAsync();
+        return Ok(promo.ToDto());
+    }
+
+    [HttpPut("promo-codes/{promoCodeId:guid}")]
+    public async Task<ActionResult<PromoCodeDto>> UpdatePromoCode(Guid promoCodeId, SavePromoCodeRequest request)
+    {
+        var promo = await db.PromoCodes.FindAsync(promoCodeId);
+        if (promo is null) return NotFound();
+        if (!TryValidatePromoCode(request, out var type, out var code, out var error))
+        {
+            return BadRequest(error);
+        }
+        if (await db.PromoCodes.AnyAsync(p => p.Code == code && p.Id != promoCodeId))
+        {
+            return BadRequest("This code already exists.");
+        }
+
+        promo.Code = code;
+        promo.Type = type;
+        promo.Value = request.Value;
+        promo.ValidFromUtc = request.ValidFromUtc;
+        promo.ValidToUtc = request.ValidToUtc;
+        promo.MaxRedemptions = request.MaxRedemptions;
+        promo.MinOrderAmount = request.MinOrderAmount;
+        promo.IsActive = request.IsActive;
+        await db.SaveChangesAsync();
+        return Ok(promo.ToDto());
+    }
+
+    [HttpDelete("promo-codes/{promoCodeId:guid}")]
+    public async Task<IActionResult> DeletePromoCode(Guid promoCodeId)
+    {
+        var promo = await db.PromoCodes.FindAsync(promoCodeId);
+        if (promo is null) return NotFound();
+
+        // Orders keep the applied code as a frozen string, not an FK (see #393) — deleting the
+        // PromoCode row never corrupts an order that already used it.
+        db.PromoCodes.Remove(promo);
+        await db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    private static bool TryValidatePromoCode(
+        SavePromoCodeRequest request, out DiscountType type, out string code, out string error)
+    {
+        type = default;
+        code = "";
+        error = "";
+        if (string.IsNullOrWhiteSpace(request.Code))
+        {
+            error = "Code is required.";
+            return false;
+        }
+        code = request.Code.Trim().ToUpperInvariant();
+        if (!Enum.TryParse(request.Type, ignoreCase: true, out type))
+        {
+            error = $"Unknown discount type: {request.Type}";
+            return false;
+        }
+        if (request.Value <= 0 || (type == DiscountType.Percent && request.Value > 100))
+        {
+            error = type == DiscountType.Percent
+                ? "Percent value must be between 0 and 100."
+                : "Value must be greater than zero.";
+            return false;
+        }
+        if (request.MaxRedemptions is < 1)
+        {
+            error = "Max redemptions must be at least 1.";
+            return false;
+        }
+        if (request.MinOrderAmount is < 0)
+        {
+            error = "Minimum order amount cannot be negative.";
+            return false;
+        }
+        return true;
+    }
 }

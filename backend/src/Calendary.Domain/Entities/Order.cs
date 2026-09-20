@@ -29,6 +29,13 @@ public class Order
     public List<Country> HolidayCountries { get; set; } = new() { Country.Ukraine };
     public WeekStartDay WeekStart { get; set; } = WeekStartDay.Monday;
 
+    /// The applied promo code (see #393), always uppercase — just a string snapshot, not an FK, so
+    /// deleting the PromoCode row later never corrupts an order. DiscountAmount is computed and
+    /// frozen at apply time (against Price * PrintQuantity then); it is never recomputed if
+    /// PrintQuantity changes afterward. Amount due = Max(0, Price * PrintQuantity - DiscountAmount).
+    public string? PromoCode { get; set; }
+    public decimal DiscountAmount { get; set; }
+
     public ICollection<OrderPhoto> Photos { get; set; } = new List<OrderPhoto>();
     public ICollection<PersonalDate> PersonalDates { get; set; } = new List<PersonalDate>();
     public ICollection<Sheet> Sheets { get; set; } = new List<Sheet>();

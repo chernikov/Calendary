@@ -57,10 +57,10 @@ public class MonobankPaymentService(HttpClient httpClient, AppDbContext db, IOpt
                 db.Payments.Add(order.Payment);
             }
             order.Payment.Method = PaymentMethod.Monobank;
-            order.Payment.Amount = order.Price * order.PrintQuantity;
+            order.Payment.Amount = Math.Max(0m, order.Price * order.PrintQuantity - order.DiscountAmount);
         }
 
-        var totalPrice = orders.Sum(o => o.Price * o.PrintQuantity);
+        var totalPrice = orders.Sum(o => Math.Max(0m, o.Price * o.PrintQuantity - o.DiscountAmount));
 
         if (string.IsNullOrWhiteSpace(_options.MerchantToken))
         {
@@ -73,6 +73,7 @@ public class MonobankPaymentService(HttpClient httpClient, AppDbContext db, IOpt
                 order.Payment.ProviderInvoiceId = null;
                 order.SetStatus(OrderStatus.Paid);
             }
+            await ApplyPromoRedemptionsAsync(orders, ct);
             await db.SaveChangesAsync(ct);
             logger.LogInformation(
                 "Monobank: no merchant token configured, settling orders [{OrderIds}] immediately (local-dev fallback)",
@@ -206,6 +207,7 @@ public class MonobankPaymentService(HttpClient httpClient, AppDbContext db, IOpt
                     payment.PaidAtUtc = DateTime.UtcNow;
                     payment.Order.SetStatus(OrderStatus.Paid);
                 }
+                await ApplyPromoRedemptionsAsync(payments.Select(p => p.Order), ct);
                 logger.LogInformation(
                     "Monobank webhook: orders [{OrderIds}] paid via invoice {InvoiceId}",
                     string.Join(", ", payments.Select(p => p.OrderId)), status.InvoiceId);
@@ -216,6 +218,10 @@ public class MonobankPaymentService(HttpClient httpClient, AppDbContext db, IOpt
                 foreach (var payment in payments)
                 {
                     payment.Status = PaymentStatus.Failed;
+                    // A failed/expired/reversed payment lets the customer retry checkout from
+                    // scratch — the promo code doesn't stay "spent" on an order that never paid.
+                    payment.Order.PromoCode = null;
+                    payment.Order.DiscountAmount = 0m;
                 }
                 logger.LogWarning("Monobank webhook: invoice {InvoiceId} ended as {Status}", status.InvoiceId, status.Status);
                 break;
@@ -226,6 +232,24 @@ public class MonobankPaymentService(HttpClient httpClient, AppDbContext db, IOpt
 
         await db.SaveChangesAsync(ct);
         return true;
+    }
+
+    /// Increments RedemptionsUsed for every distinct code among the given now-paid orders — one
+    /// increment per order that used it (not per distinct code), since two orders in the same
+    /// batch can each spend the same code once.
+    private async Task ApplyPromoRedemptionsAsync(IEnumerable<Order> orders, CancellationToken ct)
+    {
+        var codes = orders.Select(o => o.PromoCode).Where(c => c is not null).Distinct().ToList();
+        if (codes.Count == 0) return;
+
+        var promoCodes = await db.PromoCodes.Where(p => codes.Contains(p.Code)).ToDictionaryAsync(p => p.Code, ct);
+        foreach (var order in orders)
+        {
+            if (order.PromoCode is not null && promoCodes.TryGetValue(order.PromoCode, out var promo))
+            {
+                promo.RedemptionsUsed++;
+            }
+        }
     }
 
     private async Task<ECDsa?> GetPublicKeyAsync(CancellationToken ct)

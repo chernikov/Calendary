@@ -57,7 +57,9 @@ public record OrderDto(
     PaymentDto? Payment,
     DeliveryDto? Delivery,
     IReadOnlyList<string> HolidayCountries,
-    string WeekStart
+    string WeekStart,
+    string? PromoCode,
+    decimal DiscountAmount
 );
 
 public record OrderSummaryDto(
@@ -109,3 +111,15 @@ public record HolidayDto(Guid Id, string Country, int Year, int Day, int Month, 
 public record SaveHolidayRequest(string Country, int Year, int Day, int Month, string Name, string ShortName);
 
 public record SaveHolidaySettingsRequest(IReadOnlyList<string> Countries, string WeekStart);
+
+public record ApplyPromoCodeRequest(string Code);
+
+public record PromoCodeDto(
+    Guid Id, string Code, string Type, decimal Value,
+    DateTime? ValidFromUtc, DateTime? ValidToUtc,
+    int? MaxRedemptions, int RedemptionsUsed, decimal? MinOrderAmount, bool IsActive);
+
+public record SavePromoCodeRequest(
+    string Code, string Type, decimal Value,
+    DateTime? ValidFromUtc, DateTime? ValidToUtc,
+    int? MaxRedemptions, decimal? MinOrderAmount, bool IsActive);

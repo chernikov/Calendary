@@ -36,6 +36,10 @@ public static class DtoMapping
 
     public static HolidayDto ToDto(this Holiday h) => new(h.Id, h.Country.ToString(), h.Year, h.Day, h.Month, h.Name, h.ShortName);
 
+    public static PromoCodeDto ToDto(this PromoCode p) => new(
+        p.Id, p.Code, p.Type.ToString(), p.Value, p.ValidFromUtc, p.ValidToUtc,
+        p.MaxRedemptions, p.RedemptionsUsed, p.MinOrderAmount, p.IsActive);
+
     public static OrderDto ToDto(this Order o) => new(
         o.Id,
         o.Status.ToString(),
@@ -52,7 +56,9 @@ public static class DtoMapping
         o.Payment?.ToDto(),
         o.Delivery?.ToDto(),
         o.HolidayCountries.Select(c => c.ToString()).ToList(),
-        o.WeekStart.ToString()
+        o.WeekStart.ToString(),
+        o.PromoCode,
+        o.DiscountAmount
     );
 
     public static AdminOrderSummaryDto ToAdminSummaryDto(this Order o) => new(

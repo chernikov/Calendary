@@ -97,6 +97,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/admin/admin-holidays.component').then((m) => m.AdminHolidaysComponent),
       },
       {
+        path: 'promo-codes',
+        loadComponent: () =>
+          import('./pages/admin/admin-promo-codes.component').then((m) => m.AdminPromoCodesComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./pages/admin/admin-settings.component').then((m) => m.AdminSettingsComponent),
       },

@@ -20,6 +20,8 @@ export const adminReducer = createReducer(
     AdminActions.deleteImageStyle,
     AdminActions.saveHoliday,
     AdminActions.deleteHoliday,
+    AdminActions.savePromoCode,
+    AdminActions.deletePromoCode,
     (state) => ({ ...state, busy: true, error: null }),
   ),
 
@@ -76,6 +78,13 @@ export const adminReducer = createReducer(
     error: null,
   })),
 
+  on(AdminActions.loadPromoCodesSuccess, (state, { promoCodes }) => ({
+    ...state,
+    promoCodes,
+    busy: false,
+    error: null,
+  })),
+
   on(
     AdminActions.loadOrdersFailure,
     AdminActions.loadUsersFailure,
@@ -93,6 +102,8 @@ export const adminReducer = createReducer(
     AdminActions.promptLibraryMutationFailure,
     AdminActions.loadHolidaysFailure,
     AdminActions.holidayMutationFailure,
+    AdminActions.loadPromoCodesFailure,
+    AdminActions.promoCodeMutationFailure,
     (state, { error }) => ({ ...state, busy: false, error }),
   ),
 
