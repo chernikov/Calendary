@@ -120,6 +120,15 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/checkout`, delivery);
   }
 
+  // #304: scoped to the user, not an order — same flow for single-order and batch checkout.
+  sendPhoneVerification(phone: string): Observable<void> {
+    return this.http.post<void>(`${BASE}/orders/phone-verification`, { phone });
+  }
+
+  confirmPhoneVerification(code: string): Observable<void> {
+    return this.http.post<void>(`${BASE}/orders/phone-verification/confirm`, { code });
+  }
+
   pay(orderId: string): Observable<{ pageUrl: string }> {
     return this.http.post<{ pageUrl: string }>(`${BASE}/orders/${orderId}/pay`, {});
   }

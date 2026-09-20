@@ -1,5 +1,6 @@
 using Calendary.Application.Common;
 using Calendary.Common;
+using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
 using MediatR;
@@ -9,7 +10,7 @@ namespace Calendary.Application.Orders.Commands;
 
 public record CheckoutBatchCommand(Guid UserId, IReadOnlyList<Guid> OrderIds, DeliveryInfo Delivery) : IRequest;
 
-public class CheckoutBatchCommandHandler(IAppDbContext db) : IRequestHandler<CheckoutBatchCommand>
+public class CheckoutBatchCommandHandler(IAppDbContext db, INovaPoshtaService novaPoshta) : IRequestHandler<CheckoutBatchCommand>
 {
     public async Task Handle(CheckoutBatchCommand request, CancellationToken ct)
     {
@@ -26,6 +27,11 @@ public class CheckoutBatchCommandHandler(IAppDbContext db) : IRequestHandler<Che
             throw new AppOperationException("One or more orders are not ready for checkout.", 409);
         }
 
+        var delivery = await OrderAccess.ValidateAndNormalizeDeliveryAsync(novaPoshta, request.Delivery, ct);
+
+        var user = await db.Users.FirstAsync(u => u.Id == request.UserId, ct);
+        OrderAccess.RequirePhoneVerified(user, delivery.Phone);
+
         foreach (var order in orders)
         {
             if (order.Delivery is null)
@@ -33,13 +39,16 @@ public class CheckoutBatchCommandHandler(IAppDbContext db) : IRequestHandler<Che
                 order.Delivery = new Delivery { OrderId = order.Id };
                 db.Deliveries.Add(order.Delivery);
             }
-            order.Delivery.RecipientName = request.Delivery.RecipientName;
-            order.Delivery.Phone = request.Delivery.Phone;
-            order.Delivery.City = request.Delivery.City;
-            order.Delivery.WarehouseNumber = request.Delivery.WarehouseNumber;
-            order.Delivery.WarehouseAddress = request.Delivery.WarehouseAddress;
+            order.Delivery.RecipientName = delivery.RecipientName;
+            order.Delivery.Phone = delivery.Phone;
+            order.Delivery.City = delivery.City;
+            order.Delivery.WarehouseNumber = delivery.WarehouseNumber;
+            order.Delivery.WarehouseAddress = delivery.WarehouseAddress;
             order.SetStatus(OrderStatus.AwaitingPayment);
         }
+
+        OrderAccess.RememberLastDelivery(user, delivery);
+
         await db.SaveChangesAsync(ct);
     }
 }

@@ -41,6 +41,8 @@ builder.Services.AddCalendaryAi(builder.Configuration);
 builder.Services.AddHttpClient<IPaymentService, MonobankPaymentService>();
 builder.Services.AddHttpClient<INovaPoshtaService, NovaPoshtaService>();
 builder.Services.AddHttpClient<ICalendarPdfService, CalendarPdfService>();
+builder.Services.AddHttpClient<ISmsService, SmsClubService>();
+builder.Services.Configure<SmsClubOptions>(builder.Configuration.GetSection(SmsClubOptions.SectionName));
 builder.Services.AddScoped<ISessionTokenService, SessionTokenService>();
 builder.Services.AddScoped<IPasswordAuthService, PasswordAuthService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
@@ -92,6 +94,19 @@ builder.Services.AddRateLimiter(options =>
         {
             PermitLimit = 10,
             Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        }));
+
+    // #304: real SMS.Club sends cost money and reach a real phone (no sandbox mode) — a much
+    // tighter cap than "auth", partitioned per authenticated user rather than IP since this sits
+    // behind [Authorize]. app.UseRateLimiter() runs after UseAuthentication/UseAuthorization
+    // (below), so User is already populated by the time this factory runs.
+    options.AddPolicy("sms", httpContext => RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.User.GetUserId().ToString(),
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 3,
+            Window = TimeSpan.FromMinutes(5),
             QueueLimit = 0,
         }));
 });

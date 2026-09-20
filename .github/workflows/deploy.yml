@@ -96,6 +96,10 @@ jobs:
             printf 'MONOBANK_MERCHANT_TOKEN=%s\n' "${{ secrets.MONOBANK_MERCHANT_TOKEN }}" >> .env
             grep -v '^NOVA_POSHTA_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
             printf 'NOVA_POSHTA_API_KEY=%s\n' "${{ secrets.NOVA_POSHTA_API_KEY }}" >> .env
+            # Prod-only (see docker-compose.prod.yml's comment / SmsClubService) — deploy-staging.yml
+            # does not thread this, so staging always falls back to the fixed "0000" code.
+            grep -v '^SMSCLUB_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
+            printf 'SMSCLUB_API_KEY=%s\n' "${{ secrets.SMSCLUB_API_KEY }}" >> .env
             # Same Spaces account/creds/region for both stacks — only the bucket is split
             # (DO_SPACES_BUCKET here / DO_SPACES_BUCKET_STAGING in deploy-staging.yml) for cleaner
             # data isolation; backup.sh also scopes each stack to its own restic repo path

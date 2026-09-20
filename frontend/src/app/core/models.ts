@@ -1,11 +1,24 @@
 export type UserRole = 'Customer' | 'Admin';
 
+// #304: prefills the checkout form for returning customers — null until they've checked out once.
+export interface LastDeliveryDto {
+  recipientName: string;
+  phone: string;
+  city: string;
+  warehouseNumber: string;
+  warehouseAddress: string;
+}
+
 export interface UserDto {
   id: string;
   displayName: string | null;
   email: string | null;
   emailConfirmed: boolean;
   role: UserRole;
+  lastDelivery: LastDeliveryDto | null;
+  // Normalized "+380..." or null — lets checkout skip re-verification for an already-verified
+  // number (#304).
+  verifiedPhone: string | null;
 }
 
 export interface PromptDto {
