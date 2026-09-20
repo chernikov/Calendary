@@ -5,7 +5,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzInputNumberLegacyModule } from 'ng-zorro-antd/input-number-legacy';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -32,22 +32,21 @@ interface PromoCodeFormModel extends Omit<SavePromoCodePayload, 'validFromUtc' |
 }
 
 @Component({
-  selector: 'app-admin-promo-codes',
-  standalone: true,
-  imports: [
-    FormsModule,
-    NzTableModule,
-    NzButtonModule,
-    NzIconModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzSelectModule,
-    NzSwitchModule,
-    NzDatePickerModule,
-    NzAlertModule,
-    NzPopconfirmModule,
-  ],
-  template: `
+    selector: 'app-admin-promo-codes',
+    imports: [
+        FormsModule,
+        NzTableModule,
+        NzButtonModule,
+        NzIconModule,
+        NzInputModule,
+        NzInputNumberLegacyModule,
+        NzSelectModule,
+        NzSwitchModule,
+        NzDatePickerModule,
+        NzAlertModule,
+        NzPopconfirmModule,
+    ],
+    template: `
     <h2>Знижки</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
       Промокоди для checkout — клієнт вводить код, знижка розраховується від базової ціни
@@ -140,7 +139,7 @@ interface PromoCodeFormModel extends Omit<SavePromoCodePayload, 'validFromUtc' |
         }
       </tbody>
     </nz-table>
-  `,
+  `
 })
 export class AdminPromoCodesComponent implements OnInit {
   private readonly store = inject(Store);

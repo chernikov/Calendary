@@ -16,10 +16,9 @@ import {
 import { SaveImageStylePayload } from '../../core/models';
 
 @Component({
-  selector: 'app-admin-styles',
-  standalone: true,
-  imports: [FormsModule, NzTableModule, NzButtonModule, NzIconModule, NzInputModule, NzAlertModule, NzPopconfirmModule],
-  template: `
+    selector: 'app-admin-styles',
+    imports: [FormsModule, NzTableModule, NzButtonModule, NzIconModule, NzInputModule, NzAlertModule, NzPopconfirmModule],
+    template: `
     <h2>Стилі зображень</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
       Стиль накладається на обраний образ. Текст пишеться англійською: він додається до інструкції
@@ -86,7 +85,7 @@ import { SaveImageStylePayload } from '../../core/models';
         }
       </tbody>
     </nz-table>
-  `,
+  `
 })
 export class AdminStylesComponent implements OnInit {
   private readonly store = inject(Store);

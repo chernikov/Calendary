@@ -10,9 +10,8 @@ type PickerTab = 'photo' | 'style' | 'prompt';
 /// live reference into the caller's state, since callers differ: style-dates has a local unsaved
 /// "plan" row per sheet, cover/month operate directly on an already-generated Sheet.
 @Component({
-  selector: 'app-sheet-picker-modal',
-  standalone: true,
-  template: `
+    selector: 'app-sheet-picker-modal',
+    template: `
     <div class="dialog-backdrop" (click)="closed.emit()">
       <div class="dialog sheet-modal" (click)="$event.stopPropagation()">
         <div class="sheet-modal-left">
@@ -186,7 +185,7 @@ type PickerTab = 'photo' | 'style' | 'prompt';
       </div>
     </ng-template>
   `,
-  imports: [ImageLightboxComponent, NgTemplateOutlet],
+    imports: [ImageLightboxComponent, NgTemplateOutlet]
 })
 export class SheetPickerModalComponent implements OnInit, OnChanges {
   @Input({ required: true }) sheetName!: string;

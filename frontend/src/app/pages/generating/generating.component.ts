@@ -7,10 +7,9 @@ import { OrderDto, PersonalDateDto } from '../../core/models';
 const REQUIRED_SHEET_COUNT = 13;
 
 @Component({
-  selector: 'app-generating',
-  standalone: true,
-  imports: [RouterLink],
-  template: `
+    selector: 'app-generating',
+    imports: [RouterLink],
+    template: `
     <div class="page">
       <div class="step-label"><span>Крок 4 із 5</span></div>
       @if (order(); as o) {
@@ -85,7 +84,7 @@ const REQUIRED_SHEET_COUNT = 13;
         }
       }
     </div>
-  `,
+  `
 })
 export class GeneratingComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);

@@ -22,10 +22,9 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
 };
 
 @Component({
-  selector: 'app-admin-orders',
-  standalone: true,
-  imports: [RouterLink, DatePipe, FormsModule, NzTableModule, NzTagModule, NzSelectModule],
-  template: `
+    selector: 'app-admin-orders',
+    imports: [RouterLink, DatePipe, FormsModule, NzTableModule, NzTagModule, NzSelectModule],
+    template: `
     <h2>Замовлення</h2>
 
     <div style="margin-bottom: 16px; max-width: 260px;">
@@ -68,7 +67,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
         }
       </tbody>
     </nz-table>
-  `,
+  `
 })
 export class AdminOrdersComponent implements OnInit {
   private readonly store = inject(Store);

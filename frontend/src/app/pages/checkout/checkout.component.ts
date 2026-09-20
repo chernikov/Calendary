@@ -14,10 +14,9 @@ import { AuthService } from '../../core/auth.service';
 import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
 
 @Component({
-  selector: 'app-checkout',
-  standalone: true,
-  imports: [FormsModule, RouterLink],
-  template: `
+    selector: 'app-checkout',
+    imports: [FormsModule, RouterLink],
+    template: `
     <div class="page page-narrow">
       @if (order(); as o) {
         <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-2); font-size: 13.5px;">
@@ -154,7 +153,7 @@ import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
         </p>
       }
     </div>
-  `,
+  `
 })
 export class CheckoutComponent implements OnInit {
   private readonly store = inject(Store);

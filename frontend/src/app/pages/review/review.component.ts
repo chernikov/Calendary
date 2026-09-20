@@ -13,9 +13,8 @@ const MONTH_NAMES = [
 ];
 
 @Component({
-  selector: 'app-review',
-  standalone: true,
-  template: `
+    selector: 'app-review',
+    template: `
     <div class="page">
       <h2 style="font-size: 28px;">Ваш календар</h2>
 
@@ -97,7 +96,7 @@ const MONTH_NAMES = [
       }
     </div>
   `,
-  imports: [RouterLink, ImageLightboxComponent, PdfPreviewComponent],
+    imports: [RouterLink, ImageLightboxComponent, PdfPreviewComponent]
 })
 export class ReviewComponent implements OnInit {
   private readonly store = inject(Store);

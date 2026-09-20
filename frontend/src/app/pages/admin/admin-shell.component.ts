@@ -8,10 +8,9 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 const STYLESHEET_ID = 'ng-zorro-antd-styles';
 
 @Component({
-  selector: 'app-admin-shell',
-  standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, NzLayoutModule, NzMenuModule, NzIconModule],
-  template: `
+    selector: 'app-admin-shell',
+    imports: [RouterLink, RouterLinkActive, RouterOutlet, NzLayoutModule, NzMenuModule, NzIconModule],
+    template: `
     <nz-layout style="min-height: 100vh;">
       <nz-sider nzWidth="220px" nzTheme="dark">
         <div style="color: #fff; font-weight: 600; font-size: 18px; padding: 16px;">Calendary Admin</div>
@@ -56,7 +55,7 @@ const STYLESHEET_ID = 'ng-zorro-antd-styles';
         </nz-content>
       </nz-layout>
     </nz-layout>
-  `,
+  `
 })
 export class AdminShellComponent {
   constructor() {

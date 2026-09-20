@@ -16,10 +16,9 @@ import {
 import { SavePromptPayload, SavePromptThemePayload } from '../../core/models';
 
 @Component({
-  selector: 'app-admin-prompts',
-  standalone: true,
-  imports: [FormsModule, NzTableModule, NzButtonModule, NzIconModule, NzInputModule, NzAlertModule, NzPopconfirmModule],
-  template: `
+    selector: 'app-admin-prompts',
+    imports: [FormsModule, NzTableModule, NzButtonModule, NzIconModule, NzInputModule, NzAlertModule, NzPopconfirmModule],
+    template: `
     <h2>Бібліотека промптів</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
       Теми — це папки образів. Текст промпта пишеться англійською: він підставляється в середину
@@ -132,7 +131,7 @@ import { SavePromptPayload, SavePromptThemePayload } from '../../core/models';
         }
       </div>
     }
-  `,
+  `
 })
 export class AdminPromptsComponent implements OnInit {
   private readonly store = inject(Store);

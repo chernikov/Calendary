@@ -7,10 +7,9 @@ import { orderStatusLabel, orderStatusTagClass } from '../../core/order-status';
 import { OrderActions, selectOrderBusy, selectOrderError, selectOrderHistory } from '../../core/state/order';
 
 @Component({
-  selector: 'app-order-history',
-  standalone: true,
-  imports: [DatePipe, RouterLink],
-  template: `
+    selector: 'app-order-history',
+    imports: [DatePipe, RouterLink],
+    template: `
     <div class="page">
       <h2 style="font-size: 28px;">Мої замовлення</h2>
       <p class="text-muted">Оплачені календарі — тут можна відстежити друк і доставку.</p>
@@ -52,7 +51,7 @@ import { OrderActions, selectOrderBusy, selectOrderError, selectOrderHistory } f
         </div>
       }
     </div>
-  `,
+  `
 })
 export class OrderHistoryComponent implements OnInit {
   private readonly store = inject(Store);

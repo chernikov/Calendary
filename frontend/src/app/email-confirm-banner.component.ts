@@ -3,10 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from './core/auth.service';
 
 @Component({
-  selector: 'app-email-confirm-banner',
-  standalone: true,
-  imports: [FormsModule],
-  template: `
+    selector: 'app-email-confirm-banner',
+    imports: [FormsModule],
+    template: `
     @if (auth.needsEmailConfirmation()) {
       <div class="banner-top">
         <span>Підтвердіть пошту {{ auth.user()?.email }}, щоб не втратити доступ до замовлення.</span>
@@ -55,7 +54,7 @@ import { AuthService } from './core/auth.service';
         </div>
       </div>
     }
-  `,
+  `
 })
 export class EmailConfirmBannerComponent {
   readonly loading = signal(false);

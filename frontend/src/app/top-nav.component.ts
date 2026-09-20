@@ -4,10 +4,9 @@ import { filter } from 'rxjs';
 import { AuthService } from './core/auth.service';
 
 @Component({
-  selector: 'app-top-nav',
-  standalone: true,
-  imports: [RouterLink, RouterLinkActive],
-  template: `
+    selector: 'app-top-nav',
+    imports: [RouterLink, RouterLinkActive],
+    template: `
     @if (visible()) {
       <nav class="nav nav-top">
         <a class="nav-brand" routerLink="/">Calendary</a>
@@ -57,7 +56,7 @@ import { AuthService } from './core/auth.service';
         }
       </nav>
     }
-  `,
+  `
 })
 export class TopNavComponent {
   private readonly url = signal('');

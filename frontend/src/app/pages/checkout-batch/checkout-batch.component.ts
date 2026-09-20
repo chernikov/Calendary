@@ -14,10 +14,9 @@ import { AuthService } from '../../core/auth.service';
 import { NovaPoshtaWarehouseDto } from '../../core/models';
 
 @Component({
-  selector: 'app-checkout-batch',
-  standalone: true,
-  imports: [FormsModule, RouterLink],
-  template: `
+    selector: 'app-checkout-batch',
+    imports: [FormsModule, RouterLink],
+    template: `
     <div class="page page-narrow">
       <a routerLink="/orders" style="display: inline-flex; align-items: center; gap: 4px; margin-bottom: var(--space-2); font-size: 13.5px;">
         ← Кошик
@@ -147,7 +146,7 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
         </p>
       }
     </div>
-  `,
+  `
 })
 export class CheckoutBatchComponent implements OnInit {
   private readonly store = inject(Store);
