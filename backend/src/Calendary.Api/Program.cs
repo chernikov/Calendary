@@ -74,9 +74,17 @@ builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection(Backu
 builder.Services.Configure<AdminSeedOptions>(builder.Configuration.GetSection(AdminSeedOptions.SectionName));
 builder.Services.AddScoped<IBackupStatusService, ResticBackupStatusService>();
 
-builder.Services.AddHostedService<GenerationBackgroundService>();
-builder.Services.AddHostedService<OrderExpiryBackgroundService>();
-builder.Services.AddHostedService<UserSessionCleanupBackgroundService>();
+// Skipped in the "Testing" environment (Calendary.Api.Tests) — these tick concurrently in the
+// background for as long as the host runs, each on its own DI scope/DbContext, which races against
+// the single shared SqliteConnection CustomWebApplicationFactory hands out (SQLite doesn't support
+// concurrent use of one connection object from multiple threads) and has nothing to do with what
+// the integration tests actually exercise.
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddHostedService<GenerationBackgroundService>();
+    builder.Services.AddHostedService<OrderExpiryBackgroundService>();
+    builder.Services.AddHostedService<UserSessionCleanupBackgroundService>();
+}
 
 builder.Services.AddAuthentication(BearerTokenAuth.Scheme)
     .AddScheme<AuthenticationSchemeOptions, BearerTokenAuthenticationHandler>(BearerTokenAuth.Scheme, _ => { });
