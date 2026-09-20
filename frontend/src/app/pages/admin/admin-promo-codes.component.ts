@@ -5,7 +5,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberLegacyModule } from 'ng-zorro-antd/input-number-legacy';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -39,7 +39,7 @@ interface PromoCodeFormModel extends Omit<SavePromoCodePayload, 'validFromUtc' |
         NzButtonModule,
         NzIconModule,
         NzInputModule,
-        NzInputNumberLegacyModule,
+        NzInputNumberModule,
         NzSelectModule,
         NzSwitchModule,
         NzDatePickerModule,
