@@ -38,12 +38,20 @@ fi
 if [ ! -f .env.staging ]; then
   cat > .env.staging <<'EOF'
 GHCR_OWNER=chernikov
+STAGING_DOMAIN=staging.calendary.com.ua
 MSSQL_SA_PASSWORD=CHANGE_ME_DIFFERENT_STRONG_PASSWORD
 EOF
   echo ">>> Created /opt/calendary/.env.staging with a placeholder password — edit before deploying staging."
 else
   echo "== /opt/calendary/.env.staging already exists, leaving it as-is =="
 fi
+
+echo "== Adding STAGING_DOMAIN to .env.staging (if missing) =="
+# Idempotent, same shape as the backup-config block below — a droplet bootstrapped before this was
+# added would otherwise never get it, and docker-compose.staging.yml's Cors__AllowedOrigins__0/
+# Monobank__PublicBaseUrl silently resolve to a bare "https://" without it (see #384: this exact
+# gap broke Monobank's webhook/redirect URLs on staging).
+grep -q '^STAGING_DOMAIN=' .env.staging 2>/dev/null || printf 'STAGING_DOMAIN=staging.calendary.com.ua\n' >> .env.staging
 
 echo "== Adding backup config placeholders to .env/.env.staging (if missing) =="
 # Idempotent, unlike the two blocks above — .env/.env.staging already exist on a droplet that's
