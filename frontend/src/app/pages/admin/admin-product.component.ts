@@ -1,14 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { NzInputNumberLegacyModule } from 'ng-zorro-antd/input-number-legacy';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { AdminActions, selectAdminBasePrice } from '../../core/state/admin';
 
 @Component({
     selector: 'app-admin-product',
-    imports: [FormsModule, NzInputNumberLegacyModule, NzButtonModule, NzAlertModule],
+    imports: [FormsModule, NzInputNumberModule, NzButtonModule, NzAlertModule],
     template: `
     <h2>Товар</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
