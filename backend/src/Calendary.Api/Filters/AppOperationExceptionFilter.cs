@@ -9,7 +9,7 @@ namespace Calendary.Api.Filters;
 /// produce (an ObjectResult wrapping the plain message, content-negotiated to text/plain).
 /// Applied via [TypeFilter] on individual controllers rather than global middleware, so it only
 /// affects controllers that have actually moved their logic behind this exception convention.
-public class OrderOperationExceptionFilter : IExceptionFilter
+public class AppOperationExceptionFilter : IExceptionFilter
 {
     public void OnException(ExceptionContext context)
     {

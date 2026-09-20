@@ -16,12 +16,12 @@ namespace Calendary.Api.Controllers;
 // Thin by design (see #298): every action maps a request DTO to a Command/Query, sends it via
 // MediatR, and maps the result back to a DTO. Business logic, order-ownership loading, and
 // validation all live in Calendary.Application/Orders — this controller has no AppDbContext, no
-// business rules. OrderOperationExceptionFilter turns an AppOperationException thrown by a
+// business rules. AppOperationExceptionFilter turns an AppOperationException thrown by a
 // handler into the same response shape the old inline BadRequest/Conflict calls used to produce.
 [ApiController]
 [Route("api/orders")]
 [Authorize]
-[TypeFilter(typeof(OrderOperationExceptionFilter))]
+[TypeFilter(typeof(AppOperationExceptionFilter))]
 public class OrdersController(ISender sender, IOptions<MonobankOptions> monobankOptions) : ControllerBase
 {
     // The order isn't created until the customer actually commits a photo — no more empty
