@@ -354,11 +354,13 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Landing back on this step while sheets are still (or newly) generating has nothing to edit
-    // yet — send to /generating instead. ReviewReady stays fully usable here on purpose (see
-    // #372): the customer can come back from /review, change a prompt/style, and re-submit —
-    // SaveSheetPlan now allows that status too and only regenerates the sheets that actually
-    // changed. Confirmed/paid orders (AwaitingPayment+) remain locked, both here and server-side.
+    // ReviewReady stays fully usable here on purpose (see #372): the customer can come back from
+    // /review, change a prompt/style, and re-submit — SaveSheetPlan now allows that status too and
+    // only regenerates the sheets that actually changed. Generating/CoverReady/CoverConfirmed used
+    // to bounce straight to /generating too ("nothing to edit yet"), but with the per-sheet
+    // generation cards (#399/#403) an order can sit in Generating while some months still have no
+    // pick at all — the customer needs to land back here, not get redirected away, to finish them.
+    // Confirmed/paid orders (AwaitingPayment+) remain locked, both here and server-side.
     effect(() => {
       const status = this.order()?.status;
       if (!status) return;
@@ -366,8 +368,6 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
         this.router.navigate(['/order', this.orderId, 'checkout']);
       } else if (status === 'Paid' || status === 'Printing' || status === 'Shipped' || status === 'Delivered') {
         this.router.navigate(['/order', this.orderId, 'status']);
-      } else if (status === 'Generating' || status === 'CoverReady' || status === 'CoverConfirmed') {
-        this.router.navigate(['/order', this.orderId, 'generating']);
       }
     });
   }
