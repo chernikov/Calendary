@@ -11,7 +11,7 @@ import {
   selectWarehouses,
 } from '../../core/state/order';
 import { AuthService } from '../../core/auth.service';
-import { NovaPoshtaWarehouseDto } from '../../core/models';
+import { NovaPoshtaWarehouseDto, OrderDto } from '../../core/models';
 
 @Component({
   selector: 'app-checkout',
@@ -105,6 +105,28 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
 
         <div class="hr"></div>
 
+        <div class="field">
+          <label>Промокод</label>
+          @if (o.promoCode) {
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="tag tag-accent">{{ o.promoCode }}</span>
+              <span class="text-muted" style="font-size: 12.5px;">−{{ o.discountAmount }} ₴</span>
+              <button class="btn btn-ghost" style="padding: 0; font-size: 12.5px;" [disabled]="busy()" (click)="removePromo()">
+                Прибрати
+              </button>
+            </div>
+          } @else {
+            <div style="display: flex; gap: 8px;">
+              <input class="input" [(ngModel)]="promoCodeInput" placeholder="Введіть код" style="flex: 1;" />
+              <button class="btn btn-secondary" [disabled]="!promoCodeInput.trim() || busy()" (click)="applyPromo()">
+                Застосувати
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="hr"></div>
+
         <h2 style="font-size: 28px;">Оплата</h2>
         <p class="text-muted" style="font-size: 13px;">Оплата карткою через monobank — після натискання ви перейдете на сторінку оплати monobank.</p>
 
@@ -125,7 +147,7 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
           [disabled]="!canSubmit() || busy()"
           (click)="submit()"
         >
-          Оплатити {{ o.price }} ₴ через monobank
+          Оплатити {{ payable(o) }} ₴ через monobank
         </button>
         <p class="text-muted" style="font-size: 11px; text-align: center; margin-top: 8px;">
           Друк починається одразу після оплати.
@@ -160,6 +182,7 @@ export class CheckoutComponent implements OnInit {
   recipientName = '';
   phone = '';
   city = '';
+  promoCodeInput = '';
 
   private readonly orderId: string;
   private cityDebounce?: ReturnType<typeof setTimeout>;
@@ -204,6 +227,21 @@ export class CheckoutComponent implements OnInit {
 
   canSubmit(): boolean {
     return !!(this.recipientName && this.phone && this.city && this.selectedWarehouse());
+  }
+
+  payable(o: OrderDto): number {
+    return Math.max(0, o.price * o.printQuantity - o.discountAmount);
+  }
+
+  applyPromo(): void {
+    const code = this.promoCodeInput.trim();
+    if (!code) return;
+    this.store.dispatch(OrderActions.applyPromoCode({ orderId: this.orderId, code }));
+  }
+
+  removePromo(): void {
+    this.promoCodeInput = '';
+    this.store.dispatch(OrderActions.removePromoCode({ orderId: this.orderId }));
   }
 
   submit(): void {

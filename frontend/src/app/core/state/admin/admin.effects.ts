@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, of, switchMap } from 'rxjs';
@@ -298,6 +299,46 @@ export class AdminEffects {
         this.admin.deleteHoliday(holidayId).pipe(
           map(() => AdminActions.loadHolidays()),
           catchError(() => of(AdminActions.holidayMutationFailure({ error: 'Не вдалося видалити свято.' }))),
+        ),
+      ),
+    ),
+  );
+
+  loadPromoCodes$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadPromoCodes),
+      switchMap(() =>
+        this.admin.listPromoCodes().pipe(
+          map((promoCodes) => AdminActions.loadPromoCodesSuccess({ promoCodes })),
+          catchError(() => of(AdminActions.loadPromoCodesFailure({ error: 'Не вдалося завантажити промокоди.' }))),
+        ),
+      ),
+    ),
+  );
+
+  savePromoCode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.savePromoCode),
+      switchMap(({ promoCode }) =>
+        this.admin.savePromoCode(promoCode).pipe(
+          map(() => AdminActions.loadPromoCodes()),
+          catchError((err: HttpErrorResponse) =>
+            of(AdminActions.promoCodeMutationFailure({
+              error: typeof err.error === 'string' ? err.error : 'Не вдалося зберегти промокод.',
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  deletePromoCode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.deletePromoCode),
+      switchMap(({ promoCodeId }) =>
+        this.admin.deletePromoCode(promoCodeId).pipe(
+          map(() => AdminActions.loadPromoCodes()),
+          catchError(() => of(AdminActions.promoCodeMutationFailure({ error: 'Не вдалося видалити промокод.' }))),
         ),
       ),
     ),

@@ -52,6 +52,14 @@ export const OrderActions = createActionGroup({
     'Save Holiday Settings Success': props<{ order: OrderDto }>(),
     'Save Holiday Settings Failure': props<{ error: string }>(),
 
+    'Apply Promo Code': props<{ orderId: string; code: string }>(),
+    'Apply Promo Code Success': props<{ order: OrderDto }>(),
+    'Apply Promo Code Failure': props<{ error: string }>(),
+
+    'Remove Promo Code': props<{ orderId: string }>(),
+    'Remove Promo Code Success': props<{ order: OrderDto }>(),
+    'Remove Promo Code Failure': props<{ error: string }>(),
+
     'Start Generation': props<{ orderId: string }>(),
     'Start Generation Success': props<{ order: OrderDto }>(),
     'Start Generation Failure': props<{ error: string }>(),

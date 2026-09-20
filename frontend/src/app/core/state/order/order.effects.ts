@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, interval, map, mergeMap, of, startWith, switchMap, takeUntil, tap } from 'rxjs';
@@ -176,6 +177,37 @@ export class OrderEffects {
         this.orders.saveHolidaySettings(orderId, countries, weekStart).pipe(
           map((order) => OrderActions.saveHolidaySettingsSuccess({ order })),
           catchError(() => of(OrderActions.saveHolidaySettingsFailure({ error: 'Не вдалося зберегти налаштування свят.' }))),
+        ),
+      ),
+    ),
+  );
+
+  applyPromoCode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.applyPromoCode),
+      switchMap(({ orderId, code }) =>
+        this.orders.applyPromoCode(orderId, code).pipe(
+          map((order) => OrderActions.applyPromoCodeSuccess({ order })),
+          // The backend returns a specific, user-facing reason (code not found/expired/limit
+          // reached/min order amount) as the plain-text/JSON-string error body — surface it as-is
+          // rather than a generic message, same idea as #401's generation-failure reasons.
+          catchError((err: HttpErrorResponse) =>
+            of(OrderActions.applyPromoCodeFailure({
+              error: typeof err.error === 'string' ? err.error : 'Не вдалося застосувати промокод.',
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  removePromoCode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.removePromoCode),
+      switchMap(({ orderId }) =>
+        this.orders.removePromoCode(orderId).pipe(
+          map((order) => OrderActions.removePromoCodeSuccess({ order })),
+          catchError(() => of(OrderActions.removePromoCodeFailure({ error: 'Не вдалося прибрати промокод.' }))),
         ),
       ),
     ),

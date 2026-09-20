@@ -13,10 +13,12 @@ import {
   OrderDto,
   PagedResult,
   ProductSettingsDto,
+  PromoCodeDto,
   PromptDto,
   PromptThemeDto,
   SaveHolidayPayload,
   SaveImageStylePayload,
+  SavePromoCodePayload,
   SavePromptPayload,
   SavePromptThemePayload,
 } from './models';
@@ -128,5 +130,19 @@ export class AdminService {
 
   deleteHoliday(holidayId: string): Observable<void> {
     return this.http.delete<void>(`${BASE}/holidays/${holidayId}`);
+  }
+
+  listPromoCodes(): Observable<PromoCodeDto[]> {
+    return this.http.get<PromoCodeDto[]>(`${BASE}/promo-codes`);
+  }
+
+  savePromoCode(promoCode: SavePromoCodePayload): Observable<PromoCodeDto> {
+    return promoCode.id
+      ? this.http.put<PromoCodeDto>(`${BASE}/promo-codes/${promoCode.id}`, promoCode)
+      : this.http.post<PromoCodeDto>(`${BASE}/promo-codes`, promoCode);
+  }
+
+  deletePromoCode(promoCodeId: string): Observable<void> {
+    return this.http.delete<void>(`${BASE}/promo-codes/${promoCodeId}`);
   }
 }

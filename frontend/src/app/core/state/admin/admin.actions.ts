@@ -9,9 +9,11 @@ import {
   ImageStyleDto,
   OrderDto,
   PagedResult,
+  PromoCodeDto,
   PromptThemeDto,
   SaveHolidayPayload,
   SaveImageStylePayload,
+  SavePromoCodePayload,
   SavePromptPayload,
   SavePromptThemePayload,
 } from '../../models';
@@ -87,6 +89,14 @@ export const AdminActions = createActionGroup({
     'Save Holiday': props<{ holiday: SaveHolidayPayload }>(),
     'Delete Holiday': props<{ holidayId: string }>(),
     'Holiday Mutation Failure': props<{ error: string }>(),
+
+    'Load Promo Codes': emptyProps(),
+    'Load Promo Codes Success': props<{ promoCodes: PromoCodeDto[] }>(),
+    'Load Promo Codes Failure': props<{ error: string }>(),
+
+    'Save Promo Code': props<{ promoCode: SavePromoCodePayload }>(),
+    'Delete Promo Code': props<{ promoCodeId: string }>(),
+    'Promo Code Mutation Failure': props<{ error: string }>(),
 
     'Clear Admin Error': emptyProps(),
   },

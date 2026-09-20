@@ -492,6 +492,65 @@ public class OrdersController(
         return Ok(order!.ToDto());
     }
 
+    /// A customer-entered discount code applied at checkout (see #393) — one code per order.
+    /// DiscountAmount is computed against Price * PrintQuantity at apply time and frozen from then
+    /// on (not recomputed if PrintQuantity changes afterward). RedemptionsUsed is only incremented
+    /// on successful payment (see MonobankPaymentService), never here.
+    [HttpPost("{orderId:guid}/promo-code")]
+    public async Task<ActionResult<OrderDto>> ApplyPromoCode(Guid orderId, ApplyPromoCodeRequest request)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+        if (IsExpired(order)) return Conflict("Order has expired.");
+
+        var code = request.Code?.Trim().ToUpperInvariant();
+        if (string.IsNullOrWhiteSpace(code)) return BadRequest("Промокод обов'язковий.");
+
+        var promo = await db.PromoCodes.FirstOrDefaultAsync(p => p.Code == code);
+        if (promo is null || !promo.IsActive) return BadRequest("Код не знайдено.");
+
+        var now = DateTime.UtcNow;
+        if (promo.ValidFromUtc is not null && now < promo.ValidFromUtc
+            || promo.ValidToUtc is not null && now > promo.ValidToUtc)
+        {
+            return BadRequest("Код прострочено.");
+        }
+        if (promo.MaxRedemptions is not null && promo.RedemptionsUsed >= promo.MaxRedemptions)
+        {
+            return BadRequest("Ліміт використань вичерпано.");
+        }
+
+        var total = order.Price * order.PrintQuantity;
+        if (promo.MinOrderAmount is not null && total < promo.MinOrderAmount)
+        {
+            return BadRequest($"Мінімальна сума замовлення — {promo.MinOrderAmount:0.##} ₴.");
+        }
+
+        var discount = promo.Type == DiscountType.Percent
+            ? Math.Round(total * promo.Value / 100m, 2, MidpointRounding.AwayFromZero)
+            : promo.Value;
+        order.PromoCode = promo.Code;
+        order.DiscountAmount = Math.Min(discount, total);
+        await db.SaveChangesAsync();
+
+        order = await LoadOwnedOrderAsync(orderId);
+        return Ok(order!.ToDto());
+    }
+
+    [HttpDelete("{orderId:guid}/promo-code")]
+    public async Task<ActionResult<OrderDto>> RemovePromoCode(Guid orderId)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+
+        order.PromoCode = null;
+        order.DiscountAmount = 0m;
+        await db.SaveChangesAsync();
+
+        order = await LoadOwnedOrderAsync(orderId);
+        return Ok(order!.ToDto());
+    }
+
     [HttpPost("{orderId:guid}/pay")]
     public async Task<ActionResult<PayResponseDto>> Pay(Guid orderId)
     {

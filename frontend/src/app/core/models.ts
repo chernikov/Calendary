@@ -136,6 +136,8 @@ export interface OrderDto {
   delivery: DeliveryDto | null;
   holidayCountries: string[];
   weekStart: string;
+  promoCode: string | null;
+  discountAmount: number;
 }
 
 export interface OrderSummaryDto {
@@ -255,4 +257,31 @@ export interface SaveHolidayPayload {
   month: number;
   name: string;
   shortName: string;
+}
+
+export type DiscountType = 'Percent' | 'FixedAmount';
+
+export interface PromoCodeDto {
+  id: string;
+  code: string;
+  type: DiscountType;
+  value: number;
+  validFromUtc: string | null;
+  validToUtc: string | null;
+  maxRedemptions: number | null;
+  redemptionsUsed: number;
+  minOrderAmount: number | null;
+  isActive: boolean;
+}
+
+export interface SavePromoCodePayload {
+  id?: string;
+  code: string;
+  type: DiscountType;
+  value: number;
+  validFromUtc: string | null;
+  validToUtc: string | null;
+  maxRedemptions: number | null;
+  minOrderAmount: number | null;
+  isActive: boolean;
 }

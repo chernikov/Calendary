@@ -8,6 +8,7 @@ import {
   ImageStyleDto,
   OrderDto,
   PagedResult,
+  PromoCodeDto,
   PromptThemeDto,
 } from '../../models';
 
@@ -22,6 +23,7 @@ export interface AdminState {
   promptThemes: PromptThemeDto[];
   imageStyles: ImageStyleDto[];
   holidays: HolidayDto[];
+  promoCodes: PromoCodeDto[];
   busy: boolean;
   error: string | null;
 }
@@ -37,6 +39,7 @@ export const initialAdminState: AdminState = {
   promptThemes: [],
   imageStyles: [],
   holidays: [],
+  promoCodes: [],
   busy: false,
   error: null,
 };
