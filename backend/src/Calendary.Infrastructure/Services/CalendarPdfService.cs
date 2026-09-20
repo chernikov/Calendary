@@ -128,9 +128,9 @@ public class CalendarPdfService(HttpClient httpClient, AppDbContext db, IFileSto
         {
             column.Spacing(8);
             column.Item().AlignCenter().Text(MonthNames[month - 1]).FontSize(20).Bold();
-            // +20% over the previous 380pt height — the low end of the requested +20-25% (see
-            // #364). Centered instead of stretching/left-aligning within the column.
-            column.Item().AlignCenter().Height(456).Image(imageBytes).FitArea();
+            // Another +20% on top of the previous 456pt (which itself was +20% over the original
+            // 380pt, see #364). Centered instead of stretching/left-aligning within the column.
+            column.Item().AlignCenter().Height(547).Image(imageBytes).FitArea();
             // A bit more breathing room here specifically, on top of the column's own spacing.
             column.Item().PaddingTop(6).Element(e => ComposeCalendarGrid(e, month, calendarYear, dates, holidaysForMonth, weekStart));
         });
