@@ -1,8 +1,8 @@
 using Calendary.Api.Dtos;
-using Calendary.Infrastructure.Data;
+using Calendary.Application.Holidays;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Calendary.Api.Controllers;
 
@@ -12,15 +12,12 @@ namespace Calendary.Api.Controllers;
 [ApiController]
 [Route("api/holidays")]
 [AllowAnonymous]
-public class HolidaysController(AppDbContext db) : ControllerBase
+public class HolidaysController(ISender sender) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<HolidayDto>>> Get([FromQuery] int year)
+    public async Task<ActionResult<IReadOnlyList<HolidayDto>>> Get([FromQuery] int year, CancellationToken ct)
     {
-        var holidays = await db.Holidays
-            .Where(h => h.Year == year)
-            .OrderBy(h => h.Month).ThenBy(h => h.Day)
-            .ToListAsync();
+        var holidays = await sender.Send(new ListHolidaysForYearQuery(year), ct);
         return Ok(holidays.Select(h => h.ToDto()).ToList());
     }
 }
