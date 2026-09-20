@@ -58,7 +58,8 @@ services:
     image: ghcr.io/${GHCR_OWNER}/calendary-frontend:latest
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       default: {}
       web:
