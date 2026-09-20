@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Threading.RateLimiting;
 using Calendary.AI;
 using Calendary.Api.Auth;
@@ -24,9 +25,26 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 // touching every one of the ~20 call sites that mutate these entities — see the interceptor's own
 // doc comment.
 builder.Services.AddSingleton<DomainStatusLoggingInterceptor>();
-builder.Services.AddDbContext<AppDbContext>((sp, options) => options
-    .UseSqlServer(connectionString)
-    .AddInterceptors(sp.GetRequiredService<DomainStatusLoggingInterceptor>()));
+// "Testing" is only ever set by Calendary.Api.Tests' WebApplicationFactory (see
+// CustomWebApplicationFactory) — an in-memory SQLite database instead of the real SQL Server one,
+// so integration tests need no Docker/DB to run. EF Core 8+'s AddDbContext chains configuration
+// callbacks rather than replacing them, so the provider has to be picked here rather than by a
+// second AddDbContext call from the test factory (that leaves both providers registered and EF
+// throws at startup). SQLite's in-memory databases are dropped the moment their connection closes,
+// so this reuses the single open DbConnection instance the test factory registers as a singleton
+// (a plain connection-string based DataSource would open one connection per request, each getting
+// its own throwaway empty database) rather than the connection-string form used for SqlServer.
+builder.Services.AddDbContext<AppDbContext>((sp, options) =>
+{
+    if (builder.Environment.IsEnvironment("Testing"))
+    {
+        options.UseSqlite(sp.GetRequiredService<DbConnection>());
+    }
+    else
+    {
+        options.UseSqlServer(connectionString).AddInterceptors(sp.GetRequiredService<DomainStatusLoggingInterceptor>());
+    }
+});
 // Calendary.Application depends on this instead of the concrete AppDbContext, so it never has to
 // reference Calendary.Infrastructure (see #298).
 builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
@@ -56,9 +74,17 @@ builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection(Backu
 builder.Services.Configure<AdminSeedOptions>(builder.Configuration.GetSection(AdminSeedOptions.SectionName));
 builder.Services.AddScoped<IBackupStatusService, ResticBackupStatusService>();
 
-builder.Services.AddHostedService<GenerationBackgroundService>();
-builder.Services.AddHostedService<OrderExpiryBackgroundService>();
-builder.Services.AddHostedService<UserSessionCleanupBackgroundService>();
+// Skipped in the "Testing" environment (Calendary.Api.Tests) — these tick concurrently in the
+// background for as long as the host runs, each on its own DI scope/DbContext, which races against
+// the single shared SqliteConnection CustomWebApplicationFactory hands out (SQLite doesn't support
+// concurrent use of one connection object from multiple threads) and has nothing to do with what
+// the integration tests actually exercise.
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddHostedService<GenerationBackgroundService>();
+    builder.Services.AddHostedService<OrderExpiryBackgroundService>();
+    builder.Services.AddHostedService<UserSessionCleanupBackgroundService>();
+}
 
 builder.Services.AddAuthentication(BearerTokenAuth.Scheme)
     .AddScheme<AuthenticationSchemeOptions, BearerTokenAuthenticationHandler>(BearerTokenAuth.Scheme, _ => { });
@@ -114,20 +140,31 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
+// "Testing" is only ever set by Calendary.Api.Tests' WebApplicationFactory (see
+// CustomWebApplicationFactory) — never a real deployment environment. EF migrations are SQL
+// Server-specific, so a test run against the in-memory SQLite provider builds its schema directly
+// from the model instead, and skips seeding/migration work that's irrelevant to an empty test DB.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    if (app.Environment.IsEnvironment("Testing"))
+    {
+        db.Database.EnsureCreated();
+    }
+    else
+    {
+        db.Database.Migrate();
 
-    await AdminSeeder.EnsureAdminUserAsync(
-        db,
-        scope.ServiceProvider.GetRequiredService<IOptions<AdminSeedOptions>>().Value,
-        scope.ServiceProvider.GetRequiredService<ILogger<Program>>());
+        await AdminSeeder.EnsureAdminUserAsync(
+            db,
+            scope.ServiceProvider.GetRequiredService<IOptions<AdminSeedOptions>>().Value,
+            scope.ServiceProvider.GetRequiredService<ILogger<Program>>());
 
-    await MediaMigrator.ConvertInlineImagesAsync(
-        db,
-        scope.ServiceProvider.GetRequiredService<IFileStorage>(),
-        scope.ServiceProvider.GetRequiredService<ILogger<Program>>());
+        await MediaMigrator.ConvertInlineImagesAsync(
+            db,
+            scope.ServiceProvider.GetRequiredService<IFileStorage>(),
+            scope.ServiceProvider.GetRequiredService<ILogger<Program>>());
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -181,3 +218,7 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.Run();
+
+// Lets Calendary.Api.Tests' WebApplicationFactory<Program> reference this top-level-statements
+// entry point.
+public partial class Program;

@@ -10,7 +10,7 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular/build:application",
           "options": {
             "outputPath": "dist/calendary",
             "index": "src/index.html",
@@ -53,6 +53,15 @@
             "development": { "buildTarget": "calendary:build:development" }
           },
           "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "tsconfig.spec.json",
+            "buildTarget": "::development",
+            "runner": "vitest",
+            "runnerConfig": true
+          }
         }
       }
     }
