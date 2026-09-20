@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
+import { Component, inject, DOCUMENT } from '@angular/core';
+
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
