@@ -33,6 +33,21 @@ public static class CalendarPrompts
         "winter holidays, snow, festive evening light" // December
     ];
 
+    /// Admin-panel preview generation (#314) — unlike BuildCoverPrompt/BuildMonthPrompt, there's no
+    /// customer reference photo to reimagine (this runs standalone from Admin/Prompts /
+    /// Admin/ImageStyles, not tied to any order), so this describes a generic person instead of
+    /// referencing one. Used to fill in a Prompt's or ImageStyle's PreviewImageUrl so admins can
+    /// see what a scene/style combination looks like before any customer orders it.
+    /// <param name="sceneText">Prompt.Text — the English scene descriptor.</param>
+    /// <param name="styleText">ImageStyle.Text — the English visual style descriptor.</param>
+    public static string BuildPreviewPrompt(string sceneText, string styleText)
+    {
+        return
+            $"A person shown as {sceneText}. Render the image in this visual style: {styleText}. " +
+            "Vertical 3:4 portrait composition suitable for a calendar page. Do not add any text, " +
+            "numbers, calendar grid, or watermark to the image.";
+    }
+
     /// <param name="sceneText">Prompt.Text — the English scene descriptor chosen for the sheet.</param>
     /// <param name="styleText">ImageStyle.Text — the English visual style descriptor chosen for the sheet.</param>
     public static string BuildCoverPrompt(string sceneText, string styleText)

@@ -73,6 +73,7 @@ export const AdminActions = createActionGroup({
     'Delete Prompt Theme': props<{ themeId: string }>(),
     'Save Prompt': props<{ prompt: SavePromptPayload }>(),
     'Delete Prompt': props<{ promptId: string }>(),
+    'Generate Prompt Preview': props<{ promptId: string }>(),
     'Prompt Library Mutation Failure': props<{ error: string }>(),
 
     'Load Image Styles': emptyProps(),
@@ -81,6 +82,7 @@ export const AdminActions = createActionGroup({
 
     'Save Image Style': props<{ style: SaveImageStylePayload }>(),
     'Delete Image Style': props<{ styleId: string }>(),
+    'Generate Image Style Preview': props<{ styleId: string }>(),
 
     'Load Holidays': emptyProps(),
     'Load Holidays Success': props<{ holidays: HolidayDto[] }>(),

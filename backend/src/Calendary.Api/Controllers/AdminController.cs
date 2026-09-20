@@ -200,6 +200,15 @@ public class AdminController(
         return found ? NoContent() : NotFound();
     }
 
+    // #314 — generates a standalone example image (paired with the first ImageStyle by SortOrder)
+    // via the currently-selected real AI provider, and saves it as this Prompt's PreviewImageUrl.
+    [HttpPost("prompts/{promptId:guid}/generate-preview")]
+    public async Task<ActionResult<PromptDto>> GeneratePromptPreview(Guid promptId, CancellationToken ct)
+    {
+        var prompt = await sender.Send(new GeneratePromptPreviewCommand(promptId), ct);
+        return prompt is null ? NotFound() : Ok(prompt.ToDto());
+    }
+
     [HttpGet("image-styles")]
     public async Task<ActionResult<IReadOnlyList<ImageStyleDto>>> ListImageStyles(CancellationToken ct)
     {
@@ -228,6 +237,14 @@ public class AdminController(
     {
         var found = await sender.Send(new DeleteImageStyleCommand(styleId), ct);
         return found ? NoContent() : NotFound();
+    }
+
+    // #314 — mirrors GeneratePromptPreview, paired with the first Prompt by SortOrder.
+    [HttpPost("image-styles/{styleId:guid}/generate-preview")]
+    public async Task<ActionResult<ImageStyleDto>> GenerateImageStylePreview(Guid styleId, CancellationToken ct)
+    {
+        var style = await sender.Send(new GenerateImageStylePreviewCommand(styleId), ct);
+        return style is null ? NotFound() : Ok(style.ToDto());
     }
 
     [HttpGet("holidays")]

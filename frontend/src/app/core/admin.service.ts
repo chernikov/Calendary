@@ -104,6 +104,10 @@ export class AdminService {
     return this.http.delete<void>(`${BASE}/prompts/${promptId}`);
   }
 
+  generatePromptPreview(promptId: string): Observable<PromptDto> {
+    return this.http.post<PromptDto>(`${BASE}/prompts/${promptId}/generate-preview`, {});
+  }
+
   listImageStyles(): Observable<ImageStyleDto[]> {
     return this.http.get<ImageStyleDto[]>(`${BASE}/image-styles`);
   }
@@ -116,6 +120,10 @@ export class AdminService {
 
   deleteImageStyle(styleId: string): Observable<void> {
     return this.http.delete<void>(`${BASE}/image-styles/${styleId}`);
+  }
+
+  generateImageStylePreview(styleId: string): Observable<ImageStyleDto> {
+    return this.http.post<ImageStyleDto>(`${BASE}/image-styles/${styleId}/generate-preview`, {});
   }
 
   listHolidays(): Observable<HolidayDto[]> {
