@@ -1,5 +1,6 @@
 using Calendary.AI;
 using Calendary.Api.Auth;
+using Calendary.Application.Common;
 using Calendary.Domain.Abstractions;
 using Calendary.Infrastructure.Data;
 using Calendary.Infrastructure.Options;
@@ -16,8 +17,13 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("Missing ConnectionStrings:Default");
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+// Calendary.Application depends on this instead of the concrete AppDbContext, so it never has to
+// reference Calendary.Infrastructure (see #298).
+builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Calendary.Application.AssemblyReference).Assembly));
 
 builder.Services.AddScoped<IImageGenerationService, DynamicImageGenerationService>();
+builder.Services.AddSingleton<IPhotoThumbnailGenerator, PhotoThumbnailGeneratorService>();
 builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
 builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(FileStorageOptions.SectionName));
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();

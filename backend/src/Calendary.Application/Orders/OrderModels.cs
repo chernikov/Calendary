@@ -1,0 +1,15 @@
+namespace Calendary.Application.Orders;
+
+/// Small cross-layer records used by the Orders commands/queries below — Application can't
+/// reference Calendary.Api.Dtos, so these are the Application-facing equivalents of a few request
+/// DTOs and one list-view projection. Mirrors how PaymentInvoice already lives as a plain record
+/// next to IPaymentService.
+public record OrderSummary(
+    Guid Id, string Status, decimal Price, int PrintQuantity,
+    DateTime CreatedAtUtc, DateTime StatusUpdatedAtUtc,
+    string? StyleName, string? CoverImageUrl, bool IsArchived);
+
+public record SheetPlanEntry(int Index, Guid PromptId, Guid ImageStyleId, Guid? PhotoId);
+
+public record DeliveryInfo(
+    string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);

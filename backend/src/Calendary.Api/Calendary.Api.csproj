@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MediatR" Version="14.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,6 +21,8 @@
     <ProjectReference Include="..\Calendary.Domain\Calendary.Domain.csproj" />
     <ProjectReference Include="..\Calendary.Infrastructure\Calendary.Infrastructure.csproj" />
     <ProjectReference Include="..\Calendary.AI\Calendary.AI.csproj" />
+    <ProjectReference Include="..\Calendary.Application\Calendary.Application.csproj" />
+    <ProjectReference Include="..\Calendary.Common\Calendary.Common.csproj" />
   </ItemGroup>
 
 </Project>
