@@ -14,10 +14,11 @@ public class GetPromptLibraryQueryHandler(IAppDbContext db) : IRequestHandler<Ge
     public async Task<PromptLibraryResult> Handle(GetPromptLibraryQuery request, CancellationToken ct)
     {
         var themes = await db.PromptThemes
+            .AsNoTracking()
             .Include(t => t.Prompts)
             .OrderBy(t => t.SortOrder)
             .ToListAsync(ct);
-        var styles = await db.ImageStyles.OrderBy(s => s.SortOrder).ToListAsync(ct);
+        var styles = await db.ImageStyles.AsNoTracking().OrderBy(s => s.SortOrder).ToListAsync(ct);
 
         return new PromptLibraryResult(themes, styles);
     }

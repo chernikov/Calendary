@@ -24,6 +24,11 @@ public record SheetDto(
     Guid Id, string Kind, int Index, string Status, bool IsSelected, string? ImageUrl,
     Guid? PromptId, string? PromptName, Guid? ImageStyleId, string? ImageStyleName,
     Guid? PhotoId, Guid? ActiveVariantId, IReadOnlyList<SheetVariantDto> Variants, string? FailureReason);
+// #303's lightweight polling shape — status per sheet only, no ImageUrl/prompt/style, for the
+// "generating"/"month" pages' ~1.5s poll instead of re-fetching the full OrderDto every tick.
+public record SheetProgressDto(int Index, string Kind, string Status, string? FailureReason);
+public record OrderProgressDto(Guid Id, string Status, DateTime StatusUpdatedAtUtc, IReadOnlyList<SheetProgressDto> Sheets);
+
 public record ConfirmCoverRequest(Guid SheetId);
 
 public record CheckoutRequest(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);

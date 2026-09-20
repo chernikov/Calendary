@@ -6,6 +6,7 @@ import {
   HolidayDto,
   NovaPoshtaWarehouseDto,
   OrderDto,
+  OrderProgressDto,
   OrderSummaryDto,
   PromptLibraryDto,
   SheetPlanItem,
@@ -49,6 +50,10 @@ export class OrderService {
 
   getOrder(orderId: string): Observable<OrderDto> {
     return this.http.get<OrderDto>(`${BASE}/orders/${orderId}`);
+  }
+
+  getOrderProgress(orderId: string): Observable<OrderProgressDto> {
+    return this.http.get<OrderProgressDto>(`${BASE}/orders/${orderId}/progress`);
   }
 
   listOrders(): Observable<OrderSummaryDto[]> {

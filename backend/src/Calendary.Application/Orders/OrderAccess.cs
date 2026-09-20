@@ -23,8 +23,11 @@ public static class OrderAccess
     // generating, failed, already paid, expired) is shown but disabled in that UI.
     public static readonly OrderStatus[] SelectableForCheckout = [OrderStatus.ReviewReady, OrderStatus.AwaitingPayment];
 
-    public static Task<Order?> LoadOwnedOrderAsync(IAppDbContext db, Guid userId, Guid orderId, CancellationToken ct = default) =>
-        db.Orders
+    // trackChanges defaults to true so every existing mutating command keeps working unchanged;
+    // read-only query handlers (GetOwnedOrderQuery, AdminGetOrderQuery) pass false so EF doesn't
+    // bother setting up change tracking for an Order graph that's only ever going to be read (#303).
+    public static Task<Order?> LoadOwnedOrderAsync(IAppDbContext db, Guid userId, Guid orderId, CancellationToken ct = default, bool trackChanges = true) =>
+        (trackChanges ? (IQueryable<Order>)db.Orders : db.Orders.AsNoTracking())
             .Include(o => o.Photos)
             .Include(o => o.PersonalDates)
             .Include(o => o.Sheets).ThenInclude(s => s.Prompt)
@@ -42,8 +45,8 @@ public static class OrderAccess
     // than a nullable-userId overload of it, so there's no "pass null to skip the ownership check"
     // footgun. Also includes PinnedPhoto, which the pre-#298 AdminController.LoadOrderAsync was
     // missing (a drift between the two original loaders found while planning #298).
-    public static Task<Order?> LoadOrderForAdminAsync(IAppDbContext db, Guid orderId, CancellationToken ct = default) =>
-        db.Orders
+    public static Task<Order?> LoadOrderForAdminAsync(IAppDbContext db, Guid orderId, CancellationToken ct = default, bool trackChanges = true) =>
+        (trackChanges ? (IQueryable<Order>)db.Orders : db.Orders.AsNoTracking())
             .Include(o => o.User)
             .Include(o => o.Photos)
             .Include(o => o.PersonalDates)
@@ -55,6 +58,23 @@ public static class OrderAccess
             .Include(o => o.Delivery)
             .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.Id == orderId, ct);
+
+    // Lightweight sibling of LoadOwnedOrderAsync for the generation-progress poll (#303) — only the
+    // scalar fields the "generating"/"month" pages actually watch, no ImageUrl/prompt/style/variant
+    // payload per sheet.
+    public static Task<OrderProgress?> LoadOwnedOrderProgressAsync(IAppDbContext db, Guid userId, Guid orderId, CancellationToken ct = default) =>
+        db.Orders
+            .AsNoTracking()
+            .Where(o => o.Id == orderId && o.UserId == userId)
+            .Select(o => new OrderProgress(
+                o.Id,
+                o.Status.ToString(),
+                o.StatusUpdatedAtUtc,
+                o.Sheets
+                    .OrderBy(s => s.Index)
+                    .Select(s => new SheetProgress(s.Index, s.Kind.ToString(), s.Status.ToString(), s.FailureReason))
+                    .ToList()))
+            .FirstOrDefaultAsync(ct);
 
     public static bool IsValidPhotoId(Order order, Guid? photoId) =>
         photoId is null || order.Photos.Any(p => p.Id == photoId);

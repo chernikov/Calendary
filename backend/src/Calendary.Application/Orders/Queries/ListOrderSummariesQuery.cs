@@ -13,19 +13,27 @@ public class ListOrderSummariesQueryHandler(IAppDbContext db) : IRequestHandler<
 {
     public async Task<IReadOnlyList<OrderSummary>> Handle(ListOrderSummariesQuery request, CancellationToken ct)
     {
-        return await db.Orders
-            .Where(o => o.UserId == request.UserId)
-            .OrderByDescending(o => o.CreatedAtUtc)
-            .Select(o => new OrderSummary(
+        // A single LEFT JOIN against the (at most one) cover sheet per order, instead of #303's
+        // original two correlated subqueries (cover prompt name + cover ImageUrl) per row — keeps
+        // this to one SQL query regardless of list size.
+        var query =
+            from o in db.Orders.AsNoTracking()
+            where o.UserId == request.UserId
+            join s in db.Sheets.AsNoTracking() on new { OrderId = o.Id, Kind = SheetKind.Cover }
+                equals new { s.OrderId, s.Kind } into coverSheets
+            from cover in coverSheets.DefaultIfEmpty()
+            orderby o.CreatedAtUtc descending
+            select new OrderSummary(
                 o.Id,
                 o.Status.ToString(),
                 o.Price,
                 o.PrintQuantity,
                 o.CreatedAtUtc,
                 o.StatusUpdatedAtUtc,
-                o.Sheets.Where(s => s.Kind == SheetKind.Cover && s.Prompt != null).Select(s => s.Prompt!.Name).FirstOrDefault(),
-                o.Sheets.Where(s => s.Kind == SheetKind.Cover).Select(s => s.ImageUrl).FirstOrDefault(),
-                o.IsArchived))
-            .ToListAsync(ct);
+                cover != null && cover.Prompt != null ? cover.Prompt.Name : null,
+                cover != null ? cover.ImageUrl : null,
+                o.IsArchived);
+
+        return await query.ToListAsync(ct);
     }
 }

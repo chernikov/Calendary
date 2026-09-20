@@ -10,5 +10,5 @@ public record ListPromptThemesQuery : IRequest<IReadOnlyList<PromptTheme>>;
 public class ListPromptThemesQueryHandler(IAppDbContext db) : IRequestHandler<ListPromptThemesQuery, IReadOnlyList<PromptTheme>>
 {
     public async Task<IReadOnlyList<PromptTheme>> Handle(ListPromptThemesQuery request, CancellationToken ct) =>
-        await db.PromptThemes.Include(t => t.Prompts).OrderBy(t => t.SortOrder).ToListAsync(ct);
+        await db.PromptThemes.AsNoTracking().Include(t => t.Prompts).OrderBy(t => t.SortOrder).ToListAsync(ct);
 }

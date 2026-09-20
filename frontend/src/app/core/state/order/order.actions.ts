@@ -1,5 +1,5 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { HolidayDto, NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, PromptLibraryDto, SheetPlanItem } from '../../models';
+import { HolidayDto, NovaPoshtaWarehouseDto, OrderDto, OrderProgressDto, OrderSummaryDto, PromptLibraryDto, SheetPlanItem } from '../../models';
 
 export const OrderActions = createActionGroup({
   source: 'Order',
@@ -10,6 +10,10 @@ export const OrderActions = createActionGroup({
 
     'Start Order Polling': props<{ orderId: string; intervalMs: number }>(),
     'Stop Order Polling': emptyProps(),
+    // #303: the routine ~1.5s poll tick — cheap status-per-sheet merge into the existing order,
+    // no ImageUrl. Escalates to a full Load Order only on the (rarer) tick where a sheet actually
+    // finished, since that's when a new variant/ImageUrl needs to be picked up.
+    'Order Progress Success': props<{ progress: OrderProgressDto }>(),
 
     'Load My Orders': emptyProps(),
     'Load My Orders Success': props<{ orders: OrderSummaryDto[] }>(),

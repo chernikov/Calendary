@@ -1,15 +1,37 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, interval, map, mergeMap, of, startWith, switchMap, takeUntil, tap } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { catchError, interval, map, mergeMap, of, startWith, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs';
+import { OrderDto, OrderProgressDto } from '../../models';
 import { OrderService } from '../../order.service';
 import { photoUploadErrorMessage } from '../../photo-upload-error';
 import { OrderActions } from './order.actions';
+import { selectOrder } from './order.selectors';
+
+// This same polling action/effect is shared by every page that watches order progress
+// (generating/month/cover/style-dates during generation, status during fulfillment) — so "nothing
+// worth a full reload happened" has to mean *no* status change anywhere: not just a sheet
+// finishing (new variant/ImageUrl), but also the order's own status moving (e.g. Paid -> Shipped,
+// which is also when Delivery.trackingNumber gets populated — data the lightweight poll doesn't
+// carry either). A missing order/id mismatch means the store doesn't hold this order yet at all,
+// so it needs a full load regardless. Ticks where literally nothing changed are the common case
+// while generation/fulfillment is mid-flight, and are the ones this saves from re-fetching the
+// full ImageUrl-laden order every 1.5-2s.
+function needsFullOrderReload(current: OrderDto | null, orderId: string, progress: OrderProgressDto): boolean {
+  if (!current || current.id !== orderId) return true;
+  if (current.status !== progress.status) return true;
+  return progress.sheets.some((p) => {
+    const existing = current.sheets.find((s) => s.kind === p.kind && s.index === p.index);
+    return !existing || existing.status !== p.status;
+  });
+}
 
 @Injectable()
 export class OrderEffects {
   private readonly actions$ = inject(Actions);
   private readonly orders = inject(OrderService);
+  private readonly store = inject(Store);
 
   loadOrder$ = createEffect(() =>
     this.actions$.pipe(
@@ -41,9 +63,14 @@ export class OrderEffects {
       switchMap(({ orderId, intervalMs }) =>
         interval(intervalMs).pipe(
           startWith(0),
-          switchMap(() =>
-            this.orders.getOrder(orderId).pipe(
-              map((order) => OrderActions.loadOrderSuccess({ order })),
+          withLatestFrom(this.store.select(selectOrder)),
+          switchMap(([, currentOrder]) =>
+            this.orders.getOrderProgress(orderId).pipe(
+              map((progress) =>
+                needsFullOrderReload(currentOrder, orderId, progress)
+                  ? OrderActions.loadOrder({ orderId })
+                  : OrderActions.orderProgressSuccess({ progress }),
+              ),
               catchError(() => of(OrderActions.loadOrderFailure({ error: 'Не вдалося оновити замовлення.' }))),
             ),
           ),

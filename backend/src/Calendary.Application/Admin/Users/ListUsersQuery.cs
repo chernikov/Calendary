@@ -16,6 +16,7 @@ public class ListUsersQueryHandler(IAppDbContext db) : IRequestHandler<ListUsers
 
         var total = await db.Users.CountAsync(ct);
         var items = await db.Users
+            .AsNoTracking()
             .OrderByDescending(u => u.CreatedAtUtc)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

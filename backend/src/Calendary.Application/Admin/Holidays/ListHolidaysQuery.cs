@@ -11,6 +11,7 @@ public class ListHolidaysQueryHandler(IAppDbContext db) : IRequestHandler<ListHo
 {
     public async Task<IReadOnlyList<Holiday>> Handle(ListHolidaysQuery request, CancellationToken ct) =>
         await db.Holidays
+            .AsNoTracking()
             .OrderBy(h => h.Country).ThenBy(h => h.Year).ThenBy(h => h.Month).ThenBy(h => h.Day)
             .ToListAsync(ct);
 }
