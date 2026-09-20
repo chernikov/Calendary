@@ -29,10 +29,13 @@ const BASE = `${environment.apiBaseUrl}/api/admin`;
 export class AdminService {
   constructor(private readonly http: HttpClient) {}
 
-  listOrders(page: number, pageSize: number, status?: string): Observable<PagedResult<AdminOrderSummaryDto>> {
+  listOrders(page: number, pageSize: number, status?: string, search?: string): Observable<PagedResult<AdminOrderSummaryDto>> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (status) {
       params = params.set('status', status);
+    }
+    if (search) {
+      params = params.set('search', search);
     }
     return this.http.get<PagedResult<AdminOrderSummaryDto>>(`${BASE}/orders`, { params });
   }

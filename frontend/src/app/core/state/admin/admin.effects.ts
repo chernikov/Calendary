@@ -14,8 +14,8 @@ export class AdminEffects {
   loadOrders$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.loadOrders),
-      switchMap(({ page, pageSize, status }) =>
-        this.admin.listOrders(page, pageSize, status).pipe(
+      switchMap(({ page, pageSize, status, search }) =>
+        this.admin.listOrders(page, pageSize, status, search).pipe(
           map((result) => AdminActions.loadOrdersSuccess({ result })),
           catchError(() => of(AdminActions.loadOrdersFailure({ error: 'Не вдалося завантажити замовлення.' }))),
         ),

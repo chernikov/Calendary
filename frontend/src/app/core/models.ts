@@ -205,6 +205,7 @@ export interface AdminOrderSummaryDto {
   totalGenerationCostUsd: number;
   createdAtUtc: string;
   statusUpdatedAtUtc: string;
+  trackingNumber: string | null;
 }
 
 export interface AdminUserDto {

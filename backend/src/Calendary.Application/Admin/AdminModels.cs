@@ -4,7 +4,8 @@ namespace Calendary.Application.Admin;
 /// Calendary.Api.Dtos, same reasoning as Orders/OrderModels.cs's OrderSummary.
 public record AdminOrderSummary(
     Guid Id, string Status, Guid UserId, string? UserEmail, string? UserDisplayName,
-    decimal Price, decimal TotalGenerationCostUsd, DateTime CreatedAtUtc, DateTime StatusUpdatedAtUtc);
+    decimal Price, decimal TotalGenerationCostUsd, DateTime CreatedAtUtc, DateTime StatusUpdatedAtUtc,
+    string? TrackingNumber);
 
 public record AdminUserSummary(
     Guid Id, string? Email, string? DisplayName, string Role, string AuthProvider,
