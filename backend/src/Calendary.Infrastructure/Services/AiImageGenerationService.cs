@@ -72,6 +72,7 @@ public class AiImageGenerationService(
         order.RegenerationsRemaining -= 1;
         sheet.Status = SheetStatus.Pending;
         sheet.GeneratingStartedAtUtc = null;
+        sheet.FailureReason = null;
 
         await db.SaveChangesAsync(ct);
 
@@ -93,6 +94,7 @@ public class AiImageGenerationService(
             .FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
         sheet.Status = SheetStatus.Pending;
         sheet.GeneratingStartedAtUtc = null;
+        sheet.FailureReason = null;
         await db.SaveChangesAsync(ct);
 
         var photoUrl = sheet.PinnedPhoto?.Url ?? DefaultPhotoUrl(order.Photos.OrderBy(p => p.CreatedAtUtc).Select(p => p.Url).ToList());
@@ -122,6 +124,7 @@ public class AiImageGenerationService(
             foreach (var sheet in stuckSheets)
             {
                 sheet.Status = SheetStatus.Failed;
+                sheet.FailureReason = GenericFailureReason;
             }
             await scopedDb.SaveChangesAsync();
         }
@@ -142,6 +145,7 @@ public class AiImageGenerationService(
             if (sheet is not null && sheet.Status != SheetStatus.Ready)
             {
                 sheet.Status = SheetStatus.Failed;
+                sheet.FailureReason = GenericFailureReason;
                 await scopedDb.SaveChangesAsync();
             }
         }
@@ -206,6 +210,7 @@ public class AiImageGenerationService(
     {
         sheet.Status = SheetStatus.Generating;
         sheet.GeneratingStartedAtUtc = DateTime.UtcNow;
+        sheet.FailureReason = null;
         await scopedDb.SaveChangesAsync();
 
         try
@@ -226,6 +231,7 @@ public class AiImageGenerationService(
             else
             {
                 sheet.Status = SheetStatus.Failed;
+                sheet.FailureReason = ClassifyFailure(result.Error);
                 logger.LogWarning(
                     "AI generation failed for sheet {SheetId}: {Error}",
                     sheet.Id,
@@ -238,11 +244,27 @@ public class AiImageGenerationService(
             // still move the sheet out of Generating — otherwise it's stuck forever, since the
             // frontend only offers a retry once a sheet is Ready or explicitly Failed.
             sheet.Status = SheetStatus.Failed;
+            sheet.FailureReason = GenericFailureReason;
             logger.LogError(ex, "AI generation threw for sheet {SheetId}", sheet.Id);
         }
 
         await scopedDb.SaveChangesAsync();
     }
+
+    private const string GenericFailureReason = "Не вдалося згенерувати зображення. Спробуйте ще раз.";
+    private const string ModerationFailureReason =
+        "Зображення заблоковано системою безпеки провайдера. Спробуйте інше фото, промпт або стиль.";
+
+    // OpenAI's error payload is logged in full (see result.Error) but only classified here into a
+    // short, user-facing reason — "moderation_blocked"/"content_policy_violation" both mean the
+    // provider's own safety system rejected the output, which a bare retry won't fix.
+    private static string ClassifyFailure(string? error) =>
+        error is not null &&
+        (error.Contains("moderation", StringComparison.OrdinalIgnoreCase) ||
+         error.Contains("content_policy", StringComparison.OrdinalIgnoreCase) ||
+         error.Contains("safety system", StringComparison.OrdinalIgnoreCase))
+            ? ModerationFailureReason
+            : GenericFailureReason;
 
     // Default reference photo when a sheet has no manual pin (see Sheet.PinnedPhotoId, #351) — the
     // first one the customer uploaded. Only OrderPhoto.Url is ever used here, never ThumbUrl, which

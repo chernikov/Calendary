@@ -24,7 +24,7 @@ const MONTH_NAMES = [
           @if (s.status === 'Failed') {
             <div class="card" style="border: 1px solid var(--color-accent-2-300); background: var(--color-accent-2-100);">
               <div class="card-title">Не вдалося згенерувати цей аркуш</div>
-              <p class="card-body">Спробуйте ще раз — це не витрачає перегенерацію.</p>
+              <p class="card-body">{{ s.failureReason || 'Спробуйте ще раз — це не витрачає перегенерацію.' }}</p>
               <button class="btn btn-primary" style="align-self: flex-start;" [disabled]="busy()" (click)="openModal()">Спробувати ще раз</button>
             </div>
           } @else if (s.imageUrl) {

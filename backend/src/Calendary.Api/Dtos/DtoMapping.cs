@@ -26,7 +26,7 @@ public static class DtoMapping
         s.Id, s.Kind.ToString(), s.Index, s.Status.ToString(), s.IsSelected, s.ImageUrl,
         s.PromptId, s.Prompt?.Name, s.ImageStyleId, s.ImageStyle?.Name,
         s.PinnedPhotoId, s.ActiveVariantId,
-        s.Variants.OrderBy(v => v.CreatedAtUtc).Select(v => v.ToDto()).ToList());
+        s.Variants.OrderBy(v => v.CreatedAtUtc).Select(v => v.ToDto()).ToList(), s.FailureReason);
 
     public static PaymentDto ToDto(this Payment p) => new(
         p.Method.ToString(), p.Status.ToString(), p.Amount, p.PaidAtUtc);

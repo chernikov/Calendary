@@ -78,6 +78,7 @@ export interface SheetDto {
   photoId: string | null;
   activeVariantId: string | null;
   variants: SheetVariantDto[];
+  failureReason: string | null;
 }
 
 export interface PaymentDto {
