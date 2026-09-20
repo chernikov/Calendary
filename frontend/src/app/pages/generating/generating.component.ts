@@ -1,23 +1,40 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
 import { OrderActions, selectDownloadingPdf, selectOrder } from '../../core/state/order';
 import { OrderDto, PersonalDateDto } from '../../core/models';
 
+const REQUIRED_SHEET_COUNT = 13;
+
 @Component({
   selector: 'app-generating',
   standalone: true,
+  imports: [RouterLink],
   template: `
     <div class="page">
       <div class="step-label"><span>Крок 4 із 5</span></div>
       @if (order(); as o) {
-        <h2 style="font-size: 34px;">Готуємо {{ o.sheets.length }} аркушів</h2>
+        <a
+          [routerLink]="['/order', o.id, 'style']"
+          style="display: inline-flex; align-items: center; gap: 4px; margin-bottom: var(--space-2); font-size: 13.5px;"
+        >
+          ← Повернутись до образів
+        </a>
+
+        <h2 style="font-size: 34px;">Готуємо {{ REQUIRED_SHEET_COUNT }} аркушів</h2>
         <p class="text-muted" style="max-width: 520px;">
           Це займе кілька хвилин. Можете закрити сторінку — посилання на замовлення приведе рівно сюди.
         </p>
-        <p class="text-muted" style="font-size: 13px;">Готово {{ readyCount(o) }} із {{ o.sheets.length }}</p>
+        <p class="text-muted" style="font-size: 13px;">Готово {{ readyCount(o) }} із {{ REQUIRED_SHEET_COUNT }}</p>
+
+        @if (o.sheets.length < REQUIRED_SHEET_COUNT) {
+          <p style="color: var(--color-accent-2-700); font-size: 13px;">
+            Обрано образи ще не для всіх аркушів ({{ o.sheets.length }} із {{ REQUIRED_SHEET_COUNT }}) — поверніться до
+            образів і завершіть вибір для решти місяців.
+          </p>
+        }
 
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 12px; max-width: 720px; margin: var(--space-4) 0;">
           @for (sheet of o.sheets; track sheet.id) {
@@ -49,7 +66,7 @@ import { OrderDto, PersonalDateDto } from '../../core/models';
           </div>
         }
 
-        @if (readyCount(o) === o.sheets.length) {
+        @if (o.sheets.length === REQUIRED_SHEET_COUNT && readyCount(o) === REQUIRED_SHEET_COUNT) {
           <button
             class="btn btn-primary"
             style="min-height: 48px; font-size: 15px; padding-inline: 26px; margin-top: var(--space-4);"
@@ -67,6 +84,7 @@ export class GeneratingComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   readonly order = this.store.selectSignal(selectOrder);
   readonly downloadingPdf = this.store.selectSignal(selectDownloadingPdf);
+  readonly REQUIRED_SHEET_COUNT = REQUIRED_SHEET_COUNT;
   private readonly orderId: string;
 
   constructor(
