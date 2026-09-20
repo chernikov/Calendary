@@ -29,6 +29,11 @@ public record ConfirmCoverRequest(Guid SheetId);
 public record CheckoutRequest(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);
 public record DeliveryDto(string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress, string? TrackingNumber);
 
+public record SetPrintQuantityRequest(int Quantity);
+
+public record BatchCheckoutRequest(
+    IReadOnlyList<Guid> OrderIds, string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);
+
 public record PayResponseDto(string PageUrl);
 public record PaymentDto(string Method, string Status, decimal Amount, DateTime? PaidAtUtc);
 
@@ -41,6 +46,7 @@ public record OrderDto(
     string Status,
     IReadOnlyList<OrderPhotoDto> Photos,
     decimal Price,
+    int PrintQuantity,
     int RegenerationsRemaining,
     decimal TotalGenerationCostUsd,
     DateTime CreatedAtUtc,
@@ -58,6 +64,7 @@ public record OrderSummaryDto(
     Guid Id,
     string Status,
     decimal Price,
+    int PrintQuantity,
     DateTime CreatedAtUtc,
     DateTime StatusUpdatedAtUtc,
     string? StyleName,

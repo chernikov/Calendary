@@ -162,6 +162,7 @@ public class OrdersController(
                 o.Id,
                 o.Status.ToString(),
                 o.Price,
+                o.PrintQuantity,
                 o.CreatedAtUtc,
                 o.StatusUpdatedAtUtc,
                 o.Sheets.Where(s => s.Kind == SheetKind.Cover && s.Prompt != null).Select(s => s.Prompt!.Name).FirstOrDefault(),
@@ -501,7 +502,96 @@ public class OrdersController(
         }
 
         var webHookUrl = $"{baseUrl}/api/payments/monobank/webhook";
-        var invoice = await paymentService.CreateInvoiceAsync(orderId, redirectUrl, webHookUrl);
+        var invoice = await paymentService.CreateBatchInvoiceAsync([orderId], redirectUrl, webHookUrl);
+        return Ok(new PayResponseDto(invoice.PageUrl));
+    }
+
+    /// Orders selectable for the "Мої замовлення" cart checkout (#377) — everything else (still
+    /// generating, failed, already paid, expired) is shown but disabled in that UI.
+    private static readonly OrderStatus[] SelectableForCheckout = [OrderStatus.ReviewReady, OrderStatus.AwaitingPayment];
+
+    [HttpPut("{orderId:guid}/print-quantity")]
+    public async Task<ActionResult<OrderDto>> SetPrintQuantity(Guid orderId, SetPrintQuantityRequest request)
+    {
+        var order = await LoadOwnedOrderAsync(orderId);
+        if (order is null) return NotFound();
+        if (!SelectableForCheckout.Contains(order.Status))
+        {
+            return Conflict("Print quantity can only be changed before payment.");
+        }
+        if (request.Quantity is < 1 or > 20)
+        {
+            return BadRequest("Quantity must be between 1 and 20.");
+        }
+
+        order.PrintQuantity = request.Quantity;
+        await db.SaveChangesAsync();
+
+        order = await LoadOwnedOrderAsync(orderId);
+        return Ok(order!.ToDto());
+    }
+
+    [HttpPost("checkout-batch")]
+    public async Task<IActionResult> CheckoutBatch(BatchCheckoutRequest request)
+    {
+        if (request.OrderIds.Count == 0) return BadRequest("No orders selected.");
+
+        var userId = User.GetUserId();
+        var orders = await db.Orders
+            .Include(o => o.Delivery)
+            .Where(o => request.OrderIds.Contains(o.Id) && o.UserId == userId)
+            .ToListAsync();
+        if (orders.Count != request.OrderIds.Count) return NotFound();
+        if (orders.Any(IsExpired)) return Conflict("One or more orders have expired.");
+        if (orders.Any(o => !SelectableForCheckout.Contains(o.Status)))
+        {
+            return Conflict("One or more orders are not ready for checkout.");
+        }
+
+        foreach (var order in orders)
+        {
+            if (order.Delivery is null)
+            {
+                order.Delivery = new Delivery { OrderId = order.Id };
+                db.Deliveries.Add(order.Delivery);
+            }
+            order.Delivery.RecipientName = request.RecipientName;
+            order.Delivery.Phone = request.Phone;
+            order.Delivery.City = request.City;
+            order.Delivery.WarehouseNumber = request.WarehouseNumber;
+            order.Delivery.WarehouseAddress = request.WarehouseAddress;
+            order.SetStatus(OrderStatus.AwaitingPayment);
+        }
+        await db.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpPost("pay-batch")]
+    public async Task<ActionResult<PayResponseDto>> PayBatch([FromBody] IReadOnlyList<Guid> orderIds)
+    {
+        if (orderIds.Count == 0) return BadRequest("No orders selected.");
+
+        var userId = User.GetUserId();
+        var orders = await db.Orders.Include(o => o.Payment)
+            .Where(o => orderIds.Contains(o.Id) && o.UserId == userId)
+            .ToListAsync();
+        if (orders.Count != orderIds.Count) return NotFound();
+        if (orders.Any(IsExpired)) return Conflict("One or more orders have expired.");
+
+        var baseUrl = monobankOptions.Value.PublicBaseUrl.TrimEnd('/');
+        var redirectUrl = $"{baseUrl}/orders";
+
+        // Idempotency: a retried/duplicate POST must not create a second invoice for an
+        // already-paid batch.
+        if (orders.All(o => o.Status == OrderStatus.Paid || o.Payment?.Status == PaymentStatus.Succeeded))
+        {
+            logger.LogInformation("PayBatch: orders [{OrderIds}] already paid, skipping invoice creation", string.Join(", ", orderIds));
+            return Ok(new PayResponseDto(redirectUrl));
+        }
+
+        var webHookUrl = $"{baseUrl}/api/payments/monobank/webhook";
+        var invoice = await paymentService.CreateBatchInvoiceAsync(orderIds, redirectUrl, webHookUrl);
         return Ok(new PayResponseDto(invoice.PageUrl));
     }
 

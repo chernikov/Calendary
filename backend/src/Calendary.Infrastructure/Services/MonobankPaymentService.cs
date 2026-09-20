@@ -40,39 +40,56 @@ public class MonobankPaymentService(HttpClient httpClient, AppDbContext db, IOpt
     private static ECDsa? _cachedPublicKey;
     private static readonly SemaphoreSlim PublicKeyLock = new(1, 1);
 
-    public async Task<PaymentInvoice> CreateInvoiceAsync(Guid orderId, string redirectUrl, string webHookUrl, CancellationToken ct = default)
+    public async Task<PaymentInvoice> CreateBatchInvoiceAsync(
+        IReadOnlyList<Guid> orderIds, string redirectUrl, string webHookUrl, CancellationToken ct = default)
     {
-        var order = await db.Orders.Include(o => o.Payment).FirstOrDefaultAsync(o => o.Id == orderId, ct)
-            ?? throw new InvalidOperationException($"Order {orderId} not found.");
-
-        if (order.Payment is null)
+        var orders = await db.Orders.Include(o => o.Payment).Where(o => orderIds.Contains(o.Id)).ToListAsync(ct);
+        if (orders.Count != orderIds.Count)
         {
-            order.Payment = new Payment { OrderId = order.Id };
-            db.Payments.Add(order.Payment);
+            throw new InvalidOperationException("One or more orders were not found.");
         }
-        order.Payment.Method = PaymentMethod.Monobank;
-        order.Payment.Amount = order.Price;
+
+        foreach (var order in orders)
+        {
+            if (order.Payment is null)
+            {
+                order.Payment = new Payment { OrderId = order.Id };
+                db.Payments.Add(order.Payment);
+            }
+            order.Payment.Method = PaymentMethod.Monobank;
+            order.Payment.Amount = order.Price * order.PrintQuantity;
+        }
+
+        var totalPrice = orders.Sum(o => o.Price * o.PrintQuantity);
 
         if (string.IsNullOrWhiteSpace(_options.MerchantToken))
         {
             // Local-dev fallback: no real provider to redirect to, so settle immediately — same
             // "always succeeds" behavior the old MockPaymentService had.
-            order.Payment.Status = PaymentStatus.Succeeded;
-            order.Payment.PaidAtUtc = DateTime.UtcNow;
-            order.Payment.ProviderInvoiceId = null;
-            order.SetStatus(OrderStatus.Paid);
+            foreach (var order in orders)
+            {
+                order.Payment!.Status = PaymentStatus.Succeeded;
+                order.Payment.PaidAtUtc = DateTime.UtcNow;
+                order.Payment.ProviderInvoiceId = null;
+                order.SetStatus(OrderStatus.Paid);
+            }
             await db.SaveChangesAsync(ct);
             logger.LogInformation(
-                "Monobank: no merchant token configured, settling order {OrderId} immediately (local-dev fallback)", orderId);
+                "Monobank: no merchant token configured, settling orders [{OrderIds}] immediately (local-dev fallback)",
+                string.Join(", ", orderIds));
             return new PaymentInvoice(redirectUrl);
         }
 
-        var amountKopecks = (long)Math.Round(order.Price * 100m, MidpointRounding.AwayFromZero);
+        var amountKopecks = (long)Math.Round(totalPrice * 100m, MidpointRounding.AwayFromZero);
+        var reference = orders.Count == 1 ? orders[0].Id.ToString() : string.Join(",", orders.Select(o => o.Id));
+        var destination = orders.Count == 1
+            ? "Фотокалендар Calendary"
+            : $"Фотокалендар Calendary ({orders.Count} шт.)";
         var payload = new
         {
             amount = amountKopecks,
             ccy = 980,
-            merchantPaymInfo = new { reference = order.Id.ToString(), destination = "Фотокалендар Calendary" },
+            merchantPaymInfo = new { reference, destination },
             redirectUrl,
             webHookUrl,
         };
@@ -85,15 +102,18 @@ public class MonobankPaymentService(HttpClient httpClient, AppDbContext db, IOpt
         var body = await response.Content.ReadAsStringAsync(ct);
         if (!response.IsSuccessStatusCode)
         {
-            logger.LogError("Monobank invoice/create failed for order {OrderId}: {Status} {Body}", orderId, response.StatusCode, body);
+            logger.LogError("Monobank invoice/create failed for orders [{OrderIds}]: {Status} {Body}", string.Join(", ", orderIds), response.StatusCode, body);
             throw new InvalidOperationException("Monobank invoice creation failed.");
         }
 
         var invoice = JsonSerializer.Deserialize<InvoiceCreateResponse>(body)
             ?? throw new InvalidOperationException("Monobank invoice/create returned an unexpected response.");
 
-        order.Payment.Status = PaymentStatus.Pending;
-        order.Payment.ProviderInvoiceId = invoice.InvoiceId;
+        foreach (var order in orders)
+        {
+            order.Payment!.Status = PaymentStatus.Pending;
+            order.Payment.ProviderInvoiceId = invoice.InvoiceId;
+        }
         await db.SaveChangesAsync(ct);
 
         return new PaymentInvoice(invoice.PageUrl);
@@ -159,17 +179,20 @@ public class MonobankPaymentService(HttpClient httpClient, AppDbContext db, IOpt
             return false;
         }
 
-        var payment = await db.Payments.Include(p => p.Order)
-            .FirstOrDefaultAsync(p => p.ProviderInvoiceId == status.InvoiceId, ct);
-        if (payment is null)
+        // One invoice can cover several orders (see #377's cart checkout) — every one of them got
+        // the same ProviderInvoiceId when the batch invoice was created, so all must be updated
+        // together from this single webhook delivery.
+        var payments = await db.Payments.Include(p => p.Order)
+            .Where(p => p.ProviderInvoiceId == status.InvoiceId).ToListAsync(ct);
+        if (payments.Count == 0)
         {
             logger.LogWarning("Monobank webhook: no payment found for invoiceId {InvoiceId}", status.InvoiceId);
             return false;
         }
 
         // Idempotent: Monobank retries webhooks until it gets a 2xx, so a repeat delivery must not
-        // double-apply.
-        if (payment.Status == PaymentStatus.Succeeded)
+        // double-apply. All payments in a batch move together, so checking one is enough.
+        if (payments[0].Status == PaymentStatus.Succeeded)
         {
             return true;
         }
@@ -177,16 +200,23 @@ public class MonobankPaymentService(HttpClient httpClient, AppDbContext db, IOpt
         switch (status.Status)
         {
             case "success":
-                payment.Status = PaymentStatus.Succeeded;
-                payment.PaidAtUtc = DateTime.UtcNow;
-                payment.Order.SetStatus(OrderStatus.Paid);
+                foreach (var payment in payments)
+                {
+                    payment.Status = PaymentStatus.Succeeded;
+                    payment.PaidAtUtc = DateTime.UtcNow;
+                    payment.Order.SetStatus(OrderStatus.Paid);
+                }
                 logger.LogInformation(
-                    "Monobank webhook: order {OrderId} paid via invoice {InvoiceId}", payment.OrderId, status.InvoiceId);
+                    "Monobank webhook: orders [{OrderIds}] paid via invoice {InvoiceId}",
+                    string.Join(", ", payments.Select(p => p.OrderId)), status.InvoiceId);
                 break;
             case "failure":
             case "expired":
             case "reversed":
-                payment.Status = PaymentStatus.Failed;
+                foreach (var payment in payments)
+                {
+                    payment.Status = PaymentStatus.Failed;
+                }
                 logger.LogWarning("Monobank webhook: invoice {InvoiceId} ended as {Status}", status.InvoiceId, status.Status);
                 break;
             default:

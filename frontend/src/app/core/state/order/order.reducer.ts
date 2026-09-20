@@ -77,6 +77,16 @@ export const orderReducer = createReducer(
   })),
   on(OrderActions.archiveOrderFailure, OrderActions.unarchiveOrderFailure, (state, { error }) => ({ ...state, error })),
 
+  on(OrderActions.setPrintQuantitySuccess, (state, { orderId, quantity }) => ({
+    ...state,
+    myOrders: state.myOrders.map((o) => (o.id === orderId ? { ...o, printQuantity: quantity } : o)),
+  })),
+  on(OrderActions.setPrintQuantityFailure, (state, { error }) => ({ ...state, error })),
+
+  on(OrderActions.checkoutAndPayBatch, (state) => ({ ...state, busy: true, error: null })),
+  on(OrderActions.checkoutAndPayBatchSuccess, (state) => ({ ...state, busy: false, error: null })),
+  on(OrderActions.checkoutAndPayBatchFailure, (state, { error }) => ({ ...state, busy: false, error })),
+
   on(OrderActions.loadCitiesSuccess, (state, { cities }) => ({ ...state, cities })),
   on(OrderActions.loadCitiesFailure, (state) => ({ ...state, cities: [] })),
   on(OrderActions.clearCities, (state) => ({ ...state, cities: [] })),

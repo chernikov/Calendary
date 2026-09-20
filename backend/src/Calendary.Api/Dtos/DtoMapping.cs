@@ -41,6 +41,7 @@ public static class DtoMapping
         o.Status.ToString(),
         o.Photos.OrderBy(p => p.CreatedAtUtc).Select(p => p.ToDto()).ToList(),
         o.Price,
+        o.PrintQuantity,
         o.RegenerationsRemaining,
         o.Sheets.SelectMany(s => s.Variants).Sum(v => v.CostUsd ?? 0m),
         o.CreatedAtUtc,

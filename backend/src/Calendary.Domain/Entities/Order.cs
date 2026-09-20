@@ -15,6 +15,12 @@ public class Order
     public decimal Price { get; set; } = 1600m;
     public int RegenerationsRemaining { get; set; } = 10;
 
+    /// Physical print copies of this exact calendar (see #377) — same design/images, printed N
+    /// times. Total charged for this order = Price * PrintQuantity. Adjustable from "Мої
+    /// замовлення" while the order is still selectable for checkout (ReviewReady/AwaitingPayment);
+    /// frozen once paid, same as Price itself.
+    public int PrintQuantity { get; set; } = 1;
+
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime ExpiresAtUtc { get; set; } = DateTime.UtcNow.AddHours(48);
 

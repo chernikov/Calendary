@@ -277,6 +277,52 @@ export class OrderEffects {
     ),
   );
 
+  setPrintQuantity$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.setPrintQuantity),
+      mergeMap(({ orderId, quantity }) =>
+        this.orders.setPrintQuantity(orderId, quantity).pipe(
+          map(() => OrderActions.setPrintQuantitySuccess({ orderId, quantity })),
+          catchError(() => of(OrderActions.setPrintQuantityFailure({ error: 'Не вдалося змінити кількість.' }))),
+        ),
+      ),
+    ),
+  );
+
+  checkoutAndPayBatch$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.checkoutAndPayBatch),
+      switchMap(({ orderIds, delivery }) =>
+        this.orders.checkoutBatch(orderIds, delivery).pipe(
+          catchError(() => {
+            throw { step: 'checkout' as const };
+          }),
+          switchMap(() =>
+            this.orders.payBatch(orderIds).pipe(
+              catchError(() => {
+                throw { step: 'pay' as const };
+              }),
+            ),
+          ),
+          tap(({ pageUrl }) => {
+            window.location.href = pageUrl;
+          }),
+          map(() => OrderActions.checkoutAndPayBatchSuccess()),
+          catchError((err: { step?: 'checkout' | 'pay' }) =>
+            of(
+              OrderActions.checkoutAndPayBatchFailure({
+                error:
+                  err?.step === 'pay'
+                    ? 'Оплата не пройшла. Спробуйте ще раз.'
+                    : 'Не вдалося зберегти дані доставки.',
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
   cancelOrder$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.cancelOrder),

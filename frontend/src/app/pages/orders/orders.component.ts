@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -11,6 +11,8 @@ import {
   selectOrderBusy,
   selectOrderError,
 } from '../../core/state/order';
+
+const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
 
 @Component({
   selector: 'app-orders',
@@ -37,40 +39,85 @@ import {
         } @else {
           <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
             @for (o of activeOrders(); track o.id) {
-              <a
-                class="card selectable"
-                style="flex-direction: row; align-items: center; gap: var(--space-3); text-decoration: none; color: inherit;"
-                [routerLink]="stepLink(o)"
-              >
-                @if (o.coverImageUrl) {
-                  <img
-                    [src]="o.coverImageUrl"
-                    alt="Обкладинка календаря"
-                    style="width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); flex: none;"
+              <div class="card" style="flex-direction: row; align-items: center; gap: var(--space-3);">
+                @if (isCartEligible(o)) {
+                  <input
+                    type="checkbox"
+                    style="width: 18px; height: 18px; flex: none; cursor: pointer;"
+                    [checked]="isSelected(o.id)"
+                    (change)="toggleSelect(o.id)"
                   />
+                } @else {
+                  <span
+                    class="tag"
+                    style="flex: none; background: var(--color-accent-2-100); color: var(--color-accent-2-700); font-size: 10.5px; white-space: nowrap;"
+                  >
+                    Не готово
+                  </span>
                 }
-                <div style="flex: 1; min-width: 0;">
-                  <div class="card-title">{{ o.styleName || 'Без стилю' }}</div>
-                  <div class="card-meta">
-                    <span>{{ o.createdAtUtc | date: 'dd.MM.yyyy' }}</span>
-                    <span>·</span>
-                    <span>{{ o.price }} ₴</span>
+
+                <a
+                  [routerLink]="stepLink(o)"
+                  style="flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: inherit;"
+                >
+                  @if (o.coverImageUrl) {
+                    <img
+                      [src]="o.coverImageUrl"
+                      alt="Обкладинка календаря"
+                      style="width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); flex: none;"
+                    />
+                  }
+                  <div style="flex: 1; min-width: 0;">
+                    <div class="card-title">{{ o.styleName || 'Без стилю' }}</div>
+                    <div class="card-meta">
+                      <span>{{ o.createdAtUtc | date: 'dd.MM.yyyy' }}</span>
+                      <span>·</span>
+                      <span>{{ o.price }} ₴</span>
+                    </div>
                   </div>
-                </div>
-                <span [class]="tagClass(o)">{{ statusLabel(o) }}</span>
-                <span class="text-muted" style="font-size: 13px; white-space: nowrap;">
-                  {{ inProgress(o) ? 'Продовжити' : 'Статус' }}
-                </span>
+                  <span [class]="tagClass(o)">{{ statusLabel(o) }}</span>
+                  <span class="text-muted" style="font-size: 13px; white-space: nowrap;">
+                    {{ inProgress(o) ? 'Продовжити' : 'Статус' }}
+                  </span>
+                </a>
+
+                @if (isCartEligible(o)) {
+                  <div style="display: flex; align-items: center; gap: 4px; flex: none;">
+                    <span class="text-muted" style="font-size: 11px;">К-сть</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="20"
+                      [value]="quantityFor(o)"
+                      (change)="onQuantityChange(o.id, $event)"
+                      style="width: 52px; padding: 4px 6px; border: 1px solid var(--color-divider); border-radius: var(--radius-sm); font-size: 13px;"
+                    />
+                  </div>
+                }
+
                 <button
                   type="button"
                   class="btn btn-ghost"
                   style="flex: none;"
-                  (click)="$event.preventDefault(); $event.stopPropagation(); archive(o)"
+                  (click)="archive(o)"
                 >
                   Архівувати
                 </button>
-              </a>
+              </div>
             }
+          </div>
+        }
+
+        @if (selectedCount() > 0) {
+          <div
+            class="card"
+            style="flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); position: sticky; bottom: var(--space-3); box-shadow: var(--shadow-lg);"
+          >
+            <div>
+              <div style="font-size: 13px;" class="text-muted">Обрано: {{ selectedCount() }}</div>
+              <div class="money" style="font-size: 22px; font-weight: 500;">{{ totalPrice() }} ₴</div>
+            </div>
+            <button class="btn btn-primary" (click)="proceedToCheckout()">Оформити</button>
           </div>
         }
 
@@ -122,6 +169,18 @@ export class OrdersComponent implements OnInit {
   readonly error = this.store.selectSignal(selectOrderError);
   readonly showArchived = signal(false);
 
+  readonly selected = signal<Set<string>>(new Set());
+  private readonly quantityOverrides = signal<Map<string, number>>(new Map());
+
+  readonly selectedCount = computed(() => this.selected().size);
+  readonly totalPrice = computed(() => {
+    const selected = this.selected();
+    const overrides = this.quantityOverrides();
+    return this.activeOrders()
+      .filter((o) => selected.has(o.id))
+      .reduce((sum, o) => sum + o.price * (overrides.get(o.id) ?? o.printQuantity), 0);
+  });
+
   ngOnInit(): void {
     this.store.dispatch(OrderActions.loadMyOrders());
   }
@@ -130,6 +189,28 @@ export class OrdersComponent implements OnInit {
   tagClass = (o: OrderSummaryDto) => orderStatusTagClass(o.status);
   stepLink = (o: OrderSummaryDto) => orderStepLink(o.id, o.status);
   inProgress = (o: OrderSummaryDto) => isOrderInProgress(o.status);
+  isCartEligible = (o: OrderSummaryDto) => CART_ELIGIBLE_STATUSES.includes(o.status);
+  isSelected = (orderId: string) => this.selected().has(orderId);
+  quantityFor = (o: OrderSummaryDto) => this.quantityOverrides().get(o.id) ?? o.printQuantity;
+
+  toggleSelect(orderId: string): void {
+    const next = new Set(this.selected());
+    if (next.has(orderId)) {
+      next.delete(orderId);
+    } else {
+      next.add(orderId);
+    }
+    this.selected.set(next);
+  }
+
+  onQuantityChange(orderId: string, event: Event): void {
+    const raw = Number((event.target as HTMLInputElement).value);
+    const quantity = Math.min(20, Math.max(1, Math.round(raw) || 1));
+    const next = new Map(this.quantityOverrides());
+    next.set(orderId, quantity);
+    this.quantityOverrides.set(next);
+    this.store.dispatch(OrderActions.setPrintQuantity({ orderId, quantity }));
+  }
 
   createOrder(): void {
     // The order itself isn't created until a photo is actually uploaded — see #348.
@@ -142,5 +223,11 @@ export class OrdersComponent implements OnInit {
 
   unarchive(o: OrderSummaryDto): void {
     this.store.dispatch(OrderActions.unarchiveOrder({ orderId: o.id }));
+  }
+
+  proceedToCheckout(): void {
+    const ids = Array.from(this.selected());
+    if (ids.length === 0) return;
+    this.router.navigate(['/checkout-batch'], { queryParams: { ids: ids.join(',') } });
   }
 }
