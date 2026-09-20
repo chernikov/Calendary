@@ -232,6 +232,24 @@ textarea.input { min-height: 90px; resize: vertical; }
   color: #fff; font-size: 13px; line-height: 1; cursor: zoom-in; display: grid; place-items: center;
 }
 
+/* — PDF preview modal (see #313) — same backdrop treatment as the lightbox, but sized for a
+   scrollable document instead of a single image. */
+.pdf-preview-backdrop {
+  position: fixed; inset: 0; display: grid; place-items: center; padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-neutral-900) 85%, transparent);
+  z-index: 200;
+}
+.pdf-preview-panel {
+  width: min(900px, 100%); height: 90vh; display: flex; flex-direction: column;
+  background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.pdf-preview-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-divider); flex: none;
+}
+.pdf-preview-frame { flex: 1; border: none; width: 100%; }
+
 /* — app shell — */
 .page { max-width: 880px; margin: 0 auto; padding: var(--space-6) var(--space-4) var(--space-8); }
 .page-narrow { max-width: 460px; }
