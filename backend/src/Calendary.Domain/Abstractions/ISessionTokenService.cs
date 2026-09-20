@@ -9,4 +9,8 @@ public interface ISessionTokenService
 
     /// Resolves a bearer token back to its user, or null if it's invalid/expired.
     Task<User?> ResolveAsync(string bearerToken, CancellationToken ct = default);
+
+    /// Revokes every session for a user — called after a password reset so a stolen bearer token
+    /// stops working the moment the legitimate owner regains control of the account (#301).
+    Task InvalidateAllSessionsAsync(Guid userId, CancellationToken ct = default);
 }

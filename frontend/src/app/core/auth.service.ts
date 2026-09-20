@@ -76,6 +76,16 @@ export class AuthService {
     return this.http.post<void>(`${environment.apiBaseUrl}/api/auth/resend-confirmation`, {});
   }
 
+  // Always resolves — the backend returns the same 200 whether or not the email is registered,
+  // so this can't be used to check which accounts exist.
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${environment.apiBaseUrl}/api/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${environment.apiBaseUrl}/api/auth/reset-password`, { token, newPassword });
+  }
+
   private updateUser(user: UserDto): void {
     const current = this.session();
     if (!current) return;

@@ -10,4 +10,12 @@ public interface IPasswordAuthService
     /// Returns null for either "no such user" or "wrong password" — deliberately the same
     /// signal for both, so callers can't use this to enumerate registered emails.
     Task<User?> LoginAsync(string email, string password, CancellationToken ct = default);
+
+    /// Returns the raw (unhashed) reset token to email to the user, or null if there's no
+    /// password-auth account for that email — callers must treat both outcomes identically
+    /// (always report success) so this can't be used to enumerate registered emails either.
+    Task<string?> GeneratePasswordResetTokenAsync(string email, CancellationToken ct = default);
+
+    /// Returns the updated user on success, or null if the token is invalid/expired/already used.
+    Task<User?> ResetPasswordAsync(string rawToken, string newPassword, CancellationToken ct = default);
 }

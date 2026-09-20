@@ -2,27 +2,39 @@ using Calendary.Api.Auth;
 using Calendary.Api.Dtos;
 using Calendary.Api.Filters;
 using Calendary.Application.Auth;
+using Calendary.Common;
 using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
+using Calendary.Infrastructure.Options;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
 namespace Calendary.Api.Controllers;
 
+// Every action here is anonymous-reachable (register/login/google/forgot-password/reset-password)
+// or cheap to spam (confirm-email/resend-confirmation) — the whole controller sits behind the
+// "auth" rate-limit policy (Program.cs: 10 req/min per client IP) rather than picking endpoints
+// one by one (#301).
 [ApiController]
 [Route("api/auth")]
 [TypeFilter(typeof(AppOperationExceptionFilter))]
+[EnableRateLimiting("auth")]
 public class AuthController(
     IPasswordAuthService passwordAuth,
     IGoogleAuthService googleAuth,
     ISessionTokenService sessionTokens,
     IEmailService email,
     ILogger<AuthController> logger,
-    ISender sender) : ControllerBase
+    ISender sender,
+    // Reused rather than introducing a parallel "app's own public origin" option — it's already
+    // wired to the same value (https://$DOMAIN / https://$STAGING_DOMAIN, empty locally) in every
+    // environment for building Monobank's redirect/webhook URLs, and a password-reset link needs
+    // exactly the same thing: the app's own public origin, not anything Monobank-specific.
+    IOptions<MonobankOptions> monobankOptions) : ControllerBase
 {
-    private const int MinPasswordLength = 8;
-
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
@@ -31,9 +43,9 @@ public class AuthController(
         {
             return BadRequest("A valid email is required.");
         }
-        if (request.Password.Length < MinPasswordLength)
+        if (request.Password.Length < PasswordPolicy.MinLength)
         {
-            return BadRequest($"Password must be at least {MinPasswordLength} characters.");
+            return BadRequest($"Password must be at least {PasswordPolicy.MinLength} characters.");
         }
 
         var user = await passwordAuth.RegisterAsync(request.Email, request.Password, request.DisplayName);
@@ -118,5 +130,22 @@ public class AuthController(
     {
         var user = await sender.Send(new ResendEmailConfirmationCommand(User.GetUserId()), ct);
         return user is null ? Unauthorized() : Ok();
+    }
+
+    // Always 200, whether or not the email is registered — never gives an enumeration signal.
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct)
+    {
+        await sender.Send(new ForgotPasswordCommand(request.Email, monobankOptions.Value.PublicBaseUrl), ct);
+        return Ok();
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken ct)
+    {
+        await sender.Send(new ResetPasswordCommand(request.Token, request.NewPassword), ct);
+        return Ok();
     }
 }
