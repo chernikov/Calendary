@@ -73,7 +73,7 @@ const REQUIRED_SHEET_COUNT = 13;
             [disabled]="downloadingPdf()"
             (click)="generateCalendar(o)"
           >
-            {{ downloadingPdf() ? 'Генеруємо…' : 'Генерувати календар' }}
+            {{ downloadingPdf() ? 'Генеруємо…' : 'Перейти до оплати' }}
           </button>
         }
       }
@@ -93,11 +93,13 @@ export class GeneratingComponent implements OnInit, OnDestroy {
     private readonly actions$: Actions,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
-    // "Генерувати календар" downloads the (watermarked, pre-payment) PDF and moves straight to
-    // checkout — cover-confirm/months/review are no longer part of the primary flow.
+    // "Перейти до оплати" downloads the (watermarked, pre-payment) PDF then sends the customer to
+    // the cart (see #377/#395) — this order is now ReviewReady/selectable there, alongside
+    // whatever else they might already have in progress, rather than jumping straight into a
+    // single-order checkout that bypasses the cart entirely.
     this.actions$
       .pipe(ofType(OrderActions.downloadPdfSuccess), takeUntilDestroyed())
-      .subscribe(() => this.router.navigate(['/order', this.orderId, 'checkout']));
+      .subscribe(() => this.router.navigate(['/orders']));
   }
 
   ngOnInit(): void {
