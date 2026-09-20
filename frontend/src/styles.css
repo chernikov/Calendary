@@ -198,6 +198,12 @@ textarea.input { min-height: 90px; resize: vertical; }
 .nav-top a.btn:hover { color: var(--color-bg); }
 .nav a.is-active { color: var(--color-accent); }
 
+/* Кошик/Мої замовлення/Вихід (and the account email) collapse to icon-only on narrow viewports —
+   otherwise the bar overflows/wraps awkwardly on mobile (see #395 follow-up). */
+@media (max-width: 640px) {
+  .nav-label { display: none; }
+}
+
 /* — dialog — */
 .dialog-backdrop {
   position: fixed; inset: 0; display: grid; place-items: center; padding: var(--space-4);
