@@ -221,9 +221,10 @@ also scopes each stack to its own restic repo path within its bucket regardless,
 tokens, same `.env`/`.env.staging` variable name), and `ADMIN_PASSWORD`/`ADMIN_PASSWORD_STAGING`
 (separate passwords, same `.env`/`.env.staging` variable name — see `AdminSeeder` below) GH
 secrets get threaded into the droplet's `.env`/`.env.staging`
-on every deploy (see README's "Auth" section). The AI provider keys are the one exception: staging
-threads them too, but prod's are a manual one-off `.env` edit (see issue #330) — worth checking
-before assuming any given secret is deploy-automated.
+on every deploy (see README's "Auth" section), including `AI_OPENAI_API_KEY`/`AI_GEMINI_API_KEY`
+(both stacks now, as of #330 — no longer a prod-only manual `.env` edit). This only keeps the
+configured providers' keys current; *which* provider is actually live is a separate runtime DB
+setting toggled via the admin panel (`/admin/settings`), not an env var.
 
 The current `NOVA_POSHTA_API_KEY` secret (set 2026-09-19) expires **2027-09-19** — Nova Poshta
 deactivates keys yearly. Regenerate it in the business account

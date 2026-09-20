@@ -96,6 +96,14 @@ jobs:
             printf 'MONOBANK_MERCHANT_TOKEN=%s\n' "${{ secrets.MONOBANK_MERCHANT_TOKEN }}" >> .env
             grep -v '^NOVA_POSHTA_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
             printf 'NOVA_POSHTA_API_KEY=%s\n' "${{ secrets.NOVA_POSHTA_API_KEY }}" >> .env
+            # Aligned with deploy-staging.yml (#330) — previously prod-only had to be set by hand
+            # via SSH, an asymmetry deploy-staging.yml never had. AI__Provider itself (which
+            # actual provider is live) stays a runtime DB setting via the admin panel, not synced
+            # here — this only keeps the configured providers' keys current.
+            grep -v '^AI_OPENAI_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
+            grep -v '^AI_GEMINI_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
+            printf 'AI_OPENAI_API_KEY=%s\n' "${{ secrets.AI_OPENAI_API_KEY }}" >> .env
+            printf 'AI_GEMINI_API_KEY=%s\n' "${{ secrets.AI_GEMINI_API_KEY }}" >> .env
             # Prod-only (see docker-compose.prod.yml's comment / SmsClubService) — deploy-staging.yml
             # does not thread this, so staging always falls back to the fixed "0000" code.
             grep -v '^SMSCLUB_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
