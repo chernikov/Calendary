@@ -365,6 +365,15 @@ public class OrdersController(
         {
             order.RegenerationsRemaining -= 1;
         }
+        // Unlike the old bulk sheet-plan+generate flow, this per-sheet trigger can be the very
+        // first generation call for the order — without this, the order stays stuck on
+        // PhotoUploaded/DetailsSubmitted forever, since OrderProgressionHelper only advances an
+        // order that's already Generating (see #399: an order can finish all 13 sheets and never
+        // reach ReviewReady).
+        if (order.Status is OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted)
+        {
+            order.SetStatus(OrderStatus.Generating);
+        }
         await db.SaveChangesAsync();
 
         await generationService.GenerateSheetPreviewAsync(orderId, sheet.Id);
