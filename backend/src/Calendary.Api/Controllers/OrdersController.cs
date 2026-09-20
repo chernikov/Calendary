@@ -514,8 +514,9 @@ public class OrdersController(
         if (!sheetsReady) return Conflict("Calendar is not fully generated yet.");
 
         // Before payment, this doubles as the customer-facing preview — stamp it so it can't pass
-        // as the final print file.
-        var watermark = order.Status != OrderStatus.Paid;
+        // as the final print file. Once paid, every later status (Printing/Shipped/Delivered)
+        // should stay watermark-free too, not just the exact Paid status.
+        var watermark = order.Status is not (OrderStatus.Paid or OrderStatus.Printing or OrderStatus.Shipped or OrderStatus.Delivered);
         var pdfBytes = await pdfService.GenerateAsync(orderId, watermark);
         return File(pdfBytes, "application/pdf", $"calendary-{orderId}.pdf");
     }
