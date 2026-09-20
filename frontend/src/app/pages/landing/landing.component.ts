@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
 
 @Component({
     selector: 'app-landing',
@@ -11,7 +12,11 @@ import { RouterLink } from '@angular/router';
         Одне фото, обраний напрямок і особисті дати — решту робить генерація. Друк A3, тверда обкладинка,
         доставка Новою поштою.
       </p>
-      <a class="btn btn-primary" style="min-height: 50px; font-size: 15px; padding-inline: 28px;" routerLink="/start">
+      <a
+        class="btn btn-primary"
+        style="min-height: 50px; font-size: 15px; padding-inline: 28px;"
+        [routerLink]="auth.isAuthenticated() ? ['/order', 'new', 'upload'] : ['/start']"
+      >
         Почати замовлення
       </a>
 
@@ -34,4 +39,6 @@ import { RouterLink } from '@angular/router';
     </div>
   `
 })
-export class LandingComponent {}
+export class LandingComponent {
+  readonly auth = inject(AuthService);
+}
