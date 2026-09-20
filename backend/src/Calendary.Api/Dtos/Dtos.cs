@@ -32,7 +32,7 @@ public record DeliveryDto(string RecipientName, string Phone, string City, strin
 public record PayRequest(string Method);
 public record PaymentDto(string Method, string Status, decimal Amount, DateTime? PaidAtUtc);
 
-public record NovaPoshtaWarehouseDto(string Number, string Address, string ClosesAt);
+public record NovaPoshtaWarehouseDto(string Number, string Address, string ClosesAt, bool IsPostomat);
 
 public record OrderPhotoDto(Guid Id, string Url, string ThumbUrl);
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -62,17 +62,40 @@ import { NovaPoshtaWarehouseDto } from '../../core/models';
 
           @if (warehouses().length > 0) {
             <div>
-              <div class="text-muted" style="font-size: 11px; margin-bottom: 5px;">Відділення</div>
-              <div style="border: 1px solid var(--color-divider);">
-                @for (w of warehouses(); track w.number) {
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+                <div class="text-muted" style="font-size: 11px;">Відділення</div>
+                <div style="display: flex; gap: 4px;">
+                  @for (f of warehouseFilters; track f.value) {
+                    <button
+                      type="button"
+                      class="btn"
+                      [class.btn-primary]="warehouseFilter() === f.value"
+                      [class.btn-secondary]="warehouseFilter() !== f.value"
+                      style="font-size: 11px; padding: 3px 9px; min-height: unset;"
+                      (click)="warehouseFilter.set(f.value)"
+                    >
+                      {{ f.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+              <div style="border: 1px solid var(--color-divider); max-height: 320px; overflow-y: auto;">
+                @for (w of filteredWarehouses(); track w.number) {
                   <div
                     style="display: flex; gap: 10px; padding: 11px; border-bottom: 1px solid var(--color-divider); cursor: pointer;"
                     [style.background]="selectedWarehouse()?.number === w.number ? 'var(--color-accent-100)' : 'transparent'"
                     (click)="selectedWarehouse.set(w)"
                   >
                     <span class="money" style="font-size: 11.5px; color: var(--color-accent-700); width: 30px; flex: none;">{{ w.number }}</span>
-                    <span style="font-size: 12.5px;">{{ w.address }} · {{ w.closesAt }}</span>
+                    <span style="font-size: 12.5px; flex: 1;">
+                      {{ w.address }} · {{ w.closesAt }}
+                      @if (w.isPostomat) {
+                        <span class="tag tag-neutral" style="font-size: 10px; margin-left: 6px;">Поштомат</span>
+                      }
+                    </span>
                   </div>
+                } @empty {
+                  <div class="text-muted" style="padding: 11px; font-size: 12.5px;">Нічого не знайдено для цього фільтра.</div>
                 }
               </div>
             </div>
@@ -129,6 +152,19 @@ export class CheckoutComponent implements OnInit {
   readonly warehouses = this.store.selectSignal(selectWarehouses);
   readonly showCitySuggestions = signal(false);
   readonly selectedWarehouse = signal<NovaPoshtaWarehouseDto | null>(null);
+  readonly warehouseFilter = signal<'all' | 'branch' | 'postomat'>('all');
+  readonly warehouseFilters: { value: 'all' | 'branch' | 'postomat'; label: string }[] = [
+    { value: 'all', label: 'Усі' },
+    { value: 'branch', label: 'Відділення' },
+    { value: 'postomat', label: 'Поштомати' },
+  ];
+  readonly filteredWarehouses = computed(() => {
+    const filter = this.warehouseFilter();
+    const list = this.warehouses();
+    if (filter === 'branch') return list.filter((w) => !w.isPostomat);
+    if (filter === 'postomat') return list.filter((w) => w.isPostomat);
+    return list;
+  });
   readonly method = signal<string>('ApplePay');
   readonly busy = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
@@ -165,6 +201,7 @@ export class CheckoutComponent implements OnInit {
 
   onCityChange(city: string): void {
     this.selectedWarehouse.set(null);
+    this.warehouseFilter.set('all');
     this.store.dispatch(OrderActions.clearWarehouses());
     this.showCitySuggestions.set(true);
     clearTimeout(this.cityDebounce);

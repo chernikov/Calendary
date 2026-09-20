@@ -151,6 +151,7 @@ export interface NovaPoshtaWarehouseDto {
   number: string;
   address: string;
   closesAt: string;
+  isPostomat: boolean;
 }
 
 export interface PagedResult<T> {
