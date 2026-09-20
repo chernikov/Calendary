@@ -72,11 +72,6 @@ public static class DtoMapping
         o.DiscountAmount
     );
 
-    public static AdminOrderSummaryDto ToAdminSummaryDto(this Order o) => new(
-        o.Id, o.Status.ToString(), o.UserId, o.User.Email, o.User.DisplayName,
-        o.Price, o.Sheets.SelectMany(s => s.Variants).Sum(v => v.CostUsd ?? 0m),
-        o.CreatedAtUtc, o.StatusUpdatedAtUtc);
-
     public static AdminUserDto ToAdminDto(this User u) => new(
         u.Id, u.Email, u.DisplayName, u.Role.ToString(), u.AuthProvider.ToString(),
         u.EmailConfirmed, u.CreatedAtUtc, u.Orders.Count);

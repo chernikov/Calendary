@@ -41,12 +41,13 @@ public class AdminController(
 {
     [HttpGet("orders")]
     public async Task<ActionResult<PagedResult<AdminOrderSummaryDto>>> ListOrders(
-        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? status = null, CancellationToken ct = default)
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? status = null,
+        [FromQuery] string? search = null, CancellationToken ct = default)
     {
-        var result = await sender.Send(new AdminListOrdersQuery(page, pageSize, status), ct);
+        var result = await sender.Send(new AdminListOrdersQuery(page, pageSize, status, search), ct);
         var items = result.Items.Select(o => new AdminOrderSummaryDto(
             o.Id, o.Status, o.UserId, o.UserEmail, o.UserDisplayName,
-            o.Price, o.TotalGenerationCostUsd, o.CreatedAtUtc, o.StatusUpdatedAtUtc)).ToList();
+            o.Price, o.TotalGenerationCostUsd, o.CreatedAtUtc, o.StatusUpdatedAtUtc, o.TrackingNumber)).ToList();
         return Ok(new PagedResult<AdminOrderSummaryDto>(items, result.TotalCount, result.Page, result.PageSize));
     }
 

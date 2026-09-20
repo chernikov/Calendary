@@ -116,7 +116,8 @@ public record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Page, i
 
 public record AdminOrderSummaryDto(
     Guid Id, string Status, Guid UserId, string? UserEmail, string? UserDisplayName,
-    decimal Price, decimal TotalGenerationCostUsd, DateTime CreatedAtUtc, DateTime StatusUpdatedAtUtc);
+    decimal Price, decimal TotalGenerationCostUsd, DateTime CreatedAtUtc, DateTime StatusUpdatedAtUtc,
+    string? TrackingNumber);
 
 public record AdminUserDto(
     Guid Id, string? Email, string? DisplayName, string Role, string AuthProvider,

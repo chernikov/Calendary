@@ -21,7 +21,7 @@ import {
 export const AdminActions = createActionGroup({
   source: 'Admin',
   events: {
-    'Load Orders': props<{ page: number; pageSize: number; status?: string }>(),
+    'Load Orders': props<{ page: number; pageSize: number; status?: string; search?: string }>(),
     'Load Orders Success': props<{ result: PagedResult<AdminOrderSummaryDto> }>(),
     'Load Orders Failure': props<{ error: string }>(),
 
