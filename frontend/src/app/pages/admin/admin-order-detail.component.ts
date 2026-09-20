@@ -23,10 +23,9 @@ const STATUS_COLORS: Record<SheetStatus, string> = {
 };
 
 @Component({
-  selector: 'app-admin-order-detail',
-  standalone: true,
-  imports: [DatePipe, RouterLink, NzDescriptionsModule, NzTagModule, NzButtonModule, NzIconModule, NzSpinModule],
-  template: `
+    selector: 'app-admin-order-detail',
+    imports: [DatePipe, RouterLink, NzDescriptionsModule, NzTagModule, NzButtonModule, NzIconModule, NzSpinModule],
+    template: `
     <a routerLink="/admin/orders" style="display: inline-flex; align-items: center; gap: 4px; margin-bottom: 16px;">
       <span nz-icon nzType="left"></span> До списку замовлень
     </a>
@@ -126,7 +125,7 @@ const STATUS_COLORS: Record<SheetStatus, string> = {
         }
       </div>
     }
-  `,
+  `
 })
 export class AdminOrderDetailComponent implements OnInit {
   private readonly store = inject(Store);

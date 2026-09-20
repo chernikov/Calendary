@@ -15,10 +15,9 @@ import {
 const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
 
 @Component({
-  selector: 'app-orders',
-  standalone: true,
-  imports: [DatePipe, RouterLink],
-  template: `
+    selector: 'app-orders',
+    imports: [DatePipe, RouterLink],
+    template: `
     <div class="page">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3);">
         <h2 style="font-size: 28px;">Кошик</h2>
@@ -154,7 +153,7 @@ const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
         }
       }
     </div>
-  `,
+  `
 })
 export class OrdersComponent implements OnInit {
   private readonly store = inject(Store);

@@ -12,9 +12,8 @@ const MONTH_NAMES = [
 ];
 
 @Component({
-  selector: 'app-month',
-  standalone: true,
-  template: `
+    selector: 'app-month',
+    template: `
     <div class="page page-narrow">
       @if (order(); as o) {
         <div class="step-label"><span>Аркуш {{ monthNumber }} із 12</span></div>
@@ -80,7 +79,7 @@ const MONTH_NAMES = [
       }
     </div>
   `,
-  imports: [SheetPickerModalComponent],
+    imports: [SheetPickerModalComponent]
 })
 export class MonthComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);

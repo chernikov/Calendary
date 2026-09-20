@@ -1,16 +1,15 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzInputNumberLegacyModule } from 'ng-zorro-antd/input-number-legacy';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { AdminActions, selectAdminBasePrice } from '../../core/state/admin';
 
 @Component({
-  selector: 'app-admin-product',
-  standalone: true,
-  imports: [FormsModule, NzInputNumberModule, NzButtonModule, NzAlertModule],
-  template: `
+    selector: 'app-admin-product',
+    imports: [FormsModule, NzInputNumberLegacyModule, NzButtonModule, NzAlertModule],
+    template: `
     <h2>Товар</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
       Базова ціна фотокалендаря. Нові замовлення отримують цю ціну в момент створення — вона
@@ -35,7 +34,7 @@ import { AdminActions, selectAdminBasePrice } from '../../core/state/admin';
         nzShowIcon
       ></nz-alert>
     }
-  `,
+  `
 })
 export class AdminProductComponent implements OnInit {
   private readonly store = inject(Store);

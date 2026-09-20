@@ -5,10 +5,9 @@ import { AuthService } from '../../core/auth.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
-  selector: 'app-start',
-  standalone: true,
-  imports: [FormsModule],
-  template: `
+    selector: 'app-start',
+    imports: [FormsModule],
+    template: `
     <div class="page page-narrow">
       <h2 style="font-size: 28px;">{{ mode() === 'register' ? 'Реєстрація' : 'Вхід' }}</h2>
 
@@ -60,7 +59,7 @@ import { environment } from '../../../environments/environment';
 
       <div #googleButton></div>
     </div>
-  `,
+  `
 })
 export class StartComponent implements AfterViewInit {
   @ViewChild('googleButton') googleButtonRef!: ElementRef<HTMLDivElement>;

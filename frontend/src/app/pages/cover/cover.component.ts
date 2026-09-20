@@ -14,9 +14,8 @@ import {
 import { SheetPickerModalComponent } from '../style-dates/sheet-picker-modal.component';
 
 @Component({
-  selector: 'app-cover',
-  standalone: true,
-  template: `
+    selector: 'app-cover',
+    template: `
     <div class="page page-narrow">
       <div class="step-label"><span>Крок 5 із 5</span></div>
       <h2 style="font-size: 28px;">Обкладинка</h2>
@@ -77,7 +76,7 @@ import { SheetPickerModalComponent } from '../style-dates/sheet-picker-modal.com
       }
     </div>
   `,
-  imports: [SheetPickerModalComponent],
+    imports: [SheetPickerModalComponent]
 })
 export class CoverComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);

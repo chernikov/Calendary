@@ -2,10 +2,9 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-landing',
-  standalone: true,
-  imports: [RouterLink],
-  template: `
+    selector: 'app-landing',
+    imports: [RouterLink],
+    template: `
     <div class="page">
       <h1 style="font-size: 48px; max-width: 640px;">Календар на дванадцять місяців — з вашими образами</h1>
       <p class="text-muted" style="font-size: 17px; max-width: 520px; margin-bottom: var(--space-6);">
@@ -33,6 +32,6 @@ import { RouterLink } from '@angular/router';
         </div>
       </div>
     </div>
-  `,
+  `
 })
 export class LandingComponent {}

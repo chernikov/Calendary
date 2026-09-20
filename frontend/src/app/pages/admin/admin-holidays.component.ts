@@ -5,7 +5,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzInputNumberLegacyModule } from 'ng-zorro-antd/input-number-legacy';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
@@ -26,20 +26,19 @@ const COUNTRIES = [
 ];
 
 @Component({
-  selector: 'app-admin-holidays',
-  standalone: true,
-  imports: [
-    FormsModule,
-    NzTableModule,
-    NzButtonModule,
-    NzIconModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzSelectModule,
-    NzAlertModule,
-    NzPopconfirmModule,
-  ],
-  template: `
+    selector: 'app-admin-holidays',
+    imports: [
+        FormsModule,
+        NzTableModule,
+        NzButtonModule,
+        NzIconModule,
+        NzInputModule,
+        NzInputNumberLegacyModule,
+        NzSelectModule,
+        NzAlertModule,
+        NzPopconfirmModule,
+    ],
+    template: `
     <h2>Свята</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
       Державні свята за країною і роком — клієнт обирає, які позначати в календарі, на кроці
@@ -117,7 +116,7 @@ const COUNTRIES = [
         }
       </tbody>
     </nz-table>
-  `,
+  `
 })
 export class AdminHolidaysComponent implements OnInit {
   private readonly store = inject(Store);

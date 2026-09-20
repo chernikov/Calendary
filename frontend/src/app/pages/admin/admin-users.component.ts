@@ -6,10 +6,9 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { AdminActions, selectAdminBusy, selectAdminUsers } from '../../core/state/admin';
 
 @Component({
-  selector: 'app-admin-users',
-  standalone: true,
-  imports: [DatePipe, NzTableModule, NzTagModule],
-  template: `
+    selector: 'app-admin-users',
+    imports: [DatePipe, NzTableModule, NzTagModule],
+    template: `
     <h2>Користувачі</h2>
 
     <nz-table
@@ -46,7 +45,7 @@ import { AdminActions, selectAdminBusy, selectAdminUsers } from '../../core/stat
         }
       </tbody>
     </nz-table>
-  `,
+  `
 })
 export class AdminUsersComponent implements OnInit {
   private readonly store = inject(Store);

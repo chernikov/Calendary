@@ -25,10 +25,9 @@ interface PlanRow {
 }
 
 @Component({
-  selector: 'app-style-dates',
-  standalone: true,
-  imports: [FormsModule, ImageLightboxComponent, SheetPickerModalComponent],
-  template: `
+    selector: 'app-style-dates',
+    imports: [FormsModule, ImageLightboxComponent, SheetPickerModalComponent],
+    template: `
     <div class="page">
       <div class="step-label"><span>Крок 3 із 5</span></div>
       <h2 style="font-size: 28px;">Образи</h2>
@@ -273,7 +272,7 @@ interface PlanRow {
         <app-image-lightbox [url]="z" (closed)="zoomUrl.set(null)" />
       }
     </div>
-  `,
+  `
 })
 export class StyleDatesComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
