@@ -123,6 +123,7 @@ export interface OrderDto {
   status: OrderStatus;
   photos: OrderPhotoDto[];
   price: number;
+  printQuantity: number;
   regenerationsRemaining: number;
   totalGenerationCostUsd: number;
   createdAtUtc: string;
@@ -140,6 +141,7 @@ export interface OrderSummaryDto {
   id: string;
   status: OrderStatus;
   price: number;
+  printQuantity: number;
   createdAtUtc: string;
   statusUpdatedAtUtc: string;
   styleName: string | null;

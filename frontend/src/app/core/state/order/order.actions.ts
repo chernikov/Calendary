@@ -88,6 +88,17 @@ export const OrderActions = createActionGroup({
     'Checkout And Pay Success': emptyProps(),
     'Checkout And Pay Failure': props<{ error: string }>(),
 
+    'Set Print Quantity': props<{ orderId: string; quantity: number }>(),
+    'Set Print Quantity Success': props<{ orderId: string; quantity: number }>(),
+    'Set Print Quantity Failure': props<{ error: string }>(),
+
+    'Checkout And Pay Batch': props<{
+      orderIds: string[];
+      delivery: { recipientName: string; phone: string; city: string; warehouseNumber: string; warehouseAddress: string };
+    }>(),
+    'Checkout And Pay Batch Success': emptyProps(),
+    'Checkout And Pay Batch Failure': props<{ error: string }>(),
+
     'Cancel Order': props<{ orderId: string }>(),
     'Cancel Order Success': props<{ order: OrderDto }>(),
     'Cancel Order Failure': props<{ error: string }>(),

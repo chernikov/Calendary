@@ -115,6 +115,21 @@ export class OrderService {
     return this.http.post<{ pageUrl: string }>(`${BASE}/orders/${orderId}/pay`, {});
   }
 
+  setPrintQuantity(orderId: string, quantity: number): Observable<OrderDto> {
+    return this.http.put<OrderDto>(`${BASE}/orders/${orderId}/print-quantity`, { quantity });
+  }
+
+  checkoutBatch(
+    orderIds: string[],
+    delivery: { recipientName: string; phone: string; city: string; warehouseNumber: string; warehouseAddress: string },
+  ): Observable<void> {
+    return this.http.post<void>(`${BASE}/orders/checkout-batch`, { orderIds, ...delivery });
+  }
+
+  payBatch(orderIds: string[]): Observable<{ pageUrl: string }> {
+    return this.http.post<{ pageUrl: string }>(`${BASE}/orders/pay-batch`, orderIds);
+  }
+
   cancel(orderId: string): Observable<OrderDto> {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/cancel`, {});
   }

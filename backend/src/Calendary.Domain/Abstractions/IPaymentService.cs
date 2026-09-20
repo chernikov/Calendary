@@ -9,11 +9,15 @@ public record PaymentInvoice(string PageUrl);
 
 public interface IPaymentService
 {
-    Task<PaymentInvoice> CreateInvoiceAsync(
-        Guid orderId, string redirectUrl, string webHookUrl, CancellationToken ct = default);
+    /// One invoice can cover several orders paid together (see #377's "Мої замовлення" cart) — a
+    /// single order is just the one-element case. Every order's own Payment row gets the same
+    /// ProviderInvoiceId, so HandleWebhookAsync can mark all of them from one webhook delivery.
+    Task<PaymentInvoice> CreateBatchInvoiceAsync(
+        IReadOnlyList<Guid> orderIds, string redirectUrl, string webHookUrl, CancellationToken ct = default);
 
-    /// Verifies the provider's webhook signature and applies the resulting status to the matching
-    /// Payment/Order. Returns false if the signature didn't verify or no matching payment was
-    /// found, so the controller can respond with an error status (prompting the provider to retry).
+    /// Verifies the provider's webhook signature and applies the resulting status to every
+    /// Payment/Order matching the invoice. Returns false if the signature didn't verify or no
+    /// matching payment was found, so the controller can respond with an error status (prompting
+    /// the provider to retry).
     Task<bool> HandleWebhookAsync(string rawBody, string? signatureHeader, CancellationToken ct = default);
 }
