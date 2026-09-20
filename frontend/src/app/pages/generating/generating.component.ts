@@ -20,7 +20,7 @@ const REQUIRED_SHEET_COUNT = 13;
           [routerLink]="['/order', o.id, 'style']"
           style="display: inline-flex; align-items: center; gap: 4px; margin-bottom: var(--space-2); font-size: 13.5px;"
         >
-          ← Повернутись до образів
+          ← Повернутись до конструктора
         </a>
 
         <h2 style="font-size: 34px;">Готуємо {{ REQUIRED_SHEET_COUNT }} аркушів</h2>
