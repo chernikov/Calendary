@@ -1,8 +1,6 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Actions, ofType } from '@ngrx/effects';
 import { OrderActions, selectDownloadingPdf, selectOrder } from '../../core/state/order';
 import { OrderDto, PersonalDateDto } from '../../core/models';
 
@@ -67,14 +65,23 @@ const REQUIRED_SHEET_COUNT = 13;
         }
 
         @if (o.sheets.length === REQUIRED_SHEET_COUNT && readyCount(o) === REQUIRED_SHEET_COUNT) {
-          <button
-            class="btn btn-primary"
-            style="min-height: 48px; font-size: 15px; padding-inline: 26px; margin-top: var(--space-4);"
-            [disabled]="downloadingPdf()"
-            (click)="generateCalendar(o)"
-          >
-            {{ downloadingPdf() ? 'Генеруємо…' : 'Перейти до оплати' }}
-          </button>
+          <div style="display: flex; gap: var(--space-2); margin-top: var(--space-4);">
+            <button
+              class="btn btn-secondary"
+              style="min-height: 48px; font-size: 15px; padding-inline: 22px;"
+              [disabled]="downloadingPdf()"
+              (click)="generatePdf(o)"
+            >
+              {{ downloadingPdf() ? 'Генеруємо…' : 'Згенерувати PDF' }}
+            </button>
+            <button
+              class="btn btn-primary"
+              style="min-height: 48px; font-size: 15px; padding-inline: 26px;"
+              (click)="goToPayment()"
+            >
+              Перейти до оплати
+            </button>
+          </div>
         }
       }
     </div>
@@ -90,16 +97,8 @@ export class GeneratingComponent implements OnInit, OnDestroy {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly actions$: Actions,
   ) {
     this.orderId = this.route.snapshot.paramMap.get('orderId')!;
-    // "Перейти до оплати" downloads the (watermarked, pre-payment) PDF then sends the customer to
-    // the cart (see #377/#395) — this order is now ReviewReady/selectable there, alongside
-    // whatever else they might already have in progress, rather than jumping straight into a
-    // single-order checkout that bypasses the cart entirely.
-    this.actions$
-      .pipe(ofType(OrderActions.downloadPdfSuccess), takeUntilDestroyed())
-      .subscribe(() => this.router.navigate(['/orders']));
   }
 
   ngOnInit(): void {
@@ -122,7 +121,13 @@ export class GeneratingComponent implements OnInit, OnDestroy {
     return [...o.personalDates].sort((a, b) => a.month - b.month || a.day - b.day);
   }
 
-  generateCalendar(o: OrderDto): void {
+  generatePdf(o: OrderDto): void {
     this.store.dispatch(OrderActions.downloadPdf({ orderId: o.id }));
+  }
+
+  // Straight to the cart (see #377/#395) — no PDF download needed first, the order is already
+  // ReviewReady/selectable there alongside whatever else the customer might have in progress.
+  goToPayment(): void {
+    this.router.navigate(['/orders']);
   }
 }
