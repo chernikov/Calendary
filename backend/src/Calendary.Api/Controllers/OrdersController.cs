@@ -580,7 +580,8 @@ public class OrdersController(
         if (orders.Any(IsExpired)) return Conflict("One or more orders have expired.");
 
         var baseUrl = monobankOptions.Value.PublicBaseUrl.TrimEnd('/');
-        var redirectUrl = $"{baseUrl}/orders";
+        // Paid orders move out of the cart (/orders) onto the tracking list (see #395).
+        var redirectUrl = $"{baseUrl}/my-orders";
 
         // Idempotency: a retried/duplicate POST must not create a second invoice for an
         // already-paid batch.
