@@ -8,6 +8,14 @@ namespace Calendary.Infrastructure.Services;
 /// Small preview for the upload-step photo grid and admin thumbnails — decoupled from
 /// ReferencePhotoDownscaler's ~500KB "generation reference" target, which is still far too large
 /// to ship many-at-once to the browser as a UI thumbnail.
+/// Wraps the static generator below behind IPhotoThumbnailGenerator so Application-layer command
+/// handlers can inject it (see CreateOrderCommand/AddPhotoCommand) — AdminController and
+/// MediaMigrator keep calling the static method directly, unaffected.
+public class PhotoThumbnailGeneratorService : IPhotoThumbnailGenerator
+{
+    public StoredFile Generate(StoredFile original) => PhotoThumbnailGenerator.Generate(original);
+}
+
 public static class PhotoThumbnailGenerator
 {
     private const int MaxDimension = 320;

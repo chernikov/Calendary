@@ -3,6 +3,8 @@ WORKDIR /src
 
 COPY Calendary.slnx .
 COPY src/Calendary.Api/Calendary.Api.csproj src/Calendary.Api/
+COPY src/Calendary.Application/Calendary.Application.csproj src/Calendary.Application/
+COPY src/Calendary.Common/Calendary.Common.csproj src/Calendary.Common/
 COPY src/Calendary.Domain/Calendary.Domain.csproj src/Calendary.Domain/
 COPY src/Calendary.Infrastructure/Calendary.Infrastructure.csproj src/Calendary.Infrastructure/
 COPY src/Calendary.AI/Calendary.AI.csproj src/Calendary.AI/

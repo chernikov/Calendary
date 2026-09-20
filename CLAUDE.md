@@ -95,11 +95,32 @@ There are no automated tests in this repo yet.
 
 ## Backend architecture (`backend/src/`)
 
-Four-project split:
+Six-project split:
+- **Calendary.Common** — zero-dependency, framework-agnostic primitives shared across layers:
+  `CalendarYear` (the "next year" calendar-year calc), `AppOperationException` (see below). No
+  project references of its own.
 - **Calendary.Domain** — entities (`User`, `Order`, `Sheet`, `PromptTheme`, `Prompt`,
   `ImageStyle`, `PersonalDate`,
   `Payment`, `Delivery`), enums, and the `Abstractions/` interfaces listed above. No EF/ASP.NET
   dependency.
+- **Calendary.Application** — Commands/Queries + their MediatR `IRequestHandler<,>`s, one file per
+  operation, co-located (vertical-slice style) rather than split across layers. References `Domain`
+  and `Common` only — **never** `Infrastructure`, so handlers can't depend on the concrete EF
+  `AppDbContext`. Instead they depend on `IAppDbContext` (`Application/Common/IAppDbContext.cs`,
+  mirrors every `DbSet<T>` the real `AppDbContext` declares), which the real `AppDbContext` just
+  implements (`: DbContext, IAppDbContext`) — this is why `IAppDbContext` lives in Application
+  rather than Domain: it needs the `DbSet<T>` type from EF Core, and Domain is kept free of any
+  EF/ASP.NET dependency. Currently covers `OrdersController`'s logic only (`Application/Orders/`);
+  other controllers still inject `AppDbContext` directly pending the same treatment. Error
+  signaling: a handler returns `null` for "not found or not owned" (the caller does
+  `is null ? NotFound() : Ok(...)`), or throws `AppOperationException(message, statusCode)` (in
+  `Calendary.Common`) for a validation (400) / conflict (409) failure — caught by a
+  controller-scoped `[TypeFilter(typeof(OrderOperationExceptionFilter))]` (not global middleware),
+  never a bare ASP.NET `BadRequest(...)`/`Conflict(...)` inside a handler. Per-feature shared
+  helpers (order loading + ownership filtering + business-rule predicates) live in one static class
+  per feature (e.g. `Orders/OrderAccess.cs`) that every handler in that feature calls into — this
+  is the single point that must enforce "you can only touch your own order," replacing what used
+  to be two near-duplicate copies (one per controller).
 - **Calendary.Infrastructure** — `Data/AppDbContext.cs` (+ `Migrations/`), and `Services/`:
   the `Mock*` implementations of the Domain interfaces, `AiImageGenerationService` (the real,
   not-wired-in-by-default `IImageGenerationService` — see README), and two `BackgroundService`s
@@ -113,7 +134,7 @@ Four-project split:
   Both key off `Order.StatusUpdatedAtUtc`, which `Order.SetStatus()` keeps in sync — always call
   `SetStatus()` rather than assigning `.Status` directly, or the background services' (and
   `AiImageGenerationService`'s own `OrderProgressionHelper`) timing/transition logic breaks.
-- **Calendary.AI** — standalone (no reference to the other three projects): `Options/AiOptions.cs`
+- **Calendary.AI** — standalone (no reference to any other project in the solution): `Options/AiOptions.cs`
   (binds the `AI` appsettings section), `Clients/IAiImageClient.cs` + `OpenAiImageClient` +
   `GeminiImageClient` (real HTTP calls; `ServiceCollectionExtensions.AddCalendaryAi()` registers
   whichever `AiOptions.Provider` selects), `Prompts/CalendarPrompts.cs` (the actual prompt text
@@ -121,7 +142,10 @@ Four-project split:
 - **Calendary.Api** — Controllers, `Auth/BearerTokenAuthenticationHandler` (a custom
   `AuthenticationHandler` for opaque bearer tokens, scheme `"Bearer"` — **not** JWT/`JwtBearer`;
   resolves tokens via `ISessionTokenService`), and `Dtos/` (record DTOs + `DtoMapping.cs` extension
-  methods, e.g. `order.ToDto()`). `AuthController` has `register`/`login`/`google`/`me`, backed by
+  methods, e.g. `order.ToDto()`). `OrdersController` is thin (auth + request→Command/Query mapping
+  + `sender.Send(...)` + `.ToDto()`, no `AppDbContext`) — see the Application bullet above for the
+  pattern; other controllers (`AdminController` in particular) haven't been migrated to it yet and
+  still inject `AppDbContext` directly. `AuthController` has `register`/`login`/`google`/`me`, backed by
   `IPasswordAuthService`/`IGoogleAuthService`/`ISessionTokenService` (all in Infrastructure —
   `SessionTokenService` persists sessions as `UserSession` rows, hashing the bearer token with
   SHA-256 before storage, specifically so a backend restart on deploy doesn't log everyone out).
