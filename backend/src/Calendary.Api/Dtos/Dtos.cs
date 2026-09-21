@@ -137,10 +137,16 @@ public record ConfigStatusDto(
     bool GeminiConfigured,
     bool GoogleConfigured,
     bool ResendConfigured,
-    bool MonobankConfigured);
+    bool MonobankConfigured,
+    bool SmsClubConfigured,
+    bool NovaPoshtaSenderConfigured);
 
 public record BackupSnapshotDto(DateTime TimeUtc, IReadOnlyList<string> Tags);
 public record BackupStatusDto(bool Configured, IReadOnlyList<BackupSnapshotDto> Snapshots);
+
+// #432 follow-up: staging-only toggle for real (cost-bearing) SMS/Nova Poshta shipment creation.
+public record RealIntegrationsOnStagingDto(bool Enabled);
+public record SetRealIntegrationsOnStagingRequest(bool Enabled);
 
 public record SavePromptThemeRequest(string Name, string Description, int SortOrder);
 public record SavePromptRequest(Guid PromptThemeId, string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);

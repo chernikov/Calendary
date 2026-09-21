@@ -17,6 +17,7 @@ import {
   PromoCodeDto,
   PromptDto,
   PromptThemeDto,
+  RealIntegrationsOnStagingDto,
   SaveHolidayPayload,
   SaveImageStylePayload,
   SavePromoCodePayload,
@@ -86,6 +87,14 @@ export class AdminService {
 
   getConfigStatus(): Observable<ConfigStatusDto> {
     return this.http.get<ConfigStatusDto>(`${BASE}/settings/config-status`);
+  }
+
+  getRealIntegrationsOnStaging(): Observable<RealIntegrationsOnStagingDto> {
+    return this.http.get<RealIntegrationsOnStagingDto>(`${BASE}/settings/real-integrations-on-staging`);
+  }
+
+  setRealIntegrationsOnStaging(enabled: boolean): Observable<RealIntegrationsOnStagingDto> {
+    return this.http.put<RealIntegrationsOnStagingDto>(`${BASE}/settings/real-integrations-on-staging`, { enabled });
   }
 
   getBackupStatus(): Observable<BackupStatusDto> {

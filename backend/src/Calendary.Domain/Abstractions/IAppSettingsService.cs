@@ -9,4 +9,7 @@ public interface IAppSettingsService
 
     Task<decimal> GetBasePriceAsync(CancellationToken ct = default);
     Task SetBasePriceAsync(decimal basePrice, CancellationToken ct = default);
+
+    Task<bool> GetRealIntegrationsOnStagingAsync(CancellationToken ct = default);
+    Task SetRealIntegrationsOnStagingAsync(bool enabled, CancellationToken ct = default);
 }

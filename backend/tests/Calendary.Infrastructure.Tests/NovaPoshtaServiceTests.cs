@@ -3,6 +3,8 @@ using Calendary.Common;
 using Calendary.Domain.Abstractions;
 using Calendary.Infrastructure.Options;
 using Calendary.Infrastructure.Services;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -34,13 +36,54 @@ public class NovaPoshtaServiceTests
             throw new InvalidOperationException("No HTTP call should have been made.");
     }
 
-    private static NovaPoshtaService CreateService(HttpMessageHandler handler, NovaPoshtaOptions options) =>
-        new(new HttpClient(handler), Microsoft.Extensions.Options.Options.Create(options), NullLogger<NovaPoshtaService>.Instance);
+    private class FakeEnvironment(string name) : IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = name;
+        public string ApplicationName { get; set; } = "Calendary.Api";
+        public string ContentRootPath { get; set; } = ".";
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+    }
+
+    private class FakeAppSettingsService(bool realIntegrationsOnStaging) : IAppSettingsService
+    {
+        public Task<Domain.Enums.ImageGenerationProvider> GetImageGenerationProviderAsync(CancellationToken ct = default) =>
+            throw new NotSupportedException();
+        public Task SetImageGenerationProviderAsync(Domain.Enums.ImageGenerationProvider provider, CancellationToken ct = default) =>
+            throw new NotSupportedException();
+        public Task<decimal> GetBasePriceAsync(CancellationToken ct = default) => throw new NotSupportedException();
+        public Task SetBasePriceAsync(decimal basePrice, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<bool> GetRealIntegrationsOnStagingAsync(CancellationToken ct = default) => Task.FromResult(realIntegrationsOnStaging);
+        public Task SetRealIntegrationsOnStagingAsync(bool enabled, CancellationToken ct = default) => throw new NotSupportedException();
+    }
+
+    private static NovaPoshtaService CreateService(
+        HttpMessageHandler handler, NovaPoshtaOptions options, string environmentName = "Production", bool realIntegrationsOnStaging = false) =>
+        new(
+            new HttpClient(handler),
+            Microsoft.Extensions.Options.Options.Create(options),
+            new FakeAppSettingsService(realIntegrationsOnStaging),
+            new FakeEnvironment(environmentName),
+            NullLogger<NovaPoshtaService>.Instance);
 
     [Fact]
     public async Task Falls_back_to_a_fake_tracking_number_when_no_sender_is_configured()
     {
         var service = CreateService(new ThrowingHandler(), new NovaPoshtaOptions());
+        var recipient = new NovaPoshtaShipmentRecipient("Андрій", "Черніков", "+380671234567", Guid.NewGuid(), Guid.NewGuid());
+
+        var result = await service.CreateShipmentAsync(recipient);
+
+        Assert.StartsWith("2040", result.TrackingNumber);
+    }
+
+    // #432 follow-up: even with a real sender configured, staging must default to fake unless an
+    // admin has opted in via AppSettings.RealIntegrationsOnStaging — this is the whole point of
+    // the toggle, so it's worth a dedicated regression test.
+    [Fact]
+    public async Task Falls_back_on_staging_even_when_configured_unless_the_toggle_is_on()
+    {
+        var options = new NovaPoshtaOptions { ApiKey = "test-key", SenderCounterpartyRef = "9282801b-bf9d-11e6-8ba8-005056881c6b" };
+        var service = CreateService(new ThrowingHandler(), options, environmentName: "Staging", realIntegrationsOnStaging: false);
         var recipient = new NovaPoshtaShipmentRecipient("Андрій", "Черніков", "+380671234567", Guid.NewGuid(), Guid.NewGuid());
 
         var result = await service.CreateShipmentAsync(recipient);
@@ -79,6 +122,30 @@ public class NovaPoshtaServiceTests
         Assert.Equal("20451541156738", result.TrackingNumber);
         Assert.Equal(30m, result.CostOnSite);
         Assert.Equal(new DateOnly(2026, 9, 22), result.EstimatedDeliveryDate);
+    }
+
+    // Same happy-path shapes as above, but on Staging with the toggle on — confirms the toggle
+    // actually unlocks the real path, not just that Production ignores it.
+    [Fact]
+    public async Task Creates_a_real_shipment_on_staging_when_the_toggle_is_on()
+    {
+        const string counterpartySaveResponse = """
+            {"success":true,"data":[{"Ref":"92875ced-bf9d-11e6-8ba8-005056881c6b",
+            "ContactPerson":{"success":true,"data":[{"Ref":"01a0c339-6183-7327-aa74-56bf12efe28e"}],"errors":[]}}],"errors":[]}
+            """;
+        const string internetDocumentSaveResponse = """
+            {"success":true,"data":[{"Ref":"01a0c339-a85c-7e09-8b62-9b98c5597e2b","CostOnSite":30,
+            "EstimatedDeliveryDate":"22.09.2026","IntDocNumber":"20451541156738"}],"errors":[]}
+            """;
+        var options = new NovaPoshtaOptions { ApiKey = "test-key", SenderCounterpartyRef = "9282801b-bf9d-11e6-8ba8-005056881c6b" };
+        var service = CreateService(
+            new QueuedHandler(counterpartySaveResponse, internetDocumentSaveResponse), options,
+            environmentName: "Staging", realIntegrationsOnStaging: true);
+        var recipient = new NovaPoshtaShipmentRecipient("Андрій", "Черніков", "+380671234567", Guid.NewGuid(), Guid.NewGuid());
+
+        var result = await service.CreateShipmentAsync(recipient);
+
+        Assert.Equal("20451541156738", result.TrackingNumber);
     }
 
     [Fact]

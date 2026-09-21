@@ -5,17 +5,19 @@ import { Store } from '@ngrx/store';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import {
   AdminActions,
   selectAdminAiProvider,
   selectAdminBackupStatus,
   selectAdminConfigStatus,
+  selectAdminRealIntegrationsOnStaging,
 } from '../../core/state/admin';
 import { ImageGenerationProvider } from '../../core/models';
 
 @Component({
     selector: 'app-admin-settings',
-    imports: [FormsModule, NzRadioModule, NzAlertModule, NzTagModule, DatePipe],
+    imports: [FormsModule, NzRadioModule, NzAlertModule, NzTagModule, NzSwitchModule, DatePipe],
     template: `
     <h2>Налаштування генерації</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
@@ -71,6 +73,33 @@ import { ImageGenerationProvider } from '../../core/models';
       </table>
     }
 
+    <h2 style="margin-top: 32px;">Реальні інтеграції на стейджингу</h2>
+    <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 8px; max-width: 520px;">
+      За замовчуванням стейджинг завжди імітує SMS (код 0000) і ТТН Нової Пошти (фейковий номер) —
+      навіть якщо ключі налаштовані. Цей перемикач вмикає реальні, платні виклики для тестування.
+      На проді жодного ефекту не має — там завжди реально, незалежно від цього перемикача.
+    </p>
+
+    @if (configStatus(); as status) {
+      <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
+        SMS.Club ключ: <nz-tag [nzColor]="color(status.smsClubConfigured)">{{ label(status.smsClubConfigured) }}</nz-tag>
+        Nova Poshta відправник: <nz-tag [nzColor]="color(status.novaPoshtaSenderConfigured)">{{ label(status.novaPoshtaSenderConfigured) }}</nz-tag>
+      </p>
+    }
+
+    @if (realIntegrationsOnStaging(); as enabled) {
+      <nz-switch [ngModel]="enabled" (ngModelChange)="onToggleRealIntegrations($event)"></nz-switch>
+      <span style="margin-left: 8px;">{{ enabled ? 'Реальні SMS/ТТН увімкнено' : 'Реальні SMS/ТТН вимкнено (за замовчуванням)' }}</span>
+      @if (enabled) {
+        <nz-alert
+          nzType="warning"
+          nzMessage="Увага: кожен запит на верифікацію телефону надішле реальну платну SMS, а кожна відправка замовлення створить реальну накладну в Новій Пошті."
+          style="margin-top: 12px; max-width: 520px;"
+          nzShowIcon
+        ></nz-alert>
+      }
+    }
+
     <h2 style="margin-top: 32px;">Бекапи</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
       Read-only перегляд снепшотів restic (deploy/backup.sh). Запуск бекапу звідси не передбачений
@@ -102,12 +131,18 @@ export class AdminSettingsComponent implements OnInit {
   readonly provider = this.store.selectSignal(selectAdminAiProvider);
   readonly configStatus = this.store.selectSignal(selectAdminConfigStatus);
   readonly backupStatus = this.store.selectSignal(selectAdminBackupStatus);
+  readonly realIntegrationsOnStaging = this.store.selectSignal(selectAdminRealIntegrationsOnStaging);
   justChanged = false;
 
   ngOnInit(): void {
     this.store.dispatch(AdminActions.loadAiProvider());
     this.store.dispatch(AdminActions.loadConfigStatus());
     this.store.dispatch(AdminActions.loadBackupStatus());
+    this.store.dispatch(AdminActions.loadRealIntegrationsOnStaging());
+  }
+
+  onToggleRealIntegrations(enabled: boolean): void {
+    this.store.dispatch(AdminActions.setRealIntegrationsOnStaging({ enabled }));
   }
 
   onChange(provider: ImageGenerationProvider): void {

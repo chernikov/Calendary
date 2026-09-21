@@ -13,6 +13,7 @@ export const selectAdminSelectedOrderStatusHistory = createSelector(
 export const selectAdminAiProvider = createSelector(selectAdminState, (state) => state.aiProvider);
 export const selectAdminBasePrice = createSelector(selectAdminState, (state) => state.basePrice);
 export const selectAdminConfigStatus = createSelector(selectAdminState, (state) => state.configStatus);
+export const selectAdminRealIntegrationsOnStaging = createSelector(selectAdminState, (state) => state.realIntegrationsOnStaging);
 export const selectAdminBackupStatus = createSelector(selectAdminState, (state) => state.backupStatus);
 export const selectAdminPromptThemes = createSelector(selectAdminState, (state) => state.promptThemes);
 export const selectAdminImageStyles = createSelector(selectAdminState, (state) => state.imageStyles);
