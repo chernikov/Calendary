@@ -14,10 +14,9 @@ import {
 import { ImageGenerationProvider } from '../../core/models';
 
 @Component({
-  selector: 'app-admin-settings',
-  standalone: true,
-  imports: [FormsModule, NzRadioModule, NzAlertModule, NzTagModule, DatePipe],
-  template: `
+    selector: 'app-admin-settings',
+    imports: [FormsModule, NzRadioModule, NzAlertModule, NzTagModule, DatePipe],
+    template: `
     <h2>Налаштування генерації</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
       Провайдер AI-генерації зображень. Зміна застосовується одразу, без перезапуску сервера.
@@ -96,7 +95,7 @@ import { ImageGenerationProvider } from '../../core/models';
         </table>
       }
     }
-  `,
+  `
 })
 export class AdminSettingsComponent implements OnInit {
   private readonly store = inject(Store);

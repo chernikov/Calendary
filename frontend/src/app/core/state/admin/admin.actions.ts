@@ -4,12 +4,17 @@ import {
   AdminUserDto,
   BackupStatusDto,
   ConfigStatusDto,
+  HolidayDto,
   ImageGenerationProvider,
   ImageStyleDto,
   OrderDto,
+  OrderStatusHistoryEntryDto,
   PagedResult,
+  PromoCodeDto,
   PromptThemeDto,
+  SaveHolidayPayload,
   SaveImageStylePayload,
+  SavePromoCodePayload,
   SavePromptPayload,
   SavePromptThemePayload,
 } from '../../models';
@@ -17,7 +22,7 @@ import {
 export const AdminActions = createActionGroup({
   source: 'Admin',
   events: {
-    'Load Orders': props<{ page: number; pageSize: number; status?: string }>(),
+    'Load Orders': props<{ page: number; pageSize: number; status?: string; search?: string }>(),
     'Load Orders Success': props<{ result: PagedResult<AdminOrderSummaryDto> }>(),
     'Load Orders Failure': props<{ error: string }>(),
 
@@ -36,6 +41,22 @@ export const AdminActions = createActionGroup({
     'Regenerate Sheet': props<{ orderId: string; sheetId: string }>(),
     'Regenerate Sheet Success': props<{ order: OrderDto }>(),
     'Regenerate Sheet Failure': props<{ error: string }>(),
+
+    'Advance Fulfillment': props<{ orderId: string }>(),
+    'Advance Fulfillment Success': props<{ order: OrderDto }>(),
+    'Advance Fulfillment Failure': props<{ error: string }>(),
+
+    'Load Order Status History': props<{ orderId: string }>(),
+    'Load Order Status History Success': props<{ history: OrderStatusHistoryEntryDto[] }>(),
+    'Load Order Status History Failure': props<{ error: string }>(),
+
+    'Load Product Settings': emptyProps(),
+    'Load Product Settings Success': props<{ basePrice: number }>(),
+    'Load Product Settings Failure': props<{ error: string }>(),
+
+    'Set Product Settings': props<{ basePrice: number }>(),
+    'Set Product Settings Success': props<{ basePrice: number }>(),
+    'Set Product Settings Failure': props<{ error: string }>(),
 
     'Load Ai Provider': emptyProps(),
     'Load Ai Provider Success': props<{ provider: ImageGenerationProvider }>(),
@@ -61,6 +82,7 @@ export const AdminActions = createActionGroup({
     'Delete Prompt Theme': props<{ themeId: string }>(),
     'Save Prompt': props<{ prompt: SavePromptPayload }>(),
     'Delete Prompt': props<{ promptId: string }>(),
+    'Generate Prompt Preview': props<{ promptId: string }>(),
     'Prompt Library Mutation Failure': props<{ error: string }>(),
 
     'Load Image Styles': emptyProps(),
@@ -69,6 +91,23 @@ export const AdminActions = createActionGroup({
 
     'Save Image Style': props<{ style: SaveImageStylePayload }>(),
     'Delete Image Style': props<{ styleId: string }>(),
+    'Generate Image Style Preview': props<{ styleId: string }>(),
+
+    'Load Holidays': emptyProps(),
+    'Load Holidays Success': props<{ holidays: HolidayDto[] }>(),
+    'Load Holidays Failure': props<{ error: string }>(),
+
+    'Save Holiday': props<{ holiday: SaveHolidayPayload }>(),
+    'Delete Holiday': props<{ holidayId: string }>(),
+    'Holiday Mutation Failure': props<{ error: string }>(),
+
+    'Load Promo Codes': emptyProps(),
+    'Load Promo Codes Success': props<{ promoCodes: PromoCodeDto[] }>(),
+    'Load Promo Codes Failure': props<{ error: string }>(),
+
+    'Save Promo Code': props<{ promoCode: SavePromoCodePayload }>(),
+    'Delete Promo Code': props<{ promoCodeId: string }>(),
+    'Promo Code Mutation Failure': props<{ error: string }>(),
 
     'Clear Admin Error': emptyProps(),
   },

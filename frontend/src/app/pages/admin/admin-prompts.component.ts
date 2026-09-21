@@ -16,10 +16,9 @@ import {
 import { SavePromptPayload, SavePromptThemePayload } from '../../core/models';
 
 @Component({
-  selector: 'app-admin-prompts',
-  standalone: true,
-  imports: [FormsModule, NzTableModule, NzButtonModule, NzIconModule, NzInputModule, NzAlertModule, NzPopconfirmModule],
-  template: `
+    selector: 'app-admin-prompts',
+    imports: [FormsModule, NzTableModule, NzButtonModule, NzIconModule, NzInputModule, NzAlertModule, NzPopconfirmModule],
+    template: `
     <h2>Бібліотека промптів</h2>
     <p style="color: rgba(0, 0, 0, 0.45); margin-bottom: 16px;">
       Теми — це папки образів. Текст промпта пишеться англійською: він підставляється в середину
@@ -71,20 +70,37 @@ import { SavePromptPayload, SavePromptThemePayload } from '../../core/models';
         <nz-table [nzData]="theme.prompts" [nzFrontPagination]="false" [nzShowPagination]="false" nzSize="small">
           <thead>
             <tr>
+              <th style="width: 56px;">Приклад</th>
               <th style="width: 180px;">Образ</th>
               <th>Текст промпта (EN)</th>
               <th style="width: 90px;">Порядок</th>
-              <th style="width: 110px;"></th>
+              <th style="width: 150px;"></th>
             </tr>
           </thead>
           <tbody>
             @for (prompt of theme.prompts; track prompt.id) {
               <tr>
+                <td>
+                  @if (prompt.previewImageUrl) {
+                    <img [src]="prompt.previewImageUrl" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" />
+                  } @else {
+                    <div style="width: 40px; height: 40px; border-radius: 4px; background: #f0f0f0;"></div>
+                  }
+                </td>
                 <td>{{ prompt.name }}</td>
                 <td style="white-space: pre-wrap;">{{ prompt.text }}</td>
                 <td>{{ prompt.sortOrder }}</td>
                 <td>
-                  <button nz-button nzSize="small" (click)="editPrompt(theme.id, prompt.id)">
+                  <button
+                    nz-button
+                    nzSize="small"
+                    title="Згенерувати приклад"
+                    [disabled]="busy()"
+                    (click)="generatePreview(prompt.id)"
+                  >
+                    <span nz-icon nzType="picture"></span>
+                  </button>
+                  <button nz-button nzSize="small" style="margin-left: 4px;" (click)="editPrompt(theme.id, prompt.id)">
                     <span nz-icon nzType="edit"></span>
                   </button>
                   <button
@@ -132,7 +148,7 @@ import { SavePromptPayload, SavePromptThemePayload } from '../../core/models';
         }
       </div>
     }
-  `,
+  `
 })
 export class AdminPromptsComponent implements OnInit {
   private readonly store = inject(Store);
@@ -203,5 +219,9 @@ export class AdminPromptsComponent implements OnInit {
 
   deletePrompt(promptId: string): void {
     this.store.dispatch(AdminActions.deletePrompt({ promptId }));
+  }
+
+  generatePreview(promptId: string): void {
+    this.store.dispatch(AdminActions.generatePromptPreview({ promptId }));
   }
 }

@@ -3,8 +3,10 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  HolidayDto,
   NovaPoshtaWarehouseDto,
   OrderDto,
+  OrderProgressDto,
   OrderSummaryDto,
   PromptLibraryDto,
   SheetPlanItem,
@@ -18,6 +20,13 @@ export class OrderService {
 
   promptLibrary(): Observable<PromptLibraryDto> {
     return this.http.get<PromptLibraryDto>(`${BASE}/prompt-library`);
+  }
+
+  // Fetches every country's holidays for the year in one call — the style-dates step filters
+  // client-side by the customer's current country selection, so toggling a checkbox updates the
+  // calendar preview instantly (see #366).
+  listHolidays(year: number): Observable<HolidayDto[]> {
+    return this.http.get<HolidayDto[]>(`${BASE}/holidays`, { params: { year } });
   }
 
   // The order isn't created until a photo is actually attached — see #348.
@@ -43,6 +52,10 @@ export class OrderService {
     return this.http.get<OrderDto>(`${BASE}/orders/${orderId}`);
   }
 
+  getOrderProgress(orderId: string): Observable<OrderProgressDto> {
+    return this.http.get<OrderProgressDto>(`${BASE}/orders/${orderId}/progress`);
+  }
+
   listOrders(): Observable<OrderSummaryDto[]> {
     return this.http.get<OrderSummaryDto[]>(`${BASE}/orders`);
   }
@@ -59,24 +72,41 @@ export class OrderService {
     return this.http.delete<OrderDto>(`${BASE}/orders/${orderId}/dates/${dateId}`);
   }
 
+  saveHolidaySettings(orderId: string, countries: string[], weekStart: string): Observable<OrderDto> {
+    return this.http.put<OrderDto>(`${BASE}/orders/${orderId}/holiday-settings`, { countries, weekStart });
+  }
+
+  applyPromoCode(orderId: string, code: string): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/promo-code`, { code });
+  }
+
+  removePromoCode(orderId: string): Observable<OrderDto> {
+    return this.http.delete<OrderDto>(`${BASE}/orders/${orderId}/promo-code`);
+  }
+
   startGeneration(orderId: string): Observable<OrderDto> {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/generate`, {});
   }
 
-  generateSheet(orderId: string, index: number, promptId: string, imageStyleId: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${index}/generate`, { promptId, imageStyleId });
-  }
-
-  regenerateSheet(
+  // The single generation trigger (see #351) — used for a sheet's first variant and every one
+  // after it; the server decides whether this one is free or costs a regeneration.
+  generateSheet(
     orderId: string,
-    sheetId: string,
-    change?: { promptId?: string; imageStyleId?: string },
+    index: number,
+    promptId: string,
+    imageStyleId: string,
+    photoId?: string,
   ): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/regenerate`, change ?? {});
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${index}/generate`, {
+      promptId,
+      imageStyleId,
+      photoId: photoId || null,
+    });
   }
 
-  simulateFailure(orderId: string, sheetId: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/simulate-failure`, {});
+  // Restores a previously generated variant as active — free, no generation involved.
+  activateVariant(orderId: string, sheetId: string, variantId: string): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/variants/${variantId}/activate`, {});
   }
 
   confirmCover(orderId: string, sheetId: string): Observable<OrderDto> {
@@ -90,8 +120,32 @@ export class OrderService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/checkout`, delivery);
   }
 
-  pay(orderId: string, method: string): Observable<OrderDto> {
-    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/pay`, { method });
+  // #304: scoped to the user, not an order — same flow for single-order and batch checkout.
+  sendPhoneVerification(phone: string): Observable<void> {
+    return this.http.post<void>(`${BASE}/orders/phone-verification`, { phone });
+  }
+
+  confirmPhoneVerification(code: string): Observable<void> {
+    return this.http.post<void>(`${BASE}/orders/phone-verification/confirm`, { code });
+  }
+
+  pay(orderId: string): Observable<{ pageUrl: string }> {
+    return this.http.post<{ pageUrl: string }>(`${BASE}/orders/${orderId}/pay`, {});
+  }
+
+  setPrintQuantity(orderId: string, quantity: number): Observable<OrderDto> {
+    return this.http.put<OrderDto>(`${BASE}/orders/${orderId}/print-quantity`, { quantity });
+  }
+
+  checkoutBatch(
+    orderIds: string[],
+    delivery: { recipientName: string; phone: string; city: string; warehouseNumber: string; warehouseAddress: string },
+  ): Observable<void> {
+    return this.http.post<void>(`${BASE}/orders/checkout-batch`, { orderIds, ...delivery });
+  }
+
+  payBatch(orderIds: string[]): Observable<{ pageUrl: string }> {
+    return this.http.post<{ pageUrl: string }>(`${BASE}/orders/pay-batch`, orderIds);
   }
 
   cancel(orderId: string): Observable<OrderDto> {

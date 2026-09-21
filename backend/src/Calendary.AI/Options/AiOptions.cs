@@ -30,6 +30,13 @@ public class OpenAiOptions
     /// tends toward high-quality (and high-cost, multi-MB) output — "low" is far cheaper and
     /// plenty for dev/staging testing.
     public string Quality { get; set; } = "low";
+
+    /// Static per-image cost estimate for the current Model/Quality/ImageSize combination, in USD
+    /// — OpenAI's images API doesn't return actual per-call billing data, so this is recorded as-is
+    /// on every generated SheetVariant for monitoring (see #359). Update when Model/Quality/
+    /// ImageSize or OpenAI's published pricing changes; the default matches gpt-image-1 "low"
+    /// quality at 1024x1536 as of this writing.
+    public decimal EstimatedCostUsd { get; set; } = 0.02m;
 }
 
 public class GeminiOptions
@@ -37,4 +44,9 @@ public class GeminiOptions
     public string ApiKey { get; set; } = string.Empty;
     public string BaseUrl { get; set; } = "https://generativelanguage.googleapis.com/v1beta";
     public string Model { get; set; } = "gemini-2.5-flash-image";
+
+    /// Static per-image cost estimate for Model, in USD — same rationale as OpenAiOptions'
+    /// EstimatedCostUsd. Default matches gemini-2.5-flash-image's published per-image pricing as of
+    /// this writing.
+    public decimal EstimatedCostUsd { get; set; } = 0.04m;
 }

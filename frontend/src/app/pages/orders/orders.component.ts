@@ -1,76 +1,119 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { OrderSummaryDto } from '../../core/models';
-import { isOrderInProgress, orderStatusLabel, orderStatusTagClass, orderStepLink } from '../../core/order-status';
+import { orderStatusLabel, orderStatusTagClass, orderStepLink } from '../../core/order-status';
 import {
   OrderActions,
-  selectActiveOrders,
   selectArchivedOrders,
+  selectCartOrders,
   selectOrderBusy,
   selectOrderError,
 } from '../../core/state/order';
 
+const CART_ELIGIBLE_STATUSES = ['ReviewReady', 'AwaitingPayment'];
+
 @Component({
-  selector: 'app-orders',
-  standalone: true,
-  imports: [DatePipe, RouterLink],
-  template: `
+    selector: 'app-orders',
+    imports: [DatePipe, RouterLink],
+    template: `
     <div class="page">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3);">
-        <h2 style="font-size: 28px;">Мої замовлення</h2>
-        <button class="btn btn-primary" (click)="createOrder()">Створити календар</button>
+        <h2 style="font-size: 28px;">Кошик</h2>
+        <button class="btn btn-primary" (click)="createOrder()">Додати ще</button>
       </div>
 
       @if (error()) {
         <p style="color: var(--color-accent-2-700); font-size: 13px;">{{ error() }}</p>
       }
 
-      @if (activeOrders().length === 0 && archivedOrders().length === 0) {
+      @if (cartOrders().length === 0 && archivedOrders().length === 0) {
         <p class="text-muted" style="margin-top: var(--space-4);">
-          {{ busy() ? 'Завантажуємо…' : 'Тут поки порожньо. Створіть свій перший календар.' }}
+          {{ busy() ? 'Завантажуємо…' : 'Кошик порожній. Створіть свій перший календар.' }}
         </p>
       } @else {
-        @if (activeOrders().length === 0) {
-          <p class="text-muted" style="margin-top: var(--space-4);">Активних замовлень немає.</p>
+        @if (cartOrders().length === 0) {
+          <p class="text-muted" style="margin-top: var(--space-4);">Кошик порожній.</p>
         } @else {
           <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
-            @for (o of activeOrders(); track o.id) {
-              <a
-                class="card selectable"
-                style="flex-direction: row; align-items: center; gap: var(--space-3); text-decoration: none; color: inherit;"
-                [routerLink]="stepLink(o)"
-              >
-                @if (o.coverImageUrl) {
-                  <img
-                    [src]="o.coverImageUrl"
-                    alt="Обкладинка календаря"
-                    style="width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); flex: none;"
+            @for (o of cartOrders(); track o.id) {
+              <div class="card" style="flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--space-3);">
+                @if (isCartEligible(o)) {
+                  <input
+                    type="checkbox"
+                    style="width: 18px; height: 18px; flex: none; cursor: pointer;"
+                    [checked]="isSelected(o.id)"
+                    (change)="toggleSelect(o.id)"
                   />
+                } @else {
+                  <span
+                    class="text-muted"
+                    title="Готується"
+                    style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px;"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 3" />
+                    </svg>
+                  </span>
                 }
-                <div style="flex: 1; min-width: 0;">
-                  <div class="card-title">{{ o.styleName || 'Без стилю' }}</div>
-                  <div class="card-meta">
-                    <span>{{ o.createdAtUtc | date: 'dd.MM.yyyy' }}</span>
-                    <span>·</span>
-                    <span>{{ o.price }} ₴</span>
-                  </div>
-                </div>
-                <span [class]="tagClass(o)">{{ statusLabel(o) }}</span>
-                <span class="text-muted" style="font-size: 13px; white-space: nowrap;">
-                  {{ inProgress(o) ? 'Продовжити' : 'Статус' }}
-                </span>
-                <button
-                  type="button"
-                  class="btn btn-ghost"
-                  style="flex: none;"
-                  (click)="$event.preventDefault(); $event.stopPropagation(); archive(o)"
+
+                <a
+                  [routerLink]="stepLink(o)"
+                  style="flex: 1 1 200px; min-width: 0; display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: inherit;"
                 >
-                  Архівувати
-                </button>
-              </a>
+                  @if (o.coverImageUrl) {
+                    <img
+                      [src]="o.coverImageUrl"
+                      alt="Обкладинка календаря"
+                      style="width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); flex: none;"
+                    />
+                  }
+                  <div style="flex: 1; min-width: 0;">
+                    <div class="card-title">{{ o.styleName || 'Без стилю' }}</div>
+                    <div class="card-meta">
+                      <span>{{ o.createdAtUtc | date: 'dd.MM.yyyy' }}</span>
+                      <span>·</span>
+                      <span>{{ o.price }} ₴</span>
+                    </div>
+                  </div>
+                </a>
+
+                <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; flex: none;">
+                  <span [class]="tagClass(o)">{{ statusLabel(o) }}</span>
+
+                  @if (isCartEligible(o)) {
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                      <span class="text-muted" style="font-size: 11px;">К-сть</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        [value]="quantityFor(o)"
+                        (change)="onQuantityChange(o.id, $event)"
+                        style="width: 52px; padding: 4px 6px; border: 1px solid var(--color-divider); border-radius: var(--radius-sm); font-size: 13px;"
+                      />
+                    </div>
+                  }
+
+                  <button type="button" class="btn btn-ghost" (click)="archive(o)">Архівувати</button>
+                </div>
+              </div>
             }
+          </div>
+        }
+
+        @if (cartOrders().length > 0) {
+          <div
+            class="card"
+            style="flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); position: sticky; bottom: var(--space-3); box-shadow: var(--shadow-lg);"
+          >
+            <div>
+              <div style="font-size: 13px;" class="text-muted">Обрано: {{ selectedCount() }}</div>
+              <div class="money" style="font-size: 22px; font-weight: 500;">{{ totalPrice() }} ₴</div>
+            </div>
+            <button class="btn btn-primary" [disabled]="selectedCount() === 0" (click)="proceedToCheckout()">Оформити</button>
           </div>
         }
 
@@ -83,7 +126,7 @@ import {
           @if (showArchived()) {
             <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-3);">
               @for (o of archivedOrders(); track o.id) {
-                <div class="card" style="flex-direction: row; align-items: center; gap: var(--space-3); opacity: 0.7;">
+                <div class="card" style="flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--space-3); opacity: 0.7;">
                   @if (o.coverImageUrl) {
                     <img
                       [src]="o.coverImageUrl"
@@ -91,7 +134,7 @@ import {
                       style="width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); flex: none;"
                     />
                   }
-                  <div style="flex: 1; min-width: 0;">
+                  <div style="flex: 1 1 200px; min-width: 0;">
                     <div class="card-title">{{ o.styleName || 'Без стилю' }}</div>
                     <div class="card-meta">
                       <span>{{ o.createdAtUtc | date: 'dd.MM.yyyy' }}</span>
@@ -110,17 +153,29 @@ import {
         }
       }
     </div>
-  `,
+  `
 })
 export class OrdersComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
 
-  readonly activeOrders = this.store.selectSignal(selectActiveOrders);
+  readonly cartOrders = this.store.selectSignal(selectCartOrders);
   readonly archivedOrders = this.store.selectSignal(selectArchivedOrders);
   readonly busy = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
   readonly showArchived = signal(false);
+
+  readonly selected = signal<Set<string>>(new Set());
+  private readonly quantityOverrides = signal<Map<string, number>>(new Map());
+
+  readonly selectedCount = computed(() => this.selected().size);
+  readonly totalPrice = computed(() => {
+    const selected = this.selected();
+    const overrides = this.quantityOverrides();
+    return this.cartOrders()
+      .filter((o) => selected.has(o.id))
+      .reduce((sum, o) => sum + o.price * (overrides.get(o.id) ?? o.printQuantity), 0);
+  });
 
   ngOnInit(): void {
     this.store.dispatch(OrderActions.loadMyOrders());
@@ -129,7 +184,28 @@ export class OrdersComponent implements OnInit {
   statusLabel = (o: OrderSummaryDto) => orderStatusLabel(o.status);
   tagClass = (o: OrderSummaryDto) => orderStatusTagClass(o.status);
   stepLink = (o: OrderSummaryDto) => orderStepLink(o.id, o.status);
-  inProgress = (o: OrderSummaryDto) => isOrderInProgress(o.status);
+  isCartEligible = (o: OrderSummaryDto) => CART_ELIGIBLE_STATUSES.includes(o.status);
+  isSelected = (orderId: string) => this.selected().has(orderId);
+  quantityFor = (o: OrderSummaryDto) => this.quantityOverrides().get(o.id) ?? o.printQuantity;
+
+  toggleSelect(orderId: string): void {
+    const next = new Set(this.selected());
+    if (next.has(orderId)) {
+      next.delete(orderId);
+    } else {
+      next.add(orderId);
+    }
+    this.selected.set(next);
+  }
+
+  onQuantityChange(orderId: string, event: Event): void {
+    const raw = Number((event.target as HTMLInputElement).value);
+    const quantity = Math.min(20, Math.max(1, Math.round(raw) || 1));
+    const next = new Map(this.quantityOverrides());
+    next.set(orderId, quantity);
+    this.quantityOverrides.set(next);
+    this.store.dispatch(OrderActions.setPrintQuantity({ orderId, quantity }));
+  }
 
   createOrder(): void {
     // The order itself isn't created until a photo is actually uploaded — see #348.
@@ -142,5 +218,11 @@ export class OrdersComponent implements OnInit {
 
   unarchive(o: OrderSummaryDto): void {
     this.store.dispatch(OrderActions.unarchiveOrder({ orderId: o.id }));
+  }
+
+  proceedToCheckout(): void {
+    const ids = Array.from(this.selected());
+    if (ids.length === 0) return;
+    this.router.navigate(['/checkout-batch'], { queryParams: { ids: ids.join(',') } });
   }
 }

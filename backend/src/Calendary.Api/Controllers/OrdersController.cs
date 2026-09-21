@@ -1,56 +1,30 @@
 using Calendary.Api.Auth;
 using Calendary.Api.Dtos;
+using Calendary.Api.Filters;
 using Calendary.Api.Photos;
-using Calendary.Domain.Abstractions;
-using Calendary.Domain.Entities;
-using Calendary.Domain.Enums;
-using Calendary.Infrastructure.Data;
-using Calendary.Infrastructure.Services;
+using Calendary.Application.Orders;
+using Calendary.Application.Orders.Commands;
+using Calendary.Application.Orders.Queries;
+using Calendary.Infrastructure.Options;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
 namespace Calendary.Api.Controllers;
 
+// Thin by design (see #298): every action maps a request DTO to a Command/Query, sends it via
+// MediatR, and maps the result back to a DTO. Business logic, order-ownership loading, and
+// validation all live in Calendary.Application/Orders — this controller has no AppDbContext, no
+// business rules. AppOperationExceptionFilter turns an AppOperationException thrown by a
+// handler into the same response shape the old inline BadRequest/Conflict calls used to produce.
 [ApiController]
 [Route("api/orders")]
 [Authorize]
-public class OrdersController(
-    AppDbContext db,
-    IImageGenerationService generationService,
-    IPaymentService paymentService,
-    ICalendarPdfService pdfService,
-    IFileStorage fileStorage,
-    ILogger<OrdersController> logger) : ControllerBase
+[TypeFilter(typeof(AppOperationExceptionFilter))]
+public class OrdersController(ISender sender, IOptions<MonobankOptions> monobankOptions) : ControllerBase
 {
-    private const int MaxLabelLength = 22;
-    private const int MaxPhotosPerOrder = 20; // abuse safeguard only — not a product-facing cap
-
-    private async Task<Order?> LoadOwnedOrderAsync(Guid orderId)
-    {
-        var userId = User.GetUserId();
-        return await db.Orders
-            .Include(o => o.Photos)
-            .Include(o => o.PersonalDates)
-            .Include(o => o.Sheets).ThenInclude(s => s.Prompt)
-            .Include(o => o.Sheets).ThenInclude(s => s.ImageStyle)
-            .Include(o => o.Payment)
-            .Include(o => o.Delivery)
-            // Photos, Sheets and PersonalDates are sibling collections on the same query — a
-            // single join multiplies rows. AsSplitQuery issues one query per collection.
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
-    }
-
-    // Expiry only matters while the order is still moving through the funnel — once payment is
-    // captured it's fulfillment's problem, not a reason to block anything. Keep in sync with
-    // OrderExpiryBackgroundService's exemption list (auto-archives expired orders on the same rule).
-    private static readonly OrderStatus[] ExemptFromExpiry =
-        [OrderStatus.Paid, OrderStatus.Printing, OrderStatus.Shipped, OrderStatus.Delivered];
-
-    private static bool IsExpired(Order order) =>
-        !ExemptFromExpiry.Contains(order.Status) && DateTime.UtcNow > order.ExpiresAtUtc;
-
     // The order isn't created until the customer actually commits a photo — no more empty
     // "Created"-status rows left behind by someone who clicked "Створити календар" and then
     // closed the tab. Combines the old bare Create + UploadPhoto into one call (see #348).
@@ -64,18 +38,8 @@ public class OrdersController(
             return BadRequest(new { error = intake.Error });
         }
 
-        var url = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
-        var thumb = PhotoThumbnailGenerator.Generate(new StoredFile(intake.Bytes, intake.ContentType));
-        var thumbUrl = await fileStorage.SaveAsync(thumb.Content, thumb.ContentType, "photo-thumbs", ct);
-
-        var order = new Order { UserId = User.GetUserId() };
-        order.Photos.Add(new OrderPhoto { OrderId = order.Id, Url = url, ThumbUrl = thumbUrl });
-        order.SetStatus(OrderStatus.PhotoUploaded);
-        db.Orders.Add(order);
-        await db.SaveChangesAsync(ct);
-
-        order = await LoadOwnedOrderAsync(order.Id);
-        return Ok(order!.ToDto());
+        var order = await sender.Send(new CreateOrderCommand(User.GetUserId(), intake.Bytes, intake.ContentType), ct);
+        return Ok(order.ToDto());
     }
 
     // Uploads are sequential, one file per request — the first (Create, above) creates the order;
@@ -85,436 +49,226 @@ public class OrdersController(
     [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
     public async Task<ActionResult<OrderDto>> AddPhoto(Guid orderId, [FromForm] IFormFile? photo, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-        if (IsExpired(order)) return Conflict("Order has expired.");
-        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
-        {
-            return Conflict("Photos can only be added before generation starts.");
-        }
-        if (order.Photos.Count >= MaxPhotosPerOrder)
-        {
-            return Conflict("Too many photos.");
-        }
-
         var intake = await PhotoIntake.ReadAsync(photo, ct);
         if (!intake.Ok)
         {
             return BadRequest(new { error = intake.Error });
         }
 
-        var url = await fileStorage.SaveAsync(intake.Bytes, intake.ContentType, "photos", ct);
-        var thumb = PhotoThumbnailGenerator.Generate(new StoredFile(intake.Bytes, intake.ContentType));
-        var thumbUrl = await fileStorage.SaveAsync(thumb.Content, thumb.ContentType, "photo-thumbs", ct);
-
-        db.OrderPhotos.Add(new OrderPhoto { OrderId = order.Id, Url = url, ThumbUrl = thumbUrl });
-        await db.SaveChangesAsync(ct);
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
-    }
-
-    [HttpDelete("{orderId:guid}/photos/{photoId:guid}")]
-    public async Task<ActionResult<OrderDto>> RemovePhoto(Guid orderId, Guid photoId)
-    {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
-        {
-            return Conflict("Photos can only be changed before generation starts.");
-        }
-
-        var photo = order.Photos.FirstOrDefault(p => p.Id == photoId);
-        if (photo is null) return NotFound();
-        if (order.Photos.Count == 1) return Conflict("At least one photo is required.");
-
-        db.OrderPhotos.Remove(photo);
-        await db.SaveChangesAsync();
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
-    }
-
-    [HttpGet("{orderId:guid}")]
-    public async Task<ActionResult<OrderDto>> Get(Guid orderId)
-    {
-        var order = await LoadOwnedOrderAsync(orderId);
+        var order = await sender.Send(new AddPhotoCommand(User.GetUserId(), orderId, intake.Bytes, intake.ContentType), ct);
         return order is null ? NotFound() : Ok(order.ToDto());
     }
 
-    [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<OrderSummaryDto>>> List()
+    [HttpDelete("{orderId:guid}/photos/{photoId:guid}")]
+    public async Task<ActionResult<OrderDto>> RemovePhoto(Guid orderId, Guid photoId, CancellationToken ct)
     {
-        var userId = User.GetUserId();
-        var orders = await db.Orders
-            .Where(o => o.UserId == userId)
-            .OrderByDescending(o => o.CreatedAtUtc)
-            .Select(o => new OrderSummaryDto(
-                o.Id,
-                o.Status.ToString(),
-                o.Price,
-                o.CreatedAtUtc,
-                o.StatusUpdatedAtUtc,
-                o.Sheets.Where(s => s.Kind == SheetKind.Cover && s.Prompt != null).Select(s => s.Prompt!.Name).FirstOrDefault(),
-                o.Sheets.Where(s => s.Kind == SheetKind.Cover).Select(s => s.ImageUrl).FirstOrDefault(),
-                o.IsArchived))
-            .ToListAsync();
+        var order = await sender.Send(new RemovePhotoCommand(User.GetUserId(), orderId, photoId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
+    }
 
-        return Ok(orders);
+    [HttpGet("{orderId:guid}")]
+    public async Task<ActionResult<OrderDto>> Get(Guid orderId, CancellationToken ct)
+    {
+        var order = await sender.Send(new GetOwnedOrderQuery(User.GetUserId(), orderId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
+    }
+
+    // Lightweight sibling of Get (#303) — only status + per-sheet status/kind, no ImageUrl/prompt/
+    // style/variant payload, for the "generating"/"month" pages' ~1.5s poll to hit instead of the
+    // full order graph on every tick.
+    [HttpGet("{orderId:guid}/progress")]
+    public async Task<ActionResult<OrderProgressDto>> GetProgress(Guid orderId, CancellationToken ct)
+    {
+        var progress = await sender.Send(new GetOwnedOrderProgressQuery(User.GetUserId(), orderId), ct);
+        return progress is null ? NotFound() : Ok(progress.ToDto());
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<OrderSummaryDto>>> List(CancellationToken ct)
+    {
+        var summaries = await sender.Send(new ListOrderSummariesQuery(User.GetUserId()), ct);
+        var dtos = summaries.Select(s => new OrderSummaryDto(
+            s.Id, s.Status, s.Price, s.PrintQuantity, s.CreatedAtUtc, s.StatusUpdatedAtUtc,
+            s.StyleName, s.CoverImageUrl, s.IsArchived)).ToList();
+        return Ok(dtos);
     }
 
     /// Saves the user's per-sheet picks (prompt + image style for the cover and each month),
     /// creating or updating the 13 Sheet rows before generation starts.
     [HttpPut("{orderId:guid}/sheet-plan")]
-    public async Task<ActionResult<OrderDto>> SaveSheetPlan(Guid orderId, SaveSheetPlanRequest request)
+    public async Task<ActionResult<OrderDto>> SaveSheetPlan(Guid orderId, SaveSheetPlanRequest request, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-        if (IsExpired(order)) return Conflict("Order has expired.");
-        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
-        {
-            return Conflict("The sheet plan can only be changed before generation starts.");
-        }
-
-        var items = request.Items ?? [];
-        if (items.Count != 13 || items.Select(i => i.Index).Distinct().Count() != 13 ||
-            items.Any(i => i.Index is < 0 or > 12))
-        {
-            return BadRequest("The plan must contain exactly 13 items with indexes 0 (cover) through 12.");
-        }
-
-        var promptIds = items.Select(i => i.PromptId).Distinct().ToList();
-        var styleIds = items.Select(i => i.ImageStyleId).Distinct().ToList();
-        var knownPrompts = await db.Prompts.Where(p => promptIds.Contains(p.Id)).Select(p => p.Id).ToListAsync();
-        var knownStyles = await db.ImageStyles.Where(s => styleIds.Contains(s.Id)).Select(s => s.Id).ToListAsync();
-        if (knownPrompts.Count != promptIds.Count) return BadRequest("Unknown prompt.");
-        if (knownStyles.Count != styleIds.Count) return BadRequest("Unknown image style.");
-
-        foreach (var item in items.OrderBy(i => i.Index))
-        {
-            var sheet = order.Sheets.FirstOrDefault(s => s.Index == item.Index);
-            if (sheet is null)
-            {
-                sheet = new Sheet
-                {
-                    OrderId = order.Id,
-                    Kind = item.Index == 0 ? SheetKind.Cover : SheetKind.Month,
-                    Index = item.Index
-                };
-                db.Sheets.Add(sheet);
-            }
-            sheet.PromptId = item.PromptId;
-            sheet.ImageStyleId = item.ImageStyleId;
-        }
-
-        order.SetStatus(OrderStatus.DetailsSubmitted);
-        await db.SaveChangesAsync();
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
+        var items = (request.Items ?? []).Select(i => new SheetPlanEntry(i.Index, i.PromptId, i.ImageStyleId, i.PhotoId)).ToList();
+        var order = await sender.Send(new SaveSheetPlanCommand(User.GetUserId(), orderId, items), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
     }
 
     [HttpPost("{orderId:guid}/dates")]
-    public async Task<ActionResult<OrderDto>> AddDate(Guid orderId, AddPersonalDateRequest request)
+    public async Task<ActionResult<OrderDto>> AddDate(Guid orderId, AddPersonalDateRequest request, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        if (string.IsNullOrWhiteSpace(request.Label) || request.Label.Length > MaxLabelLength)
-        {
-            return BadRequest($"Label must be 1-{MaxLabelLength} characters.");
-        }
-        if (request.Month is < 1 or > 12 || request.Day < 1 || request.Day > DateTime.DaysInMonth(2024, request.Month))
-        {
-            return BadRequest("Invalid day/month.");
-        }
-
-        db.PersonalDates.Add(new PersonalDate
-        {
-            OrderId = order.Id,
-            Day = request.Day,
-            Month = request.Month,
-            Label = request.Label.Trim()
-        });
-        await db.SaveChangesAsync();
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
+        var order = await sender.Send(new AddPersonalDateCommand(User.GetUserId(), orderId, request.Day, request.Month, request.Label), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
     }
 
     [HttpDelete("{orderId:guid}/dates/{dateId:guid}")]
-    public async Task<ActionResult<OrderDto>> RemoveDate(Guid orderId, Guid dateId)
+    public async Task<ActionResult<OrderDto>> RemoveDate(Guid orderId, Guid dateId, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        var date = order.PersonalDates.FirstOrDefault(d => d.Id == dateId);
-        if (date is null) return NotFound();
-
-        db.PersonalDates.Remove(date);
-        await db.SaveChangesAsync();
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
+        var order = await sender.Send(new RemovePersonalDateCommand(User.GetUserId(), orderId, dateId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
     }
 
-    /// Generates one sheet during the planning step (step 3): saves the picked prompt/style on
-    /// the sheet (creating it if needed) and kicks off generation of a single image. Can be
-    /// called repeatedly to re-generate with new picks; does not use the regeneration budget.
-    [HttpPost("{orderId:guid}/sheets/{index:int}/generate")]
-    public async Task<ActionResult<OrderDto>> GenerateSheet(Guid orderId, int index, GenerateSheetRequest request)
+    /// Which countries' public holidays to mark in the printed calendar, and which weekday the
+    /// grid starts on (see #364) — set on the same personal-dates step, saved immediately on
+    /// every change, same as AddDate/RemoveDate above.
+    [HttpPut("{orderId:guid}/holiday-settings")]
+    public async Task<ActionResult<OrderDto>> SaveHolidaySettings(Guid orderId, SaveHolidaySettingsRequest request, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-        if (IsExpired(order)) return Conflict("Order has expired.");
-        if (index is < 0 or > 12) return BadRequest("Index must be 0 (cover) through 12.");
-        if (order.Status is not (OrderStatus.PhotoUploaded or OrderStatus.DetailsSubmitted))
-        {
-            return Conflict("Sheets can only be generated one-by-one before full generation starts.");
-        }
-        if (order.Photos.Count == 0) return Conflict("Upload a photo first.");
+        var order = await sender.Send(new SaveHolidaySettingsCommand(User.GetUserId(), orderId, request.Countries, request.WeekStart), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
+    }
 
-        if (await db.Prompts.FindAsync(request.PromptId) is null) return BadRequest("Unknown prompt.");
-        if (await db.ImageStyles.FindAsync(request.ImageStyleId) is null) return BadRequest("Unknown image style.");
+    /// The single customer-facing generation trigger (see #351) — used by the sheet picker modal
+    /// on every page (planning-step tiles, cover, month). A sheet's first-ever variant is free,
+    /// matching the old planning-step behavior; any variant after that costs a regeneration, same
+    /// budget the old dedicated "Перегенерувати" buttons used to spend. Creating a fresh variant
+    /// never touches an already-generated one — see ActivateVariant to switch back to an older one.
+    [HttpPost("{orderId:guid}/sheets/{index:int}/generate")]
+    public async Task<ActionResult<OrderDto>> GenerateSheet(Guid orderId, int index, GenerateSheetRequest request, CancellationToken ct)
+    {
+        var order = await sender.Send(new GenerateSheetCommand(User.GetUserId(), orderId, index, request.PromptId, request.ImageStyleId, request.PhotoId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
+    }
 
-        var sheet = order.Sheets.FirstOrDefault(s => s.Index == index);
-        if (sheet is null)
-        {
-            sheet = new Sheet
-            {
-                OrderId = order.Id,
-                Kind = index == 0 ? SheetKind.Cover : SheetKind.Month,
-                Index = index
-            };
-            db.Sheets.Add(sheet);
-        }
-        else if (sheet.Status == SheetStatus.Generating)
-        {
-            return Conflict("This sheet is already generating.");
-        }
-        sheet.PromptId = request.PromptId;
-        sheet.ImageStyleId = request.ImageStyleId;
-        await db.SaveChangesAsync();
-
-        await generationService.GenerateSheetPreviewAsync(orderId, sheet.Id);
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
+    /// Restores a previously generated variant as the sheet's active image — no generation, no
+    /// regeneration budget cost, since nothing new is produced (see #351's gallery navigation).
+    [HttpPost("{orderId:guid}/sheets/{sheetId:guid}/variants/{variantId:guid}/activate")]
+    public async Task<ActionResult<OrderDto>> ActivateVariant(Guid orderId, Guid sheetId, Guid variantId, CancellationToken ct)
+    {
+        var order = await sender.Send(new ActivateVariantCommand(User.GetUserId(), orderId, sheetId, variantId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
     }
 
     [HttpPost("{orderId:guid}/generate")]
-    public async Task<ActionResult<OrderDto>> Generate(Guid orderId)
+    public async Task<ActionResult<OrderDto>> Generate(Guid orderId, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-        if (IsExpired(order)) return Conflict("Order has expired.");
-        if (order.Sheets.Count != 13 || order.Sheets.Any(s => s.PromptId is null || s.ImageStyleId is null))
-        {
-            return BadRequest("Complete the sheet plan (prompt and style for every sheet) before generating.");
-        }
-
-        await generationService.StartOrderGenerationAsync(orderId);
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
+        var order = await sender.Send(new StartGenerationCommand(User.GetUserId(), orderId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
     }
 
-    [HttpPost("{orderId:guid}/sheets/{sheetId:guid}/regenerate")]
-    public async Task<ActionResult<OrderDto>> RegenerateSheet(Guid orderId, Guid sheetId, RegenerateSheetRequest? request)
-    {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        // The user may swap the sheet's prompt/style before regenerating.
-        var sheet = order.Sheets.FirstOrDefault(s => s.Id == sheetId);
-        if (sheet is null) return NotFound();
-        if (request?.PromptId is Guid promptId)
-        {
-            if (await db.Prompts.FindAsync(promptId) is null) return BadRequest("Unknown prompt.");
-            sheet.PromptId = promptId;
-        }
-        if (request?.ImageStyleId is Guid imageStyleId)
-        {
-            if (await db.ImageStyles.FindAsync(imageStyleId) is null) return BadRequest("Unknown image style.");
-            sheet.ImageStyleId = imageStyleId;
-        }
-        await db.SaveChangesAsync();
-
-        var ok = await generationService.RegenerateSheetAsync(orderId, sheetId);
-        if (!ok) return Conflict("No regenerations remaining.");
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
-    }
-
-    // Dev/demo-only: flips a sheet into the Failed state so the frontend's failure/retry
-    // UI can be exercised without waiting for a (nonexistent) real generation failure.
+    // Dev/demo-only: flips a sheet into the Failed state so the frontend's failure/retry UI can
+    // be exercised without waiting for a (nonexistent) real generation failure. Never real in
+    // production — 404s there rather than shipping a way for any order owner to fail their own
+    // sheets (see #323).
     [HttpPost("{orderId:guid}/sheets/{sheetId:guid}/simulate-failure")]
-    public async Task<ActionResult<OrderDto>> SimulateFailure(Guid orderId, Guid sheetId)
+    public async Task<ActionResult<OrderDto>> SimulateFailure(Guid orderId, Guid sheetId, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        var sheet = order.Sheets.FirstOrDefault(s => s.Id == sheetId);
-        if (sheet is null) return NotFound();
-
-        sheet.Status = SheetStatus.Failed;
-        await db.SaveChangesAsync();
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
+        var order = await sender.Send(new SimulateFailureCommand(User.GetUserId(), orderId, sheetId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
     }
 
     [HttpPost("{orderId:guid}/cover/confirm")]
-    public async Task<ActionResult<OrderDto>> ConfirmCover(Guid orderId, ConfirmCoverRequest request)
+    public async Task<ActionResult<OrderDto>> ConfirmCover(Guid orderId, ConfirmCoverRequest request, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        var cover = order.Sheets.FirstOrDefault(s => s.Id == request.SheetId && s.Kind == SheetKind.Cover);
-        if (cover is null) return BadRequest("Not a cover sheet.");
-        if (cover.Status != SheetStatus.Ready) return Conflict("Cover is not ready yet.");
-
-        cover.IsSelected = true;
-        if (order.Status is OrderStatus.CoverReady or OrderStatus.Generating)
-        {
-            order.SetStatus(OrderStatus.CoverConfirmed);
-        }
-        await db.SaveChangesAsync();
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
+        var order = await sender.Send(new ConfirmCoverCommand(User.GetUserId(), orderId, request.SheetId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
     }
 
     [HttpPost("{orderId:guid}/checkout")]
-    public async Task<ActionResult<OrderDto>> Checkout(Guid orderId, CheckoutRequest request)
+    public async Task<ActionResult<OrderDto>> Checkout(Guid orderId, CheckoutRequest request, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-        if (IsExpired(order)) return Conflict("Order has expired.");
+        var delivery = new DeliveryInfo(request.RecipientName, request.Phone, request.City, request.WarehouseNumber, request.WarehouseAddress);
+        var order = await sender.Send(new CheckoutCommand(User.GetUserId(), orderId, delivery), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
+    }
 
-        if (order.Delivery is null)
-        {
-            order.Delivery = new Delivery { OrderId = order.Id };
-            db.Deliveries.Add(order.Delivery);
-        }
-        order.Delivery.RecipientName = request.RecipientName;
-        order.Delivery.Phone = request.Phone;
-        order.Delivery.City = request.City;
-        order.Delivery.WarehouseNumber = request.WarehouseNumber;
-        order.Delivery.WarehouseAddress = request.WarehouseAddress;
+    // Scoped to the user rather than an order (see SendPhoneVerificationCommand) — covers both
+    // single-order and batch checkout with one flow. Real SMS costs money with no sandbox mode
+    // (see SmsClubService), so this is rate-limited separately from the rest of the controller.
+    [HttpPost("phone-verification")]
+    [EnableRateLimiting("sms")]
+    public async Task<IActionResult> SendPhoneVerification(SendPhoneVerificationRequest request, CancellationToken ct)
+    {
+        await sender.Send(new SendPhoneVerificationCommand(User.GetUserId(), request.Phone), ct);
+        return Ok();
+    }
 
-        order.SetStatus(OrderStatus.AwaitingPayment);
-        await db.SaveChangesAsync();
+    [HttpPost("phone-verification/confirm")]
+    public async Task<IActionResult> ConfirmPhoneVerification(ConfirmPhoneVerificationRequest request, CancellationToken ct)
+    {
+        await sender.Send(new ConfirmPhoneVerificationCommand(User.GetUserId(), request.Code), ct);
+        return Ok();
+    }
 
-        order = await LoadOwnedOrderAsync(orderId);
-        return Ok(order!.ToDto());
+    /// A customer-entered discount code applied at checkout (see #393) — one code per order.
+    [HttpPost("{orderId:guid}/promo-code")]
+    public async Task<ActionResult<OrderDto>> ApplyPromoCode(Guid orderId, ApplyPromoCodeRequest request, CancellationToken ct)
+    {
+        var order = await sender.Send(new ApplyPromoCodeCommand(User.GetUserId(), orderId, request.Code), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
+    }
+
+    [HttpDelete("{orderId:guid}/promo-code")]
+    public async Task<ActionResult<OrderDto>> RemovePromoCode(Guid orderId, CancellationToken ct)
+    {
+        var order = await sender.Send(new RemovePromoCodeCommand(User.GetUserId(), orderId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
     }
 
     [HttpPost("{orderId:guid}/pay")]
-    public async Task<ActionResult<OrderDto>> Pay(Guid orderId, PayRequest request)
+    public async Task<ActionResult<PayResponseDto>> Pay(Guid orderId, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-        if (IsExpired(order)) return Conflict("Order has expired.");
+        var invoice = await sender.Send(new PayCommand(User.GetUserId(), orderId, monobankOptions.Value.PublicBaseUrl), ct);
+        return Ok(new PayResponseDto(invoice.PageUrl));
+    }
 
-        // Idempotency: a retried/duplicate POST (double-click, frontend retry, provider webhook
-        // racing the synchronous response) must not charge a second time. Retrying after a
-        // *failed* payment is still allowed — only a prior success short-circuits.
-        if (order.Status == OrderStatus.Paid || order.Payment?.Status == PaymentStatus.Succeeded)
-        {
-            logger.LogInformation("Pay: order {OrderId} is already paid, skipping charge", orderId);
-            return Ok(order.ToDto());
-        }
+    [HttpPut("{orderId:guid}/print-quantity")]
+    public async Task<ActionResult<OrderDto>> SetPrintQuantity(Guid orderId, SetPrintQuantityRequest request, CancellationToken ct)
+    {
+        var order = await sender.Send(new SetPrintQuantityCommand(User.GetUserId(), orderId, request.Quantity), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
+    }
 
-        if (!Enum.TryParse<PaymentMethod>(request.Method, true, out var method))
-        {
-            return BadRequest("Unknown payment method.");
-        }
+    [HttpPost("checkout-batch")]
+    public async Task<IActionResult> CheckoutBatch(BatchCheckoutRequest request, CancellationToken ct)
+    {
+        var delivery = new DeliveryInfo(request.RecipientName, request.Phone, request.City, request.WarehouseNumber, request.WarehouseAddress);
+        await sender.Send(new CheckoutBatchCommand(User.GetUserId(), request.OrderIds, delivery), ct);
+        return Ok();
+    }
 
-        var result = await paymentService.ChargeAsync(orderId, method, order.Price);
-
-        if (order.Payment is null)
-        {
-            order.Payment = new Payment { OrderId = order.Id };
-            db.Payments.Add(order.Payment);
-        }
-        order.Payment.Method = method;
-        order.Payment.Amount = order.Price;
-
-        if (result.Succeeded)
-        {
-            order.Payment.Status = PaymentStatus.Succeeded;
-            order.Payment.PaidAtUtc = DateTime.UtcNow;
-            order.SetStatus(OrderStatus.Paid);
-            logger.LogInformation(
-                "Pay: order {OrderId} charged successfully via {Method}, amount {Amount}", orderId, method, order.Price);
-        }
-        else
-        {
-            order.Payment.Status = PaymentStatus.Failed;
-            logger.LogWarning(
-                "Pay: order {OrderId} charge failed via {Method}: {Reason}", orderId, method, result.FailureReason ?? "unknown");
-        }
-
-        await db.SaveChangesAsync();
-
-        order = await LoadOwnedOrderAsync(orderId);
-        return result.Succeeded ? Ok(order!.ToDto()) : StatusCode(402, order!.ToDto());
+    [HttpPost("pay-batch")]
+    public async Task<ActionResult<PayResponseDto>> PayBatch([FromBody] IReadOnlyList<Guid> orderIds, CancellationToken ct)
+    {
+        var invoice = await sender.Send(new PayBatchCommand(User.GetUserId(), orderIds, monobankOptions.Value.PublicBaseUrl), ct);
+        return Ok(new PayResponseDto(invoice.PageUrl));
     }
 
     [HttpGet("{orderId:guid}/pdf")]
-    public async Task<IActionResult> DownloadPdf(Guid orderId)
+    public async Task<IActionResult> DownloadPdf(Guid orderId, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        var sheetsReady = order.Sheets.Count == 13 && order.Sheets.All(s => s.Status == SheetStatus.Ready);
-        if (!sheetsReady) return Conflict("Calendar is not fully generated yet.");
-
-        // Before payment, this doubles as the customer-facing preview — stamp it so it can't pass
-        // as the final print file.
-        var watermark = order.Status != OrderStatus.Paid;
-        var pdfBytes = await pdfService.GenerateAsync(orderId, watermark);
-        return File(pdfBytes, "application/pdf", $"calendary-{orderId}.pdf");
+        var pdfBytes = await sender.Send(new GenerateOrderPdfQuery(User.GetUserId(), orderId), ct);
+        return pdfBytes is null ? NotFound() : File(pdfBytes, "application/pdf", $"calendary-{orderId}.pdf");
     }
 
     [HttpPost("{orderId:guid}/cancel")]
-    public async Task<ActionResult<OrderDto>> Cancel(Guid orderId)
+    public async Task<ActionResult<OrderDto>> Cancel(Guid orderId, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-        if (order.Status is OrderStatus.Paid or OrderStatus.Printing or OrderStatus.Shipped or OrderStatus.Delivered)
-        {
-            return Conflict("Order has already been paid; cancellation would require a refund flow that is out of scope for this demo.");
-        }
-
-        order.SetStatus(OrderStatus.Cancelled);
-        await db.SaveChangesAsync();
-        return Ok(order.ToDto());
+        var order = await sender.Send(new CancelOrderCommand(User.GetUserId(), orderId), ct);
+        return order is null ? NotFound() : Ok(order.ToDto());
     }
 
-    // Archiving is purely a list-visibility flag — orthogonal to the OrderStatus state machine,
-    // so it's set directly rather than via SetStatus().
+    // Archiving is purely a list-visibility flag — orthogonal to the OrderStatus state machine.
     [HttpPost("{orderId:guid}/archive")]
-    public async Task<IActionResult> Archive(Guid orderId)
+    public async Task<IActionResult> Archive(Guid orderId, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        order.IsArchived = true;
-        await db.SaveChangesAsync();
-        return NoContent();
+        var found = await sender.Send(new ArchiveOrderCommand(User.GetUserId(), orderId, true), ct);
+        return found ? NoContent() : NotFound();
     }
 
     [HttpPost("{orderId:guid}/unarchive")]
-    public async Task<IActionResult> Unarchive(Guid orderId)
+    public async Task<IActionResult> Unarchive(Guid orderId, CancellationToken ct)
     {
-        var order = await LoadOwnedOrderAsync(orderId);
-        if (order is null) return NotFound();
-
-        order.IsArchived = false;
-        await db.SaveChangesAsync();
-        return NoContent();
+        var found = await sender.Send(new ArchiveOrderCommand(User.GetUserId(), orderId, false), ct);
+        return found ? NoContent() : NotFound();
     }
 }

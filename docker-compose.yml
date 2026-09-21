@@ -3,7 +3,9 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Your_password123"
+      # See .env.example — copy it to .env before `docker compose up` (compose loads .env from
+      # the project root automatically).
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Copy .env.example to .env and set MSSQL_SA_PASSWORD}"
       MSSQL_PID: "Developer"
     ports:
       - "1433:1433"
@@ -20,7 +22,7 @@ services:
     build:
       context: ./backend
     environment:
-      ConnectionStrings__Default: "Server=mssql,1433;Database=Calendary;User Id=sa;Password=Your_password123;TrustServerCertificate=True"
+      ConnectionStrings__Default: "Server=mssql,1433;Database=Calendary;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
       Cors__AllowedOrigins__0: "http://localhost:4200"
       ASPNETCORE_ENVIRONMENT: "Development"
       Resend__ApiKey: "${RESEND_API_KEY:-}"
@@ -40,7 +42,8 @@ services:
     ports:
       - "4200:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   mssql-data:

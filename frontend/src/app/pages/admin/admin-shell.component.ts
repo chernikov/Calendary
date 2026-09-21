@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
+import { Component, inject, DOCUMENT } from '@angular/core';
+
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -8,10 +8,9 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 const STYLESHEET_ID = 'ng-zorro-antd-styles';
 
 @Component({
-  selector: 'app-admin-shell',
-  standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, NzLayoutModule, NzMenuModule, NzIconModule],
-  template: `
+    selector: 'app-admin-shell',
+    imports: [RouterLink, RouterLinkActive, RouterOutlet, NzLayoutModule, NzMenuModule, NzIconModule],
+    template: `
     <nz-layout style="min-height: 100vh;">
       <nz-sider nzWidth="220px" nzTheme="dark">
         <div style="color: #fff; font-weight: 600; font-size: 18px; padding: 16px;">Calendary Admin</div>
@@ -32,6 +31,18 @@ const STYLESHEET_ID = 'ng-zorro-antd-styles';
             <span nz-icon nzType="bg-colors"></span>
             <span>Стилі</span>
           </li>
+          <li nz-menu-item routerLink="/admin/holidays" routerLinkActive="ant-menu-item-selected">
+            <span nz-icon nzType="calendar"></span>
+            <span>Свята</span>
+          </li>
+          <li nz-menu-item routerLink="/admin/promo-codes" routerLinkActive="ant-menu-item-selected">
+            <span nz-icon nzType="percentage"></span>
+            <span>Знижки</span>
+          </li>
+          <li nz-menu-item routerLink="/admin/product" routerLinkActive="ant-menu-item-selected">
+            <span nz-icon nzType="tag"></span>
+            <span>Товар</span>
+          </li>
           <li nz-menu-item routerLink="/admin/settings" routerLinkActive="ant-menu-item-selected">
             <span nz-icon nzType="setting"></span>
             <span>Налаштування</span>
@@ -44,7 +55,7 @@ const STYLESHEET_ID = 'ng-zorro-antd-styles';
         </nz-content>
       </nz-layout>
     </nz-layout>
-  `,
+  `
 })
 export class AdminShellComponent {
   constructor() {

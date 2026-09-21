@@ -1,14 +1,13 @@
 import { AfterViewInit, Component, ElementRef, ViewChild, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
-  selector: 'app-start',
-  standalone: true,
-  imports: [FormsModule],
-  template: `
+    selector: 'app-start',
+    imports: [FormsModule, RouterLink],
+    template: `
     <div class="page page-narrow">
       <h2 style="font-size: 28px;">{{ mode() === 'register' ? 'Реєстрація' : 'Вхід' }}</h2>
 
@@ -40,8 +39,15 @@ import { environment } from '../../../environments/environment';
         <p style="color: var(--color-accent-2-700); font-size: 13px; margin-top: var(--space-2);">{{ error() }}</p>
       }
 
+      @if (mode() === 'login') {
+        <a routerLink="/forgot-password" style="display: inline-block; font-size: 12.5px; margin-top: var(--space-2);">
+          Забули пароль?
+        </a>
+      }
+
       <button
         class="btn btn-primary btn-block"
+        style="margin-top: var(--space-3);"
         [disabled]="!email || !password || loading()"
         (click)="submit()"
       >
@@ -60,7 +66,7 @@ import { environment } from '../../../environments/environment';
 
       <div #googleButton></div>
     </div>
-  `,
+  `
 })
 export class StartComponent implements AfterViewInit {
   @ViewChild('googleButton') googleButtonRef!: ElementRef<HTMLDivElement>;

@@ -1,23 +1,29 @@
+using Calendary.Application.Common;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Calendary.Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<Sheet> Sheets => Set<Sheet>();
+    public DbSet<SheetVariant> SheetVariants => Set<SheetVariant>();
     public DbSet<OrderPhoto> OrderPhotos => Set<OrderPhoto>();
     public DbSet<PromptTheme> PromptThemes => Set<PromptTheme>();
     public DbSet<Prompt> Prompts => Set<Prompt>();
     public DbSet<ImageStyle> ImageStyles => Set<ImageStyle>();
     public DbSet<PersonalDate> PersonalDates => Set<PersonalDate>();
+    public DbSet<Holiday> Holidays => Set<Holiday>();
+    public DbSet<PromoCode> PromoCodes => Set<PromoCode>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Delivery> Deliveries => Set<Delivery>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
+    public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -52,6 +58,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasForeignKey(s => s.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<OrderStatusHistory>()
+            .HasIndex(h => h.OrderId);
+
         modelBuilder.Entity<Order>()
             .HasMany(o => o.PersonalDates)
             .WithOne(d => d.Order)
@@ -68,9 +77,56 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .Property(o => o.Price)
             .HasPrecision(10, 2);
 
+        modelBuilder.Entity<AppSettings>()
+            .Property(a => a.BasePrice)
+            .HasPrecision(10, 2);
+
+        modelBuilder.Entity<Order>()
+            .Property(o => o.DiscountAmount)
+            .HasPrecision(10, 2);
+
+        modelBuilder.Entity<PromoCode>()
+            .Property(p => p.Value)
+            .HasPrecision(10, 2);
+
+        modelBuilder.Entity<PromoCode>()
+            .Property(p => p.MinOrderAmount)
+            .HasPrecision(10, 2);
+
+        modelBuilder.Entity<PromoCode>()
+            .HasIndex(p => p.Code)
+            .IsUnique();
+
+        // Stored as a comma-joined list of enum names — simpler than a join table for a handful of
+        // countries, and avoids a bitmask's opacity in the raw DB column (see #364).
+        var holidayCountriesProperty = modelBuilder.Entity<Order>()
+            .Property(o => o.HolidayCountries)
+            .HasConversion(
+                v => string.Join(',', v.Select(c => c.ToString())),
+                v => v.Length == 0
+                    ? new List<Country>()
+                    : v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => Enum.Parse<Country>(s)).ToList());
+
+        // T-SQL-specific literal syntax — only valid against the real SQL Server provider.
+        // Calendary.Api.Tests' WebApplicationFactory runs this same model against SQLite instead
+        // (see Program.cs), which would otherwise fail at EnsureCreated() with a syntax error.
+        if (Database.IsSqlServer())
+        {
+            holidayCountriesProperty.HasDefaultValueSql("N'Ukraine'");
+        }
+
+        holidayCountriesProperty.Metadata.SetValueComparer(new ValueComparer<List<Country>>(
+            (a, b) => (a ?? new()).SequenceEqual(b ?? new()),
+            v => v.Aggregate(0, (hash, c) => HashCode.Combine(hash, c.GetHashCode())),
+            v => v.ToList()));
+
         modelBuilder.Entity<Payment>()
             .Property(p => p.Amount)
             .HasPrecision(10, 2);
+
+        modelBuilder.Entity<SheetVariant>()
+            .Property(v => v.CostUsd)
+            .HasPrecision(10, 4);
 
         modelBuilder.Entity<PromptTheme>()
             .HasMany(t => t.Prompts)
@@ -92,13 +148,39 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasForeignKey(s => s.ImageStyleId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<Sheet>()
+            .HasMany(s => s.Variants)
+            .WithOne(v => v.Sheet)
+            .HasForeignKey(v => v.SheetId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // OrderPhoto is customer-deletable before generation starts — a dangling pin must fall
+        // back to the default photo, not block the delete (unlike Prompt/ImageStyle above).
+        // ClientSetNull (not SetNull) because Orders already cascades to both OrderPhotos and
+        // Sheets directly — a DB-level ON DELETE SET NULL here would be a second cascade path to
+        // Sheets, which SQL Server rejects. EF nulls the FK in-memory instead (LoadOwnedOrderAsync
+        // always loads both Photos and Sheets.PinnedPhoto together, so this fires correctly).
+        modelBuilder.Entity<Sheet>()
+            .HasOne(s => s.PinnedPhoto)
+            .WithMany()
+            .HasForeignKey(s => s.PinnedPhotoId)
+            .OnDelete(DeleteBehavior.ClientSetNull);
+
+        // Variants are never individually deleted, so this is just a plain pointer once set.
+        modelBuilder.Entity<Sheet>()
+            .HasOne(s => s.ActiveVariant)
+            .WithMany()
+            .HasForeignKey(s => s.ActiveVariantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         SeedPromptLibrary(modelBuilder);
 
         modelBuilder.Entity<AppSettings>().HasData(
             new AppSettings
             {
                 Id = Guid.Parse("22222222-2222-2222-2222-222222222201"),
-                ImageGenerationProvider = ImageGenerationProvider.OpenAI
+                ImageGenerationProvider = ImageGenerationProvider.OpenAI,
+                BasePrice = 1600m
             }
         );
     }
@@ -146,6 +228,70 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555503"), Name = "Чорно-біле", Text = "black and white photography, dramatic monochrome contrast, timeless mood", Description = "Драматичний монохром із позачасовим настроєм", SortOrder = 3 },
             new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555504"), Name = "3D-мультфільм", Text = "3D animated feature film style, expressive stylized character, vibrant colors, soft lighting", Description = "Яскравий персонаж у стилі анімаційного фільму", SortOrder = 4 },
             new ImageStyle { Id = Guid.Parse("55555555-5555-5555-5555-555555555505"), Name = "Аніме", Text = "anime art style, clean linework, vivid cel shading, expressive eyes", Description = "Виразна японська анімація з чистими лініями", SortOrder = 5 }
+        );
+
+        // Starting set of nationwide public holidays for 2027 (see #364) — the year
+        // CalendarPdfService/style-dates.component.ts already compute as "next year". Admin can
+        // add further years/countries later via the admin panel; floating dates (Easter and its
+        // derivatives) are entered as concrete 2027 dates, not computed algorithmically.
+        modelBuilder.Entity<Holiday>().HasData(
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770001"), Country = Country.Ukraine, Year = 2027, Month = 1, Day = 1, Name = "Новий рік", ShortName = "Новий рік" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770004"), Country = Country.Ukraine, Year = 2027, Month = 5, Day = 1, Name = "День праці", ShortName = "День праці" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770005"), Country = Country.Ukraine, Year = 2027, Month = 5, Day = 9, Name = "День перемоги над нацизмом у Другій світовій війні", ShortName = "День перемоги" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770006"), Country = Country.Ukraine, Year = 2027, Month = 6, Day = 28, Name = "День Конституції України", ShortName = "День Конституції" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770007"), Country = Country.Ukraine, Year = 2027, Month = 8, Day = 24, Name = "День незалежності України", ShortName = "День незалежності" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770008"), Country = Country.Ukraine, Year = 2027, Month = 10, Day = 1, Name = "День захисників і захисниць України", ShortName = "День захисників" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770009"), Country = Country.Ukraine, Year = 2027, Month = 12, Day = 25, Name = "Різдво Христове (григоріанський календар)", ShortName = "Різдво" },
+
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770101"), Country = Country.Usa, Year = 2027, Month = 1, Day = 1, Name = "New Year's Day", ShortName = "New Year" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770102"), Country = Country.Usa, Year = 2027, Month = 1, Day = 18, Name = "Martin Luther King Jr. Day", ShortName = "MLK Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770103"), Country = Country.Usa, Year = 2027, Month = 2, Day = 15, Name = "Washington's Birthday", ShortName = "Presidents Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770104"), Country = Country.Usa, Year = 2027, Month = 5, Day = 31, Name = "Memorial Day", ShortName = "Memorial Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770105"), Country = Country.Usa, Year = 2027, Month = 6, Day = 19, Name = "Juneteenth", ShortName = "Juneteenth" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770106"), Country = Country.Usa, Year = 2027, Month = 7, Day = 4, Name = "Independence Day", ShortName = "July 4th" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770107"), Country = Country.Usa, Year = 2027, Month = 9, Day = 6, Name = "Labor Day", ShortName = "Labor Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770108"), Country = Country.Usa, Year = 2027, Month = 10, Day = 11, Name = "Columbus Day", ShortName = "Columbus Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770109"), Country = Country.Usa, Year = 2027, Month = 11, Day = 11, Name = "Veterans Day", ShortName = "Veterans Day" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770110"), Country = Country.Usa, Year = 2027, Month = 11, Day = 25, Name = "Thanksgiving Day", ShortName = "Thanksgiving" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770111"), Country = Country.Usa, Year = 2027, Month = 12, Day = 25, Name = "Christmas Day", ShortName = "Christmas" },
+
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770201"), Country = Country.Poland, Year = 2027, Month = 1, Day = 1, Name = "Nowy Rok", ShortName = "Nowy Rok" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770202"), Country = Country.Poland, Year = 2027, Month = 1, Day = 6, Name = "Święto Trzech Króli", ShortName = "Trzech Króli" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770203"), Country = Country.Poland, Year = 2027, Month = 3, Day = 28, Name = "Wielkanoc", ShortName = "Wielkanoc" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770204"), Country = Country.Poland, Year = 2027, Month = 3, Day = 29, Name = "Poniedziałek Wielkanocny", ShortName = "Lany Poniedziałek" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770205"), Country = Country.Poland, Year = 2027, Month = 5, Day = 1, Name = "Święto Pracy", ShortName = "Święto Pracy" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770206"), Country = Country.Poland, Year = 2027, Month = 5, Day = 3, Name = "Święto Konstytucji 3 Maja", ShortName = "3 Maja" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770207"), Country = Country.Poland, Year = 2027, Month = 5, Day = 16, Name = "Zielone Świątki", ShortName = "Zielone Świątki" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770208"), Country = Country.Poland, Year = 2027, Month = 5, Day = 27, Name = "Boże Ciało", ShortName = "Boże Ciało" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770209"), Country = Country.Poland, Year = 2027, Month = 8, Day = 15, Name = "Wniebowzięcie Najświętszej Maryi Panny", ShortName = "Wniebowzięcie NMP" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770210"), Country = Country.Poland, Year = 2027, Month = 11, Day = 1, Name = "Wszystkich Świętych", ShortName = "Wsz. Świętych" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770211"), Country = Country.Poland, Year = 2027, Month = 11, Day = 11, Name = "Święto Niepodległości", ShortName = "Niepodległości" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770212"), Country = Country.Poland, Year = 2027, Month = 12, Day = 25, Name = "Boże Narodzenie (pierwszy dzień)", ShortName = "Boże Narodz. I" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770213"), Country = Country.Poland, Year = 2027, Month = 12, Day = 26, Name = "Boże Narodzenie (drugi dzień)", ShortName = "Boże Narodz. II" },
+
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770301"), Country = Country.Germany, Year = 2027, Month = 1, Day = 1, Name = "Neujahr", ShortName = "Neujahr" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770302"), Country = Country.Germany, Year = 2027, Month = 3, Day = 26, Name = "Karfreitag", ShortName = "Karfreitag" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770303"), Country = Country.Germany, Year = 2027, Month = 3, Day = 29, Name = "Ostermontag", ShortName = "Ostermontag" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770304"), Country = Country.Germany, Year = 2027, Month = 5, Day = 1, Name = "Tag der Arbeit", ShortName = "Tag der Arbeit" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770305"), Country = Country.Germany, Year = 2027, Month = 5, Day = 6, Name = "Christi Himmelfahrt", ShortName = "Himmelfahrt" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770306"), Country = Country.Germany, Year = 2027, Month = 5, Day = 17, Name = "Pfingstmontag", ShortName = "Pfingstmontag" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770307"), Country = Country.Germany, Year = 2027, Month = 10, Day = 3, Name = "Tag der Deutschen Einheit", ShortName = "Dt. Einheit" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770308"), Country = Country.Germany, Year = 2027, Month = 12, Day = 25, Name = "1. Weihnachtsfeiertag", ShortName = "Weihnachten I" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770309"), Country = Country.Germany, Year = 2027, Month = 12, Day = 26, Name = "2. Weihnachtsfeiertag", ShortName = "Weihnachten II" },
+
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770401"), Country = Country.Czechia, Year = 2027, Month = 1, Day = 1, Name = "Den obnovy samostatného českého státu", ShortName = "Obnovy státu" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770402"), Country = Country.Czechia, Year = 2027, Month = 3, Day = 26, Name = "Velký pátek", ShortName = "Velký pátek" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770403"), Country = Country.Czechia, Year = 2027, Month = 3, Day = 29, Name = "Velikonoční pondělí", ShortName = "Velikonoce" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770404"), Country = Country.Czechia, Year = 2027, Month = 5, Day = 1, Name = "Svátek práce", ShortName = "Svátek práce" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770405"), Country = Country.Czechia, Year = 2027, Month = 5, Day = 8, Name = "Den vítězství", ShortName = "Den vítězství" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770406"), Country = Country.Czechia, Year = 2027, Month = 7, Day = 5, Name = "Den slovanských věrozvěstů Cyrila a Metoděje", ShortName = "Cyril a Metoděj" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770407"), Country = Country.Czechia, Year = 2027, Month = 7, Day = 6, Name = "Den upálení mistra Jana Husa", ShortName = "Jan Hus" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770408"), Country = Country.Czechia, Year = 2027, Month = 9, Day = 28, Name = "Den české státnosti", ShortName = "Česká státnost" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770409"), Country = Country.Czechia, Year = 2027, Month = 10, Day = 28, Name = "Den vzniku samostatného československého státu", ShortName = "Vznik ČSR" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770410"), Country = Country.Czechia, Year = 2027, Month = 11, Day = 17, Name = "Den boje za svobodu a demokracii", ShortName = "Boj za svobodu" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770411"), Country = Country.Czechia, Year = 2027, Month = 12, Day = 24, Name = "Štědrý den", ShortName = "Štědrý den" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770412"), Country = Country.Czechia, Year = 2027, Month = 12, Day = 25, Name = "1. svátek vánoční", ShortName = "Vánoce I" },
+            new Holiday { Id = Guid.Parse("77777777-7777-7777-7777-777777770413"), Country = Country.Czechia, Year = 2027, Month = 12, Day = 26, Name = "2. svátek vánoční", ShortName = "Vánoce II" }
         );
     }
 }

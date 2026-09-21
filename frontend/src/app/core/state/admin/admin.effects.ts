@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, of, switchMap } from 'rxjs';
@@ -13,8 +14,8 @@ export class AdminEffects {
   loadOrders$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.loadOrders),
-      switchMap(({ page, pageSize, status }) =>
-        this.admin.listOrders(page, pageSize, status).pipe(
+      switchMap(({ page, pageSize, status, search }) =>
+        this.admin.listOrders(page, pageSize, status, search).pipe(
           map((result) => AdminActions.loadOrdersSuccess({ result })),
           catchError(() => of(AdminActions.loadOrdersFailure({ error: 'Не вдалося завантажити замовлення.' }))),
         ),
@@ -46,6 +47,13 @@ export class AdminEffects {
     ),
   );
 
+  loadHistoryAlongsideOrderDetail$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadOrderDetail),
+      map(({ orderId }) => AdminActions.loadOrderStatusHistory({ orderId })),
+    ),
+  );
+
   replacePhoto$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.replacePhoto),
@@ -65,6 +73,67 @@ export class AdminEffects {
         this.admin.regenerateSheet(orderId, sheetId).pipe(
           map((order) => AdminActions.regenerateSheetSuccess({ order })),
           catchError(() => of(AdminActions.regenerateSheetFailure({ error: 'Перегенерації вичерпано.' }))),
+        ),
+      ),
+    ),
+  );
+
+  advanceFulfillment$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.advanceFulfillment),
+      switchMap(({ orderId }) =>
+        this.admin.advanceFulfillment(orderId).pipe(
+          map((order) => AdminActions.advanceFulfillmentSuccess({ order })),
+          catchError((err: HttpErrorResponse) =>
+            of(AdminActions.advanceFulfillmentFailure({
+              error: typeof err.error === 'string' ? err.error : 'Не вдалося перейти на наступний етап.',
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  // Status history changed too, alongside the order itself — refetch it so the timeline reflects
+  // the step that was just applied without a page reload.
+  refreshHistoryAfterAdvance$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.advanceFulfillmentSuccess),
+      map(({ order }) => AdminActions.loadOrderStatusHistory({ orderId: order.id })),
+    ),
+  );
+
+  loadOrderStatusHistory$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadOrderStatusHistory),
+      switchMap(({ orderId }) =>
+        this.admin.getOrderStatusHistory(orderId).pipe(
+          map((history) => AdminActions.loadOrderStatusHistorySuccess({ history })),
+          catchError(() => of(AdminActions.loadOrderStatusHistoryFailure({ error: 'Не вдалося завантажити історію статусів.' }))),
+        ),
+      ),
+    ),
+  );
+
+  loadProductSettings$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadProductSettings),
+      switchMap(() =>
+        this.admin.getProduct().pipe(
+          map(({ basePrice }) => AdminActions.loadProductSettingsSuccess({ basePrice })),
+          catchError(() => of(AdminActions.loadProductSettingsFailure({ error: 'Не вдалося завантажити ціну товару.' }))),
+        ),
+      ),
+    ),
+  );
+
+  setProductSettings$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.setProductSettings),
+      switchMap(({ basePrice }) =>
+        this.admin.setProduct(basePrice).pipe(
+          map(({ basePrice: updated }) => AdminActions.setProductSettingsSuccess({ basePrice: updated })),
+          catchError(() => of(AdminActions.setProductSettingsFailure({ error: 'Не вдалося змінити ціну товару.' }))),
         ),
       ),
     ),
@@ -222,6 +291,38 @@ export class AdminEffects {
     ),
   );
 
+  generatePromptPreview$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.generatePromptPreview),
+      switchMap(({ promptId }) =>
+        this.admin.generatePromptPreview(promptId).pipe(
+          map(() => AdminActions.loadPromptThemes()),
+          catchError((err: HttpErrorResponse) =>
+            of(AdminActions.promptLibraryMutationFailure({
+              error: typeof err.error === 'string' ? err.error : 'Не вдалося згенерувати приклад.',
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  generateImageStylePreview$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.generateImageStylePreview),
+      switchMap(({ styleId }) =>
+        this.admin.generateImageStylePreview(styleId).pipe(
+          map(() => AdminActions.loadImageStyles()),
+          catchError((err: HttpErrorResponse) =>
+            of(AdminActions.promptLibraryMutationFailure({
+              error: typeof err.error === 'string' ? err.error : 'Не вдалося згенерувати приклад.',
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+
   deleteImageStyle$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.deleteImageStyle),
@@ -238,6 +339,82 @@ export class AdminEffects {
               }),
             ),
           ),
+        ),
+      ),
+    ),
+  );
+
+  loadHolidays$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadHolidays),
+      switchMap(() =>
+        this.admin.listHolidays().pipe(
+          map((holidays) => AdminActions.loadHolidaysSuccess({ holidays })),
+          catchError(() => of(AdminActions.loadHolidaysFailure({ error: 'Не вдалося завантажити свята.' }))),
+        ),
+      ),
+    ),
+  );
+
+  saveHoliday$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.saveHoliday),
+      switchMap(({ holiday }) =>
+        this.admin.saveHoliday(holiday).pipe(
+          map(() => AdminActions.loadHolidays()),
+          catchError(() => of(AdminActions.holidayMutationFailure({ error: 'Не вдалося зберегти свято.' }))),
+        ),
+      ),
+    ),
+  );
+
+  deleteHoliday$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.deleteHoliday),
+      switchMap(({ holidayId }) =>
+        this.admin.deleteHoliday(holidayId).pipe(
+          map(() => AdminActions.loadHolidays()),
+          catchError(() => of(AdminActions.holidayMutationFailure({ error: 'Не вдалося видалити свято.' }))),
+        ),
+      ),
+    ),
+  );
+
+  loadPromoCodes$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadPromoCodes),
+      switchMap(() =>
+        this.admin.listPromoCodes().pipe(
+          map((promoCodes) => AdminActions.loadPromoCodesSuccess({ promoCodes })),
+          catchError(() => of(AdminActions.loadPromoCodesFailure({ error: 'Не вдалося завантажити промокоди.' }))),
+        ),
+      ),
+    ),
+  );
+
+  savePromoCode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.savePromoCode),
+      switchMap(({ promoCode }) =>
+        this.admin.savePromoCode(promoCode).pipe(
+          map(() => AdminActions.loadPromoCodes()),
+          catchError((err: HttpErrorResponse) =>
+            of(AdminActions.promoCodeMutationFailure({
+              error: typeof err.error === 'string' ? err.error : 'Не вдалося зберегти промокод.',
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  deletePromoCode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.deletePromoCode),
+      switchMap(({ promoCodeId }) =>
+        this.admin.deletePromoCode(promoCodeId).pipe(
+          map(() => AdminActions.loadPromoCodes()),
+          catchError(() => of(AdminActions.promoCodeMutationFailure({ error: 'Не вдалося видалити промокод.' }))),
         ),
       ),
     ),

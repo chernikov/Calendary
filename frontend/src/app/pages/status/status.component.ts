@@ -7,6 +7,7 @@ import { OrderDto, OrderStatus } from '../../core/models';
 const TIMELINE: { status: OrderStatus; label: string }[] = [
   { status: 'Paid', label: 'Оплачено' },
   { status: 'Printing', label: 'Друкуємо' },
+  { status: 'PrintReady', label: 'Надруковано' },
   { status: 'Shipped', label: 'Відправлено' },
   { status: 'Delivered', label: 'Доставлено' },
 ];
@@ -84,7 +85,7 @@ export class StatusComponent implements OnInit, OnDestroy {
   }
 
   isCancellable(o: OrderDto): boolean {
-    return !['Paid', 'Printing', 'Shipped', 'Delivered', 'Cancelled'].includes(o.status);
+    return !['Paid', 'Printing', 'PrintReady', 'Shipped', 'Delivered', 'Cancelled'].includes(o.status);
   }
 
   cancel(o: OrderDto): void {

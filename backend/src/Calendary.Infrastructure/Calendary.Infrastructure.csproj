@@ -3,6 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Calendary.Domain\Calendary.Domain.csproj" />
     <ProjectReference Include="..\Calendary.AI\Calendary.AI.csproj" />
+    <ProjectReference Include="..\Calendary.Common\Calendary.Common.csproj" />
+    <ProjectReference Include="..\Calendary.Application\Calendary.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

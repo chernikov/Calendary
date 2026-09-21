@@ -8,6 +8,24 @@ export const orderReducer = createReducer(
   on(OrderActions.loadOrderSuccess, (state, { order }) => ({ ...state, order, error: null })),
   on(OrderActions.loadOrderFailure, (state, { error }) => ({ ...state, error })),
 
+  // #303's lightweight poll merge — patches per-sheet status/failureReason (and overall order
+  // status) into the already-loaded order in place, without touching ImageUrl/prompt/style/variant
+  // fields the progress payload doesn't carry.
+  on(OrderActions.orderProgressSuccess, (state, { progress }) => {
+    if (!state.order || state.order.id !== progress.id) return state;
+    return {
+      ...state,
+      order: {
+        ...state.order,
+        status: progress.status,
+        sheets: state.order.sheets.map((s) => {
+          const p = progress.sheets.find((x) => x.kind === s.kind && x.index === s.index);
+          return p ? { ...s, status: p.status, failureReason: p.failureReason } : s;
+        }),
+      },
+    };
+  }),
+
   on(OrderActions.loadMyOrders, (state) => ({ ...state, busy: true, error: null })),
   on(OrderActions.loadMyOrdersSuccess, (state, { orders }) => ({ ...state, myOrders: orders, busy: false })),
   on(OrderActions.loadMyOrdersFailure, (state, { error }) => ({ ...state, busy: false, error })),
@@ -15,13 +33,16 @@ export const orderReducer = createReducer(
   on(OrderActions.loadPromptLibrarySuccess, (state, { library }) => ({ ...state, promptLibrary: library })),
   on(OrderActions.loadPromptLibraryFailure, (state, { error }) => ({ ...state, error })),
 
+  on(OrderActions.loadHolidaysSuccess, (state, { holidays }) => ({ ...state, holidays })),
+  on(OrderActions.loadHolidaysFailure, (state, { error }) => ({ ...state, error })),
+
   on(
     OrderActions.createOrderWithPhoto,
     OrderActions.addOrderPhoto,
     OrderActions.removeOrderPhoto,
     OrderActions.startGeneration,
     OrderActions.savePlanAndGenerate,
-    OrderActions.regenerateSheet,
+    OrderActions.activateVariant,
     OrderActions.confirmCover,
     OrderActions.checkoutAndPay,
     OrderActions.cancelOrder,
@@ -34,14 +55,20 @@ export const orderReducer = createReducer(
     OrderActions.removeOrderPhotoSuccess,
     OrderActions.addPersonalDateSuccess,
     OrderActions.removePersonalDateSuccess,
+    OrderActions.saveHolidaySettingsSuccess,
+    OrderActions.applyPromoCodeSuccess,
+    OrderActions.removePromoCodeSuccess,
     OrderActions.startGenerationSuccess,
     OrderActions.generateSheetSuccess,
-    OrderActions.regenerateSheetSuccess,
+    OrderActions.activateVariantSuccess,
     OrderActions.confirmCoverSuccess,
-    OrderActions.checkoutAndPaySuccess,
     OrderActions.cancelOrderSuccess,
     (state, { order }) => ({ ...state, order, busy: false, error: null }),
   ),
+
+  // No updated order comes back — the browser is about to hard-navigate to Monobank's hosted
+  // page (or straight to /status in the local-dev fallback), so there's nothing left to reflect.
+  on(OrderActions.checkoutAndPaySuccess, (state) => ({ ...state, busy: false, error: null })),
 
   on(
     OrderActions.createOrderWithPhotoFailure,
@@ -49,10 +76,13 @@ export const orderReducer = createReducer(
     OrderActions.removeOrderPhotoFailure,
     OrderActions.addPersonalDateFailure,
     OrderActions.removePersonalDateFailure,
+    OrderActions.saveHolidaySettingsFailure,
+    OrderActions.applyPromoCodeFailure,
+    OrderActions.removePromoCodeFailure,
     OrderActions.startGenerationFailure,
     OrderActions.savePlanAndGenerateFailure,
     OrderActions.generateSheetFailure,
-    OrderActions.regenerateSheetFailure,
+    OrderActions.activateVariantFailure,
     OrderActions.confirmCoverFailure,
     OrderActions.checkoutAndPayFailure,
     OrderActions.cancelOrderFailure,
@@ -68,6 +98,16 @@ export const orderReducer = createReducer(
     myOrders: state.myOrders.map((o) => (o.id === orderId ? { ...o, isArchived: false } : o)),
   })),
   on(OrderActions.archiveOrderFailure, OrderActions.unarchiveOrderFailure, (state, { error }) => ({ ...state, error })),
+
+  on(OrderActions.setPrintQuantitySuccess, (state, { orderId, quantity }) => ({
+    ...state,
+    myOrders: state.myOrders.map((o) => (o.id === orderId ? { ...o, printQuantity: quantity } : o)),
+  })),
+  on(OrderActions.setPrintQuantityFailure, (state, { error }) => ({ ...state, error })),
+
+  on(OrderActions.checkoutAndPayBatch, (state) => ({ ...state, busy: true, error: null })),
+  on(OrderActions.checkoutAndPayBatchSuccess, (state) => ({ ...state, busy: false, error: null })),
+  on(OrderActions.checkoutAndPayBatchFailure, (state, { error }) => ({ ...state, busy: false, error })),
 
   on(OrderActions.loadCitiesSuccess, (state, { cities }) => ({ ...state, cities })),
   on(OrderActions.loadCitiesFailure, (state) => ({ ...state, cities: [] })),

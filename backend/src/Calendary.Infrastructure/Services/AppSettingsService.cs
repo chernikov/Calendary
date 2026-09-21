@@ -11,6 +11,7 @@ namespace Calendary.Infrastructure.Services;
 public class AppSettingsService(AppDbContext db) : IAppSettingsService
 {
     private static ImageGenerationProvider? _cached;
+    private static decimal? _cachedBasePrice;
     private static readonly SemaphoreSlim Lock = new(1, 1);
 
     public async Task<ImageGenerationProvider> GetImageGenerationProviderAsync(CancellationToken ct = default)
@@ -44,5 +45,38 @@ public class AppSettingsService(AppDbContext db) : IAppSettingsService
         row.ImageGenerationProvider = provider;
         await db.SaveChangesAsync(ct);
         _cached = provider;
+    }
+
+    public async Task<decimal> GetBasePriceAsync(CancellationToken ct = default)
+    {
+        if (_cachedBasePrice is { } cached)
+        {
+            return cached;
+        }
+
+        await Lock.WaitAsync(ct);
+        try
+        {
+            if (_cachedBasePrice is { } cachedAgain)
+            {
+                return cachedAgain;
+            }
+
+            var row = await db.AppSettings.FirstAsync(ct);
+            _cachedBasePrice = row.BasePrice;
+            return _cachedBasePrice.Value;
+        }
+        finally
+        {
+            Lock.Release();
+        }
+    }
+
+    public async Task SetBasePriceAsync(decimal basePrice, CancellationToken ct = default)
+    {
+        var row = await db.AppSettings.FirstAsync(ct);
+        row.BasePrice = basePrice;
+        await db.SaveChangesAsync(ct);
+        _cachedBasePrice = basePrice;
     }
 }

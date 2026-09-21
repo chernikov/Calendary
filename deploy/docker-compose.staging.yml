@@ -34,6 +34,7 @@ services:
       Google__ClientSecret: "${GOOGLE_CLIENT_SECRET:-}"
       Resend__ApiKey: "${RESEND_API_KEY:-}"
       Monobank__MerchantToken: "${MONOBANK_MERCHANT_TOKEN:-}"
+      Monobank__PublicBaseUrl: "https://${STAGING_DOMAIN}"
       NovaPoshta__ApiKey: "${NOVA_POSHTA_API_KEY:-}"
       # Guarantees an admin account always exists (AdminSeeder, runs at startup) — no environment
       # should ever need a manual DB UPDATE to get admin access.
@@ -55,7 +56,8 @@ services:
     image: ghcr.io/${GHCR_OWNER}/calendary-frontend:develop
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       default: {}
       web:

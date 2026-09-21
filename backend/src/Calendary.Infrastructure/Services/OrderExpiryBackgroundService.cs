@@ -2,7 +2,6 @@ using Calendary.Domain.Enums;
 using Calendary.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Calendary.Infrastructure.Services;
@@ -12,33 +11,13 @@ namespace Calendary.Infrastructure.Services;
 /// already captured payment (Paid/Printing/Shipped/Delivered) are exempt — expiry only matters
 /// while the order is still moving through the funnel, same rule OrdersController.IsExpired uses.
 public class OrderExpiryBackgroundService(IServiceScopeFactory scopeFactory, ILogger<OrderExpiryBackgroundService> logger)
-    : BackgroundService
+    : TimedHostedService(scopeFactory, logger, TimeSpan.FromMinutes(5))
 {
-    private static readonly TimeSpan TickInterval = TimeSpan.FromMinutes(5);
-
     private static readonly OrderStatus[] ExemptStatuses =
-        [OrderStatus.Paid, OrderStatus.Printing, OrderStatus.Shipped, OrderStatus.Delivered];
+        [OrderStatus.Paid, OrderStatus.Printing, OrderStatus.PrintReady, OrderStatus.Shipped, OrderStatus.Delivered];
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task TickAsync(AppDbContext db, IServiceProvider services, CancellationToken ct)
     {
-        using var timer = new PeriodicTimer(TickInterval);
-        while (await timer.WaitForNextTickAsync(stoppingToken))
-        {
-            try
-            {
-                await TickAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Order-expiry sweep failed");
-            }
-        }
-    }
-
-    private async Task TickAsync(CancellationToken ct)
-    {
-        using var scope = scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var now = DateTime.UtcNow;
 
         var expired = await db.Orders
@@ -48,11 +27,6 @@ public class OrderExpiryBackgroundService(IServiceScopeFactory scopeFactory, ILo
         foreach (var order in expired)
         {
             order.IsArchived = true;
-        }
-
-        if (db.ChangeTracker.HasChanges())
-        {
-            await db.SaveChangesAsync(ct);
         }
     }
 }

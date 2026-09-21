@@ -5,31 +5,44 @@ import { Store } from '@ngrx/store';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { FormsModule } from '@angular/forms';
 import { AdminActions, selectAdminBusy, selectAdminOrders } from '../../core/state/admin';
 import { OrderStatus } from '../../core/models';
 
 const STATUS_OPTIONS: OrderStatus[] = [
   'Created', 'PhotoUploaded', 'DetailsSubmitted', 'Generating', 'CoverReady', 'CoverConfirmed',
-  'ReviewReady', 'AwaitingPayment', 'Paid', 'Printing', 'Shipped', 'Delivered', 'Cancelled', 'GenerationFailed',
+  'ReviewReady', 'AwaitingPayment', 'Paid', 'Printing', 'PrintReady', 'Shipped', 'Delivered', 'Cancelled', 'GenerationFailed',
 ];
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   Created: 'default', PhotoUploaded: 'default', DetailsSubmitted: 'default',
   Generating: 'processing', CoverReady: 'processing', CoverConfirmed: 'processing', ReviewReady: 'processing',
-  AwaitingPayment: 'gold', Paid: 'blue', Printing: 'blue', Shipped: 'blue',
+  AwaitingPayment: 'gold', Paid: 'blue', Printing: 'blue', PrintReady: 'blue', Shipped: 'blue',
   Delivered: 'green', Cancelled: 'red', GenerationFailed: 'red',
 };
 
 @Component({
-  selector: 'app-admin-orders',
-  standalone: true,
-  imports: [RouterLink, DatePipe, FormsModule, NzTableModule, NzTagModule, NzSelectModule],
-  template: `
+    selector: 'app-admin-orders',
+    imports: [RouterLink, DatePipe, FormsModule, NzTableModule, NzTagModule, NzSelectModule, NzInputModule],
+    template: `
     <h2>Замовлення</h2>
 
-    <div style="margin-bottom: 16px; max-width: 260px;">
-      <nz-select [(ngModel)]="statusFilter" nzAllowClear nzPlaceHolder="Фільтр за статусом" (ngModelChange)="onFilterChange()">
+    <div style="margin-bottom: 16px; display: flex; gap: 12px;">
+      <input
+        nz-input
+        style="max-width: 320px;"
+        placeholder="Пошук: email, ім'я, ID замовлення, ТТН"
+        [(ngModel)]="searchInput"
+        (ngModelChange)="onSearchChange()"
+      />
+      <nz-select
+        style="max-width: 260px;"
+        [(ngModel)]="statusFilter"
+        nzAllowClear
+        nzPlaceHolder="Фільтр за статусом"
+        (ngModelChange)="onFilterChange()"
+      >
         @for (s of statusOptions; track s) {
           <nz-option [nzValue]="s" [nzLabel]="s"></nz-option>
         }
@@ -50,7 +63,9 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
           <th>ID</th>
           <th>Клієнт</th>
           <th>Статус</th>
+          <th>ТТН</th>
           <th>Ціна</th>
+          <th>Собівартість генерацій</th>
           <th>Створено</th>
         </tr>
       </thead>
@@ -60,13 +75,15 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
             <td>{{ o.id.slice(0, 8) }}</td>
             <td>{{ o.userDisplayName || o.userEmail }}</td>
             <td><nz-tag [nzColor]="statusColor(o.status)">{{ o.status }}</nz-tag></td>
+            <td>{{ o.trackingNumber || '—' }}</td>
             <td>{{ o.price }} ₴</td>
+            <td>{{ '$' + o.totalGenerationCostUsd.toFixed(2) }}</td>
             <td>{{ o.createdAtUtc | date: 'short' }}</td>
           </tr>
         }
       </tbody>
     </nz-table>
-  `,
+  `
 })
 export class AdminOrdersComponent implements OnInit {
   private readonly store = inject(Store);
@@ -77,6 +94,8 @@ export class AdminOrdersComponent implements OnInit {
   readonly pageSize = 20;
   readonly page = signal(1);
   statusFilter: OrderStatus | null = null;
+  searchInput = '';
+  private searchDebounce?: ReturnType<typeof setTimeout>;
 
   ngOnInit(): void {
     this.load();
@@ -92,13 +111,26 @@ export class AdminOrdersComponent implements OnInit {
     this.load();
   }
 
+  onSearchChange(): void {
+    clearTimeout(this.searchDebounce);
+    this.searchDebounce = setTimeout(() => {
+      this.page.set(1);
+      this.load();
+    }, 300);
+  }
+
   statusColor(status: OrderStatus): string {
     return STATUS_COLORS[status];
   }
 
   private load(): void {
     this.store.dispatch(
-      AdminActions.loadOrders({ page: this.page(), pageSize: this.pageSize, status: this.statusFilter ?? undefined }),
+      AdminActions.loadOrders({
+        page: this.page(),
+        pageSize: this.pageSize,
+        status: this.statusFilter ?? undefined,
+        search: this.searchInput || undefined,
+      }),
     );
   }
 }

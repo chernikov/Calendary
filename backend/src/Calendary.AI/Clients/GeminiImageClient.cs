@@ -54,7 +54,7 @@ public class GeminiImageClient(HttpClient httpClient, IOptions<AiOptions> option
                 return new AiImageResult(false, null, "Gemini response contained no image data.");
             }
 
-            return new AiImageResult(true, DataUrl.Build(inline.MimeType ?? "image/png", inline.Data), null);
+            return new AiImageResult(true, DataUrl.Build(inline.MimeType ?? "image/png", inline.Data), null, _options.EstimatedCostUsd);
         }
         catch (Exception ex)
         {

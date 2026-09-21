@@ -12,9 +12,29 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/start/start.component').then((m) => m.StartComponent),
   },
   {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./pages/forgot-password/forgot-password.component').then((m) => m.ForgotPasswordComponent),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./pages/reset-password/reset-password.component').then((m) => m.ResetPasswordComponent),
+  },
+  {
     path: 'orders',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/orders/orders.component').then((m) => m.OrdersComponent),
+  },
+  {
+    path: 'my-orders',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/order-history/order-history.component').then((m) => m.OrderHistoryComponent),
+  },
+  {
+    path: 'checkout-batch',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/checkout-batch/checkout-batch.component').then((m) => m.CheckoutBatchComponent),
   },
   {
     path: 'order/:orderId/upload',
@@ -83,8 +103,21 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/admin/admin-styles.component').then((m) => m.AdminStylesComponent),
       },
       {
+        path: 'holidays',
+        loadComponent: () => import('./pages/admin/admin-holidays.component').then((m) => m.AdminHolidaysComponent),
+      },
+      {
+        path: 'promo-codes',
+        loadComponent: () =>
+          import('./pages/admin/admin-promo-codes.component').then((m) => m.AdminPromoCodesComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./pages/admin/admin-settings.component').then((m) => m.AdminSettingsComponent),
+      },
+      {
+        path: 'product',
+        loadComponent: () => import('./pages/admin/admin-product.component').then((m) => m.AdminProductComponent),
       },
       { path: '', redirectTo: 'orders', pathMatch: 'full' },
     ],

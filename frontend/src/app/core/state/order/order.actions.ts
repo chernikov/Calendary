@@ -1,5 +1,5 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { NovaPoshtaWarehouseDto, OrderDto, OrderSummaryDto, PromptLibraryDto, SheetPlanItem } from '../../models';
+import { HolidayDto, NovaPoshtaWarehouseDto, OrderDto, OrderProgressDto, OrderSummaryDto, PromptLibraryDto, SheetPlanItem } from '../../models';
 
 export const OrderActions = createActionGroup({
   source: 'Order',
@@ -10,6 +10,10 @@ export const OrderActions = createActionGroup({
 
     'Start Order Polling': props<{ orderId: string; intervalMs: number }>(),
     'Stop Order Polling': emptyProps(),
+    // #303: the routine ~1.5s poll tick — cheap status-per-sheet merge into the existing order,
+    // no ImageUrl. Escalates to a full Load Order only on the (rarer) tick where a sheet actually
+    // finished, since that's when a new variant/ImageUrl needs to be picked up.
+    'Order Progress Success': props<{ progress: OrderProgressDto }>(),
 
     'Load My Orders': emptyProps(),
     'Load My Orders Success': props<{ orders: OrderSummaryDto[] }>(),
@@ -18,6 +22,10 @@ export const OrderActions = createActionGroup({
     'Load Prompt Library': emptyProps(),
     'Load Prompt Library Success': props<{ library: PromptLibraryDto }>(),
     'Load Prompt Library Failure': props<{ error: string }>(),
+
+    'Load Holidays': props<{ year: number }>(),
+    'Load Holidays Success': props<{ holidays: HolidayDto[] }>(),
+    'Load Holidays Failure': props<{ error: string }>(),
 
     // The order isn't created until a photo is actually attached — see #348.
     'Create Order With Photo': props<{ photo: File }>(),
@@ -44,17 +52,32 @@ export const OrderActions = createActionGroup({
     'Remove Personal Date Success': props<{ order: OrderDto }>(),
     'Remove Personal Date Failure': props<{ error: string }>(),
 
+    'Save Holiday Settings': props<{ orderId: string; countries: string[]; weekStart: string }>(),
+    'Save Holiday Settings Success': props<{ order: OrderDto }>(),
+    'Save Holiday Settings Failure': props<{ error: string }>(),
+
+    'Apply Promo Code': props<{ orderId: string; code: string }>(),
+    'Apply Promo Code Success': props<{ order: OrderDto }>(),
+    'Apply Promo Code Failure': props<{ error: string }>(),
+
+    'Remove Promo Code': props<{ orderId: string }>(),
+    'Remove Promo Code Success': props<{ order: OrderDto }>(),
+    'Remove Promo Code Failure': props<{ error: string }>(),
+
     'Start Generation': props<{ orderId: string }>(),
     'Start Generation Success': props<{ order: OrderDto }>(),
     'Start Generation Failure': props<{ error: string }>(),
 
-    'Generate Sheet': props<{ orderId: string; index: number; promptId: string; imageStyleId: string }>(),
+    // The single generation trigger everywhere (see #351) — a sheet's first variant is free, any
+    // variant after that spends a regeneration; the server decides which.
+    'Generate Sheet': props<{ orderId: string; index: number; promptId: string; imageStyleId: string; photoId?: string }>(),
     'Generate Sheet Success': props<{ order: OrderDto }>(),
     'Generate Sheet Failure': props<{ error: string }>(),
 
-    'Regenerate Sheet': props<{ orderId: string; sheetId: string }>(),
-    'Regenerate Sheet Success': props<{ order: OrderDto }>(),
-    'Regenerate Sheet Failure': props<{ error: string }>(),
+    // Restores a previously generated variant as active — free, no generation involved.
+    'Activate Variant': props<{ orderId: string; sheetId: string; variantId: string }>(),
+    'Activate Variant Success': props<{ order: OrderDto }>(),
+    'Activate Variant Failure': props<{ error: string }>(),
 
     'Confirm Cover': props<{ orderId: string; sheetId: string }>(),
     'Confirm Cover Success': props<{ order: OrderDto }>(),
@@ -73,10 +96,20 @@ export const OrderActions = createActionGroup({
     'Checkout And Pay': props<{
       orderId: string;
       delivery: { recipientName: string; phone: string; city: string; warehouseNumber: string; warehouseAddress: string };
-      method: string;
     }>(),
-    'Checkout And Pay Success': props<{ order: OrderDto }>(),
+    'Checkout And Pay Success': emptyProps(),
     'Checkout And Pay Failure': props<{ error: string }>(),
+
+    'Set Print Quantity': props<{ orderId: string; quantity: number }>(),
+    'Set Print Quantity Success': props<{ orderId: string; quantity: number }>(),
+    'Set Print Quantity Failure': props<{ error: string }>(),
+
+    'Checkout And Pay Batch': props<{
+      orderIds: string[];
+      delivery: { recipientName: string; phone: string; city: string; warehouseNumber: string; warehouseAddress: string };
+    }>(),
+    'Checkout And Pay Batch Success': emptyProps(),
+    'Checkout And Pay Batch Failure': props<{ error: string }>(),
 
     'Cancel Order': props<{ orderId: string }>(),
     'Cancel Order Success': props<{ order: OrderDto }>(),

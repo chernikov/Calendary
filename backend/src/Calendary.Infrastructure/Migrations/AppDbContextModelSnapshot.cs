@@ -28,6 +28,10 @@ namespace Calendary.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal>("BasePrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
                     b.Property<int>("ImageGenerationProvider")
                         .HasColumnType("int");
 
@@ -39,6 +43,7 @@ namespace Calendary.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222201"),
+                            BasePrice = 1600m,
                             ImageGenerationProvider = 1
                         });
                 });
@@ -81,6 +86,569 @@ namespace Calendary.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Deliveries");
+                });
+
+            modelBuilder.Entity("Calendary.Domain.Entities.Holiday", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Country")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShortName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Holidays");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770001"),
+                            Country = 0,
+                            Day = 1,
+                            Month = 1,
+                            Name = "Новий рік",
+                            ShortName = "Новий рік",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770004"),
+                            Country = 0,
+                            Day = 1,
+                            Month = 5,
+                            Name = "День праці",
+                            ShortName = "День праці",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770005"),
+                            Country = 0,
+                            Day = 9,
+                            Month = 5,
+                            Name = "День перемоги над нацизмом у Другій світовій війні",
+                            ShortName = "День перемоги",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770006"),
+                            Country = 0,
+                            Day = 28,
+                            Month = 6,
+                            Name = "День Конституції України",
+                            ShortName = "День Конституції",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770007"),
+                            Country = 0,
+                            Day = 24,
+                            Month = 8,
+                            Name = "День незалежності України",
+                            ShortName = "День незалежності",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770008"),
+                            Country = 0,
+                            Day = 1,
+                            Month = 10,
+                            Name = "День захисників і захисниць України",
+                            ShortName = "День захисників",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770009"),
+                            Country = 0,
+                            Day = 25,
+                            Month = 12,
+                            Name = "Різдво Христове (григоріанський календар)",
+                            ShortName = "Різдво",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770101"),
+                            Country = 1,
+                            Day = 1,
+                            Month = 1,
+                            Name = "New Year's Day",
+                            ShortName = "New Year",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770102"),
+                            Country = 1,
+                            Day = 18,
+                            Month = 1,
+                            Name = "Martin Luther King Jr. Day",
+                            ShortName = "MLK Day",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770103"),
+                            Country = 1,
+                            Day = 15,
+                            Month = 2,
+                            Name = "Washington's Birthday",
+                            ShortName = "Presidents Day",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770104"),
+                            Country = 1,
+                            Day = 31,
+                            Month = 5,
+                            Name = "Memorial Day",
+                            ShortName = "Memorial Day",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770105"),
+                            Country = 1,
+                            Day = 19,
+                            Month = 6,
+                            Name = "Juneteenth",
+                            ShortName = "Juneteenth",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770106"),
+                            Country = 1,
+                            Day = 4,
+                            Month = 7,
+                            Name = "Independence Day",
+                            ShortName = "July 4th",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770107"),
+                            Country = 1,
+                            Day = 6,
+                            Month = 9,
+                            Name = "Labor Day",
+                            ShortName = "Labor Day",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770108"),
+                            Country = 1,
+                            Day = 11,
+                            Month = 10,
+                            Name = "Columbus Day",
+                            ShortName = "Columbus Day",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770109"),
+                            Country = 1,
+                            Day = 11,
+                            Month = 11,
+                            Name = "Veterans Day",
+                            ShortName = "Veterans Day",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770110"),
+                            Country = 1,
+                            Day = 25,
+                            Month = 11,
+                            Name = "Thanksgiving Day",
+                            ShortName = "Thanksgiving",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770111"),
+                            Country = 1,
+                            Day = 25,
+                            Month = 12,
+                            Name = "Christmas Day",
+                            ShortName = "Christmas",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770201"),
+                            Country = 2,
+                            Day = 1,
+                            Month = 1,
+                            Name = "Nowy Rok",
+                            ShortName = "Nowy Rok",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770202"),
+                            Country = 2,
+                            Day = 6,
+                            Month = 1,
+                            Name = "Święto Trzech Króli",
+                            ShortName = "Trzech Króli",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770203"),
+                            Country = 2,
+                            Day = 28,
+                            Month = 3,
+                            Name = "Wielkanoc",
+                            ShortName = "Wielkanoc",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770204"),
+                            Country = 2,
+                            Day = 29,
+                            Month = 3,
+                            Name = "Poniedziałek Wielkanocny",
+                            ShortName = "Lany Poniedziałek",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770205"),
+                            Country = 2,
+                            Day = 1,
+                            Month = 5,
+                            Name = "Święto Pracy",
+                            ShortName = "Święto Pracy",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770206"),
+                            Country = 2,
+                            Day = 3,
+                            Month = 5,
+                            Name = "Święto Konstytucji 3 Maja",
+                            ShortName = "3 Maja",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770207"),
+                            Country = 2,
+                            Day = 16,
+                            Month = 5,
+                            Name = "Zielone Świątki",
+                            ShortName = "Zielone Świątki",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770208"),
+                            Country = 2,
+                            Day = 27,
+                            Month = 5,
+                            Name = "Boże Ciało",
+                            ShortName = "Boże Ciało",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770209"),
+                            Country = 2,
+                            Day = 15,
+                            Month = 8,
+                            Name = "Wniebowzięcie Najświętszej Maryi Panny",
+                            ShortName = "Wniebowzięcie NMP",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770210"),
+                            Country = 2,
+                            Day = 1,
+                            Month = 11,
+                            Name = "Wszystkich Świętych",
+                            ShortName = "Wsz. Świętych",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770211"),
+                            Country = 2,
+                            Day = 11,
+                            Month = 11,
+                            Name = "Święto Niepodległości",
+                            ShortName = "Niepodległości",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770212"),
+                            Country = 2,
+                            Day = 25,
+                            Month = 12,
+                            Name = "Boże Narodzenie (pierwszy dzień)",
+                            ShortName = "Boże Narodz. I",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770213"),
+                            Country = 2,
+                            Day = 26,
+                            Month = 12,
+                            Name = "Boże Narodzenie (drugi dzień)",
+                            ShortName = "Boże Narodz. II",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770301"),
+                            Country = 3,
+                            Day = 1,
+                            Month = 1,
+                            Name = "Neujahr",
+                            ShortName = "Neujahr",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770302"),
+                            Country = 3,
+                            Day = 26,
+                            Month = 3,
+                            Name = "Karfreitag",
+                            ShortName = "Karfreitag",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770303"),
+                            Country = 3,
+                            Day = 29,
+                            Month = 3,
+                            Name = "Ostermontag",
+                            ShortName = "Ostermontag",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770304"),
+                            Country = 3,
+                            Day = 1,
+                            Month = 5,
+                            Name = "Tag der Arbeit",
+                            ShortName = "Tag der Arbeit",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770305"),
+                            Country = 3,
+                            Day = 6,
+                            Month = 5,
+                            Name = "Christi Himmelfahrt",
+                            ShortName = "Himmelfahrt",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770306"),
+                            Country = 3,
+                            Day = 17,
+                            Month = 5,
+                            Name = "Pfingstmontag",
+                            ShortName = "Pfingstmontag",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770307"),
+                            Country = 3,
+                            Day = 3,
+                            Month = 10,
+                            Name = "Tag der Deutschen Einheit",
+                            ShortName = "Dt. Einheit",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770308"),
+                            Country = 3,
+                            Day = 25,
+                            Month = 12,
+                            Name = "1. Weihnachtsfeiertag",
+                            ShortName = "Weihnachten I",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770309"),
+                            Country = 3,
+                            Day = 26,
+                            Month = 12,
+                            Name = "2. Weihnachtsfeiertag",
+                            ShortName = "Weihnachten II",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770401"),
+                            Country = 4,
+                            Day = 1,
+                            Month = 1,
+                            Name = "Den obnovy samostatného českého státu",
+                            ShortName = "Obnovy státu",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770402"),
+                            Country = 4,
+                            Day = 26,
+                            Month = 3,
+                            Name = "Velký pátek",
+                            ShortName = "Velký pátek",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770403"),
+                            Country = 4,
+                            Day = 29,
+                            Month = 3,
+                            Name = "Velikonoční pondělí",
+                            ShortName = "Velikonoce",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770404"),
+                            Country = 4,
+                            Day = 1,
+                            Month = 5,
+                            Name = "Svátek práce",
+                            ShortName = "Svátek práce",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770405"),
+                            Country = 4,
+                            Day = 8,
+                            Month = 5,
+                            Name = "Den vítězství",
+                            ShortName = "Den vítězství",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770406"),
+                            Country = 4,
+                            Day = 5,
+                            Month = 7,
+                            Name = "Den slovanských věrozvěstů Cyrila a Metoděje",
+                            ShortName = "Cyril a Metoděj",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770407"),
+                            Country = 4,
+                            Day = 6,
+                            Month = 7,
+                            Name = "Den upálení mistra Jana Husa",
+                            ShortName = "Jan Hus",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770408"),
+                            Country = 4,
+                            Day = 28,
+                            Month = 9,
+                            Name = "Den české státnosti",
+                            ShortName = "Česká státnost",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770409"),
+                            Country = 4,
+                            Day = 28,
+                            Month = 10,
+                            Name = "Den vzniku samostatného československého státu",
+                            ShortName = "Vznik ČSR",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770410"),
+                            Country = 4,
+                            Day = 17,
+                            Month = 11,
+                            Name = "Den boje za svobodu a demokracii",
+                            ShortName = "Boj za svobodu",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770411"),
+                            Country = 4,
+                            Day = 24,
+                            Month = 12,
+                            Name = "Štědrý den",
+                            ShortName = "Štědrý den",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770412"),
+                            Country = 4,
+                            Day = 25,
+                            Month = 12,
+                            Name = "1. svátek vánoční",
+                            ShortName = "Vánoce I",
+                            Year = 2027
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777770413"),
+                            Country = 4,
+                            Day = 26,
+                            Month = 12,
+                            Name = "2. svátek vánoční",
+                            ShortName = "Vánoce II",
+                            Year = 2027
+                        });
                 });
 
             modelBuilder.Entity("Calendary.Domain.Entities.ImageStyle", b =>
@@ -163,8 +731,18 @@ namespace Calendary.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
                     b.Property<DateTime>("ExpiresAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("HolidayCountries")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValueSql("N'Ukraine'");
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
@@ -172,6 +750,12 @@ namespace Calendary.Infrastructure.Migrations
                     b.Property<decimal>("Price")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("PrintQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PromoCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RegenerationsRemaining")
                         .HasColumnType("int");
@@ -184,6 +768,9 @@ namespace Calendary.Infrastructure.Migrations
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("WeekStart")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -219,6 +806,31 @@ namespace Calendary.Infrastructure.Migrations
                     b.ToTable("OrderPhotos");
                 });
 
+            modelBuilder.Entity("Calendary.Domain.Entities.OrderStatusHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ChangedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderStatusHistories");
+                });
+
             modelBuilder.Entity("Calendary.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -240,6 +852,9 @@ namespace Calendary.Infrastructure.Migrations
 
                     b.Property<DateTime?>("PaidAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ProviderInvoiceId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -276,6 +891,50 @@ namespace Calendary.Infrastructure.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("PersonalDates");
+                });
+
+            modelBuilder.Entity("Calendary.Domain.Entities.PromoCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("MaxRedemptions")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("MinOrderAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("RedemptionsUsed")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ValidFromUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ValidToUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("PromoCodes");
                 });
 
             modelBuilder.Entity("Calendary.Domain.Entities.Prompt", b =>
@@ -552,6 +1211,12 @@ namespace Calendary.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("ActiveVariantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FailureReason")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("GeneratingStartedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -573,6 +1238,9 @@ namespace Calendary.Infrastructure.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("PinnedPhotoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("PromptId")
                         .HasColumnType("uniqueidentifier");
 
@@ -582,18 +1250,46 @@ namespace Calendary.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("VariantCount")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("ActiveVariantId");
 
                     b.HasIndex("ImageStyleId");
 
                     b.HasIndex("OrderId");
 
+                    b.HasIndex("PinnedPhotoId");
+
                     b.HasIndex("PromptId");
 
                     b.ToTable("Sheets");
+                });
+
+            modelBuilder.Entity("Calendary.Domain.Entities.SheetVariant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("CostUsd")
+                        .HasPrecision(10, 4)
+                        .HasColumnType("decimal(10,4)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SheetId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SheetId");
+
+                    b.ToTable("SheetVariants");
                 });
 
             modelBuilder.Entity("Calendary.Domain.Entities.User", b =>
@@ -614,6 +1310,9 @@ namespace Calendary.Infrastructure.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("EmailConfirmationAttempts")
+                        .HasColumnType("int");
+
                     b.Property<string>("EmailConfirmationCode")
                         .HasColumnType("nvarchar(max)");
 
@@ -623,7 +1322,43 @@ namespace Calendary.Infrastructure.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("LastDeliveryCity")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastDeliveryPhone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastDeliveryRecipientName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastDeliveryWarehouseAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastDeliveryWarehouseNumber")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PasswordResetTokenExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordResetTokenHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PhoneVerificationAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhoneVerificationCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PhoneVerificationCodeExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PhoneVerificationPhone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneVerifiedPhone")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Role")
@@ -735,6 +1470,11 @@ namespace Calendary.Infrastructure.Migrations
 
             modelBuilder.Entity("Calendary.Domain.Entities.Sheet", b =>
                 {
+                    b.HasOne("Calendary.Domain.Entities.SheetVariant", "ActiveVariant")
+                        .WithMany()
+                        .HasForeignKey("ActiveVariantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Calendary.Domain.Entities.ImageStyle", "ImageStyle")
                         .WithMany()
                         .HasForeignKey("ImageStyleId")
@@ -746,16 +1486,35 @@ namespace Calendary.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Calendary.Domain.Entities.OrderPhoto", "PinnedPhoto")
+                        .WithMany()
+                        .HasForeignKey("PinnedPhotoId");
+
                     b.HasOne("Calendary.Domain.Entities.Prompt", "Prompt")
                         .WithMany()
                         .HasForeignKey("PromptId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.Navigation("ActiveVariant");
+
                     b.Navigation("ImageStyle");
 
                     b.Navigation("Order");
 
+                    b.Navigation("PinnedPhoto");
+
                     b.Navigation("Prompt");
+                });
+
+            modelBuilder.Entity("Calendary.Domain.Entities.SheetVariant", b =>
+                {
+                    b.HasOne("Calendary.Domain.Entities.Sheet", "Sheet")
+                        .WithMany("Variants")
+                        .HasForeignKey("SheetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sheet");
                 });
 
             modelBuilder.Entity("Calendary.Domain.Entities.UserSession", b =>
@@ -785,6 +1544,11 @@ namespace Calendary.Infrastructure.Migrations
             modelBuilder.Entity("Calendary.Domain.Entities.PromptTheme", b =>
                 {
                     b.Navigation("Prompts");
+                });
+
+            modelBuilder.Entity("Calendary.Domain.Entities.Sheet", b =>
+                {
+                    b.Navigation("Variants");
                 });
 
             modelBuilder.Entity("Calendary.Domain.Entities.User", b =>

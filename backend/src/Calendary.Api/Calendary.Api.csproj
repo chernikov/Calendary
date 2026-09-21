@@ -4,14 +4,20 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>a1e4c9a0-6f5a-4b0c-9b3a-8f2c7f9b6c31</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MediatR" Version="14.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.11" />
+    <!-- Only ever used in the "Testing" environment (Calendary.Api.Tests' WebApplicationFactory) —
+         see Program.cs's AppDbContext registration. Never invoked in Development/Staging/Production. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 
@@ -19,6 +25,8 @@
     <ProjectReference Include="..\Calendary.Domain\Calendary.Domain.csproj" />
     <ProjectReference Include="..\Calendary.Infrastructure\Calendary.Infrastructure.csproj" />
     <ProjectReference Include="..\Calendary.AI\Calendary.AI.csproj" />
+    <ProjectReference Include="..\Calendary.Application\Calendary.Application.csproj" />
+    <ProjectReference Include="..\Calendary.Common\Calendary.Common.csproj" />
   </ItemGroup>
 
 </Project>

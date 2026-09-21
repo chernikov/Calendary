@@ -1,5 +1,6 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { SheetDto } from '../../models';
+import { isOrderDone } from '../../order-status';
 import { ORDER_FEATURE_KEY, OrderState } from './order.state';
 
 export const selectOrderState = createFeatureSelector<OrderState>(ORDER_FEATURE_KEY);
@@ -8,7 +9,14 @@ export const selectOrder = createSelector(selectOrderState, (state) => state.ord
 export const selectMyOrders = createSelector(selectOrderState, (state) => state.myOrders);
 export const selectActiveOrders = createSelector(selectMyOrders, (orders) => orders.filter((o) => !o.isArchived));
 export const selectArchivedOrders = createSelector(selectMyOrders, (orders) => orders.filter((o) => o.isArchived));
+
+// Кошик (see #395) — everything not yet paid: both still-preparing and ready-to-checkout orders.
+export const selectCartOrders = createSelector(selectActiveOrders, (orders) => orders.filter((o) => !isOrderDone(o.status)));
+// Мої замовлення — paid+ orders being tracked through print/ship/deliver. An order moves here the
+// moment it's paid, disappearing from the cart.
+export const selectOrderHistory = createSelector(selectActiveOrders, (orders) => orders.filter((o) => isOrderDone(o.status)));
 export const selectPromptLibrary = createSelector(selectOrderState, (state) => state.promptLibrary);
+export const selectHolidays = createSelector(selectOrderState, (state) => state.holidays);
 export const selectCities = createSelector(selectOrderState, (state) => state.cities);
 export const selectWarehouses = createSelector(selectOrderState, (state) => state.warehouses);
 export const selectOrderBusy = createSelector(selectOrderState, (state) => state.busy);

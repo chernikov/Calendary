@@ -6,66 +6,52 @@ import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
 import {
   OrderActions,
+  selectHolidays,
   selectOrder,
   selectOrderBusy,
   selectOrderError,
   selectPromptLibrary,
 } from '../../core/state/order';
-import { ImageStyleDto, PromptDto, SheetDto, SheetPlanItem } from '../../core/models';
+import { HolidayDto, SheetDto, SheetPlanItem } from '../../core/models';
 import { ImageLightboxComponent } from '../../shared/image-lightbox.component';
+import { SheetPickerModalComponent } from './sheet-picker-modal.component';
 
 interface PlanRow {
   promptId: string;
   styleId: string;
+  photoId: string;
   /** True once the user explicitly picked a style here — stops downward propagation. */
   styleTouched: boolean;
 }
 
 @Component({
-  selector: 'app-style-dates',
-  standalone: true,
-  imports: [FormsModule, ImageLightboxComponent],
-  template: `
+    selector: 'app-style-dates',
+    imports: [FormsModule, ImageLightboxComponent, SheetPickerModalComponent],
+    template: `
     <div class="page">
       <div class="step-label"><span>Крок 3 із 5</span></div>
       <h2 style="font-size: 28px;">Образи</h2>
       <p class="text-muted">
         Оберіть образ (сюжет) і стиль для обкладинки та кожного місяця. Обраний стиль
         застосовується й до наступних аркушів — за бажанням змініть його на будь-якому.
+        Натисніть на аркуш, щоб обрати фото, стиль і персонажа та згенерувати зображення.
       </p>
 
       <div class="gen-cover">
-        <div class="gen-card" [class.has-image]="imageFor(0)" [style.background-image]="bgFor(0)">
+        <div class="gen-card" [class.has-image]="imageFor(0)" [style.background-image]="bgFor(0)" (click)="openSheetModal(0)">
           @if (imageFor(0)) {
             <button type="button" class="zoom-trigger" (click)="$event.stopPropagation(); zoomUrl.set(imageFor(0)!)">⤢</button>
+            <div class="gen-card-hover-hint">Змінити…</div>
           }
           <div class="gen-card-name">Обкладинка</div>
           <div class="gen-card-controls">
-            <button
-              type="button"
-              class="badge-btn"
-              [class.filled]="plan[0].promptId"
-              (click)="openPicker(0, 'prompt')"
-            >
-              {{ promptName(plan[0].promptId) || 'Образ…' }}
-            </button>
-            <button
-              type="button"
-              class="badge-btn"
-              [class.filled]="plan[0].styleId"
-              (click)="openPicker(0, 'style')"
-            >
-              {{ styleName(plan[0].styleId) || 'Стиль…' }}
-            </button>
             @if (isGenerating(0)) {
               <div class="gen-card-status">Генерується…</div>
-            } @else if (plan[0].promptId && plan[0].styleId) {
-              <button type="button" class="btn btn-primary btn-gen" (click)="generateCard(0)">
-                {{ imageFor(0) ? 'Перегенерувати' : 'Згенерувати' }}
-              </button>
+            } @else if (!imageFor(0)) {
+              <div class="gen-card-placeholder">Натисніть, щоб згенерувати</div>
             }
             @if (isFailed(0)) {
-              <div class="gen-card-error">Не вдалося — спробуйте ще раз</div>
+              <div class="gen-card-error">{{ failureReasonFor(0) }}</div>
             }
           </div>
         </div>
@@ -73,93 +59,45 @@ interface PlanRow {
 
       <div class="gen-grid">
         @for (row of monthRows; track row.index) {
-          <div class="gen-card" [class.has-image]="imageFor(row.index)" [style.background-image]="bgFor(row.index)">
+          <div class="gen-card" [class.has-image]="imageFor(row.index)" [style.background-image]="bgFor(row.index)" (click)="openSheetModal(row.index)">
             @if (imageFor(row.index)) {
               <button type="button" class="zoom-trigger" (click)="$event.stopPropagation(); zoomUrl.set(imageFor(row.index)!)">⤢</button>
+              <div class="gen-card-hover-hint">Змінити…</div>
             }
             <div class="gen-card-name">{{ row.name }}</div>
             <div class="gen-card-controls">
-              <button
-                type="button"
-                class="badge-btn"
-                [class.filled]="plan[row.index].promptId"
-                (click)="openPicker(row.index, 'prompt')"
-              >
-                {{ promptName(plan[row.index].promptId) || 'Образ…' }}
-              </button>
-              <button
-                type="button"
-                class="badge-btn"
-                [class.filled]="plan[row.index].styleId"
-                (click)="openPicker(row.index, 'style')"
-              >
-                {{ styleName(plan[row.index].styleId) || 'Стиль…' }}
-              </button>
               @if (isGenerating(row.index)) {
                 <div class="gen-card-status">Генерується…</div>
-              } @else if (plan[row.index].promptId && plan[row.index].styleId) {
-                <button type="button" class="btn btn-primary btn-gen" (click)="generateCard(row.index)">
-                  {{ imageFor(row.index) ? 'Перегенерувати' : 'Згенерувати' }}
-                </button>
+              } @else if (!imageFor(row.index)) {
+                <div class="gen-card-placeholder">Натисніть, щоб згенерувати</div>
               }
               @if (isFailed(row.index)) {
-                <div class="gen-card-error">Не вдалося — спробуйте ще раз</div>
+                <div class="gen-card-error">{{ failureReasonFor(row.index) }}</div>
               }
             </div>
           </div>
         }
       </div>
 
-      @if (picker(); as p) {
-        <div class="dialog-backdrop" (click)="closePicker()">
-          <div class="dialog picker-dialog" (click)="$event.stopPropagation()">
-            <div class="dialog-title">
-              {{ p.kind === 'prompt' ? 'Образ' : 'Стиль' }} — {{ sheetRows[p.index].name }}
-            </div>
-
-            @if (p.kind === 'prompt') {
-              @for (theme of library()?.themes ?? []; track theme.id) {
-                <div>
-                  <div class="card-title" style="margin-bottom: 4px;">{{ theme.name }}</div>
-                  <p class="picker-theme-desc">{{ theme.description }}</p>
-                  <div class="picker-grid">
-                    @for (prompt of theme.prompts; track prompt.id) {
-                      <button
-                        type="button"
-                        class="picker-item"
-                        [class.selected]="plan[p.index].promptId === prompt.id"
-                        (click)="choosePrompt(prompt.id)"
-                      >
-                        <img [src]="promptImage(prompt)" [alt]="prompt.name" loading="lazy" />
-                        <span class="picker-item-name">{{ prompt.name }}</span>
-                        <span class="picker-item-desc">{{ prompt.description }}</span>
-                      </button>
-                    }
-                  </div>
-                </div>
-              }
-            } @else {
-              <div class="picker-grid">
-                @for (style of library()?.styles ?? []; track style.id) {
-                  <button
-                    type="button"
-                    class="picker-item"
-                    [class.selected]="plan[p.index].styleId === style.id"
-                    (click)="chooseStyle(style.id)"
-                  >
-                    <img [src]="styleImage(style)" [alt]="style.name" loading="lazy" />
-                    <span class="picker-item-name">{{ style.name }}</span>
-                    <span class="picker-item-desc">{{ style.description }}</span>
-                  </button>
-                }
-              </div>
-            }
-
-            <div class="dialog-actions">
-              <button class="btn btn-secondary" (click)="closePicker()">Закрити</button>
-            </div>
-          </div>
-        </div>
+      @if (modalIndex() !== null) {
+        @let index = modalIndex()!;
+        <app-sheet-picker-modal
+          [sheetName]="sheetRows[index].name"
+          [photos]="order()?.photos ?? []"
+          [library]="library()"
+          [initialPromptId]="plan[index].promptId"
+          [initialStyleId]="plan[index].styleId"
+          [initialPhotoId]="plan[index].photoId"
+          [variants]="sheetFor(index)?.variants ?? []"
+          [activeVariantId]="sheetFor(index)?.activeVariantId ?? null"
+          [status]="sheetFor(index)?.status ?? 'Pending'"
+          [regenerationsRemaining]="order()?.regenerationsRemaining ?? 0"
+          [photoUploadError]="error()"
+          (closed)="closeSheetModal()"
+          (generate)="onGenerateFromModal(index, $event)"
+          (activateVariant)="onActivateVariant(index, $event)"
+          (addPhoto)="onAddPhoto($event)"
+        />
       }
 
       <div class="hr"></div>
@@ -174,7 +112,7 @@ interface PlanRow {
           <button
             type="button"
             class="month-tile"
-            [class.has-dates]="datesForMonth(m.number).length > 0"
+            [class.has-dates]="datesForMonth(m.number).length > 0 || holidaysForMonth(m.number).length > 0"
             (click)="openMonth(m.number)"
           >
             <div class="month-tile-name">{{ m.name }}</div>
@@ -186,7 +124,8 @@ interface PlanRow {
                   <span
                     class="tile-calendar-day"
                     [class.has-date]="hasDate(m.number, day)"
-                    [title]="labelForDay(m.number, day)"
+                    [class.has-holiday]="hasHoliday(m.number, day)"
+                    [title]="cellTitle(m.number, day)"
                   >
                     {{ day }}
                   </span>
@@ -216,6 +155,19 @@ interface PlanRow {
               </div>
             }
 
+            @if (holidaysForMonth(month).length) {
+              <div>
+                @for (holiday of holidaysForMonth(month); track holiday.id) {
+                  <div style="display: flex; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--color-divider);">
+                    <span class="money" style="font-size: 13px; color: var(--color-accent-2-700); width: 30px; flex: none;">
+                      {{ pad(holiday.day) }}
+                    </span>
+                    <span style="font-size: 13px; flex: 1; color: var(--color-accent-2-700);">{{ holiday.name }}</span>
+                  </div>
+                }
+              </div>
+            }
+
             <div class="calendar-grid">
               @for (w of weekdays; track w) {
                 <div class="calendar-weekday">{{ w }}</div>
@@ -228,7 +180,9 @@ interface PlanRow {
                     type="button"
                     class="calendar-day"
                     [class.has-date]="hasDate(month, day)"
+                    [class.has-holiday]="hasHoliday(month, day)"
                     [class.selected]="newDay === day"
+                    [title]="cellTitle(month, day)"
                     (click)="selectDay(day)"
                   >
                     {{ day }}
@@ -254,9 +208,60 @@ interface PlanRow {
         </div>
       }
 
+      <div style="margin-top: var(--space-4); max-width: 480px;">
+        <span style="display: block; font-size: 12px; margin-bottom: 5px; color: color-mix(in srgb, var(--color-text) 70%, transparent);">
+          Свята в календарі
+        </span>
+        <details class="select-dropdown">
+          <summary>{{ selectedCountriesLabel() }}</summary>
+          <div class="checkbox-row" style="padding: 10px; border-top: 1px solid var(--color-divider);">
+            @for (c of holidayCountryOptions; track c.value) {
+              <label class="checkbox-chip">
+                <input
+                  type="checkbox"
+                  [checked]="isCountrySelected(c.value)"
+                  (change)="toggleCountry(c.value, $event)"
+                />
+                {{ c.label }}
+              </label>
+            }
+          </div>
+        </details>
+
+        <details class="disclosure" style="margin-top: var(--space-3);">
+          <summary>Додаткові налаштування</summary>
+          <div style="margin-top: var(--space-2);">
+            <span style="display: block; font-size: 12px; margin-bottom: 5px; color: color-mix(in srgb, var(--color-text) 70%, transparent);">
+              Початок тижня
+            </span>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label class="radio">
+                <input type="radio" name="weekStart" [checked]="weekStart() === 'Monday'" (change)="setWeekStart('Monday')" />
+                <span class="dot"></span>
+                Понеділок
+              </label>
+              <label class="radio">
+                <input type="radio" name="weekStart" [checked]="weekStart() === 'Sunday'" (change)="setWeekStart('Sunday')" />
+                <span class="dot"></span>
+                Неділя
+              </label>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      @if (!planComplete()) {
+        <p class="text-muted" style="font-size: 12.5px; margin-top: var(--space-4);">
+          Оберіть образ і стиль для обкладинки та кожного місяця, щоб почати генерацію.
+        </p>
+      }
+      @if (error() && !selectedMonth()) {
+        <p style="color: var(--color-accent-2-700); font-size: 13px; margin-top: var(--space-2);">{{ error() }}</p>
+      }
+
       <button
         class="btn btn-primary btn-block"
-        style="max-width: 320px;"
+        style="max-width: 320px; margin-top: var(--space-2);"
         [disabled]="!planComplete() || loading()"
         (click)="startGeneration()"
       >
@@ -267,16 +272,17 @@ interface PlanRow {
         <app-image-lightbox [url]="z" (closed)="zoomUrl.set(null)" />
       }
     </div>
-  `,
+  `
 })
 export class StyleDatesComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   readonly library = this.store.selectSignal(selectPromptLibrary);
   readonly order = this.store.selectSignal(selectOrder);
+  readonly holidays = this.store.selectSignal(selectHolidays);
   readonly loading = this.store.selectSignal(selectOrderBusy);
   readonly error = this.store.selectSignal(selectOrderError);
   readonly selectedMonth = signal<number | null>(null);
-  readonly picker = signal<{ index: number; kind: 'prompt' | 'style' } | null>(null);
+  readonly modalIndex = signal<number | null>(null);
   readonly zoomUrl = signal<string | null>(null);
 
   readonly months = [
@@ -295,6 +301,14 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
   ];
 
   readonly weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+
+  readonly holidayCountryOptions = [
+    { value: 'Ukraine', label: 'Україна' },
+    { value: 'Usa', label: 'США' },
+    { value: 'Poland', label: 'Польща' },
+    { value: 'Germany', label: 'Німеччина' },
+    { value: 'Czechia', label: 'Чехія' },
+  ];
   private readonly calendarYear = new Date().getFullYear() + 1;
 
   // Index 0 = cover, 1..12 = months.
@@ -303,7 +317,7 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
     ...Array.from({ length: 12 }, (_, i) => ({ index: i + 1, name: this.monthNameByNumber(i + 1) })),
   ];
   readonly monthRows = this.sheetRows.slice(1);
-  readonly plan: PlanRow[] = this.sheetRows.map(() => ({ promptId: '', styleId: '', styleTouched: false }));
+  readonly plan: PlanRow[] = this.sheetRows.map(() => ({ promptId: '', styleId: '', photoId: '', styleTouched: false }));
   private planHydrated = false;
 
   newDay: number | null = null;
@@ -334,13 +348,34 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
         if (!row) continue;
         row.promptId = sheet.promptId ?? '';
         row.styleId = sheet.imageStyleId ?? '';
+        row.photoId = sheet.photoId ?? '';
         row.styleTouched = !!sheet.imageStyleId;
+      }
+    });
+
+    // ReviewReady stays fully usable here on purpose (see #372): the customer can come back from
+    // /review, change a prompt/style, and re-submit — SaveSheetPlan now allows that status too and
+    // only regenerates the sheets that actually changed. Generating/CoverReady/CoverConfirmed used
+    // to bounce straight to /generating too ("nothing to edit yet"), but with the per-sheet
+    // generation cards (#399/#403) an order can sit in Generating while some months still have no
+    // pick at all — the customer needs to land back here, not get redirected away, to finish them.
+    // Confirmed/paid orders (AwaitingPayment+) remain locked, both here and server-side.
+    effect(() => {
+      const status = this.order()?.status;
+      if (!status) return;
+      if (status === 'AwaitingPayment') {
+        this.router.navigate(['/order', this.orderId, 'checkout']);
+      } else if (status === 'Paid' || status === 'Printing' || status === 'PrintReady' || status === 'Shipped' || status === 'Delivered') {
+        this.router.navigate(['/order', this.orderId, 'status']);
       }
     });
   }
 
   ngOnInit(): void {
     this.store.dispatch(OrderActions.loadPromptLibrary());
+    // Fetched once for every country and filtered client-side (see holidaysForMonth) so toggling
+    // a country checkbox updates the calendar preview instantly, no extra round trip (see #366).
+    this.store.dispatch(OrderActions.loadHolidays({ year: this.calendarYear }));
     // Poll while on this page — per-card generation completes in the background.
     this.store.dispatch(OrderActions.startOrderPolling({ orderId: this.orderId, intervalMs: 2000 }));
   }
@@ -349,7 +384,7 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
     this.store.dispatch(OrderActions.stopOrderPolling());
   }
 
-  private sheetFor(index: number): SheetDto | undefined {
+  sheetFor(index: number): SheetDto | undefined {
     return this.order()?.sheets.find((s) => s.index === index);
   }
 
@@ -370,17 +405,42 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
     return this.sheetFor(index)?.status === 'Failed';
   }
 
-  generateCard(index: number): void {
-    const row = this.plan[index];
-    if (!row.promptId || !row.styleId || this.isGenerating(index)) return;
+  failureReasonFor(index: number): string {
+    return this.sheetFor(index)?.failureReason || 'Не вдалося — спробуйте ще раз';
+  }
+
+  openSheetModal(index: number): void {
+    if (this.isGenerating(index)) return;
+    this.modalIndex.set(index);
+  }
+
+  closeSheetModal(): void {
+    this.modalIndex.set(null);
+  }
+
+  onGenerateFromModal(index: number, picks: { promptId: string; styleId: string; photoId: string }): void {
+    this.plan[index].promptId = picks.promptId;
+    this.pickStyle(index, picks.styleId);
+    this.plan[index].photoId = picks.photoId;
     this.store.dispatch(
       OrderActions.generateSheet({
         orderId: this.orderId,
         index,
-        promptId: row.promptId,
-        imageStyleId: row.styleId,
+        promptId: picks.promptId,
+        imageStyleId: picks.styleId,
+        photoId: picks.photoId || undefined,
       }),
     );
+  }
+
+  onAddPhoto(photo: File): void {
+    this.store.dispatch(OrderActions.addOrderPhoto({ orderId: this.orderId, photo }));
+  }
+
+  onActivateVariant(index: number, variantId: string): void {
+    const sheet = this.sheetFor(index);
+    if (!sheet) return;
+    this.store.dispatch(OrderActions.activateVariant({ orderId: this.orderId, sheetId: sheet.id, variantId }));
   }
 
   private monthNameByNumber(month: number): string {
@@ -394,53 +454,6 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
     return n.toString().padStart(2, '0');
   }
 
-  pickPrompt(index: number, promptId: string): void {
-    this.plan[index].promptId = promptId;
-  }
-
-  openPicker(index: number, kind: 'prompt' | 'style'): void {
-    this.picker.set({ index, kind });
-  }
-
-  closePicker(): void {
-    this.picker.set(null);
-  }
-
-  choosePrompt(promptId: string): void {
-    const p = this.picker();
-    if (!p) return;
-    this.pickPrompt(p.index, promptId);
-    this.closePicker();
-  }
-
-  chooseStyle(styleId: string): void {
-    const p = this.picker();
-    if (!p) return;
-    this.pickStyle(p.index, styleId);
-    this.closePicker();
-  }
-
-  promptName(promptId: string): string {
-    if (!promptId) return '';
-    for (const theme of this.library()?.themes ?? []) {
-      const prompt = theme.prompts.find((x) => x.id === promptId);
-      if (prompt) return prompt.name;
-    }
-    return '';
-  }
-
-  styleName(styleId: string): string {
-    return this.library()?.styles.find((s) => s.id === styleId)?.name ?? '';
-  }
-
-  // Admin-generated previews land in previewImageUrl; until then show a stable placeholder.
-  promptImage(prompt: PromptDto): string {
-    return prompt.previewImageUrl ?? `https://picsum.photos/seed/prompt-${prompt.id}/240/300`;
-  }
-
-  styleImage(style: ImageStyleDto): string {
-    return style.previewImageUrl ?? `https://picsum.photos/seed/style-${style.id}/240/300`;
-  }
 
   // The chosen style “sticks”: it flows down to every later sheet the user hasn't overridden.
   pickStyle(index: number, styleId: string): void {
@@ -485,6 +498,35 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
       .join(', ');
   }
 
+  // Only the currently-checked countries' holidays — recomputes live as toggleCountry flips the
+  // order's holidayCountries, so the preview updates the instant a checkbox changes (see #366).
+  holidaysForMonth(month: number): HolidayDto[] {
+    const countries = this.order()?.holidayCountries ?? [];
+    return this.holidays().filter((h) => h.month === month && countries.includes(h.country));
+  }
+
+  // A personal date takes visual priority over a holiday landing on the same day.
+  hasHoliday(month: number, day: number): boolean {
+    return !this.hasDate(month, day) && this.holidaysForMonth(month).some((h) => h.day === day);
+  }
+
+  holidayLabelForDay(month: number, day: number): string {
+    return this.holidaysForMonth(month)
+      .filter((h) => h.day === day)
+      .map((h) => h.name)
+      .join(', ');
+  }
+
+  // Combined tooltip for a day cell — personal date label, holiday name, or both.
+  cellTitle(month: number, day: number): string {
+    return [this.labelForDay(month, day), this.holidayLabelForDay(month, day)].filter(Boolean).join(' • ');
+  }
+
+  selectedCountriesLabel(): string {
+    const selected = this.holidayCountryOptions.filter((c) => this.isCountrySelected(c.value));
+    return selected.length ? selected.map((c) => c.label).join(', ') : 'Не обрано';
+  }
+
   selectDay(day: number): void {
     this.newDay = day;
   }
@@ -513,12 +555,36 @@ export class StyleDatesComponent implements OnInit, OnDestroy {
     this.store.dispatch(OrderActions.removePersonalDate({ orderId: this.orderId, dateId }));
   }
 
+  isCountrySelected(value: string): boolean {
+    return (this.order()?.holidayCountries ?? []).includes(value);
+  }
+
+  toggleCountry(value: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const current = this.order()?.holidayCountries ?? [];
+    const updated = checked ? [...current, value] : current.filter((c) => c !== value);
+    this.saveHolidaySettings(updated, this.weekStart());
+  }
+
+  weekStart(): string {
+    return this.order()?.weekStart ?? 'Monday';
+  }
+
+  setWeekStart(value: string): void {
+    this.saveHolidaySettings(this.order()?.holidayCountries ?? [], value);
+  }
+
+  private saveHolidaySettings(countries: string[], weekStart: string): void {
+    this.store.dispatch(OrderActions.saveHolidaySettings({ orderId: this.orderId, countries, weekStart }));
+  }
+
   startGeneration(): void {
     if (!this.planComplete()) return;
     const items: SheetPlanItem[] = this.plan.map((row, index) => ({
       index,
       promptId: row.promptId,
       imageStyleId: row.styleId,
+      photoId: row.photoId || undefined,
     }));
     this.store.dispatch(OrderActions.savePlanAndGenerate({ orderId: this.orderId, items }));
   }

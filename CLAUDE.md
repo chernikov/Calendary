@@ -8,6 +8,12 @@ Calendary — a Ukrainian custom AI-generated photo-calendar ordering app. The U
 Claude Design doc (`Calendary.dc.html`, "Broadsheet" design system); the implementation is a thin,
 end-to-end vertical slice: Docker + ASP.NET Core (.NET 10) + EF Core/MSSQL + Angular 18.
 
+**Deliberately UA-only, no i18n** (see #306): delivery (Nova Poshta), payment (Monobank), currency
+(₴), and every prompt/UX string are Ukraine-market-specific by design, not an accident of not
+having gotten to localization yet. Frontend strings stay hardcoded Ukrainian in component
+templates — don't introduce ngx-translate/Angular i18n or resource files speculatively. Revisit
+only if the product actually expands to another market.
+
 Flow: landing → register/login (email+password or Google) → photo upload → per-sheet prompt+style
 plan (prompt library: themes → prompts, image styles) + personal dates
 → generation (live progress) → cover confirm → month-by-month reveal (regenerate/failure/retry) →
@@ -16,13 +22,13 @@ Delivered).
 
 Auth is real (email+password via `PasswordHasher<User>`, and Google Sign-In via ID-token
 verification — see "Backend architecture" below), not mocked. Transactional email (currently just
-a welcome email on registration) is also real, via `IEmailService`/`ResendEmailService`. **One
-integration is still deliberately mocked** behind a `Calendary.Domain.Abstractions` interface —
-swap the DI registration in `Program.cs` to go live with a real provider:
-- `IPaymentService` — payment charging (currently always succeeds)
-
-Two more have a real implementation already wired in, each falling back to a small static
-dataset when unconfigured (so local dev needs no API key):
+a welcome email on registration) is also real, via `IEmailService`/`ResendEmailService`. Three
+integrations have a real implementation wired in, each falling back to something local-dev-friendly
+when unconfigured (so local dev needs no API key/account):
+- `IPaymentService` — payment. `MonobankPaymentService` calls the real Monobank Acquiring API
+  (invoice creation + webhook-verified confirmation, see "Payments" below) when
+  `Monobank__MerchantToken` is configured; otherwise it settles the order as Paid immediately (no
+  real redirect), so local dev needs no merchant account.
 - `IImageGenerationService` — AI image generation. A real implementation exists
   (`AiImageGenerationService`, backed by the `Calendary.AI` project); which one runs is a runtime
   DB setting via the admin panel (`/admin/settings`), not a DI swap — see the README's
@@ -30,6 +36,31 @@ dataset when unconfigured (so local dev needs no API key):
 - `INovaPoshtaService` — delivery branch lookup. `NovaPoshtaService` calls Nova Poshta's real
   public Address API when `NovaPoshta__ApiKey` is configured, otherwise falls back to the same
   small static city/warehouse list it always used.
+
+### Payments
+
+Checkout only offers Monobank now (`checkout.component.ts`) — Apple Pay/Google Pay/Card were
+placeholder UI with no real provider behind them and were dropped rather than left half-wired.
+The flow is redirect-based, not a synchronous charge: `POST /api/orders/{id}/pay` calls
+`MonobankPaymentService.CreateInvoiceAsync`, which creates a Monobank invoice and returns a hosted
+`pageUrl`; the frontend hard-navigates the browser there (`window.location.href`, not a router
+link — the SPA is left entirely). Monobank later POSTs the outcome to
+`POST /api/payments/monobank/webhook` (`PaymentsController`, anonymous — Monobank has no bearer
+token for this app), which `HandleWebhookAsync` verifies via the `X-Sign` header (ECDSA-SHA256
+over the raw body, checked against the merchant's public key fetched once from
+`/api/merchant/pubkey` and cached for the process lifetime) before applying `Paid`/`Failed` to the
+matching `Payment` (looked up by `Payment.ProviderInvoiceId`, Monobank's `invoiceId`) and calling
+`Order.SetStatus`. The customer's browser is *also* redirected back to `/order/{id}/status` via
+Monobank's `redirectUrl`, but that redirect is UX only — the status page's existing 2s poll is what
+actually picks up the webhook-driven `Paid` transition, since the webhook can arrive slightly after
+the redirect.
+
+Building `redirectUrl`/`webHookUrl` needs the app's own public origin, which can't be reliably
+inferred from the request (no forwarded-headers middleware, and nginx→backend is plain HTTP
+internally regardless of the public scheme) — so it's the explicit `Monobank__PublicBaseUrl` env
+var (`https://${DOMAIN}` / `https://${STAGING_DOMAIN}` in the prod/staging compose files, empty
+locally, matching `Cors__AllowedOrigins__0`'s existing convention). No new GH secret was needed for
+this — `DOMAIN`/`STAGING_DOMAIN` already exist in the droplet's `.env` for Caddy.
 
 ## Commands
 
@@ -46,9 +77,10 @@ Frontend on :4200, backend/Swagger on :5080 (`/swagger`, Development only), MSSQ
 dotnet build                              # build the solution (Calendary.slnx)
 dotnet run --project src/Calendary.Api    # runs on http://localhost:5128 (see launchSettings.json)
 ```
-Needs `ConnectionStrings:Default` reachable (defaults to `localhost,1433` in
-`src/Calendary.Api/appsettings.json` — point it at a running MSSQL, e.g. the one from
-`docker compose up mssql`).
+Needs `ConnectionStrings:Default` set via `dotnet user-secrets` (the committed
+`src/Calendary.Api/appsettings.json` value is intentionally blank — see README's "Environment
+variables" section, #296) pointing at a running MSSQL, e.g. the one from `docker compose up mssql`
+(password from your own `.env`, see `.env.example`).
 
 **EF Core migrations** (from `backend/`):
 ```bash
@@ -61,33 +93,117 @@ dotnet ef migrations add <Name> \
 **Frontend only** (from `frontend/`):
 ```bash
 npm install
-npm start        # ng serve on :4200, proxies /api/* to http://localhost:5080 (proxy.conf.json)
-npm run build    # production build -> dist/calendary/browser
+npm start                      # ng serve on :4200, proxies /api/* to http://localhost:5080 (proxy.conf.json)
+npm run build                  # production build -> dist/calendary/browser
+npm test -- --watch=false      # Vitest (see #295) — omit --watch=false to keep re-running on save
 ```
 
-There are no automated tests in this repo yet.
+**Tests** (#295): `dotnet test` (from `backend/`) runs every backend test project via
+`Calendary.slnx`; `npm test -- --watch=false` (from `frontend/`) runs the frontend ones. Both also
+run in CI (`.github/workflows/ci.yml`) on every PR into `develop`/`main`, alongside a build — a
+failing build or test blocks the merge (branch protection required status checks). Backend tests
+are split one project per `src/` project under `backend/tests/` (mirroring the six-project split
+below), not one monolithic test project:
+- **Calendary.Common.Tests** / **Calendary.Domain.Tests** — plain unit tests, no DB
+  (`UkrainianPhoneNumber.Normalize`, `Order.SetStatus`).
+- **Calendary.Application.Tests** — Application command/query handlers against a `TestAppDbContext`
+  (a from-scratch `DbContext : IAppDbContext` backed by EF Core's InMemory provider, defined in the
+  test project itself) — Application never references Infrastructure (see below), so its tests
+  can't reuse the real `AppDbContext` either.
+- **Calendary.Infrastructure.Tests** — exercises the real `AppDbContext` (EF InMemory provider) and
+  `OrderProgressionHelper`, which is `internal` — `Calendary.Infrastructure`'s
+  `AssemblyInfo.cs` grants it access via `InternalsVisibleTo`.
+- **Calendary.Api.Tests** — full-pipeline integration tests (`AuthFlowTests`: register → login →
+  me) via `WebApplicationFactory<Program>` (needs `public partial class Program;` at the end of
+  `Program.cs`) against an in-memory SQLite database rather than the real SQL Server one, so CI
+  needs no DB/Docker. `Program.cs` picks Sqlite over SqlServer only when
+  `IHostEnvironment.IsEnvironment("Testing")` (set by `CustomWebApplicationFactory`, never a real
+  deployment environment) — a second `AddDbContext` call from the test project trying to swap the
+  provider after the fact doesn't work, since EF Core 8+ chains `AddDbContext` configuration
+  callbacks rather than replacing them, leaving both providers registered and throwing at startup.
+  For the same "Testing" reason, `Program.cs` calls `EnsureCreated()` instead of `Migrate()` on
+  startup (real EF migrations are SQL Server-specific SQL, `AppDbContext.OnModelCreating`'s one
+  `HasDefaultValueSql` call is skipped when `Database.IsSqlServer()` is false), and the factory
+  registers a single already-open `SqliteConnection` as a `DbConnection` singleton for
+  `Program.cs`'s `AppDbContext` registration to reuse — SQLite's in-memory databases are dropped
+  the instant their one connection closes, so a plain connection-string `DataSource` (a fresh,
+  empty connection per request) doesn't work here the way it does against a real file/server DB.
 
 ## Backend architecture (`backend/src/`)
 
-Four-project split:
+Six-project split:
+- **Calendary.Common** — zero-dependency, framework-agnostic primitives shared across layers:
+  `CalendarYear` (the "next year" calendar-year calc), `AppOperationException` (see below). No
+  project references of its own.
 - **Calendary.Domain** — entities (`User`, `Order`, `Sheet`, `PromptTheme`, `Prompt`,
   `ImageStyle`, `PersonalDate`,
   `Payment`, `Delivery`), enums, and the `Abstractions/` interfaces listed above. No EF/ASP.NET
   dependency.
+- **Calendary.Application** — Commands/Queries + their MediatR `IRequestHandler<,>`s, one file per
+  operation, co-located (vertical-slice style) rather than split across layers. References `Domain`
+  and `Common` only — **never** `Infrastructure`, so handlers can't depend on the concrete EF
+  `AppDbContext`. Instead they depend on `IAppDbContext` (`Application/Common/IAppDbContext.cs`,
+  mirrors every `DbSet<T>` the real `AppDbContext` declares), which the real `AppDbContext` just
+  implements (`: DbContext, IAppDbContext`) — this is why `IAppDbContext` lives in Application
+  rather than Domain: it needs the `DbSet<T>` type from EF Core, and Domain is kept free of any
+  EF/ASP.NET dependency. Currently covers `OrdersController`'s logic only (`Application/Orders/`);
+  other controllers still inject `AppDbContext` directly pending the same treatment. Error
+  signaling: a handler returns `null` for "not found or not owned" (the caller does
+  `is null ? NotFound() : Ok(...)`), or throws `AppOperationException(message, statusCode)` (in
+  `Calendary.Common`) for a validation (400) / conflict (409) failure — caught by a
+  controller-scoped `[TypeFilter(typeof(OrderOperationExceptionFilter))]` (not global middleware),
+  never a bare ASP.NET `BadRequest(...)`/`Conflict(...)` inside a handler. Per-feature shared
+  helpers (order loading + ownership filtering + business-rule predicates) live in one static class
+  per feature (e.g. `Orders/OrderAccess.cs`) that every handler in that feature calls into — this
+  is the single point that must enforce "you can only touch your own order," replacing what used
+  to be two near-duplicate copies (one per controller).
 - **Calendary.Infrastructure** — `Data/AppDbContext.cs` (+ `Migrations/`), and `Services/`:
   the `Mock*` implementations of the Domain interfaces, `AiImageGenerationService` (the real,
-  not-wired-in-by-default `IImageGenerationService` — see README), and two `BackgroundService`s
-  that drive the app's async state machines purely by elapsed time:
+  not-wired-in-by-default `IImageGenerationService` — see README), and periodic-sweep
+  `BackgroundService`s, all deriving from the shared `TimedHostedService` base (PeriodicTimer loop,
+  per-tick DI scope, try/catch-and-log, final "save if changed" — see #328; a derived class only
+  implements `TickAsync(AppDbContext db, IServiceProvider services, CancellationToken ct)`):
   - `GenerationBackgroundService` — progresses up to 3 `Sheet`s per order concurrently
-    (`Pending` → `Generating` → `Ready`, ~4s each), cover (index 0) first, then months 1–12.
-    Only meant to run when `MockImageGenerationService` is active — see README before enabling
-    `AiImageGenerationService` alongside it.
-  - `FulfillmentBackgroundService` — advances `Order.Status` `Paid` → `Printing` → `Shipped`
-    (assigns a fake ТТН) → `Delivered` at fixed intervals after payment.
-  Both key off `Order.StatusUpdatedAtUtc`, which `Order.SetStatus()` keeps in sync — always call
-  `SetStatus()` rather than assigning `.Status` directly, or the background services' (and
-  `AiImageGenerationService`'s own `OrderProgressionHelper`) timing/transition logic breaks.
-- **Calendary.AI** — standalone (no reference to the other three projects): `Options/AiOptions.cs`
+    (`Pending` → `Generating` → `Ready`, ~4s each), cover (index 0) first, then months 1–12. Only
+    does anything when `AppSettings.ImageGenerationProvider` is `Mock` (a runtime DB setting, see
+    the "Calendary.AI" bullet below) — see README before enabling `AiImageGenerationService`
+    alongside it.
+  - `OrderExpiryBackgroundService` — archives abandoned orders past their 48h `ExpiresAtUtc`.
+  - `UserSessionCleanupBackgroundService` — bulk-deletes `UserSession` rows past their 60-day TTL
+    (#322).
+
+  Post-payment fulfillment (`Paid` → `Printing` → `PrintReady` → `Shipped` → `Delivered`) is
+  **admin-driven, not automatic** (#434) — there's no real printer/courier integration to trigger
+  it, so a timer-based `FulfillmentBackgroundService` simulation (present through #328) was
+  replaced outright by `AdvanceOrderFulfillmentCommand` (`Calendary.Application/Admin/Orders/`),
+  which the admin order-detail page calls one step at a time via a "next step" button. It still
+  assigns the same fake ТТН on the `PrintReady` → `Shipped` step, pending real Nova Poshta shipment
+  creation (#432). `OrderStatus` is stored as a plain `int` by ordinal position (no
+  `HasConversion`) — `PrintReady` was appended at the very end of the enum rather than inserted
+  between `Printing` and `Shipped`, since inserting mid-enum would silently shift the stored int of
+  every later member (`Shipped`/`Delivered`/`Cancelled`/`GenerationFailed`) and corrupt existing
+  orders' statuses. Any future `OrderStatus` addition must do the same.
+
+  Every `Order.Status` transition (including the initial `Created` one) is also persisted to a new
+  `OrderStatusHistory` table (`OrderId`, `FromStatus?`, `ToStatus`, `ChangedAtUtc`) — written by
+  `DomainStatusLoggingInterceptor` (`Data/DomainStatusLoggingInterceptor.cs`) alongside its
+  existing log line, by adding to `context.Set<OrderStatusHistory>()` from inside the
+  `SavingChanges`/`SavingChangesAsync` hook so the new row rides along in the same `SaveChanges`
+  call rather than needing a second round-trip. `AdminGetOrderStatusHistoryQuery` exposes it as a
+  timeline on the admin order-detail page.
+
+  `GenerationBackgroundService` keys off `Order.StatusUpdatedAtUtc`, which `Order.SetStatus()`
+  keeps in sync — always call `SetStatus()` rather than assigning `.Status` directly, or its (and
+  `AiImageGenerationService`'s own `OrderProgressionHelper`'s) timing/transition logic breaks.
+
+  **#328's other open questions** (full-table-scan-per-tick scalability, multi-instance/leader-
+  election safety) were deliberately deferred, not solved — this is a single-instance,
+  ~1-vCPU-droplet deployment with a low order volume today, so Hangfire/Quartz.NET-style job
+  scheduling and distributed locking would be solving a problem this app doesn't have yet. Revisit
+  if either the droplet actually scales to multiple backend replicas, or the Orders table's active
+  (non-terminal-status) row count grows enough that a full scan every 1–5s becomes measurably
+  expensive — neither has happened as of this writing.
+- **Calendary.AI** — standalone (no reference to any other project in the solution): `Options/AiOptions.cs`
   (binds the `AI` appsettings section), `Clients/IAiImageClient.cs` + `OpenAiImageClient` +
   `GeminiImageClient` (real HTTP calls; `ServiceCollectionExtensions.AddCalendaryAi()` registers
   whichever `AiOptions.Provider` selects), `Prompts/CalendarPrompts.cs` (the actual prompt text
@@ -95,16 +211,21 @@ Four-project split:
 - **Calendary.Api** — Controllers, `Auth/BearerTokenAuthenticationHandler` (a custom
   `AuthenticationHandler` for opaque bearer tokens, scheme `"Bearer"` — **not** JWT/`JwtBearer`;
   resolves tokens via `ISessionTokenService`), and `Dtos/` (record DTOs + `DtoMapping.cs` extension
-  methods, e.g. `order.ToDto()`). `AuthController` has `register`/`login`/`google`/`me`, backed by
+  methods, e.g. `order.ToDto()`). `OrdersController` is thin (auth + request→Command/Query mapping
+  + `sender.Send(...)` + `.ToDto()`, no `AppDbContext`) — see the Application bullet above for the
+  pattern; other controllers (`AdminController` in particular) haven't been migrated to it yet and
+  still inject `AppDbContext` directly. `AuthController` has `register`/`login`/`google`/`me`, backed by
   `IPasswordAuthService`/`IGoogleAuthService`/`ISessionTokenService` (all in Infrastructure —
   `SessionTokenService` persists sessions as `UserSession` rows, hashing the bearer token with
   SHA-256 before storage, specifically so a backend restart on deploy doesn't log everyone out).
 
 **Order state machine** (`OrderStatus`): `Created` → `PhotoUploaded` → `DetailsSubmitted` →
 `Generating` → `CoverReady` → `CoverConfirmed` → `ReviewReady` → `AwaitingPayment` → `Paid` →
-`Printing` → `Shipped` → `Delivered` (or `Cancelled` / `GenerationFailed`). A `Sheet` is one image
-slot: `Kind.Cover` at `Index=0`, `Kind.Month` at `Index=1..12`. Regenerations are a single shared
-budget per order (`Order.RegenerationsRemaining`), decremented in `MockImageGenerationService`.
+`Printing` → `PrintReady` → `Shipped` → `Delivered` (or `Cancelled` / `GenerationFailed`) — the
+last four post-payment steps are admin-triggered one at a time, not automatic (see
+"Backend architecture" below, #434). A `Sheet` is one image slot: `Kind.Cover` at `Index=0`,
+`Kind.Month` at `Index=1..12`. Regenerations are a single shared budget per order
+(`Order.RegenerationsRemaining`), decremented in `MockImageGenerationService`.
 
 ## Frontend architecture (`frontend/src/app/`)
 
@@ -165,9 +286,10 @@ also scopes each stack to its own restic repo path within its bucket regardless,
 tokens, same `.env`/`.env.staging` variable name), and `ADMIN_PASSWORD`/`ADMIN_PASSWORD_STAGING`
 (separate passwords, same `.env`/`.env.staging` variable name — see `AdminSeeder` below) GH
 secrets get threaded into the droplet's `.env`/`.env.staging`
-on every deploy (see README's "Auth" section). The AI provider keys are the one exception: staging
-threads them too, but prod's are a manual one-off `.env` edit (see issue #330) — worth checking
-before assuming any given secret is deploy-automated.
+on every deploy (see README's "Auth" section), including `AI_OPENAI_API_KEY`/`AI_GEMINI_API_KEY`
+(both stacks now, as of #330 — no longer a prod-only manual `.env` edit). This only keeps the
+configured providers' keys current; *which* provider is actually live is a separate runtime DB
+setting toggled via the admin panel (`/admin/settings`), not an env var.
 
 The current `NOVA_POSHTA_API_KEY` secret (set 2026-09-19) expires **2027-09-19** — Nova Poshta
 deactivates keys yearly. Regenerate it in the business account

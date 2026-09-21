@@ -7,13 +7,19 @@ import {
   AdminUserDto,
   BackupStatusDto,
   ConfigStatusDto,
+  HolidayDto,
   ImageGenerationProvider,
   ImageStyleDto,
   OrderDto,
+  OrderStatusHistoryEntryDto,
   PagedResult,
+  ProductSettingsDto,
+  PromoCodeDto,
   PromptDto,
   PromptThemeDto,
+  SaveHolidayPayload,
   SaveImageStylePayload,
+  SavePromoCodePayload,
   SavePromptPayload,
   SavePromptThemePayload,
 } from './models';
@@ -24,10 +30,13 @@ const BASE = `${environment.apiBaseUrl}/api/admin`;
 export class AdminService {
   constructor(private readonly http: HttpClient) {}
 
-  listOrders(page: number, pageSize: number, status?: string): Observable<PagedResult<AdminOrderSummaryDto>> {
+  listOrders(page: number, pageSize: number, status?: string, search?: string): Observable<PagedResult<AdminOrderSummaryDto>> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (status) {
       params = params.set('status', status);
+    }
+    if (search) {
+      params = params.set('search', search);
     }
     return this.http.get<PagedResult<AdminOrderSummaryDto>>(`${BASE}/orders`, { params });
   }
@@ -46,9 +55,25 @@ export class AdminService {
     return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/sheets/${sheetId}/regenerate`, {});
   }
 
+  advanceFulfillment(orderId: string): Observable<OrderDto> {
+    return this.http.post<OrderDto>(`${BASE}/orders/${orderId}/advance-fulfillment`, {});
+  }
+
+  getOrderStatusHistory(orderId: string): Observable<OrderStatusHistoryEntryDto[]> {
+    return this.http.get<OrderStatusHistoryEntryDto[]>(`${BASE}/orders/${orderId}/status-history`);
+  }
+
   listUsers(page: number, pageSize: number): Observable<PagedResult<AdminUserDto>> {
     const params = new HttpParams().set('page', page).set('pageSize', pageSize);
     return this.http.get<PagedResult<AdminUserDto>>(`${BASE}/users`, { params });
+  }
+
+  getProduct(): Observable<ProductSettingsDto> {
+    return this.http.get<ProductSettingsDto>(`${BASE}/product`);
+  }
+
+  setProduct(basePrice: number): Observable<ProductSettingsDto> {
+    return this.http.put<ProductSettingsDto>(`${BASE}/product`, { basePrice });
   }
 
   getAiProvider(): Observable<{ provider: ImageGenerationProvider }> {
@@ -91,6 +116,10 @@ export class AdminService {
     return this.http.delete<void>(`${BASE}/prompts/${promptId}`);
   }
 
+  generatePromptPreview(promptId: string): Observable<PromptDto> {
+    return this.http.post<PromptDto>(`${BASE}/prompts/${promptId}/generate-preview`, {});
+  }
+
   listImageStyles(): Observable<ImageStyleDto[]> {
     return this.http.get<ImageStyleDto[]>(`${BASE}/image-styles`);
   }
@@ -103,5 +132,37 @@ export class AdminService {
 
   deleteImageStyle(styleId: string): Observable<void> {
     return this.http.delete<void>(`${BASE}/image-styles/${styleId}`);
+  }
+
+  generateImageStylePreview(styleId: string): Observable<ImageStyleDto> {
+    return this.http.post<ImageStyleDto>(`${BASE}/image-styles/${styleId}/generate-preview`, {});
+  }
+
+  listHolidays(): Observable<HolidayDto[]> {
+    return this.http.get<HolidayDto[]>(`${BASE}/holidays`);
+  }
+
+  saveHoliday(holiday: SaveHolidayPayload): Observable<HolidayDto> {
+    return holiday.id
+      ? this.http.put<HolidayDto>(`${BASE}/holidays/${holiday.id}`, holiday)
+      : this.http.post<HolidayDto>(`${BASE}/holidays`, holiday);
+  }
+
+  deleteHoliday(holidayId: string): Observable<void> {
+    return this.http.delete<void>(`${BASE}/holidays/${holidayId}`);
+  }
+
+  listPromoCodes(): Observable<PromoCodeDto[]> {
+    return this.http.get<PromoCodeDto[]>(`${BASE}/promo-codes`);
+  }
+
+  savePromoCode(promoCode: SavePromoCodePayload): Observable<PromoCodeDto> {
+    return promoCode.id
+      ? this.http.put<PromoCodeDto>(`${BASE}/promo-codes/${promoCode.id}`, promoCode)
+      : this.http.post<PromoCodeDto>(`${BASE}/promo-codes`, promoCode);
+  }
+
+  deletePromoCode(promoCodeId: string): Observable<void> {
+    return this.http.delete<void>(`${BASE}/promo-codes/${promoCodeId}`);
   }
 }

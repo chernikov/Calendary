@@ -48,15 +48,11 @@ public class AiImageGenerationService(
             throw new InvalidOperationException("Order does not have a complete sheet plan.");
         }
 
-        foreach (var sheet in sheets)
-        {
-            sheet.VariantCount = 1;
-        }
         order.SetStatus(OrderStatus.Generating);
 
         await db.SaveChangesAsync(ct);
 
-        var photoUrls = order.Photos.Select(p => p.Url).ToList();
+        var photoUrls = order.Photos.OrderBy(p => p.CreatedAtUtc).Select(p => p.Url).ToList();
         if (photoUrls.Count == 0) throw new InvalidOperationException("Order has no uploaded photo.");
         _ = Task.Run(() => GenerateOrderWithFailureHandlingAsync(orderId, photoUrls), CancellationToken.None);
 
@@ -66,23 +62,21 @@ public class AiImageGenerationService(
     public async Task<bool> RegenerateSheetAsync(Guid orderId, Guid sheetId, CancellationToken ct = default)
     {
         var order = await db.Orders.Include(o => o.Photos).FirstAsync(o => o.Id == orderId, ct);
-        if (order.RegenerationsRemaining <= 0)
-        {
-            return false;
-        }
 
         var sheet = await db.Sheets
             .Include(s => s.Prompt)
             .Include(s => s.ImageStyle)
+            .Include(s => s.PinnedPhoto)
             .FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
+        // No hard cap for now (see #359) — still decremented purely as a usage signal.
         order.RegenerationsRemaining -= 1;
         sheet.Status = SheetStatus.Pending;
         sheet.GeneratingStartedAtUtc = null;
-        sheet.VariantCount += 1;
+        sheet.FailureReason = null;
 
         await db.SaveChangesAsync(ct);
 
-        var photoUrl = PickRandomPhotoUrl(order.Photos.Select(p => p.Url).ToList());
+        var photoUrl = sheet.PinnedPhoto?.Url ?? DefaultPhotoUrl(order.Photos.OrderBy(p => p.CreatedAtUtc).Select(p => p.Url).ToList());
         var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl, ct);
         var prompt = BuildPrompt(sheet);
         _ = Task.Run(() => GenerateOneSheetWithFailureHandlingAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
@@ -96,13 +90,14 @@ public class AiImageGenerationService(
         var sheet = await db.Sheets
             .Include(s => s.Prompt)
             .Include(s => s.ImageStyle)
+            .Include(s => s.PinnedPhoto)
             .FirstAsync(s => s.Id == sheetId && s.OrderId == orderId, ct);
         sheet.Status = SheetStatus.Pending;
         sheet.GeneratingStartedAtUtc = null;
-        sheet.VariantCount += 1;
+        sheet.FailureReason = null;
         await db.SaveChangesAsync(ct);
 
-        var photoUrl = PickRandomPhotoUrl(order.Photos.Select(p => p.Url).ToList());
+        var photoUrl = sheet.PinnedPhoto?.Url ?? DefaultPhotoUrl(order.Photos.OrderBy(p => p.CreatedAtUtc).Select(p => p.Url).ToList());
         var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl, ct);
         var prompt = BuildPrompt(sheet);
         _ = Task.Run(() => GenerateOneSheetWithFailureHandlingAsync(orderId, sheetId, prompt, referenceDataUrl), CancellationToken.None);
@@ -129,6 +124,7 @@ public class AiImageGenerationService(
             foreach (var sheet in stuckSheets)
             {
                 sheet.Status = SheetStatus.Failed;
+                sheet.FailureReason = GenericFailureReason;
             }
             await scopedDb.SaveChangesAsync();
         }
@@ -149,6 +145,7 @@ public class AiImageGenerationService(
             if (sheet is not null && sheet.Status != SheetStatus.Ready)
             {
                 sheet.Status = SheetStatus.Failed;
+                sheet.FailureReason = GenericFailureReason;
                 await scopedDb.SaveChangesAsync();
             }
         }
@@ -156,14 +153,9 @@ public class AiImageGenerationService(
 
     private async Task GenerateOrderAsync(Guid orderId, IReadOnlyList<string> photoUrls)
     {
-        // Each sheet independently draws its own random reference photo below (not once here) —
-        // intentional variety, not a bug: different months may end up based on different source
-        // photos. A future manual per-sheet picker will let customers override this.
-
         // Cover first, so the customer sees it (and can confirm it) while the months are still
         // being produced.
-        var coverReferenceDataUrl = await ResolveReferenceDataUrlAsync(PickRandomPhotoUrl(photoUrls));
-        await GenerateOneSheetAsync(orderId, kind: SheetKind.Cover, index: 0, coverReferenceDataUrl);
+        await GenerateOneSheetAsync(orderId, kind: SheetKind.Cover, index: 0, photoUrls);
 
         using var throttle = new SemaphoreSlim(MaxConcurrentGenerations);
         var monthTasks = Enumerable.Range(1, 12).Select(async month =>
@@ -171,8 +163,7 @@ public class AiImageGenerationService(
             await throttle.WaitAsync();
             try
             {
-                var referenceDataUrl = await ResolveReferenceDataUrlAsync(PickRandomPhotoUrl(photoUrls));
-                await GenerateOneSheetAsync(orderId, kind: SheetKind.Month, index: month, referenceDataUrl);
+                await GenerateOneSheetAsync(orderId, kind: SheetKind.Month, index: month, photoUrls);
             }
             finally
             {
@@ -182,13 +173,14 @@ public class AiImageGenerationService(
         await Task.WhenAll(monthTasks);
     }
 
-    private async Task GenerateOneSheetAsync(Guid orderId, SheetKind kind, int index, string referenceDataUrl)
+    private async Task GenerateOneSheetAsync(Guid orderId, SheetKind kind, int index, IReadOnlyList<string> photoUrls)
     {
         using var scope = scopeFactory.CreateScope();
         var scopedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var sheet = await scopedDb.Sheets
             .Include(s => s.Prompt)
             .Include(s => s.ImageStyle)
+            .Include(s => s.PinnedPhoto)
             .FirstAsync(s => s.OrderId == orderId && s.Kind == kind && s.Index == index);
 
         // Sheets already generated one-by-one during the planning step keep their image.
@@ -198,6 +190,8 @@ public class AiImageGenerationService(
             return;
         }
 
+        var photoUrl = sheet.PinnedPhoto?.Url ?? DefaultPhotoUrl(photoUrls);
+        var referenceDataUrl = await ResolveReferenceDataUrlAsync(photoUrl);
         await RunGenerationAsync(scopedDb, sheet, BuildPrompt(sheet), referenceDataUrl);
         await OrderProgressionHelper.AdvanceOrderStatusAsync(scopedDb, orderId);
     }
@@ -216,6 +210,7 @@ public class AiImageGenerationService(
     {
         sheet.Status = SheetStatus.Generating;
         sheet.GeneratingStartedAtUtc = DateTime.UtcNow;
+        sheet.FailureReason = null;
         await scopedDb.SaveChangesAsync();
 
         try
@@ -224,13 +219,19 @@ public class AiImageGenerationService(
 
             if (result.Success && DataUrl.TryParse(result.ImageDataUrl, out var contentType, out var bytes))
             {
+                var url = await fileStorage.SaveAsync(bytes, contentType, "sheets");
+                var variant = new SheetVariant { SheetId = sheet.Id, ImageUrl = url, CostUsd = result.EstimatedCostUsd };
+                scopedDb.SheetVariants.Add(variant);
+
                 sheet.Status = SheetStatus.Ready;
-                sheet.ImageUrl = await fileStorage.SaveAsync(bytes, contentType, "sheets");
+                sheet.ImageUrl = url;
+                sheet.ActiveVariantId = variant.Id;
                 sheet.ReadyAtUtc = DateTime.UtcNow;
             }
             else
             {
                 sheet.Status = SheetStatus.Failed;
+                sheet.FailureReason = ClassifyFailure(result.Error);
                 logger.LogWarning(
                     "AI generation failed for sheet {SheetId}: {Error}",
                     sheet.Id,
@@ -243,18 +244,32 @@ public class AiImageGenerationService(
             // still move the sheet out of Generating — otherwise it's stuck forever, since the
             // frontend only offers a retry once a sheet is Ready or explicitly Failed.
             sheet.Status = SheetStatus.Failed;
+            sheet.FailureReason = GenericFailureReason;
             logger.LogError(ex, "AI generation threw for sheet {SheetId}", sheet.Id);
         }
 
         await scopedDb.SaveChangesAsync();
     }
 
-    // Each sheet independently draws one random reference photo — intentional variety, not a bug.
-    // A future manual per-sheet picker (deferred to a follow-up issue) will let customers override
-    // this. Only OrderPhoto.Url (the reference-resolution image) is ever picked here, never
-    // ThumbUrl, which exists purely for UI display.
-    private static string PickRandomPhotoUrl(IReadOnlyList<string> photoUrls) =>
-        photoUrls[Random.Shared.Next(photoUrls.Count)];
+    private const string GenericFailureReason = "Не вдалося згенерувати зображення. Спробуйте ще раз.";
+    private const string ModerationFailureReason =
+        "Зображення заблоковано системою безпеки провайдера. Спробуйте інше фото, промпт або стиль.";
+
+    // OpenAI's error payload is logged in full (see result.Error) but only classified here into a
+    // short, user-facing reason — "moderation_blocked"/"content_policy_violation" both mean the
+    // provider's own safety system rejected the output, which a bare retry won't fix.
+    private static string ClassifyFailure(string? error) =>
+        error is not null &&
+        (error.Contains("moderation", StringComparison.OrdinalIgnoreCase) ||
+         error.Contains("content_policy", StringComparison.OrdinalIgnoreCase) ||
+         error.Contains("safety system", StringComparison.OrdinalIgnoreCase))
+            ? ModerationFailureReason
+            : GenericFailureReason;
+
+    // Default reference photo when a sheet has no manual pin (see Sheet.PinnedPhotoId, #351) — the
+    // first one the customer uploaded. Only OrderPhoto.Url is ever used here, never ThumbUrl, which
+    // exists purely for UI display.
+    private static string DefaultPhotoUrl(IReadOnlyList<string> photoUrls) => photoUrls[0];
 
     /// Providers take the reference photo inline and re-send it for every sheet, so it is pulled
     /// out of storage and shrunk once per generation run.

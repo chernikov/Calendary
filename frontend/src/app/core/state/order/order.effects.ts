@@ -1,14 +1,37 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, interval, map, mergeMap, of, startWith, switchMap, takeUntil, tap } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { catchError, interval, map, mergeMap, of, startWith, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs';
+import { OrderDto, OrderProgressDto } from '../../models';
 import { OrderService } from '../../order.service';
 import { photoUploadErrorMessage } from '../../photo-upload-error';
 import { OrderActions } from './order.actions';
+import { selectOrder } from './order.selectors';
+
+// This same polling action/effect is shared by every page that watches order progress
+// (generating/month/cover/style-dates during generation, status during fulfillment) — so "nothing
+// worth a full reload happened" has to mean *no* status change anywhere: not just a sheet
+// finishing (new variant/ImageUrl), but also the order's own status moving (e.g. Paid -> Shipped,
+// which is also when Delivery.trackingNumber gets populated — data the lightweight poll doesn't
+// carry either). A missing order/id mismatch means the store doesn't hold this order yet at all,
+// so it needs a full load regardless. Ticks where literally nothing changed are the common case
+// while generation/fulfillment is mid-flight, and are the ones this saves from re-fetching the
+// full ImageUrl-laden order every 1.5-2s.
+function needsFullOrderReload(current: OrderDto | null, orderId: string, progress: OrderProgressDto): boolean {
+  if (!current || current.id !== orderId) return true;
+  if (current.status !== progress.status) return true;
+  return progress.sheets.some((p) => {
+    const existing = current.sheets.find((s) => s.kind === p.kind && s.index === p.index);
+    return !existing || existing.status !== p.status;
+  });
+}
 
 @Injectable()
 export class OrderEffects {
   private readonly actions$ = inject(Actions);
   private readonly orders = inject(OrderService);
+  private readonly store = inject(Store);
 
   loadOrder$ = createEffect(() =>
     this.actions$.pipe(
@@ -40,9 +63,14 @@ export class OrderEffects {
       switchMap(({ orderId, intervalMs }) =>
         interval(intervalMs).pipe(
           startWith(0),
-          switchMap(() =>
-            this.orders.getOrder(orderId).pipe(
-              map((order) => OrderActions.loadOrderSuccess({ order })),
+          withLatestFrom(this.store.select(selectOrder)),
+          switchMap(([, currentOrder]) =>
+            this.orders.getOrderProgress(orderId).pipe(
+              map((progress) =>
+                needsFullOrderReload(currentOrder, orderId, progress)
+                  ? OrderActions.loadOrder({ orderId })
+                  : OrderActions.orderProgressSuccess({ progress }),
+              ),
               catchError(() => of(OrderActions.loadOrderFailure({ error: 'Не вдалося оновити замовлення.' }))),
             ),
           ),
@@ -59,6 +87,18 @@ export class OrderEffects {
         this.orders.promptLibrary().pipe(
           map((library) => OrderActions.loadPromptLibrarySuccess({ library })),
           catchError(() => of(OrderActions.loadPromptLibraryFailure({ error: 'Не вдалося завантажити бібліотеку промптів.' }))),
+        ),
+      ),
+    ),
+  );
+
+  loadHolidays$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.loadHolidays),
+      switchMap(({ year }) =>
+        this.orders.listHolidays(year).pipe(
+          map((holidays) => OrderActions.loadHolidaysSuccess({ holidays })),
+          catchError(() => of(OrderActions.loadHolidaysFailure({ error: 'Не вдалося завантажити свята.' }))),
         ),
       ),
     ),
@@ -136,10 +176,10 @@ export class OrderEffects {
     this.actions$.pipe(
       ofType(OrderActions.generateSheet),
       // mergeMap: the user may fire several cards in quick succession.
-      mergeMap(({ orderId, index, promptId, imageStyleId }) =>
-        this.orders.generateSheet(orderId, index, promptId, imageStyleId).pipe(
+      mergeMap(({ orderId, index, promptId, imageStyleId, photoId }) =>
+        this.orders.generateSheet(orderId, index, promptId, imageStyleId, photoId).pipe(
           map((order) => OrderActions.generateSheetSuccess({ order })),
-          catchError(() => of(OrderActions.generateSheetFailure({ error: 'Не вдалося згенерувати зображення.' }))),
+          catchError(() => of(OrderActions.generateSheetFailure({ error: 'Не вдалося згенерувати зображення. Можливо, перегенерації вичерпано.' }))),
         ),
       ),
     ),
@@ -157,6 +197,49 @@ export class OrderEffects {
     ),
   );
 
+  saveHolidaySettings$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.saveHolidaySettings),
+      switchMap(({ orderId, countries, weekStart }) =>
+        this.orders.saveHolidaySettings(orderId, countries, weekStart).pipe(
+          map((order) => OrderActions.saveHolidaySettingsSuccess({ order })),
+          catchError(() => of(OrderActions.saveHolidaySettingsFailure({ error: 'Не вдалося зберегти налаштування свят.' }))),
+        ),
+      ),
+    ),
+  );
+
+  applyPromoCode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.applyPromoCode),
+      switchMap(({ orderId, code }) =>
+        this.orders.applyPromoCode(orderId, code).pipe(
+          map((order) => OrderActions.applyPromoCodeSuccess({ order })),
+          // The backend returns a specific, user-facing reason (code not found/expired/limit
+          // reached/min order amount) as the plain-text/JSON-string error body — surface it as-is
+          // rather than a generic message, same idea as #401's generation-failure reasons.
+          catchError((err: HttpErrorResponse) =>
+            of(OrderActions.applyPromoCodeFailure({
+              error: typeof err.error === 'string' ? err.error : 'Не вдалося застосувати промокод.',
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  removePromoCode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.removePromoCode),
+      switchMap(({ orderId }) =>
+        this.orders.removePromoCode(orderId).pipe(
+          map((order) => OrderActions.removePromoCodeSuccess({ order })),
+          catchError(() => of(OrderActions.removePromoCodeFailure({ error: 'Не вдалося прибрати промокод.' }))),
+        ),
+      ),
+    ),
+  );
+
   startGeneration$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.startGeneration),
@@ -169,13 +252,13 @@ export class OrderEffects {
     ),
   );
 
-  regenerateSheet$ = createEffect(() =>
+  activateVariant$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(OrderActions.regenerateSheet),
-      switchMap(({ orderId, sheetId }) =>
-        this.orders.regenerateSheet(orderId, sheetId).pipe(
-          map((order) => OrderActions.regenerateSheetSuccess({ order })),
-          catchError(() => of(OrderActions.regenerateSheetFailure({ error: 'Перегенерації вичерпано.' }))),
+      ofType(OrderActions.activateVariant),
+      switchMap(({ orderId, sheetId, variantId }) =>
+        this.orders.activateVariant(orderId, sheetId, variantId).pipe(
+          map((order) => OrderActions.activateVariantSuccess({ order })),
+          catchError(() => of(OrderActions.activateVariantFailure({ error: 'Не вдалося відновити варіант.' }))),
         ),
       ),
     ),
@@ -220,22 +303,73 @@ export class OrderEffects {
   checkoutAndPay$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.checkoutAndPay),
-      switchMap(({ orderId, delivery, method }) =>
+      switchMap(({ orderId, delivery }) =>
         this.orders.checkout(orderId, delivery).pipe(
           catchError(() => {
             throw { step: 'checkout' as const };
           }),
           switchMap(() =>
-            this.orders.pay(orderId, method).pipe(
+            this.orders.pay(orderId).pipe(
               catchError(() => {
                 throw { step: 'pay' as const };
               }),
             ),
           ),
-          map((order) => OrderActions.checkoutAndPaySuccess({ order })),
+          // Hard navigation, not a router link — the destination is Monobank's hosted payment
+          // page (or, in the no-merchant-token local-dev fallback, straight back to /status).
+          tap(({ pageUrl }) => {
+            window.location.href = pageUrl;
+          }),
+          map(() => OrderActions.checkoutAndPaySuccess()),
           catchError((err: { step?: 'checkout' | 'pay' }) =>
             of(
               OrderActions.checkoutAndPayFailure({
+                error:
+                  err?.step === 'pay'
+                    ? 'Оплата не пройшла. Спробуйте ще раз.'
+                    : 'Не вдалося зберегти дані доставки.',
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  setPrintQuantity$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.setPrintQuantity),
+      mergeMap(({ orderId, quantity }) =>
+        this.orders.setPrintQuantity(orderId, quantity).pipe(
+          map(() => OrderActions.setPrintQuantitySuccess({ orderId, quantity })),
+          catchError(() => of(OrderActions.setPrintQuantityFailure({ error: 'Не вдалося змінити кількість.' }))),
+        ),
+      ),
+    ),
+  );
+
+  checkoutAndPayBatch$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(OrderActions.checkoutAndPayBatch),
+      switchMap(({ orderIds, delivery }) =>
+        this.orders.checkoutBatch(orderIds, delivery).pipe(
+          catchError(() => {
+            throw { step: 'checkout' as const };
+          }),
+          switchMap(() =>
+            this.orders.payBatch(orderIds).pipe(
+              catchError(() => {
+                throw { step: 'pay' as const };
+              }),
+            ),
+          ),
+          tap(({ pageUrl }) => {
+            window.location.href = pageUrl;
+          }),
+          map(() => OrderActions.checkoutAndPayBatchSuccess()),
+          catchError((err: { step?: 'checkout' | 'pay' }) =>
+            of(
+              OrderActions.checkoutAndPayBatchFailure({
                 error:
                   err?.step === 'pay'
                     ? 'Оплата не пройшла. Спробуйте ще раз.'

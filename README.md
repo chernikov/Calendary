@@ -7,7 +7,7 @@ Custom AI-generated photo calendar ordering app. A thin, end-to-end vertical sli
 
 Landing → register/login (email+password or Google) → photo upload → style + personal dates → generation
 (live progress) → cover pick → month-by-month reveal (regenerate/failure/retry) → review →
-delivery + payment (Nova Poshta + Apple/Google Pay/monobank/card) → order status (auto-progressing
+delivery + payment (Nova Poshta + monobank) → order status (auto-progressing
 Paid → Printing → Shipped → Delivered, with cancellation while unpaid).
 
 ## Stack
@@ -21,24 +21,48 @@ Paid → Printing → Shipped → Delivered, with cancellation while unpaid).
 ## Running it
 
 ```bash
+cp .env.example .env   # first time only — sets a local MSSQL sa password, never commit .env
 docker compose up --build
 ```
 
 - Frontend: http://localhost:4200
 - Backend/Swagger: http://localhost:5080/swagger
-- SQL Server: localhost:1433 (sa / Your_password123 — dev only, change before any real deployment)
+- SQL Server: localhost:1433 (sa / whatever you set `MSSQL_SA_PASSWORD` to in `.env`)
 
 EF Core migrations apply automatically on backend startup.
+
+### Environment variables
+
+Nothing sensitive lives in a committed `appsettings.json`/`docker-compose.yml` — everything needed
+locally comes from your own `.env` (gitignored, see `.env.example` for the full list) or, for the
+non-Docker backend flow below, `dotnet user-secrets`. Production/staging get the equivalent values
+from GitHub Actions secrets threaded into the droplet's `.env`/`.env.staging` (see "Deployment"
+below) — never from a file in this repo.
+
+Running `dotnet run --project src/Calendary.Api` directly (not via `docker compose`) needs its own
+connection string, since `appsettings.json`'s `ConnectionStrings:Default` is intentionally blank:
+```bash
+cd backend
+dotnet user-secrets set "ConnectionStrings:Default" \
+  "Server=localhost,1433;Database=Calendary;User Id=sa;Password=<your MSSQL_SA_PASSWORD>;TrustServerCertificate=True" \
+  --project src/Calendary.Api
+```
+(User secrets are stored outside the repo, under your user profile — see
+[Safe storage of app secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets).) The
+AI/Google/Resend API keys mentioned below follow the same pattern — set them the same way, or via
+`AI__OpenAI__ApiKey`-style environment variables, for this flow specifically.
 
 ## What's mocked (by design — see conversation scope: "thin vertical slice" + "mocked services")
 
 - **AI image generation** — `MockImageGenerationService` + `GenerationBackgroundService` simulate
   generation server-side (up to 3 sheets in flight per order, ~4s each) and hand back placeholder
   photos from picsum.photos. Swap `IImageGenerationService` for a real provider.
-- **Payment** — `MockPaymentService` always succeeds after a short delay. No real card data is
-  collected. Swap `IPaymentService` for a real provider (Stripe, WayForPay, etc.).
-- **Nova Poshta** — `MockNovaPoshtaService` returns a small static city/warehouse list instead of
-  calling the real Nova Poshta API.
+- **Payment** — `MonobankPaymentService` calls the real Monobank Acquiring API when
+  `Monobank__MerchantToken` is configured; without it (local dev), it settles the order as Paid
+  immediately instead of creating a real invoice/redirect. No real card data is ever collected by
+  this app either way — Monobank's hosted page handles that.
+- **Nova Poshta** — `NovaPoshtaService` calls the real Nova Poshta Address API when
+  `NovaPoshta__ApiKey` is configured, otherwise falls back to a small static city/warehouse list.
 - **Order fulfillment timing** — `FulfillmentBackgroundService` advances Paid → Printing → Shipped
   → Delivered purely by elapsed wall-clock time (8s / 10s / 20s), not real print/courier events.
 
@@ -92,8 +116,9 @@ actual AI provider integration, built but **not wired in by default**:
 - `Clients/` — `IAiImageClient` plus one real HTTP implementation per provider
   (`OpenAiImageClient` calls `/images/edits` when a reference photo is supplied, else
   `/images/generations`; `GeminiImageClient` calls `generateContent` with the photo as inline
-  image data). `ServiceCollectionExtensions.AddCalendaryAi()` registers only the implementation
-  `AiOptions.Provider` selects.
+  image data). `ServiceCollectionExtensions.AddCalendaryAi()` registers both as keyed services;
+  which one actually runs per generation is the runtime `ImageGenerationProvider` DB setting below,
+  not `AiOptions.Provider` (kept only as a legacy config field, no longer read at startup).
 - `Prompts/CalendarPrompts.cs` — wraps the DB-stored prompt library texts (per-sheet scene from
   `Prompt.Text` + visual style from `ImageStyle.Text`) and a seasonal hint per month, composed
   into `BuildCoverPrompt` / `BuildMonthPrompt`. Prompts are in English (both
@@ -157,6 +182,8 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `RESEND_API_KEY` | Resend API key for transactional email |
 | `MONOBANK_MERCHANT_TOKEN` / `MONOBANK_MERCHANT_TOKEN_STAGING` | Monobank merchant token — separate prod/sandbox tokens, threaded into the same `.env` variable name in each stack |
 | `NOVA_POSHTA_API_KEY` | Nova Poshta Address-API key — one shared value for both stacks (read-only lookup, no sandbox/live split) |
+| `AI_OPENAI_API_KEY` / `AI_GEMINI_API_KEY` | AI image-generation provider keys — one shared value for both stacks (see "Calendary.AI" below); *which* provider is actually live is a separate runtime DB setting via `/admin/settings`, not these |
+| `SMSCLUB_API_KEY` | SMS.Club API token for checkout phone verification — **prod-only, deliberately** (no sandbox mode on their side, so staging/local always use the fixed "0000" code instead of sending real, billed SMS) |
 | `DO_SPACES_KEY` / `DO_SPACES_SECRET` | DigitalOcean Spaces access key/secret for off-droplet backups (see "Backups" below) — one shared value for both stacks |
 | `DO_SPACES_BUCKET` / `DO_SPACES_BUCKET_STAGING` | Separate bucket names per stack, e.g. `calendary-backups` / `calendary-backups-staging` — cleaner data isolation, same account/region otherwise |
 | `DO_SPACES_REGION` | Spaces region, e.g. `fra1` — shared by both stacks' buckets |
@@ -164,11 +191,12 @@ ssh root@207.154.222.66 'bash -s' < deploy/bootstrap.sh
 | `ADMIN_PASSWORD` / `ADMIN_PASSWORD_STAGING` | Password for the always-seeded `admin@calendary.com.ua` account (see "Admin login" below) — separate per stack, since this is direct admin access, not a read-only key |
 
 `GITHUB_TOKEN` (built-in) handles both pushing images to GHCR and the droplet's `docker login`
-during deploy — no extra registry secret needed. Unlike the AI provider keys (a manual one-off
-`.env` edit on prod; staging does thread them — see issue #330), the secrets above are genuinely
+during deploy — no extra registry secret needed. The secrets above (including the AI provider keys
+as of #330 — previously a prod-only manual `.env` edit, now aligned with staging) are genuinely
 threaded through on every deploy: both `deploy.yml` and `deploy-staging.yml` upsert them into the
 droplet's `.env`/`.env.staging` from the GH secret before `docker compose up` — rotate the secret
-in GH, the next deploy picks it up automatically.
+in GH, the next deploy picks it up automatically. `SMSCLUB_API_KEY` is the one deliberate exception
+— `deploy.yml` threads it, `deploy-staging.yml` does not (see the table above).
 
 ## Backups
 
@@ -209,7 +237,8 @@ failure) — a fresh environment has no admin account until it's provided.
 
 - The design explored several layout **variants** per screen (mobile/desktop, alternate copy) —
   one variant was implemented per screen, not all of them.
-- Refunds/returns ("повернення") are out of scope: cancellation is only allowed before payment,
-  since payment is mocked and there's no real money to refund.
+- Refunds/returns ("повернення") are out of scope: cancellation is only allowed before payment.
+  Monobank's cancel-payment endpoint isn't wired up, so a paid order can't be refunded through the
+  app.
 - The cover step here is a single generated image + confirm/regenerate, rather than the
   four-candidate picker grid shown in some design variants.

@@ -1,11 +1,24 @@
 export type UserRole = 'Customer' | 'Admin';
 
+// #304: prefills the checkout form for returning customers — null until they've checked out once.
+export interface LastDeliveryDto {
+  recipientName: string;
+  phone: string;
+  city: string;
+  warehouseNumber: string;
+  warehouseAddress: string;
+}
+
 export interface UserDto {
   id: string;
   displayName: string | null;
   email: string | null;
   emailConfirmed: boolean;
   role: UserRole;
+  lastDelivery: LastDeliveryDto | null;
+  // Normalized "+380..." or null — lets checkout skip re-verification for an already-verified
+  // number (#304).
+  verifiedPhone: string | null;
 }
 
 export interface PromptDto {
@@ -44,6 +57,7 @@ export interface SheetPlanItem {
   index: number;
   promptId: string;
   imageStyleId: string;
+  photoId?: string;
 }
 
 export interface PersonalDateDto {
@@ -56,6 +70,13 @@ export interface PersonalDateDto {
 export type SheetKind = 'Cover' | 'Month';
 export type SheetStatus = 'Pending' | 'Generating' | 'Ready' | 'Failed';
 
+export interface SheetVariantDto {
+  id: string;
+  imageUrl: string;
+  createdAtUtc: string;
+  costUsd: number | null;
+}
+
 export interface SheetDto {
   id: string;
   kind: SheetKind;
@@ -63,11 +84,30 @@ export interface SheetDto {
   status: SheetStatus;
   isSelected: boolean;
   imageUrl: string | null;
-  variantCount: number;
   promptId: string | null;
   promptName: string | null;
   imageStyleId: string | null;
   imageStyleName: string | null;
+  photoId: string | null;
+  activeVariantId: string | null;
+  variants: SheetVariantDto[];
+  failureReason: string | null;
+}
+
+// Lightweight polling shape (#303) — status per sheet only, no ImageUrl/prompt/style/variant
+// payload, so the generating/month pages' ~1.5s poll doesn't re-fetch the full order every tick.
+export interface SheetProgressDto {
+  index: number;
+  kind: SheetKind;
+  status: SheetStatus;
+  failureReason: string | null;
+}
+
+export interface OrderProgressDto {
+  id: string;
+  status: OrderStatus;
+  statusUpdatedAtUtc: string;
+  sheets: SheetProgressDto[];
 }
 
 export interface PaymentDto {
@@ -100,7 +140,8 @@ export type OrderStatus =
   | 'Shipped'
   | 'Delivered'
   | 'Cancelled'
-  | 'GenerationFailed';
+  | 'GenerationFailed'
+  | 'PrintReady';
 
 export interface OrderPhotoDto {
   id: string;
@@ -113,7 +154,9 @@ export interface OrderDto {
   status: OrderStatus;
   photos: OrderPhotoDto[];
   price: number;
+  printQuantity: number;
   regenerationsRemaining: number;
+  totalGenerationCostUsd: number;
   createdAtUtc: string;
   expiresAtUtc: string;
   isExpired: boolean;
@@ -121,12 +164,17 @@ export interface OrderDto {
   sheets: SheetDto[];
   payment: PaymentDto | null;
   delivery: DeliveryDto | null;
+  holidayCountries: string[];
+  weekStart: string;
+  promoCode: string | null;
+  discountAmount: number;
 }
 
 export interface OrderSummaryDto {
   id: string;
   status: OrderStatus;
   price: number;
+  printQuantity: number;
   createdAtUtc: string;
   statusUpdatedAtUtc: string;
   styleName: string | null;
@@ -138,6 +186,7 @@ export interface NovaPoshtaWarehouseDto {
   number: string;
   address: string;
   closesAt: string;
+  isPostomat: boolean;
 }
 
 export interface PagedResult<T> {
@@ -154,8 +203,16 @@ export interface AdminOrderSummaryDto {
   userEmail: string | null;
   userDisplayName: string | null;
   price: number;
+  totalGenerationCostUsd: number;
   createdAtUtc: string;
   statusUpdatedAtUtc: string;
+  trackingNumber: string | null;
+}
+
+export interface OrderStatusHistoryEntryDto {
+  fromStatus: OrderStatus | null;
+  toStatus: OrderStatus;
+  changedAtUtc: string;
 }
 
 export interface AdminUserDto {
@@ -170,6 +227,10 @@ export interface AdminUserDto {
 }
 
 export type ImageGenerationProvider = 'Mock' | 'OpenAI' | 'Gemini';
+
+export interface ProductSettingsDto {
+  basePrice: number;
+}
 
 export interface ConfigStatusDto {
   openAiConfigured: boolean;
@@ -213,4 +274,51 @@ export interface SaveImageStylePayload {
   description: string;
   previewImageUrl: string | null;
   sortOrder: number;
+}
+
+export interface HolidayDto {
+  id: string;
+  country: string;
+  year: number;
+  day: number;
+  month: number;
+  name: string;
+  shortName: string;
+}
+
+export interface SaveHolidayPayload {
+  id?: string;
+  country: string;
+  year: number;
+  day: number;
+  month: number;
+  name: string;
+  shortName: string;
+}
+
+export type DiscountType = 'Percent' | 'FixedAmount';
+
+export interface PromoCodeDto {
+  id: string;
+  code: string;
+  type: DiscountType;
+  value: number;
+  validFromUtc: string | null;
+  validToUtc: string | null;
+  maxRedemptions: number | null;
+  redemptionsUsed: number;
+  minOrderAmount: number | null;
+  isActive: boolean;
+}
+
+export interface SavePromoCodePayload {
+  id?: string;
+  code: string;
+  type: DiscountType;
+  value: number;
+  validFromUtc: string | null;
+  validToUtc: string | null;
+  maxRedemptions: number | null;
+  minOrderAmount: number | null;
+  isActive: boolean;
 }
