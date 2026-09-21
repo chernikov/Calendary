@@ -3,6 +3,7 @@ import {
   AdminUserDto,
   BackupStatusDto,
   ConfigStatusDto,
+  ExperimentalGenerationResultDto,
   HolidayDto,
   ImageGenerationProvider,
   ImageStyleDto,
@@ -27,6 +28,7 @@ export interface AdminState {
   imageStyles: ImageStyleDto[];
   holidays: HolidayDto[];
   promoCodes: PromoCodeDto[];
+  experimentalGenerationResult: ExperimentalGenerationResultDto | null;
   busy: boolean;
   error: string | null;
 }
@@ -45,6 +47,7 @@ export const initialAdminState: AdminState = {
   imageStyles: [],
   holidays: [],
   promoCodes: [],
+  experimentalGenerationResult: null,
   busy: false,
   error: null,
 };

@@ -19,5 +19,9 @@ export const selectAdminPromptThemes = createSelector(selectAdminState, (state) 
 export const selectAdminImageStyles = createSelector(selectAdminState, (state) => state.imageStyles);
 export const selectAdminHolidays = createSelector(selectAdminState, (state) => state.holidays);
 export const selectAdminPromoCodes = createSelector(selectAdminState, (state) => state.promoCodes);
+export const selectAdminExperimentalGenerationResult = createSelector(
+  selectAdminState,
+  (state) => state.experimentalGenerationResult,
+);
 export const selectAdminBusy = createSelector(selectAdminState, (state) => state.busy);
 export const selectAdminError = createSelector(selectAdminState, (state) => state.error);

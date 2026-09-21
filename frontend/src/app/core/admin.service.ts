@@ -7,6 +7,8 @@ import {
   AdminUserDto,
   BackupStatusDto,
   ConfigStatusDto,
+  ExperimentalGenerationResultDto,
+  ExperimentalSheetKind,
   HolidayDto,
   ImageGenerationProvider,
   ImageStyleDto,
@@ -173,5 +175,25 @@ export class AdminService {
 
   deletePromoCode(promoCodeId: string): Observable<void> {
     return this.http.delete<void>(`${BASE}/promo-codes/${promoCodeId}`);
+  }
+
+  generateExperimentalImage(params: {
+    sceneText: string;
+    styleText: string;
+    kind: ExperimentalSheetKind;
+    month: number | null;
+    provider: ImageGenerationProvider;
+    photo: File;
+  }): Observable<ExperimentalGenerationResultDto> {
+    const form = new FormData();
+    form.append('sceneText', params.sceneText);
+    form.append('styleText', params.styleText);
+    form.append('kind', params.kind);
+    form.append('provider', params.provider);
+    if (params.month !== null) {
+      form.append('month', String(params.month));
+    }
+    form.append('photo', params.photo, params.photo.name);
+    return this.http.post<ExperimentalGenerationResultDto>(`${BASE}/experimental-generation`, form);
   }
 }

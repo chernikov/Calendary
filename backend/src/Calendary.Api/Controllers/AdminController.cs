@@ -2,6 +2,7 @@ using Calendary.AI.Options;
 using Calendary.Api.Dtos;
 using Calendary.Api.Filters;
 using Calendary.Api.Photos;
+using Calendary.Application.Admin.Generation;
 using Calendary.Application.Admin.Holidays;
 using Calendary.Application.Admin.ImageStyles;
 using Calendary.Application.Admin.Orders;
@@ -182,6 +183,40 @@ public class AdminController(
         return Ok(new BackupStatusDto(
             status.Configured,
             status.Snapshots.Select(s => new BackupSnapshotDto(s.TimeUtc, s.Tags)).ToList()));
+    }
+
+    // #440 — diagnostic tool for testing scene/style prompts and comparing OpenAI vs Gemini
+    // output quality, via the exact same prompt-building/AI-client path production orders use.
+    // Free-typed scene/style text (not looked up from the Prompt/ImageStyle library) and the
+    // result is returned inline as a data: URL rather than saved anywhere — a pure throwaway run.
+    [HttpPost("experimental-generation")]
+    [RequestSizeLimit(PhotoIntake.MaxBytes + 64 * 1024)]
+    public async Task<ActionResult<ExperimentalGenerationResultDto>> GenerateExperimentalImage(
+        [FromForm] string sceneText,
+        [FromForm] string styleText,
+        [FromForm] string kind,
+        [FromForm] string provider,
+        [FromForm] IFormFile? photo,
+        [FromForm] int? month,
+        CancellationToken ct)
+    {
+        var intake = await PhotoIntake.ReadAsync(photo, ct);
+        if (!intake.Ok)
+        {
+            return BadRequest(new { error = intake.Error });
+        }
+        if (!Enum.TryParse<SheetKind>(kind, true, out var sheetKind))
+        {
+            return BadRequest("Unknown kind. Use Cover or Month.");
+        }
+        if (!Enum.TryParse<ImageGenerationProvider>(provider, true, out var imageProvider))
+        {
+            return BadRequest("Unknown provider. Use OpenAI or Gemini.");
+        }
+
+        var result = await sender.Send(new GenerateExperimentalImageCommand(
+            sceneText, styleText, sheetKind, month, intake.Bytes, intake.ContentType, imageProvider), ct);
+        return Ok(new ExperimentalGenerationResultDto(result.Success, result.ImageDataUrl, result.Error, result.EstimatedCostUsd));
     }
 
     // — Prompt library —

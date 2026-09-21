@@ -443,4 +443,20 @@ export class AdminEffects {
       ),
     ),
   );
+
+  generateExperimentalImage$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.generateExperimentalImage),
+      switchMap(({ sceneText, styleText, kind, month, provider, photo }) =>
+        this.admin.generateExperimentalImage({ sceneText, styleText, kind, month, provider, photo }).pipe(
+          map((result) => AdminActions.generateExperimentalImageSuccess({ result })),
+          catchError((err: HttpErrorResponse) =>
+            of(AdminActions.generateExperimentalImageFailure({
+              error: typeof err.error === 'string' && err.error ? err.error : photoUploadErrorMessage(err),
+            })),
+          ),
+        ),
+      ),
+    ),
+  );
 }

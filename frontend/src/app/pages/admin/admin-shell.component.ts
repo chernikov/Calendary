@@ -47,6 +47,10 @@ const STYLESHEET_ID = 'ng-zorro-antd-styles';
             <span nz-icon nzType="setting"></span>
             <span>Налаштування</span>
           </li>
+          <li nz-menu-item routerLink="/admin/experimental-generation" routerLinkActive="ant-menu-item-selected">
+            <span nz-icon nzType="experiment"></span>
+            <span>Тестова генерація</span>
+          </li>
         </ul>
       </nz-sider>
       <nz-layout>

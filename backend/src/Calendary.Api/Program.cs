@@ -54,6 +54,7 @@ builder.Services.AddScoped<IImageGenerationService, DynamicImageGenerationServic
 builder.Services.AddSingleton<IPhotoThumbnailGenerator, PhotoThumbnailGeneratorService>();
 builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
 builder.Services.AddScoped<IPreviewImageService, PreviewImageService>();
+builder.Services.AddScoped<IExperimentalGenerationService, ExperimentalGenerationService>();
 builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(FileStorageOptions.SectionName));
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 builder.Services.AddCalendaryAi(builder.Configuration);

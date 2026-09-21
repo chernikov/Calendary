@@ -119,6 +119,13 @@ export const routes: Routes = [
         path: 'product',
         loadComponent: () => import('./pages/admin/admin-product.component').then((m) => m.AdminProductComponent),
       },
+      {
+        path: 'experimental-generation',
+        loadComponent: () =>
+          import('./pages/admin/admin-experimental-generation.component').then(
+            (m) => m.AdminExperimentalGenerationComponent,
+          ),
+      },
       { path: '', redirectTo: 'orders', pathMatch: 'full' },
     ],
   },

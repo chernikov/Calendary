@@ -252,6 +252,16 @@ export interface BackupSnapshotDto {
   tags: string[];
 }
 
+// #440 — admin experimental generation tool.
+export type ExperimentalSheetKind = 'Cover' | 'Month';
+
+export interface ExperimentalGenerationResultDto {
+  success: boolean;
+  imageDataUrl: string | null;
+  error: string | null;
+  estimatedCostUsd: number | null;
+}
+
 export interface BackupStatusDto {
   configured: boolean;
   snapshots: BackupSnapshotDto[];

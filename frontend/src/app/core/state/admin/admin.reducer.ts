@@ -26,6 +26,7 @@ export const adminReducer = createReducer(
     AdminActions.deleteHoliday,
     AdminActions.savePromoCode,
     AdminActions.deletePromoCode,
+    AdminActions.generateExperimentalImage,
     (state) => ({ ...state, busy: true, error: null }),
   ),
 
@@ -130,8 +131,16 @@ export const adminReducer = createReducer(
     AdminActions.holidayMutationFailure,
     AdminActions.loadPromoCodesFailure,
     AdminActions.promoCodeMutationFailure,
+    AdminActions.generateExperimentalImageFailure,
     (state, { error }) => ({ ...state, busy: false, error }),
   ),
+
+  on(AdminActions.generateExperimentalImageSuccess, (state, { result }) => ({
+    ...state,
+    experimentalGenerationResult: result,
+    busy: false,
+    error: null,
+  })),
 
   on(AdminActions.clearAdminError, (state) => ({ ...state, error: null })),
 );
