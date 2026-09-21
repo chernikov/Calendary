@@ -4,6 +4,8 @@ import {
   AdminUserDto,
   BackupStatusDto,
   ConfigStatusDto,
+  ExperimentalGenerationResultDto,
+  ExperimentalSheetKind,
   HolidayDto,
   ImageGenerationProvider,
   ImageStyleDto,
@@ -116,6 +118,17 @@ export const AdminActions = createActionGroup({
     'Save Promo Code': props<{ promoCode: SavePromoCodePayload }>(),
     'Delete Promo Code': props<{ promoCodeId: string }>(),
     'Promo Code Mutation Failure': props<{ error: string }>(),
+
+    'Generate Experimental Image': props<{
+      sceneText: string;
+      styleText: string;
+      kind: ExperimentalSheetKind;
+      month: number | null;
+      provider: ImageGenerationProvider;
+      photo: File;
+    }>(),
+    'Generate Experimental Image Success': props<{ result: ExperimentalGenerationResultDto }>(),
+    'Generate Experimental Image Failure': props<{ error: string }>(),
 
     'Clear Admin Error': emptyProps(),
   },

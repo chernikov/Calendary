@@ -148,6 +148,11 @@ public record BackupStatusDto(bool Configured, IReadOnlyList<BackupSnapshotDto> 
 public record RealIntegrationsOnStagingDto(bool Enabled);
 public record SetRealIntegrationsOnStagingRequest(bool Enabled);
 
+// #440 — admin experimental generation tool. Photo comes in as [FromForm] IFormFile alongside
+// these scalar fields, not as part of this record (multipart requests can't bind a file inside a
+// nested JSON-like body).
+public record ExperimentalGenerationResultDto(bool Success, string? ImageDataUrl, string? Error, decimal? EstimatedCostUsd);
+
 public record SavePromptThemeRequest(string Name, string Description, int SortOrder);
 public record SavePromptRequest(Guid PromptThemeId, string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
 public record SaveImageStyleRequest(string Name, string Text, string Description, string? PreviewImageUrl, int SortOrder);
