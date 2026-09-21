@@ -121,7 +121,11 @@ public static class OrderAccess
             throw new AppOperationException("Обране відділення Нової Пошти не знайдено. Оберіть інше.");
         }
 
-        return delivery with { RecipientName = recipientName, Phone = phone, City = city, WarehouseAddress = warehouse.Address };
+        return delivery with
+        {
+            RecipientName = recipientName, Phone = phone, City = city, WarehouseAddress = warehouse.Address,
+            CityRef = warehouse.CityRef, WarehouseRef = warehouse.Ref,
+        };
     }
 
     // Checkout requires the delivery phone to have gone through SendPhoneVerificationCommand ->

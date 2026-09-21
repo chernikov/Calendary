@@ -37,6 +37,14 @@ services:
       Monobank__MerchantToken: "${MONOBANK_MERCHANT_TOKEN:-}"
       Monobank__PublicBaseUrl: "https://${DOMAIN}"
       NovaPoshta__ApiKey: "${NOVA_POSHTA_API_KEY:-}"
+      # Deliberately prod-only (#432) — same reasoning as SmsClub below: real shipment creation
+      # against the app's actual Nova Poshta sender account, staging/local always fall back to a
+      # fake tracking number instead.
+      NovaPoshta__SenderCounterpartyRef: "${NOVA_POSHTA_SENDER_COUNTERPARTY_REF:-}"
+      NovaPoshta__SenderContactRef: "${NOVA_POSHTA_SENDER_CONTACT_REF:-}"
+      NovaPoshta__SenderCityRef: "${NOVA_POSHTA_SENDER_CITY_REF:-}"
+      NovaPoshta__SenderWarehouseRef: "${NOVA_POSHTA_SENDER_WAREHOUSE_REF:-}"
+      NovaPoshta__SendersPhone: "${NOVA_POSHTA_SENDERS_PHONE:-}"
       # Deliberately prod-only (see #304's SmsClubService doc comment) — SMS.Club has no sandbox
       # mode, so staging/local intentionally never get a real key and always use the fixed "0000"
       # verification code instead of sending real, billed SMS.

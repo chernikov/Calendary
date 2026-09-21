@@ -297,6 +297,18 @@ deactivates keys yearly. Regenerate it in the business account
 `gh secret set NOVA_POSHTA_API_KEY` before then, or delivery branch lookup silently falls back to
 the static mock dataset (see `NovaPoshtaService`).
 
+Real Nova Poshta shipment creation (#432, `NovaPoshtaService.CreateShipmentAsync`) is prod-only,
+same reasoning as `SmsClub__ApiKey` — `deploy.yml` threads
+`NOVA_POSHTA_SENDER_COUNTERPARTY_REF`/`_CONTACT_REF`/`_CITY_REF`/`_WAREHOUSE_REF`/`_SENDERS_PHONE`
+GH secrets (`deploy-staging.yml` does not), identifying the app's own registered Nova Poshta
+sender. Confirmed working against the live API on a plain **private-person** account with **no
+business contract** — `SenderAddress`/`RecipientAddress` in `InternetDocument/save` are Ref's of
+the sending/receiving *warehouse* (where the parcel is physically dropped off/picked up), not a
+`Counterparty/Address` entity — that model is empty for private-person accounts by design, not an
+error. Falls back to a fake tracking number (same shape as the old
+`FulfillmentBackgroundService`'s) when these are unset, exactly like `SmsClubService`'s "0000"
+fallback.
+
 **Restoring from backup** (see #305): full step-by-step is `deploy/RESTORE.md` — in short, `restic
 -r <repo> snapshots` to see what's there, `restic restore latest --tag db|media --target <dir>` to
 pull a snapshot out, then `docker cp` the `.bak` into the `mssql` container and `RESTORE DATABASE
