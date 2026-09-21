@@ -175,6 +175,30 @@ export class AdminEffects {
     ),
   );
 
+  loadRealIntegrationsOnStaging$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadRealIntegrationsOnStaging),
+      switchMap(() =>
+        this.admin.getRealIntegrationsOnStaging().pipe(
+          map(({ enabled }) => AdminActions.loadRealIntegrationsOnStagingSuccess({ enabled })),
+          catchError(() => of(AdminActions.loadRealIntegrationsOnStagingFailure({ error: 'Не вдалося завантажити налаштування.' }))),
+        ),
+      ),
+    ),
+  );
+
+  setRealIntegrationsOnStaging$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.setRealIntegrationsOnStaging),
+      switchMap(({ enabled }) =>
+        this.admin.setRealIntegrationsOnStaging(enabled).pipe(
+          map(({ enabled: updated }) => AdminActions.setRealIntegrationsOnStagingSuccess({ enabled: updated })),
+          catchError(() => of(AdminActions.setRealIntegrationsOnStagingFailure({ error: 'Не вдалося змінити режим.' }))),
+        ),
+      ),
+    ),
+  );
+
   loadBackupStatus$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.loadBackupStatus),

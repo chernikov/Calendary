@@ -36,6 +36,17 @@ services:
       Monobank__MerchantToken: "${MONOBANK_MERCHANT_TOKEN:-}"
       Monobank__PublicBaseUrl: "https://${STAGING_DOMAIN}"
       NovaPoshta__ApiKey: "${NOVA_POSHTA_API_KEY:-}"
+      # Same real sender/API-key values as prod (deploy.yml's copy) — staging carries them too now
+      # so an admin can flip AppSettings.RealIntegrationsOnStaging on for one-off real testing
+      # (#432 follow-up). Both SmsClubService/NovaPoshtaService gate actually USING these behind
+      # that runtime DB toggle (default off) — having the values present here is not by itself
+      # enough to trigger a real SMS/shipment.
+      SmsClub__ApiKey: "${SMSCLUB_API_KEY:-}"
+      NovaPoshta__SenderCounterpartyRef: "${NOVA_POSHTA_SENDER_COUNTERPARTY_REF:-}"
+      NovaPoshta__SenderContactRef: "${NOVA_POSHTA_SENDER_CONTACT_REF:-}"
+      NovaPoshta__SenderCityRef: "${NOVA_POSHTA_SENDER_CITY_REF:-}"
+      NovaPoshta__SenderWarehouseRef: "${NOVA_POSHTA_SENDER_WAREHOUSE_REF:-}"
+      NovaPoshta__SendersPhone: "${NOVA_POSHTA_SENDERS_PHONE:-}"
       # Guarantees an admin account always exists (AdminSeeder, runs at startup) — no environment
       # should ever need a manual DB UPDATE to get admin access.
       AdminSeed__Password: "${ADMIN_PASSWORD:-}"

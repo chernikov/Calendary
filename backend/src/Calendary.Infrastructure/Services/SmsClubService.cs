@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Calendary.Domain.Abstractions;
 using Calendary.Infrastructure.Options;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -12,9 +13,12 @@ namespace Calendary.Infrastructure.Services;
 /// has no documented sandbox mode: every real send costs money and reaches an actual phone. So
 /// rather than "unconfigured = settle locally" (Monobank) or "unconfigured = log the body"
 /// (Resend), the fallback here is a fixed, never-sent "0000" code (#304) — used whenever
-/// SmsClub:ApiKey is blank, i.e. local dev and staging on purpose; only prod carries the real key.
-public class SmsClubService(HttpClient httpClient, IOptions<SmsClubOptions> options, ILogger<SmsClubService> logger)
-    : ISmsService
+/// SmsClub:ApiKey is blank (local dev always) or, on staging, whenever an admin hasn't opted into
+/// AppSettings.RealIntegrationsOnStaging for one-off testing (#432 follow-up) — Production always
+/// uses the real key regardless of that flag, so it can never end up accidentally disabled there.
+public class SmsClubService(
+    HttpClient httpClient, IOptions<SmsClubOptions> options, IAppSettingsService settings, IHostEnvironment env,
+    ILogger<SmsClubService> logger) : ISmsService
 {
     private const string SendUrl = "https://im.smsclub.mobi/sms/send";
     private const string FixedFallbackCode = "0000";
@@ -22,10 +26,12 @@ public class SmsClubService(HttpClient httpClient, IOptions<SmsClubOptions> opti
 
     public async Task<string> SendVerificationCodeAsync(string phone, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+        var configured = !string.IsNullOrWhiteSpace(_options.ApiKey);
+        var useReal = configured && (env.IsProduction() || await settings.GetRealIntegrationsOnStagingAsync(ct));
+        if (!useReal)
         {
             logger.LogInformation(
-                "SmsClub:ApiKey not configured — phone verification code is the fixed {Code} (no real SMS sent) for {Phone}",
+                "SmsClub real sending is off for this environment — phone verification code is the fixed {Code} (no real SMS sent) for {Phone}",
                 FixedFallbackCode, phone);
             return FixedFallbackCode;
         }

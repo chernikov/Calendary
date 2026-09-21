@@ -13,4 +13,10 @@ public class AppSettings
     /// creation time (OrdersController.Create), never recomputed afterward, so changing this here
     /// never retroactively repriced an already-placed order.
     public decimal BasePrice { get; set; } = 1600m;
+
+    /// Lets an admin flip SmsClubService/NovaPoshtaService into using their real (cost-bearing)
+    /// integrations on staging too, for one-off end-to-end testing (see #432 follow-up). Only
+    /// matters on staging — both services short-circuit to "always real" on Production regardless
+    /// of this flag, so it can never accidentally disable real sends there. Defaults off.
+    public bool RealIntegrationsOnStaging { get; set; }
 }

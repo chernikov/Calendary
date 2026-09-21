@@ -21,6 +21,7 @@ export interface AdminState {
   basePrice: number | null;
   aiProvider: ImageGenerationProvider | null;
   configStatus: ConfigStatusDto | null;
+  realIntegrationsOnStaging: boolean | null;
   backupStatus: BackupStatusDto | null;
   promptThemes: PromptThemeDto[];
   imageStyles: ImageStyleDto[];
@@ -38,6 +39,7 @@ export const initialAdminState: AdminState = {
   basePrice: null,
   aiProvider: null,
   configStatus: null,
+  realIntegrationsOnStaging: null,
   backupStatus: null,
   promptThemes: [],
   imageStyles: [],

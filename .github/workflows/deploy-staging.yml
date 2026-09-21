@@ -105,6 +105,21 @@ jobs:
             # read-only address/branch lookup has no sandbox/live distinction or financial risk.
             grep -v '^NOVA_POSHTA_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
             printf 'NOVA_POSHTA_API_KEY=%s\n' "${{ secrets.NOVA_POSHTA_API_KEY }}" >> .env.staging
+            # #432 follow-up: staging now also carries the real SmsClub/Nova-Poshta-sender secrets
+            # (same values as deploy.yml's prod copy) so an admin can flip
+            # AppSettings.RealIntegrationsOnStaging on for one-off real testing — both services
+            # gate actually using these behind that runtime DB toggle (default off), Production
+            # ignores the toggle and always uses these regardless.
+            grep -v '^SMSCLUB_API_KEY=' .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            printf 'SMSCLUB_API_KEY=%s\n' "${{ secrets.SMSCLUB_API_KEY }}" >> .env.staging
+            for key in NOVA_POSHTA_SENDER_COUNTERPARTY_REF NOVA_POSHTA_SENDER_CONTACT_REF NOVA_POSHTA_SENDER_CITY_REF NOVA_POSHTA_SENDER_WAREHOUSE_REF NOVA_POSHTA_SENDERS_PHONE; do
+              grep -v "^${key}=" .env.staging > .env.staging.tmp || true; mv .env.staging.tmp .env.staging
+            done
+            printf 'NOVA_POSHTA_SENDER_COUNTERPARTY_REF=%s\n' "${{ secrets.NOVA_POSHTA_SENDER_COUNTERPARTY_REF }}" >> .env.staging
+            printf 'NOVA_POSHTA_SENDER_CONTACT_REF=%s\n' "${{ secrets.NOVA_POSHTA_SENDER_CONTACT_REF }}" >> .env.staging
+            printf 'NOVA_POSHTA_SENDER_CITY_REF=%s\n' "${{ secrets.NOVA_POSHTA_SENDER_CITY_REF }}" >> .env.staging
+            printf 'NOVA_POSHTA_SENDER_WAREHOUSE_REF=%s\n' "${{ secrets.NOVA_POSHTA_SENDER_WAREHOUSE_REF }}" >> .env.staging
+            printf 'NOVA_POSHTA_SENDERS_PHONE=%s\n' "${{ secrets.NOVA_POSHTA_SENDERS_PHONE }}" >> .env.staging
             # Same Spaces account/creds/region as prod's, but a SEPARATE bucket — sourced from
             # DO_SPACES_BUCKET_STAGING. The .env.staging *variable name* stays DO_SPACES_BUCKET so
             # docker-compose.staging.yml/backup.sh read it the same way prod's .env does.

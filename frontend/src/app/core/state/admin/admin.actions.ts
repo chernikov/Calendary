@@ -70,6 +70,14 @@ export const AdminActions = createActionGroup({
     'Load Config Status Success': props<{ status: ConfigStatusDto }>(),
     'Load Config Status Failure': props<{ error: string }>(),
 
+    'Load Real Integrations On Staging': emptyProps(),
+    'Load Real Integrations On Staging Success': props<{ enabled: boolean }>(),
+    'Load Real Integrations On Staging Failure': props<{ error: string }>(),
+
+    'Set Real Integrations On Staging': props<{ enabled: boolean }>(),
+    'Set Real Integrations On Staging Success': props<{ enabled: boolean }>(),
+    'Set Real Integrations On Staging Failure': props<{ error: string }>(),
+
     'Load Backup Status': emptyProps(),
     'Load Backup Status Success': props<{ status: BackupStatusDto }>(),
     'Load Backup Status Failure': props<{ error: string }>(),

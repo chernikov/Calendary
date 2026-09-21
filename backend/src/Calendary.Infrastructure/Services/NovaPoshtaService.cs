@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Calendary.Common;
 using Calendary.Domain.Abstractions;
 using Calendary.Infrastructure.Options;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -15,8 +16,9 @@ namespace Calendary.Infrastructure.Services;
 /// HTTP — same minimal-deps approach as ResendEmailService. Falls back to the small static
 /// dataset MockNovaPoshtaService used to carry when no API key is configured, so local dev keeps
 /// working without one.
-public class NovaPoshtaService(HttpClient httpClient, IOptions<NovaPoshtaOptions> options, ILogger<NovaPoshtaService> logger)
-    : INovaPoshtaService
+public class NovaPoshtaService(
+    HttpClient httpClient, IOptions<NovaPoshtaOptions> options, IAppSettingsService settings, IHostEnvironment env,
+    ILogger<NovaPoshtaService> logger) : INovaPoshtaService
 {
     private const string ApiUrl = "https://api.novaposhta.ua/v2.0/json/";
     private readonly NovaPoshtaOptions _options = options.Value;
@@ -141,14 +143,17 @@ public class NovaPoshtaService(HttpClient httpClient, IOptions<NovaPoshtaOptions
     }
 
     // #432: real Nova Poshta express waybill creation. Falls back to a fake tracking number when
-    // no sender is configured (local dev / staging by deliberate design — see NovaPoshtaOptions —
-    // only prod carries real SenderCounterpartyRef etc.), same pattern as
-    // MonobankPaymentService/SmsClubService. Throws AppOperationException(502) on any real API
-    // failure rather than returning null/empty, since the caller (AdvanceOrderFulfillmentCommand)
-    // needs to surface a clear error to the admin instead of silently leaving TrackingNumber unset.
+    // no sender is configured (local dev always) or, on staging, whenever an admin hasn't opted
+    // into AppSettings.RealIntegrationsOnStaging for one-off testing (#432 follow-up) — Production
+    // always uses the real sender regardless of that flag, same pattern as SmsClubService. Throws
+    // AppOperationException(502) on any real API failure rather than returning null/empty, since
+    // the caller (AdvanceOrderFulfillmentCommand) needs to surface a clear error to the admin
+    // instead of silently leaving TrackingNumber unset.
     public async Task<NovaPoshtaShipmentResult> CreateShipmentAsync(NovaPoshtaShipmentRecipient recipient, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(_options.ApiKey) || string.IsNullOrWhiteSpace(_options.SenderCounterpartyRef))
+        var configured = !string.IsNullOrWhiteSpace(_options.ApiKey) && !string.IsNullOrWhiteSpace(_options.SenderCounterpartyRef);
+        var useReal = configured && (env.IsProduction() || await settings.GetRealIntegrationsOnStagingAsync(ct));
+        if (!useReal)
         {
             return new NovaPoshtaShipmentResult(
                 $"2040{Random.Shared.Next(1000000, 9999999)}", 0m, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(2)));
