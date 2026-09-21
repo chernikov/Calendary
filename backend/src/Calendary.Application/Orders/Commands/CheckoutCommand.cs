@@ -30,6 +30,8 @@ public class CheckoutCommandHandler(IAppDbContext db, INovaPoshtaService novaPos
         order.Delivery.City = delivery.City;
         order.Delivery.WarehouseNumber = delivery.WarehouseNumber;
         order.Delivery.WarehouseAddress = delivery.WarehouseAddress;
+        order.Delivery.CityRef = delivery.CityRef;
+        order.Delivery.WarehouseRef = delivery.WarehouseRef;
 
         var user = await db.Users.FirstAsync(u => u.Id == request.UserId, ct);
         OrderAccess.RequirePhoneVerified(user, delivery.Phone);

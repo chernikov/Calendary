@@ -44,6 +44,8 @@ public class CheckoutBatchCommandHandler(IAppDbContext db, INovaPoshtaService no
             order.Delivery.City = delivery.City;
             order.Delivery.WarehouseNumber = delivery.WarehouseNumber;
             order.Delivery.WarehouseAddress = delivery.WarehouseAddress;
+            order.Delivery.CityRef = delivery.CityRef;
+            order.Delivery.WarehouseRef = delivery.WarehouseRef;
             order.SetStatus(OrderStatus.AwaitingPayment);
         }
 
