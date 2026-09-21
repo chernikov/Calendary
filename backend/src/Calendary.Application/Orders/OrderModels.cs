@@ -17,5 +17,9 @@ public record SheetProgress(int Index, string Kind, string Status, string? Failu
 
 public record OrderProgress(Guid Id, string Status, DateTime StatusUpdatedAtUtc, IReadOnlyList<SheetProgress> Sheets);
 
+// CityRef/WarehouseRef default to null — the customer-submitted request never carries them (see
+// OrdersController), only OrderAccess.ValidateAndNormalizeDeliveryAsync's returned copy does,
+// once it has resolved the matching NovaPoshtaWarehouse (#432).
 public record DeliveryInfo(
-    string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress);
+    string RecipientName, string Phone, string City, string WarehouseNumber, string WarehouseAddress,
+    Guid? CityRef = null, Guid? WarehouseRef = null);

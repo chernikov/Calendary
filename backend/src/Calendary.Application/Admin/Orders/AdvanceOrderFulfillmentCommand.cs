@@ -1,6 +1,7 @@
 using Calendary.Application.Common;
 using Calendary.Application.Orders;
 using Calendary.Common;
+using Calendary.Domain.Abstractions;
 using Calendary.Domain.Entities;
 using Calendary.Domain.Enums;
 using MediatR;
@@ -13,10 +14,9 @@ namespace Calendary.Application.Admin.Orders;
 // fallback alongside manual control.
 public record AdvanceOrderFulfillmentCommand(Guid OrderId) : IRequest<Order?>;
 
-public class AdvanceOrderFulfillmentCommandHandler(IAppDbContext db) : IRequestHandler<AdvanceOrderFulfillmentCommand, Order?>
+public class AdvanceOrderFulfillmentCommandHandler(IAppDbContext db, INovaPoshtaService novaPoshta)
+    : IRequestHandler<AdvanceOrderFulfillmentCommand, Order?>
 {
-    // Real Nova Poshta tracking numbers are tracked separately (#432) — this fake generation is
-    // carried over verbatim from the old FulfillmentBackgroundService.
     private static readonly Dictionary<OrderStatus, OrderStatus> NextStatus = new()
     {
         [OrderStatus.Paid] = OrderStatus.Printing,
@@ -35,13 +35,35 @@ public class AdvanceOrderFulfillmentCommandHandler(IAppDbContext db) : IRequestH
             throw new AppOperationException($"Замовлення в статусі {order.Status} не має наступного кроку виконання.", 409);
         }
 
-        if (next == OrderStatus.Shipped && order.Delivery is not null && order.Delivery.TrackingNumber is null)
+        // Real Nova Poshta shipment creation (#432) — CityRef/WarehouseRef are only populated for
+        // deliveries created after #432 shipped; older orders fall back to no tracking number
+        // rather than crashing the transition (nothing to ship a real waybill against).
+        if (next == OrderStatus.Shipped && order.Delivery is not null && order.Delivery.TrackingNumber is null
+            && order.Delivery.CityRef is { } cityRef && order.Delivery.WarehouseRef is { } warehouseRef)
         {
-            order.Delivery.TrackingNumber = $"2040{Random.Shared.Next(1000000, 9999999)}";
+            var (firstName, lastName) = SplitRecipientName(order.Delivery.RecipientName);
+            var shipment = await novaPoshta.CreateShipmentAsync(
+                new NovaPoshtaShipmentRecipient(firstName, lastName, order.Delivery.Phone, cityRef, warehouseRef), ct);
+            order.Delivery.TrackingNumber = shipment.TrackingNumber;
         }
 
         order.SetStatus(next);
         await db.SaveChangesAsync(ct);
         return order;
+    }
+
+    // RecipientName is one free-text field at checkout ("Отримувач"), but Nova Poshta's
+    // Counterparty/save needs FirstName/LastName separately — splits on the first space,
+    // matching the "Прізвище Ім'я" order Ukrainian shipping forms conventionally ask for. Doesn't
+    // need to be exactly right: Nova Poshta ties the shipment to the phone number, not name order.
+    private static (string FirstName, string LastName) SplitRecipientName(string recipientName)
+    {
+        var parts = recipientName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length switch
+        {
+            0 => ("Клієнт", "Calendary"),
+            1 => (parts[0], parts[0]),
+            _ => (parts[1], parts[0]),
+        };
     }
 }

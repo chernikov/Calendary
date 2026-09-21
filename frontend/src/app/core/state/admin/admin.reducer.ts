@@ -12,6 +12,7 @@ export const adminReducer = createReducer(
     AdminActions.regenerateSheet,
     AdminActions.advanceFulfillment,
     AdminActions.setAiProvider,
+    AdminActions.setRealIntegrationsOnStaging,
     AdminActions.setProductSettings,
     AdminActions.savePromptTheme,
     AdminActions.deletePromptTheme,
@@ -72,6 +73,12 @@ export const adminReducer = createReducer(
   on(AdminActions.loadConfigStatusSuccess, (state, { status }) => ({ ...state, configStatus: status, error: null })),
   on(AdminActions.loadBackupStatusSuccess, (state, { status }) => ({ ...state, backupStatus: status, error: null })),
 
+  on(
+    AdminActions.loadRealIntegrationsOnStagingSuccess,
+    AdminActions.setRealIntegrationsOnStagingSuccess,
+    (state, { enabled }) => ({ ...state, realIntegrationsOnStaging: enabled, busy: false, error: null }),
+  ),
+
   on(AdminActions.loadPromptThemesSuccess, (state, { themes }) => ({
     ...state,
     promptThemes: themes,
@@ -114,6 +121,8 @@ export const adminReducer = createReducer(
     AdminActions.setProductSettingsFailure,
     AdminActions.loadConfigStatusFailure,
     AdminActions.loadBackupStatusFailure,
+    AdminActions.loadRealIntegrationsOnStagingFailure,
+    AdminActions.setRealIntegrationsOnStagingFailure,
     AdminActions.loadPromptThemesFailure,
     AdminActions.loadImageStylesFailure,
     AdminActions.promptLibraryMutationFailure,

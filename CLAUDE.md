@@ -297,6 +297,28 @@ deactivates keys yearly. Regenerate it in the business account
 `gh secret set NOVA_POSHTA_API_KEY` before then, or delivery branch lookup silently falls back to
 the static mock dataset (see `NovaPoshtaService`).
 
+Real Nova Poshta shipment creation (#432, `NovaPoshtaService.CreateShipmentAsync`) identifies the
+app's own registered Nova Poshta sender via
+`NOVA_POSHTA_SENDER_COUNTERPARTY_REF`/`_CONTACT_REF`/`_CITY_REF`/`_WAREHOUSE_REF`/`_SENDERS_PHONE`
+GH secrets, threaded by **both** `deploy.yml` and `deploy-staging.yml` (same values — one real Nova
+Poshta account regardless of environment, no sandbox concept, same reasoning as
+`NOVA_POSHTA_API_KEY` above). Confirmed working against the live API on a plain **private-person**
+account with **no business contract** — `SenderAddress`/`RecipientAddress` in
+`InternetDocument/save` are Ref's of the sending/receiving *warehouse* (where the parcel is
+physically dropped off/picked up), not a `Counterparty/Address` entity — that model is empty for
+private-person accounts by design, not an error.
+
+Actually **using** these real credentials for either SMS.Club (`SmsClubService`) or Nova Poshta
+shipment creation is gated by `AppSettings.RealIntegrationsOnStaging`
+(`/admin/settings`, #432 follow-up), not just by whether the secret is present — Production always
+uses the real integrations regardless of this flag (both services short-circuit on
+`IHostEnvironment.IsProduction()` before ever consulting it, so it can never accidentally disable
+real sends there); staging defaults the flag off (fake "0000" SMS / fake tracking number, same as
+before) and an admin can flip it on temporarily to run a real end-to-end test (real SMS costs
+money, real shipment creates a real Nova Poshta document — the admin settings page shows a warning
+while the flag is on). Local dev is unaffected either way, since neither the SmsClub key nor the
+Nova Poshta sender Refs are ever threaded to `docker-compose.yml`.
+
 **Restoring from backup** (see #305): full step-by-step is `deploy/RESTORE.md` — in short, `restic
 -r <repo> snapshots` to see what's there, `restic restore latest --tag db|media --target <dir>` to
 pull a snapshot out, then `docker cp` the `.bak` into the `mssql` container and `RESTORE DATABASE

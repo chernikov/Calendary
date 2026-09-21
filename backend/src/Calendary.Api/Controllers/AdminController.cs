@@ -37,6 +37,8 @@ public class AdminController(
     IOptions<GoogleOptions> googleOptions,
     IOptions<ResendOptions> resendOptions,
     IOptions<MonobankOptions> monobankOptions,
+    IOptions<SmsClubOptions> smsClubOptions,
+    IOptions<NovaPoshtaOptions> novaPoshtaOptions,
     IBackupStatusService backupStatus) : ControllerBase
 {
     [HttpGet("orders")]
@@ -150,7 +152,27 @@ public class AdminController(
             GoogleConfigured: !string.IsNullOrWhiteSpace(googleOptions.Value.ClientId)
                 && !string.IsNullOrWhiteSpace(googleOptions.Value.ClientSecret),
             ResendConfigured: !string.IsNullOrWhiteSpace(resendOptions.Value.ApiKey),
-            MonobankConfigured: !string.IsNullOrWhiteSpace(monobankOptions.Value.MerchantToken)));
+            MonobankConfigured: !string.IsNullOrWhiteSpace(monobankOptions.Value.MerchantToken),
+            SmsClubConfigured: !string.IsNullOrWhiteSpace(smsClubOptions.Value.ApiKey),
+            NovaPoshtaSenderConfigured: !string.IsNullOrWhiteSpace(novaPoshtaOptions.Value.SenderCounterpartyRef)));
+    }
+
+    // #432 follow-up: lets an admin flip SmsClubService/NovaPoshtaService into using their real
+    // (cost-bearing) integrations on staging too, for one-off end-to-end testing — no effect on
+    // Production, which always uses the real integrations regardless (see both services' own
+    // doc comments).
+    [HttpGet("settings/real-integrations-on-staging")]
+    public async Task<ActionResult<RealIntegrationsOnStagingDto>> GetRealIntegrationsOnStaging()
+    {
+        var enabled = await appSettings.GetRealIntegrationsOnStagingAsync();
+        return Ok(new RealIntegrationsOnStagingDto(enabled));
+    }
+
+    [HttpPut("settings/real-integrations-on-staging")]
+    public async Task<ActionResult<RealIntegrationsOnStagingDto>> SetRealIntegrationsOnStaging(SetRealIntegrationsOnStagingRequest request)
+    {
+        await appSettings.SetRealIntegrationsOnStagingAsync(request.Enabled);
+        return Ok(new RealIntegrationsOnStagingDto(request.Enabled));
     }
 
     [HttpGet("settings/backup-status")]

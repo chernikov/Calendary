@@ -12,6 +12,7 @@ public class AppSettingsService(AppDbContext db) : IAppSettingsService
 {
     private static ImageGenerationProvider? _cached;
     private static decimal? _cachedBasePrice;
+    private static bool? _cachedRealIntegrationsOnStaging;
     private static readonly SemaphoreSlim Lock = new(1, 1);
 
     public async Task<ImageGenerationProvider> GetImageGenerationProviderAsync(CancellationToken ct = default)
@@ -78,5 +79,38 @@ public class AppSettingsService(AppDbContext db) : IAppSettingsService
         row.BasePrice = basePrice;
         await db.SaveChangesAsync(ct);
         _cachedBasePrice = basePrice;
+    }
+
+    public async Task<bool> GetRealIntegrationsOnStagingAsync(CancellationToken ct = default)
+    {
+        if (_cachedRealIntegrationsOnStaging is { } cached)
+        {
+            return cached;
+        }
+
+        await Lock.WaitAsync(ct);
+        try
+        {
+            if (_cachedRealIntegrationsOnStaging is { } cachedAgain)
+            {
+                return cachedAgain;
+            }
+
+            var row = await db.AppSettings.FirstAsync(ct);
+            _cachedRealIntegrationsOnStaging = row.RealIntegrationsOnStaging;
+            return _cachedRealIntegrationsOnStaging.Value;
+        }
+        finally
+        {
+            Lock.Release();
+        }
+    }
+
+    public async Task SetRealIntegrationsOnStagingAsync(bool enabled, CancellationToken ct = default)
+    {
+        var row = await db.AppSettings.FirstAsync(ct);
+        row.RealIntegrationsOnStaging = enabled;
+        await db.SaveChangesAsync(ct);
+        _cachedRealIntegrationsOnStaging = enabled;
     }
 }

@@ -238,6 +238,13 @@ export interface ConfigStatusDto {
   googleConfigured: boolean;
   resendConfigured: boolean;
   monobankConfigured: boolean;
+  smsClubConfigured: boolean;
+  novaPoshtaSenderConfigured: boolean;
+}
+
+// #432 follow-up: staging-only toggle for real (cost-bearing) SMS/Nova Poshta shipment creation.
+export interface RealIntegrationsOnStagingDto {
+  enabled: boolean;
 }
 
 export interface BackupSnapshotDto {

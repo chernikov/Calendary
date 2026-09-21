@@ -108,6 +108,17 @@ jobs:
             # does not thread this, so staging always falls back to the fixed "0000" code.
             grep -v '^SMSCLUB_API_KEY=' .env > .env.tmp || true; mv .env.tmp .env
             printf 'SMSCLUB_API_KEY=%s\n' "${{ secrets.SMSCLUB_API_KEY }}" >> .env
+            # Prod-only (#432, see docker-compose.prod.yml's comment) — the app's real Nova Poshta
+            # sender identity; deploy-staging.yml does not thread these, so staging always falls
+            # back to a fake tracking number.
+            for key in NOVA_POSHTA_SENDER_COUNTERPARTY_REF NOVA_POSHTA_SENDER_CONTACT_REF NOVA_POSHTA_SENDER_CITY_REF NOVA_POSHTA_SENDER_WAREHOUSE_REF NOVA_POSHTA_SENDERS_PHONE; do
+              grep -v "^${key}=" .env > .env.tmp || true; mv .env.tmp .env
+            done
+            printf 'NOVA_POSHTA_SENDER_COUNTERPARTY_REF=%s\n' "${{ secrets.NOVA_POSHTA_SENDER_COUNTERPARTY_REF }}" >> .env
+            printf 'NOVA_POSHTA_SENDER_CONTACT_REF=%s\n' "${{ secrets.NOVA_POSHTA_SENDER_CONTACT_REF }}" >> .env
+            printf 'NOVA_POSHTA_SENDER_CITY_REF=%s\n' "${{ secrets.NOVA_POSHTA_SENDER_CITY_REF }}" >> .env
+            printf 'NOVA_POSHTA_SENDER_WAREHOUSE_REF=%s\n' "${{ secrets.NOVA_POSHTA_SENDER_WAREHOUSE_REF }}" >> .env
+            printf 'NOVA_POSHTA_SENDERS_PHONE=%s\n' "${{ secrets.NOVA_POSHTA_SENDERS_PHONE }}" >> .env
             # Same Spaces account/creds/region for both stacks — only the bucket is split
             # (DO_SPACES_BUCKET here / DO_SPACES_BUCKET_STAGING in deploy-staging.yml) for cleaner
             # data isolation; backup.sh also scopes each stack to its own restic repo path

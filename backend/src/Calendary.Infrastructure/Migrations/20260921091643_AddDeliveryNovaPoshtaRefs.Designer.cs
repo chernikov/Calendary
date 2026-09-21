@@ -4,6 +4,7 @@ using Calendary.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calendary.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260921091643_AddDeliveryNovaPoshtaRefs")]
+    partial class AddDeliveryNovaPoshtaRefs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,9 +38,6 @@ namespace Calendary.Infrastructure.Migrations
                     b.Property<int>("ImageGenerationProvider")
                         .HasColumnType("int");
 
-                    b.Property<bool>("RealIntegrationsOnStaging")
-                        .HasColumnType("bit");
-
                     b.HasKey("Id");
 
                     b.ToTable("AppSettings");
@@ -47,8 +47,7 @@ namespace Calendary.Infrastructure.Migrations
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222201"),
                             BasePrice = 1600m,
-                            ImageGenerationProvider = 1,
-                            RealIntegrationsOnStaging = false
+                            ImageGenerationProvider = 1
                         });
                 });
 

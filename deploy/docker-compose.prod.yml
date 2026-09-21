@@ -37,9 +37,20 @@ services:
       Monobank__MerchantToken: "${MONOBANK_MERCHANT_TOKEN:-}"
       Monobank__PublicBaseUrl: "https://${DOMAIN}"
       NovaPoshta__ApiKey: "${NOVA_POSHTA_API_KEY:-}"
-      # Deliberately prod-only (see #304's SmsClubService doc comment) — SMS.Club has no sandbox
-      # mode, so staging/local intentionally never get a real key and always use the fixed "0000"
-      # verification code instead of sending real, billed SMS.
+      # Also threaded into docker-compose.staging.yml with the same values (#432 follow-up) —
+      # actually USING these for real shipment creation on staging is gated behind
+      # AppSettings.RealIntegrationsOnStaging (admin-toggleable, default off), not by whether
+      # they're present here. Production always uses them regardless of that flag.
+      NovaPoshta__SenderCounterpartyRef: "${NOVA_POSHTA_SENDER_COUNTERPARTY_REF:-}"
+      NovaPoshta__SenderContactRef: "${NOVA_POSHTA_SENDER_CONTACT_REF:-}"
+      NovaPoshta__SenderCityRef: "${NOVA_POSHTA_SENDER_CITY_REF:-}"
+      NovaPoshta__SenderWarehouseRef: "${NOVA_POSHTA_SENDER_WAREHOUSE_REF:-}"
+      NovaPoshta__SendersPhone: "${NOVA_POSHTA_SENDERS_PHONE:-}"
+      # Also threaded into docker-compose.staging.yml with the same value (#432 follow-up) — SMS.Club
+      # has no sandbox mode, so a real send always costs money and reaches a real phone regardless
+      # of environment; actually using it on staging is gated behind
+      # AppSettings.RealIntegrationsOnStaging (admin-toggleable, default off), not by whether the
+      # key is present here. Production always uses it regardless of that flag.
       SmsClub__ApiKey: "${SMSCLUB_API_KEY:-}"
       # Guarantees an admin account always exists (AdminSeeder, runs at startup) — no environment
       # should ever need a manual DB UPDATE to get admin access.
