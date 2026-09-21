@@ -31,7 +31,11 @@ public class DomainStatusLoggingInterceptor(ILogger<DomainStatusLoggingIntercept
     {
         if (context is null) return;
 
-        foreach (var entry in context.ChangeTracker.Entries<Order>())
+        // .ToList() materializes each snapshot before the loop body runs — adding a new
+        // OrderStatusHistory entity below mutates the ChangeTracker's shared internal state, which
+        // would otherwise invalidate a still-in-progress Entries<Order>() enumerator ("Collection
+        // was modified; enumeration operation may not execute", #434 hotfix).
+        foreach (var entry in context.ChangeTracker.Entries<Order>().ToList())
         {
             if (entry.State == EntityState.Added)
             {
